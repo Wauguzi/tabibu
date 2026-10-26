@@ -143,7 +143,7 @@ The loop from idea to live demo:
 |---|---|
 | GitHub (`Wauguzi/tabibu`, public) | Source control, pull requests, GitHub Actions |
 | GitHub Actions (Very Good Workflows) | Semantic PR, format/analyze/`bloc_lint`/test, spell check, license check |
-| Greptile | Automated review of every pull request, the second approver |
+| Greptile | Automated review of every pull request, the second approver. Its context is `.greptile/`: `files.json` points it at the governing docs, and `rules.md` summarises the conventions a diff does not show |
 | Firebase Console | Auth, Firestore, Storage, Functions, FCM, App Check, Remote Config, Crashlytics, Performance |
 | Meta Model API | Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe, standard (non-contributor) endpoints only |
 | Baseten | Muse Spark Open (`meta-models/muse-spark-open-1026`): reports, alert drafts, patient explanations |
