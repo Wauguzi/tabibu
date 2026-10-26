@@ -20,9 +20,14 @@ need on top (§6).
 
 ## 2. Verified clean
 
-- **No secrets in the repository.** No Firebase config files, keystores,
-  `key.properties`, `.env` files or API-key patterns are tracked (checked
-  with `git ls-files` and `git grep` on 2026-10-27).
+- **No secrets in the repository.** No keystores, `key.properties` or
+  `.env` files are tracked (checked with `git ls-files` and `git grep` on
+  2026-10-27). *Updated 2026-10-27:* `google-services.json`,
+  `GoogleService-Info.plist` and `lib/firebase_options.dart` are now tracked
+  on purpose. They hold public client identifiers (API key, project id, app
+  ids), not secrets: what protects the project is the rules and App Check
+  (T-1 to T-3, T-7), not keeping these files private. Restricting the API
+  keys to their apps in the Google Cloud console is still worth doing.
 - **Signing material is ignored.** `.gitignore` covers `**/android/key.properties`
   and `*.jks`.
 - **No model call from the client.** The app has no model SDK or model key;
@@ -128,4 +133,5 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §2 corrected: the FlutterFire client config files are now tracked deliberately and are not secrets. | Theo |
 | 2026-10-27 | Initial version: clean baseline, three findings on the scaffold, seven clinical-safety rules (S-1 to S-7) and twelve security threats (T-1 to T-12) with controls and proofs, and the remediation roadmap. | Theo |

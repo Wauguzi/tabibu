@@ -1,0 +1,46 @@
+{
+  "project_info": {
+    "project_number": "270369739916",
+    "project_id": "tabibu-86ea2",
+    "storage_bucket": "tabibu-86ea2.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:270369739916:android:488605da76eaf0aa7f17a9",
+        "android_client_info": {
+          "package_name": "com.tabibukenya.tabibu"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "270369739916-6fgpjjijrsorll82tgiast3kpmme33eb.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA7Pus4hozRbsJCjzAwKqASBFIdjYFiC8w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "270369739916-6fgpjjijrsorll82tgiast3kpmme33eb.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "270369739916-o0gq6v5j8it04jlkpj52ecf4qot7647v.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.tabibuke.tabibu"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

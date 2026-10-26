@@ -437,20 +437,29 @@ to see. Greptile is pointed at this section.
 4. **`test_api: any` is listed under `dependencies`**, not
    `dev_dependencies`, and is unconstrained. Move it, or remove it if nothing
    imports it.
-5. **No `firestore.rules`, `firebase.json`, `functions/` or rules test
-   harness exists yet**, and neither do the `make rules-test` and
-   `make deploy-*` targets that drive them. They arrive with the Firebase
-   integration (day 3 of the plan). Until then §10 and §11 describe intent,
-   not enforcement.
+5. **Firebase is connected (Android and iOS) but no `firestore.rules`,
+   `functions/` or rules test harness exists yet**, and neither do the
+   `make rules-test` and `make deploy-*` targets that drive them. Until they
+   land, §10 and §11 describe intent, not enforcement.
 6. **Cache wipe on sign-out costs a full re-download on sign-in.** Acceptable
    at demo volumes; a pilot with real caseloads needs delta sync that
    survives sign-out, which in turn needs a policy decision on health data
    at rest on shared devices.
 7. **iOS App Attest and reCAPTCHA Enterprise site keys are not yet
    provisioned.** App Check stays in debug-provider mode until they are.
+8. **Firebase is not configured for web**, and the web demo is the main
+   judged surface. `DefaultFirebaseOptions.currentPlatform` throws on web,
+   `bootstrap` catches it, and the app starts with no Firebase. Re-run
+   `flutterfire configure` with web selected before any Firebase-backed
+   screen is built.
+9. **All three flavors share one Firebase project** (`tabibu-86ea2`). That is
+   acceptable for the hackathon, but development writes land in the project
+   the demo runs on, so seeded demo data must be kept apart from test data
+   by convention until the flavors get their own projects.
 
 ## 17. Change log
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §16 updated for the Firebase connection: item 5 narrowed to rules and functions; items 8 (web not configured) and 9 (one project for every flavor) added. | Theo |
 | 2026-10-26 | Initial version: target architecture for the three-role app, the Firebase/AI-service split, data and lifecycle conventions, standing rules, and a watchlist of what the scaffold does not yet match. | Theo |
