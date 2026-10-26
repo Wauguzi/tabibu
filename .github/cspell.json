@@ -1,7 +1,10 @@
 {
   "version": "0.2",
   "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
-  "dictionaries": ["vgv_allowed", "vgv_forbidden"],
+  "dictionaries": [
+    "vgv_allowed",
+    "vgv_forbidden"
+  ],
   "dictionaryDefinitions": [
     {
       "name": "vgv_allowed",
@@ -23,6 +26,43 @@
     "Texto",
     "Hola",
     "Mundo",
-    "Saludo"
+    "Saludo",
+    "anonymised",
+    "backgrounded",
+    "Baseten",
+    "behaviour",
+    "Camelyon",
+    "cupertino",
+    "footguns",
+    "freerasp",
+    "geolocator",
+    "grayscale",
+    "Greptile",
+    "hackathon",
+    "IDSR",
+    "ITIL",
+    "localisation",
+    "localises",
+    "micrometres",
+    "millimetre",
+    "Naskh",
+    "Noto",
+    "parasitemia",
+    "practised",
+    "preread",
+    "RACI",
+    "snackbars",
+    "Tabibu",
+    "tappable",
+    "Talsec",
+    "Theo",
+    "unreviewed",
+    "viewports",
+    "viridis",
+    "watchlist",
+    "Wauguzi",
+    "WCAG",
+    "worklist",
+    "xxlg"
   ]
 }
