@@ -133,7 +133,8 @@ watch error rates; Authentication's enforcement is still in preview.
 | Play Integrity registered for the Android app | Done 2026-10-27 |
 | iOS attestation provider | Not registered: needs the Apple Developer account |
 | Debug token created (`make app-check-token`) and registered as `theo-macbook-dev` on the Android and iOS apps | Done 2026-10-27 |
-| Verified requests from `make run-dev` in the console | Pending: the scaffold makes no Firestore or Auth calls; checked once the auth branch does |
+| iOS debug run (`Launch development`, iPhone) accepts the Keychain token | Done 2026-10-27: no "Failed to exchange debug token" in the log. The SDK's startup message always prints its locally generated token, not the one in use, so that line is not a failure |
+| Verified requests in the console | Pending: the scaffold makes no Firestore or Auth calls; checked once the auth branch does |
 
 - Revoke `theo-macbook-dev` in the console if this machine is lost, then
   create a new token with `make app-check-token`.
