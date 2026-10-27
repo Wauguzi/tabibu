@@ -26,7 +26,11 @@ jobs:
     with:
       # Setting a Flutter version is what makes the workflow run `flutter pub
       # get`; without it, it runs `dart pub get` and fails on a Flutter app.
-      flutter_version: "3.47.x"
+      # "3.x" resolves to the newest 3.* stable, so CI follows local Flutter
+      # upgrades. Floating is safe here because this job only resolves
+      # dependencies. Never point it at pubspec.yaml: flutter-action cannot
+      # match a caret range like ^3.47.0 and the job fails.
+      flutter_version: "3.x"
       allowed: "MIT,BSD-3-Clause,BSD-2-Clause,Apache-2.0"
       # Never shipped in an app build, so their licenses do not apply to it:
       # antlr4 and pubspec_lock_parse arrive only through dev tools

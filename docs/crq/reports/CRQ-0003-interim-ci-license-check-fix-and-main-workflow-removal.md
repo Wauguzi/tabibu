@@ -50,6 +50,15 @@
 7. **Dependabot runs weekly** *(amendment, 2026-10-27)*, not daily, for both
    GitHub Actions and pub. Dependabot updates a SHA pin and its version
    comment together, so pinning does not freeze the workflow.
+8. **Flutter version floats within 3** *(amendment, 2026-10-27)*:
+   `flutter_version` is `"3.x"` instead of `"3.47.x"`. subosito/flutter-action
+   v2.23.0 matches by prefix and takes the newest stable, so `3.x` follows a
+   local upgrade to 3.48 without a workflow edit, where `3.47.x` would stay on
+   3.47 and fail `flutter pub get` once a dependency needs 3.48. Floating is
+   safe for this job because it only resolves dependencies. Build, analyze and
+   test workflows should instead match local Flutter exactly (an `.fvmrc`
+   through `flutter_version_file`). `pubspec.yaml` cannot be the version file:
+   the action does not understand the caret range `^3.47.0` and fails.
 
 ## 2. Business justification
 
