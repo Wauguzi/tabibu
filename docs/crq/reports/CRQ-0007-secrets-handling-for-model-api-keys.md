@@ -162,10 +162,11 @@ Google Cloud console), so the alerts were closed as "won't fix" on
 in the threat model §2. When gitleaks is installed, the same three files
 will need an exemption in `.gitleaks.toml`, scoped to those paths only.
 
-**Signing fingerprints.** The upload keystore's SHA-1 and SHA-256 are
-registered on the Firebase Android app, and `google-services.json` was
-downloaded again; it now carries the Android OAuth client for that
-certificate.
+**Signing fingerprints.** The SHA-1 and SHA-256 of the upload keystore and
+the debug keystore are registered on the Firebase Android app, and
+`google-services.json` was downloaded again; it now carries an Android
+OAuth client for each certificate. The Play app-signing key is added the
+same way once the Play Console app exists.
 
 ## 10. Related records
 

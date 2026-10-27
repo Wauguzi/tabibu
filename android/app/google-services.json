@@ -22,6 +22,14 @@
           }
         },
         {
+          "client_id": "270369739916-8s4bupbi6a3q2ccl02g23spa2elscals.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tabibukenya.tabibu",
+            "certificate_hash": "a188169d11286658164547ef63781a461637608e"
+          }
+        },
+        {
           "client_id": "270369739916-6fgpjjijrsorll82tgiast3kpmme33eb.apps.googleusercontent.com",
           "client_type": 3
         }
