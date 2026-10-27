@@ -19,7 +19,7 @@ LABELS=(
   "type/docs|0075CA|Documentation only"
   "type/chore|BFDADC|Housekeeping"
 
-  "area/auth|1F883D|Sign-in, roles, profile"
+  "area/auth|1F883D|Sign-in, roles, profiles, patients, practitioners, facilities"
   "area/cases|2DA44E|Cases, intake, ordering"
   "area/pathology|116329|Worklist, pre-read, results"
   "area/alerts|BF8700|Outbreak alerts"
