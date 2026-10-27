@@ -1,0 +1,8 @@
+flutter_launcher_icons:
+  android: true
+  ios: true
+  remove_alpha_ios: true
+  background_color_ios: "#1F6F78"
+  image_path: "assets/icons/tabibu_logo.png"
+  adaptive_icon_background: "#1F6F78"
+  adaptive_icon_foreground: "assets/icons/tabibu_logo.png"
