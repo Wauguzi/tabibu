@@ -27,11 +27,22 @@ coherent across all three while making one thing unmistakable everywhere:
 
 ### 2.1 Color
 
-Source of truth (to be created): `lib/core/constants/app_colors.dart`,
-surfaced through `ColorScheme` and an `AppStatusColors` theme extension.
+Source of truth: `lib/core/constants/app_colors.dart`, surfaced through
+`ColorScheme` and the `AppStatusColors` theme extension, both built by
+`buildTheme` in `theme_builder.dart` (CRQ-0017). The light values are
+provisional. The dark values are lighter tints that keep text roles at
+WCAG AA against the dark surface.
 
-Palette values are not chosen yet. The **semantic roles** are fixed now, so
-every screen is built against roles and the values can land in one change:
+**Draft versus signed in grayscale.** The first light values gave `aiDraft`
+and `signed` the same luminance (a difference of 0.002), and no small change
+fixes that while keeping each label at 4.5:1 on its container. So the two
+frames are built differently: the AI draft is a pale working surface
+(`aiDraftContainer` `#FFF1D6`), and the signed report is a deep green panel
+(`signedContainer` `#14532D`, `signed` `#A9DFBC` on it, 6.06:1). Green text on
+white uses `success`, never `signed`. A test holds the accents at least 0.15
+apart in relative luminance.
+
+Every screen is built against these **semantic roles**:
 
 | Role | Used for | Constraint |
 |---|---|---|
@@ -226,19 +237,20 @@ Quotation marks are straight double quotes in both languages.
 
 ## 8. Known debt / not-yet-adopted patterns
 
-1. **No palette yet.** Roles are fixed (§2.1); values and the icon set land
-   in the first design CRQ.
-2. **The constants files in §2 do not exist yet.** The scaffold uses an
-   inline `ThemeData`.
+1. **Provisional palette, no icon set.** Values landed with CRQ-0017 and
+   await design review; the icon set is still to come.
+2. **Resolved (CRQ-0017).** The constants files in §2 exist and
+   `buildTheme` replaces the scaffold's inline `ThemeData`.
 3. **Noto Naskh Arabic is bundled with no Arabic locale planned.** Remove it,
    or keep it deliberately and record why.
-4. **The `sw` locale is not wired yet**; the scaffold's second locale is
-   `es`. See [`mobile_architecture.md` §16](../../architecture/reports/mobile_architecture.md#16-known-architectural-debt--watchlist)
-   item 1 before adding it.
+4. **Resolved (CRQ-0017).** `sw` replaces the scaffold's `es`, with the
+   delegates fix in [`mobile_architecture.md` §16](../../architecture/reports/mobile_architecture.md#16-known-architectural-debt--watchlist)
+   item 1.
 
 ## 9. Change log
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §2.1 provisional palette and the draft-versus-signed panel; §8 items 1, 2 and 4 updated (CRQ-0017). | Theo |
 | 2026-10-27 | §7 clinical vocabulary for `sw`, pending native review (CRQ-0014). | Theo |
 | 2026-10-27 | Initial version: semantic color roles, the type pairing, the 4-point spacing scale, clinical UI conventions (AI draft vs signed, confidence, urgency, viewer, patient copy), motion rules, and accessibility targets. | Theo |

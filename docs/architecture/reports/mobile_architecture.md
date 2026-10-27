@@ -110,9 +110,10 @@ Three rules follow from the diagram and are not negotiable:
 
 ## 4. Folder structure
 
-**Today** the app is the Very Good CLI scaffold: `lib/app/`, `lib/counter/`
-(the template's example feature, to be deleted when the first real feature
-lands), `lib/l10n/`, `bootstrap.dart` and three flavor entrypoints.
+**Today** the app has `lib/app/` (a placeholder home until the router
+lands), `lib/core/constants/` (the theme), `lib/core/services/`
+(`GeohashService`), `lib/l10n/` (`en`, `sw`), `bootstrap.dart` and three
+flavor entrypoints. No feature folder exists yet.
 
 **Target** layout, which every feature is built to:
 
@@ -650,14 +651,13 @@ to see. Greptile is pointed at this section.
 
 ## 16. Known architectural debt / watchlist
 
-1. **The scaffold's localizations delegates are wrong for any non-English
-   locale** (`lib/app/view/app.dart`). The app imports `material_ui` but
-   passes `AppLocalizations.localizationsDelegates`, which is exactly the
-   defect rule 1 describes. It is hidden today because the second locale is
-   the template's Spanish and no screen has been tested in it. It must be
-   fixed in the same change that replaces `es` with `sw`.
-2. **The counter example feature is still in `lib/` and `test/`.** Delete it
-   when the first real feature lands.
+1. **Resolved (CRQ-0017).** The scaffold passed the generated
+   `AppLocalizations.localizationsDelegates`, which crashes `material_ui` in
+   any non-English locale. `tabibuLocalizationsDelegates` in `app.dart`
+   replaces it, `test/helpers/pump_app.dart` uses the same list, and
+   `test/app/localizations_delegates_test.dart` fails if the generated list
+   returns.
+2. **Resolved (CRQ-0017).** The counter example is gone.
 3. **Every `uses:` is pinned to a full commit SHA with the release in a
    trailing comment** (`license_check.yaml` is, since CRQ-0003). A tag can be
    moved; a SHA cannot. `prod_apk.yaml` follows the same rule (CRQ-0008).
@@ -695,6 +695,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §4 today's tree; §16 items 1 and 2 resolved (CRQ-0017). | Theo |
 | 2026-10-27 | §14 function tests and the rules-test discipline; §16 item 5: identity rules and functions exist, not yet deployed (CRQ-0016). | Theo |
 | 2026-10-27 | §1 reach: the Nairobi facility count and the national census figures, linked to their sources. §6.2 rewritten for the generated assets: all 1,447 facilities with `isOperational`, approximate locations, sanitising rules; `make facilities` (CRQ-0015). | Theo |
 | 2026-10-27 | §6.1 identity collections (`patients`, `doctors`, `practitioners`), their callables and Storage paths; §6.2 bundled facility data; typeIds 0–2 reserved; §4 features and §11 roles updated (CRQ-0014). | Theo |

@@ -18,8 +18,12 @@ gen-watch:
 l10n:
 		flutter gen-l10n
 
+# Same file set as the format check in prod_apk.yaml; change both together.
 fmt:
-		dart fix --apply && dart format lib test
+		dart fix --apply
+		find lib test -type f -name "*.dart" \
+		    ! -path "lib/l10n/gen/*" ! -path "lib/gen/*" ! -name "firebase_options.dart" -print0 \
+		    | xargs -0 dart format
 
 commas:
 		dart fix --apply
