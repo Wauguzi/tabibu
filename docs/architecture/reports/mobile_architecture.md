@@ -28,6 +28,20 @@ the same way, and so that a reviewer can check a change against a written
 rule rather than a guess. Where the code does not yet match this document,
 the gap is listed in §16 rather than glossed over.
 
+**Reach.** The pilot is Nairobi, which had the most health facilities of any
+county in the Ministry of Health's 2023 census: 1,319 targeted
+([Kenya Health Facility Census, September 2023, §3.1](https://www.health.go.ke/sites/default/files/2024-01/Kenya%20Health%20Facility%20Census%20Report%20September%202023.pdf#page=20)).
+Tabibu ships the Ministry's current Nairobi list from the
+[Kenya Master Health Facility List](https://api.kmhfr.health.go.ke/media/KMHFL_Implementation_Guide_Jan_2020.pdf):
+**1,447 facilities across all 17 sub-counties, 1,241 of them operational**,
+and a doctor or pathologist at any operational one can join from the first
+day (§6.2). The country is the next step. The same census targeted 14,366
+listed facilities across the 47 counties and visited 14,883, 2,633 of which
+were not yet on the list
+([Table 1](https://www.health.go.ke/sites/default/files/2024-01/Kenya%20Health%20Facility%20Census%20Report%20September%202023.pdf#page=20)).
+Adding a county is a data step, the same script run on that county's
+export, with no change to the data model.
+
 ## 2. Tech stack
 
 Versions are the constraints in `pubspec.yaml`; `pubspec.lock` is
@@ -377,22 +391,41 @@ document only the patient and their care team can read.
 ### 6.2 Reference data shipped with the app
 
 The pilot is Nairobi. Three JSON assets, produced by
-`scripts/facilities/` from the Ministry of Health's facility list, are
-read from the bundle and never written:
+`scripts/facilities/` (`make facilities`) from the Ministry of Health's
+exports, are read from the bundle and never written:
 
 | Asset | Holds |
 |---|---|
-| `assets/data/facilities_nairobi.json` | Every facility: `facilityId`, `mflCode`, `name`, `kephLevel`, `facilityType`, `owner`, `ward`, `subCounty`, `county`, `latitude`, `longitude`, `geohash` (9), `isLab`, `operationStatus`, `active` |
-| `assets/data/counties.json` | All 47 counties, with their official codes |
-| `assets/data/sub_counties_nairobi.json` | Nairobi's sub-counties, each with its centre and its 9-character geohash |
+| `assets/data/facilities_nairobi.json` | All 1,447 facilities: `facilityId` (the Ministry's id), `mflCode`, `name`, `kephLevel`, `facilityType`, `owner`, `wardId`, `ward`, `subCountyId`, `subCounty`, `countyId`, `county`, `latitude`, `longitude`, `geohash` (9), `isLocationApproximate`, `isLab`, `operationStatus`, `isOperational` |
+| `assets/data/counties.json` | All 47 counties, with their official codes (Nairobi is 47) |
+| `assets/data/sub_counties_nairobi.json` | Nairobi's 17 sub-counties, each with its id, its centre and its 9-character geohash |
 
-The script turns `null` into `''`, `0` or `false`, trims every string, turns
-`is_lab` into a bool, de-duplicates by MFL code, and is safe to run again
-as more batches arrive. `functions/` holds a byte-identical copy, so the
-server checks a facility against its own list rather than trusting a
-client; a test compares the two. A patient outside Nairobi can still sign
-up: they see a pilot notice, and the directory lists every practitioner
-rather than the nearest.
+What the script does to the export, and why:
+
+- **Keyed by the Ministry's `id`.** Ten facilities have no MFL code (the
+  export says `"None"`); their `mflCode` is `''`.
+- **Closed facilities are kept**, with `isOperational: false` (206 of
+  them). The picker greys them out, and `completePractitionerSignUp`
+  refuses one, so the full list can be quoted without anyone joining a
+  closed facility. A facility is operational only when the export says
+  both `active` and `Operational`.
+- **223 facilities have no coordinates** (exported as `0, 0`). They take
+  their sub-county's centre and `isLocationApproximate: true`; hashing
+  `0, 0` would put them in the Gulf of Guinea.
+- **A sub-county's centre** is the mean of its located facilities.
+- Fields that are null in every row (`facility_type_category`,
+  `owner_type`, `constituency`, `phone_number`, `email`) are dropped; every
+  other `null` becomes `''`, `0` or `false`, and whitespace is trimmed and
+  collapsed.
+- Rows outside Nairobi, coordinates outside Kenya, a sub-county with no
+  located facility, or a county list other than 1 to 47 stop the run.
+  Repeated rows from overlapping batches are kept once, so the script is
+  safe to run again.
+
+`functions/` holds a byte-identical copy, so the server checks a facility
+against its own list rather than trusting a client; a test compares the
+two. A patient outside Nairobi can still sign up: they see a pilot notice,
+and the directory lists every practitioner rather than the nearest.
 
 ## 7. Dependency injection
 
@@ -653,6 +686,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §1 reach: the Nairobi facility count and the national census figures, linked to their sources. §6.2 rewritten for the generated assets: all 1,447 facilities with `isOperational`, approximate locations, sanitising rules; `make facilities` (CRQ-0015). | Theo |
 | 2026-10-27 | §6.1 identity collections (`patients`, `doctors`, `practitioners`), their callables and Storage paths; §6.2 bundled facility data; typeIds 0–2 reserved; §4 features and §11 roles updated (CRQ-0014). | Theo |
 | 2026-10-27 | §13: iOS target 15.0 and Swift Package Manager (CRQ-0012). | Theo |
 | 2026-10-27 | §10 Remote Config at startup: defaults, fetch bounds, and the force-update parameters (CRQ-0011). | Theo |

@@ -126,6 +126,7 @@ flutter:
         - asset: fonts/AROneSans-Bold.ttf
           weight: 700
   assets:
+    - assets/data/
     - assets/images/
     - assets/icons/
     - fonts/NotoNaskhArabic-Regular.ttf

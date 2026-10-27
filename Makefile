@@ -189,6 +189,15 @@ pods-ios-target:
 		if [ -f ios/Podfile ]; then sed -i '' "s/^platform :ios, '[0-9.]*'/platform :ios, '$(IOS_MIN)'/" ios/Podfile; fi
 		@echo "iOS deployment target → $(IOS_MIN)"
 
+# Rebuilds assets/data/ from the Ministry of Health exports (RTF or text), e.g.
+# make facilities FACILITIES=~/Downloads/nairobi_facilities_moh.rtf COUNTIES=~/Downloads/kenya_counties_moh.rtf
+facilities:
+		@test -f "$(wildcard $(FACILITIES))" -a -f "$(wildcard $(COUNTIES))" || { echo "usage: make facilities FACILITIES=<file> COUNTIES=<file>"; exit 1; }
+		@mkdir -p build/facilities
+		textutil -convert txt -output build/facilities/facilities.txt "$(wildcard $(FACILITIES))"
+		textutil -convert txt -output build/facilities/counties.txt "$(wildcard $(COUNTIES))"
+		dart run scripts/facilities/build_facility_assets.dart build/facilities/facilities.txt build/facilities/counties.txt assets/data
+
 test:
 		flutter test --coverage --reporter=expanded
 
@@ -264,6 +273,6 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target test test-randomize test-watch coverage \
+	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
 	emulators rules-test functions-test \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting
