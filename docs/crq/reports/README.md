@@ -25,6 +25,7 @@ patient reads, or the alert path.
 | [CRQ-0016](./CRQ-0016-identity-functions-and-rules.md) | Identity functions, Firestore and Storage rules, and their emulator tests | 2026-10-27 | Implemented — deploy after review |
 | [CRQ-0017](./CRQ-0017-foundations-theme-and-swahili.md) | Foundations: counter removed, Swahili replaces Spanish with the localizations-delegates fix, and the design-system theme | 2026-10-27 | Implemented — palette provisional |
 | [CRQ-0018](./CRQ-0018-demo-seed-and-google-sign-in-on-ios.md) | Demo seed (one account per role, an alert approver, clinic patients) and the iOS URL scheme for Google sign-in | 2026-10-27 | Implemented on the emulators — live seed pending |
+| [CRQ-0019](./CRQ-0019-identity-models-errors-and-di.md) | Identity models, facility reference data, enums, translated errors, and dependency injection | 2026-10-27 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

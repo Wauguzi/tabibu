@@ -237,9 +237,9 @@ The registry below is the record. Add a row in the same commit as the model.
 
 | typeId | Class | Feature | Added |
 |---|---|---|---|
-| 0 | `PatientHive` | `patients` | Reserved 2026-10-27 (CRQ-0014) |
-| 1 | `DoctorHive` | `profile` | Reserved 2026-10-27 (CRQ-0014) |
-| 2 | `PractitionerHive` | `practitioners` | Reserved 2026-10-27 (CRQ-0014) |
+| 0 | `PatientHive` | `patients` | Added 2026-10-27 (CRQ-0019) |
+| 1 | `DoctorHive` | `profile` | Added 2026-10-27 (CRQ-0019) |
+| 2 | `PractitionerHive` | `practitioners` | Added 2026-10-27 (CRQ-0019) |
 
 A reserved row becomes "Added" in the commit that creates the class. Reserving
 ahead stops two agents working in parallel from taking the same id.

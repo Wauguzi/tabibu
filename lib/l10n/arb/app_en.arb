@@ -3,5 +3,253 @@
     "appTitle": "Tabibu",
     "@appTitle": {
         "description": "The app name, shown on the placeholder home screen"
+    },
+    "errorNoInternet": "No internet access.",
+    "@errorNoInternet": {
+        "description": "Shown when an action needs the internet and there is none"
+    },
+    "errorInvalidEmail": "The email address is not valid.",
+    "@errorInvalidEmail": {
+        "description": "Shown when an email fails validation; also a Cloud Functions refusal key"
+    },
+    "errorUserDisabled": "This account has been disabled.",
+    "@errorUserDisabled": {
+        "description": "Shown when signing in to a disabled account"
+    },
+    "errorUserNotFound": "No account found with this email.",
+    "@errorUserNotFound": {
+        "description": "Shown when signing in with an unknown email"
+    },
+    "errorWrongPassword": "Incorrect password. Please try again.",
+    "@errorWrongPassword": {
+        "description": "Shown when the password does not match"
+    },
+    "errorEmailAlreadyInUse": "An account already exists with this email. Sign in instead.",
+    "@errorEmailAlreadyInUse": {
+        "description": "Shown when signing up with an email that already has an account"
+    },
+    "errorWeakPassword": "Password is too weak. Use at least 6 characters.",
+    "@errorWeakPassword": {
+        "description": "Shown when the chosen password is too weak"
+    },
+    "errorOperationNotAllowed": "This sign-in method is not enabled.",
+    "@errorOperationNotAllowed": {
+        "description": "Shown when the sign-in method is disabled"
+    },
+    "errorTooManyRequests": "Too many attempts. Please try again later.",
+    "@errorTooManyRequests": {
+        "description": "Shown when the account is temporarily rate-limited"
+    },
+    "errorInvalidCredential": "Invalid credentials. Please try again.",
+    "@errorInvalidCredential": {
+        "description": "Shown when the sign-in credential is rejected"
+    },
+    "errorAccountExistsWithDifferentCredential": "An account already exists with this email using a different sign-in method.",
+    "@errorAccountExistsWithDifferentCredential": {
+        "description": "Shown when the email has an account under another sign-in method"
+    },
+    "errorRequiresRecentLogin": "Please sign in again to complete this action.",
+    "@errorRequiresRecentLogin": {
+        "description": "Shown when a sensitive action needs a fresh sign-in"
+    },
+    "errorCredentialAlreadyInUse": "This credential is already linked to another account.",
+    "@errorCredentialAlreadyInUse": {
+        "description": "Shown when linking a credential that another account holds"
+    },
+    "errorExpiredActionCode": "This link has expired. Please request a new one.",
+    "@errorExpiredActionCode": {
+        "description": "Shown when an email action link has expired"
+    },
+    "errorInvalidActionCode": "This link is invalid. Please request a new one.",
+    "@errorInvalidActionCode": {
+        "description": "Shown when an email action link is invalid"
+    },
+    "errorUserTokenExpired": "Your session has expired. Please sign in again.",
+    "@errorUserTokenExpired": {
+        "description": "Shown when the session token has expired"
+    },
+    "errorPermissionDenied": "You do not have permission to perform this action.",
+    "@errorPermissionDenied": {
+        "description": "Shown when the server refuses an action for lack of permission"
+    },
+    "errorDataNotFound": "The requested data was not found.",
+    "@errorDataNotFound": {
+        "description": "Shown when a requested record does not exist"
+    },
+    "errorServiceUnavailable": "Service temporarily unavailable. Please try again.",
+    "@errorServiceUnavailable": {
+        "description": "Shown when the backend is temporarily unreachable"
+    },
+    "errorRequestTimeout": "Request timed out. Please try again.",
+    "@errorRequestTimeout": {
+        "description": "Shown when a request takes too long"
+    },
+    "errorUserNotRegistered": "This Google account is not registered yet. Sign up to continue.",
+    "@errorUserNotRegistered": {
+        "description": "Shown when signing in with Google before signing up"
+    },
+    "errorUnknown": "Something went wrong. Please try again.",
+    "@errorUnknown": {
+        "description": "Fallback for any error with no specific message"
+    },
+    "errorUnauthenticated": "You are not signed in. Sign in and try again.",
+    "@errorUnauthenticated": {
+        "description": "Refusal when calling a function without signing in"
+    },
+    "errorEmailRequired": "An email address is required to continue.",
+    "@errorEmailRequired": {
+        "description": "Refusal when the account has no email address"
+    },
+    "errorInvalidName": "The name is not valid. Check it and try again.",
+    "@errorInvalidName": {
+        "description": "Refusal when a name fails validation"
+    },
+    "errorInvalidSex": "The sex selected is not valid.",
+    "@errorInvalidSex": {
+        "description": "Refusal when the selected sex is not valid"
+    },
+    "errorInvalidDateOfBirth": "The date of birth is not valid.",
+    "@errorInvalidDateOfBirth": {
+        "description": "Refusal when the date of birth is not valid"
+    },
+    "errorInvalidPhone": "The phone number is not valid. Check it and try again.",
+    "@errorInvalidPhone": {
+        "description": "Refusal when the phone number is not valid"
+    },
+    "errorInvalidCounty": "Select a valid county.",
+    "@errorInvalidCounty": {
+        "description": "Refusal when the selected county is not valid"
+    },
+    "errorInvalidSubCounty": "Select a valid sub-county.",
+    "@errorInvalidSubCounty": {
+        "description": "Refusal when the selected sub-county is not valid"
+    },
+    "errorInvalidLanguage": "The language selected is not valid.",
+    "@errorInvalidLanguage": {
+        "description": "Refusal when the selected language is not valid"
+    },
+    "errorRoleAlreadySet": "This account is already registered. Sign in instead.",
+    "@errorRoleAlreadySet": {
+        "description": "Refusal when the account already has a role"
+    },
+    "errorPatientAlreadyRegistered": "This patient is already registered.",
+    "@errorPatientAlreadyRegistered": {
+        "description": "Refusal when the patient already has an account"
+    },
+    "errorPatientExists": "A patient record already exists with these details.",
+    "@errorPatientExists": {
+        "description": "Refusal when a record already holds this phone and birth date"
+    },
+    "errorDoctorsOnly": "Only doctors can perform this action.",
+    "@errorDoctorsOnly": {
+        "description": "Refusal when a non-doctor calls a doctors-only function"
+    },
+    "errorInvalidPatient": "The patient selected is not valid.",
+    "@errorInvalidPatient": {
+        "description": "Refusal when the selected patient is not valid"
+    },
+    "errorAccountNotFound": "No account found with these details.",
+    "@errorAccountNotFound": {
+        "description": "Refusal when no account matches the given details"
+    },
+    "errorAccountAlreadyHasRole": "That account is already registered on Tabibu, so it cannot be linked to this record.",
+    "@errorAccountAlreadyHasRole": {
+        "description": "Refusal when linking an account that already has a role"
+    },
+    "errorAlreadyLinked": "This record is already linked to an account.",
+    "@errorAlreadyLinked": {
+        "description": "Refusal when the record is already linked to an account"
+    },
+    "errorInvalidRole": "Choose whether you are a doctor or a pathologist.",
+    "@errorInvalidRole": {
+        "description": "Refusal when the role is not valid"
+    },
+    "errorTermsRequired": "Accept the terms to continue.",
+    "@errorTermsRequired": {
+        "description": "Refusal when the terms were not accepted"
+    },
+    "errorInvalidKmpdcNumber": "The KMPDC number is not valid. Check it and try again.",
+    "@errorInvalidKmpdcNumber": {
+        "description": "Refusal when the KMPDC number is not valid"
+    },
+    "errorInvalidFacility": "Select a valid facility.",
+    "@errorInvalidFacility": {
+        "description": "Refusal when the selected facility is not valid"
+    },
+    "errorFacilityNotOperational": "This facility is not operational. Select another one.",
+    "@errorFacilityNotOperational": {
+        "description": "Refusal when the selected facility is closed"
+    },
+    "errorInvalidTitle": "Select a valid title.",
+    "@errorInvalidTitle": {
+        "description": "Refusal when the selected title is not valid"
+    },
+    "errorInvalidPicture": "The picture is not valid. Choose another one.",
+    "@errorInvalidPicture": {
+        "description": "Refusal when the uploaded picture is not valid"
+    },
+    "errorInvalidSpecialization": "The specialization is not valid.",
+    "@errorInvalidSpecialization": {
+        "description": "Refusal when the specialization is not valid"
+    },
+    "errorInvalidBio": "The biography is not valid. Check it and try again.",
+    "@errorInvalidBio": {
+        "description": "Refusal when the biography is not valid"
+    },
+    "errorInvalidLicense": "The license is not valid. Check it and try again.",
+    "@errorInvalidLicense": {
+        "description": "Refusal when the license is not valid"
+    },
+    "errorKmpdcNumberInUse": "This KMPDC number is already registered. Check it, or contact support.",
+    "@errorKmpdcNumberInUse": {
+        "description": "Refusal when another account holds the KMPDC number"
+    },
+    "errorAdminOnly": "Only an administrator can perform this action.",
+    "@errorAdminOnly": {
+        "description": "Refusal when a non-admin calls an admin-only function"
+    },
+    "errorInvalidPractitioner": "The practitioner selected is not valid.",
+    "@errorInvalidPractitioner": {
+        "description": "Refusal when the selected practitioner is not valid"
+    },
+    "errorInvalidDecision": "The decision is not valid.",
+    "@errorInvalidDecision": {
+        "description": "Refusal when the verification decision is not valid"
+    },
+    "errorPractitionerPendingVerification": "Your account is waiting for verification. Check back later.",
+    "@errorPractitionerPendingVerification": {
+        "description": "Shown when a pending practitioner reaches for a clinical route"
+    },
+    "errorNoRoleAssigned": "This account is not set up yet. Finish signing up, or contact support.",
+    "@errorNoRoleAssigned": {
+        "description": "Shown when the signed-in account has no role claim"
+    },
+    "sexMale": "Male",
+    "@sexMale": {
+        "description": "Label for the male sex option"
+    },
+    "sexFemale": "Female",
+    "@sexFemale": {
+        "description": "Label for the female sex option"
+    },
+    "verificationStatusPending": "Pending",
+    "@verificationStatusPending": {
+        "description": "Label for a practitioner awaiting verification"
+    },
+    "verificationStatusVerified": "Verified",
+    "@verificationStatusVerified": {
+        "description": "Label for a verified practitioner"
+    },
+    "verificationStatusRejected": "Rejected",
+    "@verificationStatusRejected": {
+        "description": "Label for a practitioner whose verification was rejected"
+    },
+    "languageEn": "English",
+    "@languageEn": {
+        "description": "Name of the English language option"
+    },
+    "languageSw": "Kiswahili",
+    "@languageSw": {
+        "description": "Name of the Kiswahili language option"
     }
 }
