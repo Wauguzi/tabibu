@@ -3,7 +3,10 @@
 adb:
 		adb logcat -s flutter
 
+# The generator turns a 16-bit logo into a black iOS icon when it strips alpha (CRQ-0021).
 icons:
+		@bits=$$(sips -g bitsPerSample assets/icons/tabibu_logo.png | awk '/bitsPerSample/ {print $$2}'); \
+		  test "$$bits" = "8" || { echo "assets/icons/tabibu_logo.png is $$bits-bit; export it as 8-bit PNG."; exit 1; }
 		dart run flutter_launcher_icons
 
 splash:
