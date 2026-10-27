@@ -297,8 +297,13 @@ In summary:
 - **App Check**: Play Integrity on Android, App Attest on iOS, reCAPTCHA
   Enterprise on the web demo. Enforced on Firestore, Storage and Functions.
 - **RASP**: freeRASP, configured in `core/constants/rasp_config.dart`.
-- **Secrets**: no model or service key is in the app. The AI service holds
-  its keys in Modal secrets. Release signing material lives in CI secrets.
+- **Secrets**: no model or service key is in the app, in any form: not in
+  `--dart-define`, not in a Flutter asset, not in Remote Config (Firebase's
+  own guidance; every app instance can read it). The AI service reads its
+  keys from a Modal secret, Cloud Functions from Firebase Secret Manager, and
+  local development from the macOS Keychain through `make ai-dev`. Remote
+  Config carries non-secret settings only: model ids, base URLs, thresholds,
+  kill switches. Release signing material lives in CI secrets (CRQ-0007, T-13).
 - **Kill switches**: Remote Config flags (`preread_enabled`,
   `alerts_delivery_enabled`, `patient_explanations_enabled`) let me take a
   misbehaving AI path offline without a release. This is the first step of a
@@ -477,6 +482,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §10 sets where secrets may live, and that Remote Config never carries one (CRQ-0007). | Theo |
 | 2026-10-27 | §13 describes the repository-wide spell check and the Firebase `make` targets (CRQ-0006). | Theo |
 | 2026-10-27 | §13 adds the fastlane release lanes (CRQ-0005). | Theo |
 | 2026-10-27 | §13 rewritten for the interim CI: `main.yaml` removed pending purpose-built workflows; only the license check runs in CI, now fixed for Flutter; every other gate is a local `make` target. §16 item 3 updated; the license check is now pinned to a commit SHA. | Theo |

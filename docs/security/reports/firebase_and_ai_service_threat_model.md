@@ -107,6 +107,7 @@ These are the rules whose breach is a P1 even when no attacker is involved
 | T-10 | A tampered or repackaged app talks to the backend | freeRASP; App Check attestation | freeRASP configured with release signing hashes | Planned |
 | T-11 | A case read from a shared clinic phone after sign-out | Sign-out wipes case boxes and rotates the Hive key; biometric re-entry option | Unit test on sign-out wipe | Planned |
 | T-12 | A prompt injected through free-text notes changes the draft's structure | Notes passed as data fields, never instructions; schema validation rejects off-schema output | Service test with injection fixtures | Planned |
+| T-13 | A model API key leaks through the repository, the app bundle or Remote Config. Keys pushed to public GitHub are typically abused within minutes, and deleting the commit does not undo it | Keys live only in Modal secrets, Firebase Secret Manager and the macOS Keychain (`make keys-add`, `make ai-dev`). `.env` files are ignored and hold non-secret settings only. No key in `--dart-define`, Flutter assets or Remote Config, which serves every app instance and is fetchable with the public client config. GitHub push protection for the account, plus `make secrets` (gitleaks over history and staged changes). On a leak: revoke first, then clean up | `git check-ignore` on `.env`; `make secrets` clean; release-build string scan (shared with T-4) | Partly in place: ignore rules, Keychain targets and scan target done; repository secret scanning and gitleaks install pending |
 
 ## 5. Not applicable
 
@@ -140,6 +141,7 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §4.2 adds T-13: API keys in the repository, the app bundle or Remote Config (CRQ-0007). | Theo |
 | 2026-10-27 | §3 tag-pinning finding resolved for `license_check.yaml` (pinned to a commit SHA). | Theo |
 | 2026-10-27 | §3 tag-pinning finding moved from the removed `main.yaml` to `license_check.yaml` and its successors. | Theo |
 | 2026-10-27 | §2 corrected: the FlutterFire client config files are now tracked deliberately and are not secrets. | Theo |

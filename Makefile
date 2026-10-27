@@ -34,7 +34,7 @@ bloc-lint:
 
 spell:
 		npx --yes cspell@8 --no-progress \
-		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/*" \
+		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/*" "ai_service/*" .gitignore \
 		    Makefile Gemfile pubspec.yaml "lib/**/*.dart" "test/**/*.dart"
 
 # Same allow-list and skip list as .github/workflows/license_check.yaml; change both together.
@@ -44,6 +44,12 @@ licenses:
 		    --allowed="MIT,BSD-3-Clause,BSD-2-Clause,Apache-2.0" \
 		    --dependency-type="direct-main,transitive" \
 		    --skip-packages="antlr4,pubspec_lock_parse,dbus,geoclue,gsettings"
+
+# Scans committed history, then staged changes. Install: brew install gitleaks.
+secrets:
+		@command -v gitleaks >/dev/null 2>&1 || { echo "gitleaks not found: brew install gitleaks"; exit 1; }
+		gitleaks git --redact --verbose .
+		gitleaks git --redact --verbose --staged .
 
 apk:
 		flutter build apk --flavor production --target lib/main_production.dart -vv
@@ -114,6 +120,33 @@ pods-no-cdn:
 fastlane-setup:
 		bundle config set --local path vendor/bundle
 		bundle install
+
+# Model API keys live in the macOS Keychain, never in a file (CRQ-0007).
+KEYCHAIN_BASETEN := tabibu-baseten-api-key
+KEYCHAIN_META := tabibu-meta-api-key
+
+# Each prompt asks twice and shows nothing as you paste; re-run to replace a key.
+keys-add:
+		@echo "Baseten API key (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_BASETEN) -w
+		@echo "Meta Model API key (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_META) -w
+		@$(MAKE) --no-print-directory keys-check
+
+# Confirms each key is stored, showing only its length and last four characters.
+keys-check:
+		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META); do \
+		  k="$$(security find-generic-password -a "$$USER" -s "$$s" -w 2>/dev/null)"; \
+		  if [ -n "$$k" ]; then printf '%-24s stored  (%s chars, ends …%s)\n' "$$s" "$${#k}" "$${k: -4}"; \
+		  else printf '%-24s MISSING\n' "$$s"; fi; \
+		done
+
+# make ai-dev CMD="<command>" runs it with both keys in its environment only.
+ai-dev:
+		$(if $(CMD),,$(error Usage: make ai-dev CMD="<command>"))
+		@BASETEN_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_BASETEN) -w)" \
+		META_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_META) -w)" \
+		$(CMD)
 
 # make pods-ios-target IOS_MIN=16.0 (Firebase needs 15.0+). The Podfile exists once an iOS build has run.
 IOS_MIN ?= 15.0
@@ -196,8 +229,8 @@ deploy-storage:
 deploy-hosting:
 		$(FIREBASE) deploy --only hosting --project $(PROJECT)
 
-.PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses \
+.PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup pods-ios-target test test-randomize test-watch coverage \
+	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check ai-dev pods-ios-target test test-randomize test-watch coverage \
 	emulators rules-test functions-test \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting

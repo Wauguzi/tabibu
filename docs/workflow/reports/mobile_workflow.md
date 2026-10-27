@@ -167,8 +167,9 @@ The loop from idea to live demo:
 A change is done when, in order:
 
 1. It follows existing codebase patterns.
-2. `make fmt` has been run, and `make analyze`, `make bloc-lint` and
-   `make spell` are clean (`make licenses` too, when dependencies changed).
+2. `make fmt` has been run, and `make analyze`, `make bloc-lint`,
+   `make spell` and `make secrets` are clean (`make licenses` too, when
+   dependencies changed).
 3. `make test` passes.
 4. For a UI change: tested live, on the golden path and the edge cases, at
    1.0x and 2.0x text scale, in English and Swahili, light and dark.

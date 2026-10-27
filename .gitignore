@@ -125,3 +125,13 @@ fastlane/test_output/
 
 # Obfuscation symbols from release builds (uploaded to Crashlytics, never committed)
 debug-symbols/
+
+# Secrets: keys live in the macOS Keychain, Modal and Firebase Secret Manager, never here (CRQ-0007)
+.env
+.env.*
+!.env.example
+*.p8
+*.p12
+*.pem
+*.mobileprovision
+*service-account*.json
