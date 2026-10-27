@@ -96,6 +96,8 @@ finding.
 - **One exception: the App Check debug token**, read from the Keychain and passed as
   `--dart-define=APP_CHECK_DEBUG_TOKEN` by `make run-dev` only. It is used only outside release
   builds; passing it to a release build, a CI workflow or fastlane is a P1 finding.
+- **Every Remote Config parameter the app reads has an in-app default** in `bootstrap`'s
+  `setDefaults`.
 - **Remote Config is for non-secret settings** (model ids, base URLs, thresholds, kill switches).
   It is served to every app instance and is fetchable with the public client config.
 - **`.env.example` holds names and non-secret values only**; a real value in it is a leak.
@@ -119,6 +121,8 @@ finding.
 - **Assets and fonts go through the generated `Assets.*` and `FontFamily.*`.** A raw path string
   compiles and breaks silently on a rename.
 - **`en` and `sw` are kept at parity.** A user-visible string in one ARB file only is incomplete.
+- **User-facing text from Remote Config** (`update_title`, `update_message`) is an optional
+  override; the screen falls back to its ARB strings when the value is empty.
 - **Localization delegates come from `material_ui` and `cupertino_ui`**, not the generated
   `AppLocalizations.localizationsDelegates`, which crashes in any non-English locale under these
   libraries.

@@ -7,6 +7,7 @@ import 'package:bloc/bloc.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
@@ -127,6 +128,39 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     }
     return true;
   };
+
+  // Defaults let the app through when nothing has been fetched yet.
+  try {
+    final remoteConfig = FirebaseRemoteConfig.instance;
+    await remoteConfig.setConfigSettings(
+      RemoteConfigSettings(
+        fetchTimeout: _bootstrapStepTimeout,
+        minimumFetchInterval: kReleaseMode
+            ? const Duration(hours: 12)
+            : Duration.zero,
+      ),
+    );
+    await remoteConfig.setDefaults(const {
+      'force_update': false,
+      'min_required_version': '',
+      'store_url_android': '',
+      'store_url_ios': '',
+      'update_title': '',
+      'update_message': '',
+    });
+    await remoteConfig.fetchAndActivate().timeout(_bootstrapStepTimeout);
+    if (kDebugMode) {
+      debugPrint(
+        '[Bootstrap] Remote Config: min_required_version='
+        '${remoteConfig.getString('min_required_version')}, '
+        'force_update=${remoteConfig.getBool('force_update')}',
+      );
+    }
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('[Bootstrap] Remote Config failed, using defaults: $e');
+    }
+  }
 
   runApp(await builder());
 }

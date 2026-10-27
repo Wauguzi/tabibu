@@ -17,6 +17,7 @@ patient reads, or the alert path.
 | [CRQ-0008](./CRQ-0008-production-apk-workflow.md) | Production APK workflow: quality gates on every pull request, then a signed APK to Firebase App Distribution | 2026-10-27 | Implemented — release stage awaits the secrets |
 | [CRQ-0009](./CRQ-0009-crashlytics-error-reporting.md) | Crashlytics error reporting in bootstrap: framework, platform and bloc errors, release builds only | 2026-10-27 | Implemented |
 | [CRQ-0010](./CRQ-0010-app-check-activation.md) | App Check activated in bootstrap, with a Keychain-held debug token; enforcement deferred | 2026-10-27 | Implemented — enforcement awaits Play Console and Apple Developer |
+| [CRQ-0011](./CRQ-0011-remote-config-at-startup.md) | Remote Config at startup: in-app defaults, a bounded fetch, and the force-update parameters | 2026-10-27 | Implemented — the gate arrives with the auth branch |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

@@ -313,6 +313,15 @@ In summary:
   `alerts_delivery_enabled`, `patient_explanations_enabled`) let me take a
   misbehaving AI path offline without a release. This is the first step of a
   P1 response.
+- **Remote Config at startup** (CRQ-0011): `bootstrap` sets in-app defaults,
+  then fetches and activates within the bootstrap timeout; on any failure
+  the defaults stand. Every parameter the app reads has a default there.
+  Release builds fetch at most every 12 hours, so a value change can take
+  that long to reach a running install; debug builds fetch every launch.
+  The force-update parameters (`min_required_version`, `force_update`,
+  `store_url_android`, `store_url_ios`, `update_title`, `update_message`)
+  default to letting the app through; the gate itself arrives with the
+  router on the auth branch.
 - **Input**: free text (symptoms, notes, report edits) goes through
   `InputSanitizer` at the call site before it is stored or sent to the AI
   service.
@@ -497,6 +506,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §10 Remote Config at startup: defaults, fetch bounds, and the force-update parameters (CRQ-0011). | Theo |
 | 2026-10-27 | §10 App Check activated, not enforced; §16 item 7 lists what enforcement waits on (CRQ-0010). | Theo |
 | 2026-10-27 | §10 crash reporting: what is recorded, at what severity, and that reports carry no patient data (CRQ-0009). | Theo |
 | 2026-10-27 | §2 SDK floor lowered to Dart `^3.12.2`, Flutter `^3.47.8`. §13 adds the production APK workflow; §16 item 3 updated (CRQ-0008). | Theo |
