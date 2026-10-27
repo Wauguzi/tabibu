@@ -40,6 +40,10 @@ finding.
 
 - **The app never calls a model.** A model SDK, model endpoint or model key anywhere under `lib/`
   is a defect. Model calls belong to the AI service, triggered through Firebase.
+- **The app talks to the backend only through the Firebase SDKs.** A raw HTTP client (`dio`,
+  `http`, `HttpClient`) under `lib/` or in `pubspec.yaml` needs a CRQ that justifies the endpoint;
+  without one it is a defect. A `badCertificateCallback` that returns `true` is a P1 finding in any
+  build: it accepts any certificate and exposes every request to interception.
 - **A bloc never imports Flutter.** `package:flutter/*` in a bloc file is a layering break,
   enforced by `bloc_lint`, and it means the bloc cannot be tested without pumping a widget.
 - **A bloc asks its helper; it never reaches Hive or Firestore directly.** The helper owns
