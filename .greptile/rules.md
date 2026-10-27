@@ -102,6 +102,9 @@ finding.
 - **Patients choose a county; Tabibu never reads their location.** A `geolocator` call on a
   patient's behalf, or a location field on a patient profile, is a defect.
 - **Free text goes through `InputSanitizer`** before it is stored or sent to the AI service.
+- **Nothing about a patient reaches Crashlytics.** Exception messages, `reason` strings and custom
+  keys carry ids and types, never names, symptoms, results or free text; the user identifier, if
+  set, is the uid. Crash reports leave the case and the country.
 
 ## Design system and localisation
 

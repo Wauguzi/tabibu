@@ -15,6 +15,7 @@ patient reads, or the alert path.
 | [CRQ-0006](./CRQ-0006-makefile-targets-and-repo-wide-spell-check.md) | Full Makefile command set, including Firebase rules, indexes and Storage; repository-wide spell check | 2026-10-27 | Implemented |
 | [CRQ-0007](./CRQ-0007-secrets-handling-for-model-api-keys.md) | Secrets handling for the model API keys: Keychain for local runs, server-side stores in production, scanning before a push | 2026-10-27 | Implemented — scanning and key storage completed by hand |
 | [CRQ-0008](./CRQ-0008-production-apk-workflow.md) | Production APK workflow: quality gates on every pull request, then a signed APK to Firebase App Distribution | 2026-10-27 | Implemented — release stage awaits the secrets |
+| [CRQ-0009](./CRQ-0009-crashlytics-error-reporting.md) | Crashlytics error reporting in bootstrap: framework, platform and bloc errors, release builds only | 2026-10-27 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

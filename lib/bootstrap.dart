@@ -5,7 +5,9 @@ import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:tabibu/firebase_options.dart';
 
@@ -21,8 +23,27 @@ class AppBlocObserver extends BlocObserver {
   @override
   void onError(BlocBase<dynamic> bloc, Object error, StackTrace stackTrace) {
     log('onError(${bloc.runtimeType}, $error, $stackTrace)');
+    if (kReleaseMode) {
+      try {
+        unawaited(
+          FirebaseCrashlytics.instance.recordError(
+            error,
+            stackTrace,
+            reason: 'BlocObserver: ${bloc.runtimeType}',
+          ),
+        );
+      } catch (_) {}
+    }
     super.onError(bloc, error, stackTrace);
   }
+}
+
+/// An `EventChannel` cancel that reached an already-disposed native handler.
+/// Recorded as non-fatal; a failure to activate a stream stays fatal.
+bool _isPlatformStreamTeardownError(FlutterErrorDetails details) {
+  if (details.exception is! MissingPluginException) return false;
+  final context = details.context?.toString() ?? '';
+  return context.contains('de-activating platform stream');
 }
 
 /// Every network/platform-channel call awaited ahead of `runApp()` in
@@ -39,14 +60,7 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
 
   Bloc.observer = const AppBlocObserver();
 
-  // Initialize Firebase first — Crashlytics.instance must not be accessed
-  // until Firebase.initializeApp() has completed.
-  //
-  // Use bare catch (not `on Exception`) because some Firebase failures throw
-  // Error subclasses (e.g. StateError, TypeError) which don't extend Exception.
-  // debugPrint is used instead of log() because dart:developer log() is
-  // suppressed by the Dart VM in release mode; debugPrint writes to stdout/
-  // logcat and remains visible for post-release diagnostics.
+  // Bare catch: some Firebase failures throw Errors, not Exceptions.
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
@@ -56,6 +70,41 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
       debugPrint('[Bootstrap] Firebase initialization failed: $e\n$s');
     }
   }
+
+  try {
+    await FirebaseCrashlytics.instance
+        .setCrashlyticsCollectionEnabled(kReleaseMode)
+        .timeout(_bootstrapStepTimeout);
+  } catch (_) {}
+
+  // Crashlytics is reached only inside the handlers, so a failed
+  // Firebase.initializeApp() cannot crash the app here.
+  FlutterError.onError = (details) {
+    if (kReleaseMode) {
+      try {
+        unawaited(
+          _isPlatformStreamTeardownError(details)
+              ? FirebaseCrashlytics.instance.recordFlutterError(details)
+              : FirebaseCrashlytics.instance.recordFlutterFatalError(details),
+        );
+      } catch (_) {}
+    } else {
+      log(details.exceptionAsString(), stackTrace: details.stack);
+    }
+  };
+
+  PlatformDispatcher.instance.onError = (error, stack) {
+    if (kReleaseMode) {
+      try {
+        unawaited(
+          FirebaseCrashlytics.instance.recordError(error, stack, fatal: true),
+        );
+      } catch (_) {}
+    } else {
+      log('Unhandled platform error: $error', stackTrace: stack);
+    }
+    return true;
+  };
 
   runApp(await builder());
 }

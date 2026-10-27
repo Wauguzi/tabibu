@@ -311,8 +311,12 @@ In summary:
 - **Input**: free text (symptoms, notes, report edits) goes through
   `InputSanitizer` at the call site before it is stored or sent to the AI
   service.
-- **Crash reporting**: Crashlytics, with obfuscated release builds and
-  symbols uploaded from CI.
+- **Crash reporting**: Crashlytics, release builds only. Framework and
+  platform errors are recorded as fatal, bloc errors as non-fatal, and a
+  stream torn down after its native handler is gone as non-fatal. Release
+  builds are obfuscated, with Dart symbols uploaded from CI, R8 mapping
+  files by the Crashlytics Gradle plugin and dSYMs by the FlutterFire build
+  phase. Crash reports carry no patient data: ids and types only (CRQ-0009).
 
 ## 11. Roles & authorization model
 
@@ -485,6 +489,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §10 crash reporting: what is recorded, at what severity, and that reports carry no patient data (CRQ-0009). | Theo |
 | 2026-10-27 | §2 SDK floor lowered to Dart `^3.12.2`, Flutter `^3.47.8`. §13 adds the production APK workflow; §16 item 3 updated (CRQ-0008). | Theo |
 | 2026-10-27 | §10 sets where secrets may live, and that Remote Config never carries one (CRQ-0007). | Theo |
 | 2026-10-27 | §13 describes the repository-wide spell check and the Firebase `make` targets (CRQ-0006). | Theo |
