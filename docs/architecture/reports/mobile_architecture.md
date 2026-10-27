@@ -681,11 +681,14 @@ to see. Greptile is pointed at this section.
    Developer team registered in Firebase; the web demo needs a reCAPTCHA
    Enterprise key. Until each exists, that platform's release build cannot
    attest, and enforcing would reject it, App Distribution builds included.
-8. **Firebase is not configured for web**, and the web demo is the main
-   judged surface. `DefaultFirebaseOptions.currentPlatform` throws on web,
-   `bootstrap` catches it, and the app starts with no Firebase. Re-run
-   `flutterfire configure` with web selected before any Firebase-backed
-   screen is built.
+8. **Web is configured, but its key and App Check are not finished.** The
+   web app is registered (`flutterfire configure`, 2026-10-27), and
+   `DefaultFirebaseOptions.web` now exists. Still open:
+   - The auto-created browser key needs HTTP-referrer restrictions to the
+     hosting domains and `localhost`.
+   - App Check on web needs a reCAPTCHA Enterprise key (item 7).
+   - `bootstrap` must be checked on web, where the Android and Apple
+     providers do not apply.
 9. **All three flavors share one Firebase project** (`tabibu-86ea2`). That is
    acceptable for the hackathon, but development writes land in the project
    the demo runs on, so seeded demo data must be kept apart from test data
@@ -695,6 +698,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §16 item 8: web registered; key restriction and web App Check outstanding. | Theo |
 | 2026-10-27 | §4 today's tree; §16 items 1 and 2 resolved (CRQ-0017). | Theo |
 | 2026-10-27 | §14 function tests and the rules-test discipline; §16 item 5: identity rules and functions exist, not yet deployed (CRQ-0016). | Theo |
 | 2026-10-27 | §1 reach: the Nairobi facility count and the national census figures, linked to their sources. §6.2 rewritten for the generated assets: all 1,447 facilities with `isOperational`, approximate locations, sanitising rules; `make facilities` (CRQ-0015). | Theo |

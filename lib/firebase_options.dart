@@ -17,10 +17,7 @@ import 'package:flutter/foundation.dart'
 class DefaultFirebaseOptions {
   static FirebaseOptions get currentPlatform {
     if (kIsWeb) {
-      throw UnsupportedError(
-        'DefaultFirebaseOptions have not been configured for web - '
-        'you can reconfigure this by running the FlutterFire CLI again.',
-      );
+      return web;
     }
     switch (defaultTargetPlatform) {
       case TargetPlatform.android:
@@ -56,15 +53,23 @@ class DefaultFirebaseOptions {
     projectId: 'tabibu-86ea2',
     storageBucket: 'tabibu-86ea2.firebasestorage.app',
   );
-
   static const FirebaseOptions ios = FirebaseOptions(
     apiKey: 'AIzaSyD6drZaDeO21AGaWPbd2b8tBeeB3NtoSGM',
     appId: '1:270369739916:ios:93526f86a6a4e2f17f17a9',
     messagingSenderId: '270369739916',
     projectId: 'tabibu-86ea2',
     storageBucket: 'tabibu-86ea2.firebasestorage.app',
-    androidClientId: '270369739916-gn6vi1cs6uougee80cinfsp5uoscemb6.apps.googleusercontent.com',
+    androidClientId: '270369739916-3bi06p7337k32nvn5o5gsplhpvo7ap07.apps.googleusercontent.com',
     iosClientId: '270369739916-pg1tm5jc8vqbc15dh42gja1h107foaip.apps.googleusercontent.com',
     iosBundleId: 'com.tabibukenya.tabibu',
+  );
+  static const FirebaseOptions web = FirebaseOptions(
+    apiKey: 'AIzaSyDCyfnUrr-oHqsK4IySvDzYqPOdC_hQSoQ',
+    appId: '1:270369739916:web:ee124846525a27c57f17a9',
+    messagingSenderId: '270369739916',
+    projectId: 'tabibu-86ea2',
+    authDomain: 'tabibu-86ea2.firebaseapp.com',
+    storageBucket: 'tabibu-86ea2.firebasestorage.app',
+    measurementId: 'G-ZK3S0C6M22',
   );
 }

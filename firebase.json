@@ -66,7 +66,8 @@
           "projectId": "tabibu-86ea2",
           "configurations": {
             "android": "1:270369739916:android:488605da76eaf0aa7f17a9",
-            "ios": "1:270369739916:ios:93526f86a6a4e2f17f17a9"
+            "ios": "1:270369739916:ios:93526f86a6a4e2f17f17a9",
+            "web": "1:270369739916:web:ee124846525a27c57f17a9"
           }
         }
       }
