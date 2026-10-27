@@ -26,6 +26,8 @@
    - `make app-check-token` creates a token, stores it in the Keychain
      (`tabibu-app-check-debug-token`) and copies it to the clipboard for
      Firebase → App Check → Apps → ⋮ → Manage debug tokens.
+   - `make app-check-token-copy` copies the stored token again, for another
+     app or machine, without printing it.
    - `make run-dev` passes it as `--dart-define=APP_CHECK_DEBUG_TOKEN`.
      Without it, the debug provider generates a token per install and logs
      it, and each one must be registered by hand.

@@ -152,6 +152,11 @@ app-check-token:
 		printf '%s' "$$t" | pbcopy && \
 		echo "Stored as $(KEYCHAIN_APP_CHECK) and copied; register it for the Android and iOS apps."
 
+# Copies the stored token again without printing it.
+app-check-token-copy:
+		@security find-generic-password -a "$$USER" -s $(KEYCHAIN_APP_CHECK) -w | tr -d '\n' | pbcopy && \
+		echo "Copied $(KEYCHAIN_APP_CHECK)."
+
 # make ai-dev CMD="<command>" runs it with both keys in its environment only.
 ai-dev:
 		$(if $(CMD),,$(error Usage: make ai-dev CMD="<command>"))
@@ -242,6 +247,6 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token ai-dev pods-ios-target test test-randomize test-watch coverage \
+	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy ai-dev pods-ios-target test test-randomize test-watch coverage \
 	emulators rules-test functions-test \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting
