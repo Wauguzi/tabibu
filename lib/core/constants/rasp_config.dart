@@ -39,8 +39,4 @@ abstract final class RaspConfig {
 
   /// Talsec's security reports and portal access (my.talsec.app).
   static const String watcherMail = 'lilmuyansi@gmail.com';
-
-  /// Screens render black in screenshots and recordings while the app is in
-  /// the foreground: patient data never leaves through a capture.
-  static const bool blockScreenCapture = true;
 }

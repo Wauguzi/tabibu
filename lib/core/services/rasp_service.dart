@@ -14,6 +14,7 @@ import 'package:tabibu/core/constants/rasp_config.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/services/notification_service.dart';
+import 'package:tabibu/core/services/security_notice_gate.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// Severity tiers, after OWASP MASVS risk levels (threat model T-10).
@@ -26,6 +27,11 @@ import 'package:tabibu/l10n/l10n.dart';
 ///   malware).
 /// - advisory: notify and log only (VPN, no passcode, screenshot, weak
 ///   Wi-Fi, spoofing, ADB).
+///
+/// Every detection is logged and emitted. The notice a person sees passes a
+/// [SecurityNoticeGate] first, so a repeated condition is not a repeated
+/// notice; a critical threat in production is always shown, just before the
+/// app closes.
 enum SecurityThreatLevel { critical, severe, advisory }
 
 /// The coarse area a person is told about. The detection itself stays in
@@ -84,20 +90,44 @@ typedef CriticalThreatHandler = void Function(SecurityThreatEvent event);
 /// Initialised in bootstrap before `runApp`; detections are notified on the
 /// account and security channel and recorded to Crashlytics.
 class RaspService {
-  RaspService({RaspPlatform? platform, CriticalThreatHandler? onCritical})
-    : _platform = platform ?? RaspPlatformImpl(),
-      _onCritical = onCritical ?? _defaultCriticalHandler;
+  RaspService({
+    RaspPlatform? platform,
+    CriticalThreatHandler? onCritical,
+    SecurityNoticeGate? noticeGate,
+  }) : _platform = platform ?? RaspPlatformImpl(),
+       _onCritical = onCritical ?? _defaultCriticalHandler,
+       _noticeGate = noticeGate ?? SecurityNoticeGate() {
+    // Derived once, so the gate decides each event once however many
+    // listeners noticeStream has.
+    _threatController.stream.where(_admitsNotice).listen(_noticeController.add);
+    _noticeController.stream.listen((event) => unawaited(_notify(event)));
+  }
+
+  /// One id for every security notice, so an admitted notice replaces the
+  /// previous one in the shade instead of stacking.
+  static const securityNoticeId = 0x7A51;
 
   final RaspPlatform _platform;
   final CriticalThreatHandler _onCritical;
+  final SecurityNoticeGate _noticeGate;
   bool _isProd = false;
 
+  /// Outside production, so the demo can be recorded from a debug or
+  /// profile build.
+  bool _screenCaptureAllowed = false;
+
   final StreamController<SecurityThreatEvent> _threatController =
+      StreamController<SecurityThreatEvent>.broadcast();
+  final StreamController<SecurityThreatEvent> _noticeController =
       StreamController<SecurityThreatEvent>.broadcast();
 
   /// For root-level UI that challenges a severe threat. A critical threat
   /// terminates the app and may not be observed here first.
   Stream<SecurityThreatEvent> get threatStream => _threatController.stream;
+
+  /// The detections that became a notice: [threatStream] through the gate.
+  /// A critical threat in production is not here; it is always shown.
+  Stream<SecurityThreatEvent> get noticeStream => _noticeController.stream;
 
   /// [isProd] is true for release binaries only: debug builds are signed
   /// with the debug key, so enforcing certificates there would kill them.
@@ -106,16 +136,22 @@ class RaspService {
     if (kIsWeb) return;
     _isProd = isProd;
 
+    // Restored first, so a detection at startup cannot repeat a notice seen
+    // before the relaunch.
+    await _noticeGate.load();
+
     // Before start, so no early event is missed.
     await _platform.attachListener(_buildCallback());
     await _platform.start(_buildConfig(isProd: isProd));
 
-    if (RaspConfig.blockScreenCapture) {
-      try {
-        await _platform.blockScreenCapture(enabled: true);
-      } catch (e) {
-        log('[RaspService] blockScreenCapture failed: $e');
-      }
+    // In production, screens render black in screenshots and recordings, so
+    // patient data never leaves through a capture. Allowed elsewhere, so the
+    // demo can be recorded.
+    _screenCaptureAllowed = !isProd;
+    try {
+      await _platform.blockScreenCapture(enabled: isProd);
+    } catch (e) {
+      log('[RaspService] blockScreenCapture failed: $e');
     }
   }
 
@@ -201,18 +237,41 @@ class RaspService {
   }
 
   void _dispatch(SecurityThreatEvent event) {
+    // Every detection is logged and emitted; only the notice is gated.
     _threatController.add(event);
     _log(event);
     if (event.level == SecurityThreatLevel.critical && _isProd) {
-      // Notified first, so the close does not read as a crash.
+      // Outside the gate: the app is about to close and must say why.
       unawaited(_notifyThenTerminate(event));
-    } else {
-      unawaited(_notify(event));
     }
   }
 
+  bool _admitsNotice(SecurityThreatEvent event) {
+    if (event.level == SecurityThreatLevel.critical && _isProd) return false;
+    // A permitted capture must not put a security notice into the recording.
+    if (_screenCaptureAllowed &&
+        (event.threatName == Threat.screenshot.name ||
+            event.threatName == Threat.screenRecording.name)) {
+      return false;
+    }
+    return _noticeGate.admit(noticeKeyFor(event));
+  }
+
+  /// What the person would read: severity and hint. Two detections with the
+  /// same key produce the same text, so the gate treats them as one notice.
+  @visibleForTesting
+  static String noticeKeyFor(SecurityThreatEvent event) =>
+      '${event.level.name}:${hintFor(event.threatName).name}';
+
   Future<void> _notifyThenTerminate(SecurityThreatEvent event) async {
-    await _notify(event);
+    // Both finish before the close: the notice, so it does not read as a
+    // crash, and the saved windows, so the next launch does not repeat it.
+    // The gate records synchronously first, so a detection arriving
+    // meanwhile is already gated.
+    await Future.wait([
+      _noticeGate.record(noticeKeyFor(event)),
+      _notify(event),
+    ]);
     _onCritical(event);
   }
 
@@ -275,6 +334,7 @@ class RaspService {
       await NotificationService().showNotification(
         title: title,
         message: message,
+        id: securityNoticeId,
       );
     } catch (_) {
       // Notifications may be unavailable; the event is already logged.

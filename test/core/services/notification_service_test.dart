@@ -59,6 +59,31 @@ void main() {
       expect(details.iOS?.presentBanner, isTrue);
     });
 
+    test('a fixed id replaces its predecessor instead of stacking', () async {
+      when(
+        () => plugin.show(
+          id: any(named: 'id'),
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: any(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).thenAnswer((_) async {});
+
+      await service.showNotification(title: 'a', message: 'b', id: 7);
+      await service.showNotification(title: 'c', message: 'd', id: 7);
+
+      verify(
+        () => plugin.show(
+          id: 7,
+          title: any(named: 'title'),
+          body: any(named: 'body'),
+          notificationDetails: any(named: 'notificationDetails'),
+          payload: any(named: 'payload'),
+        ),
+      ).called(2);
+    });
+
     test('never throws when the plugin does', () async {
       when(
         () => plugin.show(

@@ -37,8 +37,7 @@ Ported from the reference implementation's `main` branch.
    - the Base64 SHA-256 of the Tabibu release key (production) and of the
      local debug key (development);
    - Google Play as the only supported store;
-   - the Talsec watcher email (the address Theo chose);
-   - screen-capture blocking on.
+   - the Talsec watcher email (the address Theo chose).
 4. **Bootstrap** gains `isProd`, which follows the build mode, not the
    flavor: a debug build of any flavor is debug-signed, and enforcing
    certificates there would terminate it. RASP starts after notifications,
@@ -55,7 +54,27 @@ Ported from the reference implementation's `main` branch.
 6. **`make apk` and `make dev-apk` now obfuscate.** Without it, a release
    binary detects missing obfuscation and terminates itself. CI and
    fastlane already did.
-7. Docs: architecture §10 and §16 item 10; threat model T-10; two review
+7. **Ported from the reference's enhancement branch:**
+   - **Screen capture follows the build:** blocked in production, allowed
+     elsewhere so the demo can be recorded. A permitted capture raises no
+     notice, so none lands in the recording.
+   - **`SecurityNoticeGate`.** freeRASP reports a condition every time it
+     sees it, and testers read the stream of notices as a broken app. After
+     any notice, no other for 15 minutes; the same notice at most once a
+     day. Two detections that read the same share a notice. The windows are
+     kept in `SharedPreferences`, so a relaunch does not repeat a notice.
+     Every detection is still logged and emitted on `threatStream`;
+     admitted notices are on `noticeStream`.
+   - **One notification id** for security notices, so a new one replaces
+     the last (`showNotification` gains `id`).
+   - **A critical threat in production** is shown outside the gate, and the
+     app closes only after the notice is shown and the gate's windows are
+     saved.
+8. **The iOS foreground fix**, also from that branch. Since
+   `firebase_messaging` 16.7, its iOS plugin answers foreground
+   notifications first, and with no options set it shows nothing. The
+   notification service sets its options to show the banner.
+9. Docs: architecture §10 and §16 item 10; threat model T-10; two review
    rules.
 
 ## 2. Business justification
@@ -85,10 +104,8 @@ closed.
 
 ## 5. Risk & rollback plan
 
-- **Screen capture is blocked in every build.** That includes the demo
-  video if it is recorded on a phone: the app records as black. Record the
-  demo from the web build, or set `RaspConfig.blockScreenCapture` to
-  `false` in the demo build only and back afterwards.
+- **Record the demo from a debug or profile build**, or from the web.
+  Release binaries block capture by design and record as black.
 - **A Play install terminates until the Play App Signing hash is added.**
   App Distribution builds are signed with our release key and are
   unaffected.
@@ -109,7 +126,9 @@ merged manifest.
 
 | Check | Result |
 |---|---|
-| RASP service tests (ported: order of start, config per mode, every threat classified, critical handling only in production, malware, the stream, hints) | 28 passing |
+| RASP service tests (from the enhancement branch: config per mode, capture per mode, every threat classified, critical handling, malware, hints, the notice gate, relaunch) | Passing |
+| `SecurityNoticeGate` tests | Passing |
+| Service suite (notifications, RASP, gate, geohash) | 66 passing |
 | Debug APK: declared permissions and SDK levels | Five permissions present; min 24, target 36, compile 37 |
 | `make analyze`, `make test`, `make spell` | Pass |
 | A release build on a device | Theo, on the device test |

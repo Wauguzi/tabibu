@@ -502,7 +502,11 @@ In summary:
   obfuscation) after telling the person why. Severe and advisory threats are
   notified on the account and security channel and logged to Crashlytics.
   The notice names a coarse area (device, app, another app, network), never
-  the detection. Screens render black in screenshots and recordings.
+  the detection. A notice passes a gate first: after any notice, none other
+  for 15 minutes, and the same notice at most once a day, with the windows
+  kept across relaunches. Every detection is still logged. In production,
+  screens render black in screenshots and recordings; elsewhere capture is
+  allowed, so the demo can be recorded, and raises no notice.
   **Every release build obfuscates**: without it, the release binary
   terminates itself.
 - **Secrets**: no model or service key is in the app, in any form: not in

@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:logger/logger.dart';
@@ -59,6 +60,10 @@ class NotificationService {
   );
 
   final FlutterLocalNotificationsPlugin _plugin;
+
+  // Resolved only when needed: FirebaseMessaging.instance throws when
+  // Firebase never initialised.
+  FirebaseMessaging _messaging() => FirebaseMessaging.instance;
   final Logger _logger = Logger();
   final StreamController<String> _taps = StreamController<String>.broadcast();
 
@@ -91,7 +96,24 @@ class NotificationService {
       },
     );
     await _createChannels();
+    await _allowForegroundBannersOnIos();
     await _requestPermission();
+  }
+
+  /// Since firebase_messaging 16.7 its iOS plugin answers foreground
+  /// notifications before this one, and with no options set it answers
+  /// "show nothing", so banners vanish while the app is open. Setting its
+  /// options to ours makes its answer the one we want. Never fatal.
+  Future<void> _allowForegroundBannersOnIos() async {
+    if (kIsWeb || defaultTargetPlatform != TargetPlatform.iOS) return;
+    try {
+      await _messaging().setForegroundNotificationPresentationOptions(
+        alert: true,
+      );
+    } on Object catch (e, stackTrace) {
+      if (kDebugMode) _logger.w('Foreground banner options not set: $e');
+      _report(e, stackTrace);
+    }
   }
 
   Future<void> _createChannels() async {
@@ -158,16 +180,20 @@ class NotificationService {
   /// Never throws. A notification is a side effect, and it once sat on a
   /// sign-in path where a plugin exception stopped navigation and left
   /// people on the form. Failures are recorded, not swallowed silently.
+  ///
+  /// [id] defaults to a fresh one, so notifications stack; a fixed [id]
+  /// replaces its predecessor instead (security notices do).
   Future<void> showNotification({
     required String title,
     required String message,
     NotificationChannel channel = NotificationChannel.account,
     String? payload,
+    int? id,
   }) async {
     try {
       final l10n = _deviceL10n();
       await _plugin.show(
-        id: DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF,
+        id: id ?? DateTime.now().millisecondsSinceEpoch & 0x7FFFFFFF,
         title: title,
         body: message,
         payload: payload,

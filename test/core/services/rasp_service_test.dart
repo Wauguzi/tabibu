@@ -2,7 +2,9 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:freerasp/freerasp.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabibu/core/services/rasp_service.dart';
+import 'package:tabibu/core/services/security_notice_gate.dart';
 
 // ── Mocks ───────────────────────────────────────────────────────────────────
 
@@ -73,11 +75,19 @@ void main() {
           () => platform.blockScreenCapture(enabled: true),
         ).thenAnswer((_) async => calls.add('blockScreenCapture'));
 
-        await service.initialize(isProd: false);
+        await service.initialize(isProd: true);
 
         expect(calls, ['attachListener', 'start', 'blockScreenCapture']);
       },
     );
+
+    test('allows screen capture outside production, so the App Store demo '
+        'recording is not a black frame', () async {
+      await service.initialize(isProd: false);
+
+      verify(() => platform.blockScreenCapture(enabled: false)).called(1);
+      verifyNever(() => platform.blockScreenCapture(enabled: true));
+    });
 
     test('bindUser stores the uid as the external id', () async {
       await service.bindUser('uid_abc');
@@ -98,7 +108,7 @@ void main() {
       'blockScreenCapture failure is swallowed — initialize still completes',
       () async {
         when(
-          () => platform.blockScreenCapture(enabled: true),
+          () => platform.blockScreenCapture(enabled: false),
         ).thenThrow(Exception('platform error'));
 
         // Should not throw.
@@ -468,6 +478,193 @@ void main() {
       // The buckets are wide on purpose: naming the probe that fired tells
       // whoever triggered it exactly what to defeat next.
       expect(SecurityHint.values, hasLength(4));
+    });
+  });
+
+  // ── Notices (CRQ-0029: repeated security notices read as a broken app) ──
+
+  group('noticeStream', () {
+    late DateTime now;
+    late RaspService gated;
+    late List<SecurityThreatEvent> threats;
+    late List<SecurityThreatEvent> notices;
+
+    setUp(() {
+      SharedPreferences.setMockInitialValues({});
+      now = DateTime.utc(2026, 10, 2, 9);
+      gated = RaspService(
+        platform: platform,
+        onCritical: criticalCaptures.add,
+        noticeGate: SecurityNoticeGate(clock: () => now),
+      );
+      threats = [];
+      notices = [];
+      gated.threatStream.listen(threats.add);
+      gated.noticeStream.listen(notices.add);
+    });
+
+    Future<void> settle() => Future<void>.delayed(Duration.zero);
+
+    test('outside production a permitted capture is logged and emitted but '
+        'never becomes a notice — it would land in the recording', () async {
+      await gated.initialize(isProd: false);
+      gated
+        ..handleThreat(Threat.screenshot)
+        ..handleThreat(Threat.screenRecording)
+        ..handleThreat(Threat.systemVPN);
+      await settle();
+
+      expect(threats.map((e) => e.threatName), [
+        'screenshot',
+        'screenRecording',
+        'systemVPN',
+      ]);
+      expect(notices.map((e) => e.threatName), ['systemVPN']);
+    });
+
+    test('in production a capture attempt still becomes a notice', () async {
+      debugDefaultTargetPlatformOverride = TargetPlatform.android;
+      try {
+        await gated.initialize(isProd: true);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
+      gated.handleThreat(Threat.screenshot);
+      await settle();
+
+      expect(notices.map((e) => e.threatName), ['screenshot']);
+    });
+
+    test('a burst of detections is all logged and emitted, but becomes one '
+        'notice', () async {
+      for (var i = 0; i < 5; i++) {
+        gated.handleThreat(Threat.screenshot);
+      }
+      gated
+        ..handleThreat(Threat.systemVPN)
+        ..handleThreat(Threat.devMode);
+      await settle();
+
+      expect(threats, hasLength(7));
+      expect(notices, hasLength(1));
+      expect(notices.single.threatName, 'screenshot');
+    });
+
+    test(
+      'a different notice is shown once the quiet window has passed',
+      () async {
+        gated.handleThreat(Threat.screenshot);
+        await settle();
+        now = now.add(const Duration(minutes: 15));
+        gated.handleThreat(Threat.systemVPN);
+        await settle();
+
+        expect(notices.map((e) => e.threatName), ['screenshot', 'systemVPN']);
+      },
+    );
+
+    test('the same condition is not re-announced within the day', () async {
+      gated.handleThreat(Threat.systemVPN);
+      await settle();
+      now = now.add(const Duration(hours: 3));
+      gated.handleThreat(Threat.systemVPN);
+      await settle();
+
+      expect(notices, hasLength(1));
+      expect(threats, hasLength(2));
+    });
+
+    test('detections that read the same share one notice — a screenshot and '
+        'a screen recording say the same thing to the user', () {
+      SecurityThreatEvent event(String name) => SecurityThreatEvent(
+        threatName: name,
+        level: SecurityThreatLevel.advisory,
+        message: name,
+      );
+      expect(
+        RaspService.noticeKeyFor(event('screenshot')),
+        RaspService.noticeKeyFor(event('screenRecording')),
+      );
+      expect(
+        RaspService.noticeKeyFor(event('screenshot')),
+        isNot(RaspService.noticeKeyFor(event('systemVPN'))),
+      );
+    });
+
+    test('a critical threat in production is always shown and terminates, '
+        'outside the gate, and counts toward the quiet window', () async {
+      await gated.initialize(isProd: true);
+      gated.handleThreat(Threat.hooks);
+      await settle();
+      await settle();
+
+      expect(criticalCaptures, hasLength(1));
+      expect(notices, isEmpty, reason: 'shown directly, not via the gate');
+
+      gated.handleThreat(Threat.systemVPN);
+      await settle();
+      expect(notices, isEmpty, reason: 'the critical alert opened the window');
+    });
+
+    test('a critical threat in production saves the notice windows before '
+        'the app closes, so the next launch does not repeat it', () async {
+      final prefs = await SharedPreferences.getInstance();
+      // The load on startup is immediate; every save takes 200ms, far longer
+      // than the notice, so the app would close first unless it waits.
+      var calls = 0;
+      Future<SharedPreferences> slowSaves() async {
+        if (calls++ > 0) {
+          await Future<void>.delayed(const Duration(milliseconds: 200));
+        }
+        return prefs;
+      }
+
+      String? savedWhenClosing;
+      final closing = RaspService(
+        platform: platform,
+        onCritical: (_) =>
+            savedWhenClosing = prefs.getString('security_notice_last_any'),
+        noticeGate: SecurityNoticeGate(
+          clock: () => now,
+          preferences: slowSaves,
+        ),
+      );
+      await closing.initialize(isProd: true);
+
+      closing.handleThreat(Threat.hooks);
+      await Future<void>.delayed(const Duration(milliseconds: 400));
+
+      expect(savedWhenClosing, isNotNull);
+    });
+
+    test('in development a critical threat is gated like any other', () async {
+      await gated.initialize(isProd: false);
+      gated
+        ..handleThreat(Threat.hooks)
+        ..handleThreat(Threat.hooks);
+      await settle();
+
+      expect(criticalCaptures, isEmpty);
+      expect(notices, hasLength(1));
+    });
+
+    test('a notice seen before a relaunch is not repeated after it', () async {
+      gated.handleThreat(Threat.systemVPN);
+      await settle();
+
+      now = now.add(const Duration(hours: 1));
+      final relaunched = RaspService(
+        platform: platform,
+        onCritical: criticalCaptures.add,
+        noticeGate: SecurityNoticeGate(clock: () => now),
+      );
+      final after = <SecurityThreatEvent>[];
+      relaunched.noticeStream.listen(after.add);
+      await relaunched.initialize(isProd: false);
+      relaunched.handleThreat(Threat.systemVPN);
+      await settle();
+
+      expect(after, isEmpty);
     });
   });
 }
