@@ -25,7 +25,7 @@ work onwards.
    evaluation report, the docs updated, and a **Review** section that records
    the Greptile confidence score.
 3. **Label taxonomy as code** (`scripts/labels.sh`): `type/*` (the seven
-   template boxes), `area/*` (the feature workstreams), `clinical-safety`,
+   template boxes), `area/*` (the feature areas), `clinical-safety`,
    `security-boundary`, `needs-deploy`, `needs/*` (the CRQ §8 reviewer
    seats), `P1`–`P4`, and Dependabot's three. It renames GitHub's defaults
    rather than recreating them, retires the drive-by-contributor ones, and
@@ -125,15 +125,19 @@ until removed by hand. Minutes.
 
 ## 9. Post-implementation review
 
-**Proposed branch rulesets** (Settings → Rules → Rulesets), to apply by hand:
+**Applied 2026-10-27, verified through the GitHub API:**
 
-1. `main-protection`, Active, no bypass, default branch: Restrict deletions,
-   Block force pushes, Require linear history.
-2. `main-merge-gates`, Active, default branch, bypass **Repository admin:
-   Always allow** (foundation commits still land directly): Require a pull
-   request (1 approval, Require review from Code Owners, Dismiss stale
-   approvals, Require conversation resolution). Required status checks are
-   added when the replacement CI exists.
+| Ruleset | Enforcement | Target | Bypass | Rules |
+|---|---|---|---|---|
+| `Collaboration Rules` | Active | Default branch | Repository admin, always | Restrict deletions, block force pushes, linear history, pull request (1 approval, code-owner review, dismiss stale approvals, conversation resolution, squash only) |
+| `main-protection` | Active | Default branch | None | Restrict deletions, block force pushes |
+
+`main-protection` has no bypass, so nobody, me included, can delete `main` or
+rewrite its history. Repository merge settings: squash merging only, with the
+pull request title and description as the commit message; merge commits and
+rebase merging off; head branches kept after merge. The labels were applied
+with `scripts/labels.sh` (31 labels, verified by the script). Required status
+checks are added to `Collaboration Rules` when the replacement CI exists.
 
 With the bypass in place, the 5/5 bar on my own pull requests is held by
 this workflow rather than enforced by GitHub, because GitHub does not let an
