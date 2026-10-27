@@ -26,8 +26,14 @@ need on top (§6).
   `GoogleService-Info.plist` and `lib/firebase_options.dart` are now tracked
   on purpose. They hold public client identifiers (API key, project id, app
   ids), not secrets: what protects the project is the rules and App Check
-  (T-1 to T-3, T-7), not keeping these files private. Restricting the API
-  keys to their apps in the Google Cloud console is still worth doing.
+  (T-1 to T-3, T-7), not keeping these files private. Both keys carry the
+  API restrictions Firebase applies to the keys it creates (24 Firebase
+  APIs, confirmed in the Google Cloud console). They are deliberately not
+  restricted by app: package, certificate and bundle-id checks rely on
+  values the app sends with each request, which anyone can copy, and every
+  missed flavor or signing certificate breaks Firebase in that build. App
+  Check is the control that verifies the app. GitHub secret scanning raised
+  one alert per key; both are closed as "won't fix" with this reasoning.
 - **Signing material is ignored.** `.gitignore` covers `**/android/key.properties`
   and `*.jks`.
 - **No model call from the client.** The app has no model SDK or model key;
@@ -141,6 +147,7 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §2: API keys confirmed API-restricted by Firebase; app restrictions declined, with the reason; secret-scanning alerts closed (CRQ-0007). | Theo |
 | 2026-10-27 | §3 tag-pinning finding: `prod_apk.yaml` pinned to commit SHAs (CRQ-0008). | Theo |
 | 2026-10-27 | §4.2 adds T-13: API keys in the repository, the app bundle or Remote Config (CRQ-0007). | Theo |
 | 2026-10-27 | §3 tag-pinning finding resolved for `license_check.yaml` (pinned to a commit SHA). | Theo |

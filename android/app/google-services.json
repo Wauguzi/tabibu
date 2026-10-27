@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "270369739916-3bi06p7337k32nvn5o5gsplhpvo7ap07.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.tabibukenya.tabibu",
+            "certificate_hash": "2f5dbaea0f024e518d82176132890ae505258d9b"
+          }
+        },
+        {
           "client_id": "270369739916-6fgpjjijrsorll82tgiast3kpmme33eb.apps.googleusercontent.com",
           "client_type": 3
         }

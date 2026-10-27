@@ -1,4 +1,9 @@
 {
   "version": "0.2",
-  "import": ["./.github/cspell.json"]
+  "import": [
+    "./.github/cspell.json"
+  ],
+  "words": [
+    "gsplhpvo"
+  ]
 }

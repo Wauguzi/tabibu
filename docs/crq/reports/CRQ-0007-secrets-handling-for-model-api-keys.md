@@ -145,13 +145,27 @@ itself.
 
 ## 9. Post-implementation review
 
-By hand, then record here:
-1. `make keys-add` with both keys.
-2. Enable repository secret scanning (Settings → Advanced Security), and
-   confirm push protection is on for the account.
-3. `brew install gitleaks`, then `make secrets` to scan the history so far.
-4. When the AI service exists: create the Modal secret `tabibu-models` with
-   `META_API_KEY` and `BASETEN_API_KEY` in the Modal dashboard.
+| Step | Result |
+|---|---|
+| 1. `make keys-add` with both keys | Done 2026-10-27: both stored; `make keys-check` shows 45 and 48 characters |
+| 2. Repository secret scanning and push protection | Enabled 2026-10-27, confirmed through the API |
+| 3. `brew install gitleaks`, then `make secrets` | Pending |
+| 4. Modal secret `tabibu-models` with `META_API_KEY` and `BASETEN_API_KEY` | Pending: when the AI service exists |
+
+**Secret-scanning alerts.** The first scan raised two `google_api_key`
+alerts, both from commit `3a49df4`: the Android and iOS Firebase client
+keys in `google-services.json`, `GoogleService-Info.plist` and
+`lib/firebase_options.dart`. Neither is a model key. Both keys already
+carried Firebase's API restrictions (24 Firebase APIs, confirmed in the
+Google Cloud console), so the alerts were closed as "won't fix" on
+2026-10-27. App restrictions were considered and declined; the reasoning is
+in the threat model §2. When gitleaks is installed, the same three files
+will need an exemption in `.gitleaks.toml`, scoped to those paths only.
+
+**Signing fingerprints.** The upload keystore's SHA-1 and SHA-256 are
+registered on the Firebase Android app, and `google-services.json` was
+downloaded again; it now carries the Android OAuth client for that
+certificate.
 
 ## 10. Related records
 
