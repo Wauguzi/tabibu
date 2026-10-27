@@ -126,10 +126,15 @@ watch error rates; Authentication's enforcement is still in preview.
 
 ## 9. Post-implementation review
 
-- Register Play Integrity for the Android app; leave iOS unregistered until
-  the Apple Developer account exists.
-- Run `make app-check-token`, register the token for both apps, run
-  `make run-dev`, and confirm verified requests in the console.
+| Step | Result |
+|---|---|
+| Play Integrity registered for the Android app | Done 2026-10-27 |
+| iOS attestation provider | Not registered: needs the Apple Developer account |
+| Debug token created (`make app-check-token`) and registered as `theo-macbook-dev` on the Android and iOS apps | Done 2026-10-27 |
+| Verified requests from `make run-dev` in the console | Pending: the scaffold makes no Firestore or Auth calls; checked once the auth branch does |
+
+- Revoke `theo-macbook-dev` in the console if this machine is lost, then
+  create a new token with `make app-check-token`.
 - Decide before the demo whether enforcement is possible: it needs the Play
   Console record ($25, one-time) at minimum, or it waits until after the
   hackathon.
