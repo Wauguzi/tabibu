@@ -134,6 +134,14 @@ finding.
   dev-only plugin into the release build is suggesting a known breakage.
 - **Assert the behaviour, not the edit.**
 
+## CI and supply chain
+
+- **GitHub Actions and reusable workflows are pinned to a full commit SHA, never a tag**, with the
+  release in a trailing comment (`@<sha> # v2.0.3`). A diff that replaces a SHA with a tag reopens a
+  supply-chain hole. Dependabot updates the SHA and the comment together.
+- **The license check's `skip_packages` list is deliberate**: each entry never ships in an app
+  build, and the reason sits beside the list. A new entry needs the same justification.
+
 ## Change records and hygiene
 
 - **Every non-trivial change has a CRQ** under `docs/crq/reports/`, and always one for rules,

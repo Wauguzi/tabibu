@@ -42,6 +42,14 @@
 5. **Docs.** Architecture §13 rewritten for the interim CI; §16 item 3,
    workflow §4/§5/§6, the testing standard, `.greptile/rules.md` and the
    threat model's tag-pinning finding updated to match.
+6. **License check pinned to a commit** *(amendment, 2026-10-27)*. The
+   reusable workflow is referenced by the full commit SHA of
+   very_good_workflows v2.0.3 (`bf86fc7…`), with the release in a trailing
+   comment, instead of the movable `@v1` tag. v2.0.3 has the same inputs and
+   the same Flutter detection as v1.
+7. **Dependabot runs weekly** *(amendment, 2026-10-27)*, not daily, for both
+   GitHub Actions and pub. Dependabot updates a SHA pin and its version
+   comment together, so pinning does not freeze the workflow.
 
 ## 2. Business justification
 
@@ -57,11 +65,13 @@ template I plan to discard.
 
 **Explicitly out of scope:**
 - The replacement workflows. They land with the auth branch and their own CRQ.
-- SHA pinning ([threat model §3](../../security/reports/firebase_and_ai_service_threat_model.md#3-findings)):
-  done with the replacement workflows, so it is done once.
+- ~~SHA pinning, deferred to the replacement workflows.~~ *Amended
+  2026-10-27:* brought into scope the same day, see §1 item 6. A tag left in
+  place would be flagged on the first pull request, and pinning one line now
+  costs less than explaining the exception.
 - The open Dependabot pull requests. #1, #2 and #4 bump workflows used only
-  by `main.yaml` and are obsolete; #3 bumps the license check to v2; #5 bumps
-  the Firebase packages.
+  by `main.yaml` and are obsolete; #3 (license check to v2) is superseded by
+  §1 item 6; #5 bumps the Firebase packages.
 
 ## 4. Impact assessment
 
@@ -123,6 +133,10 @@ required status checks are added when the replacement workflows exist.
 | Lead Designer | — | N/A — no UI change | — | — |
 
 ## 9. Post-implementation review
+
+- Pinning the reusable workflow fixes its own contents, but the actions it
+  calls internally are referenced however its authors chose. That residual
+  is accepted; it is outside this repository's control.
 
 - If a Linux target is ever added, `dbus`, `geoclue` and `gsettings` must
   come off the skip list and be assessed: MPL-2.0 is file-level copyleft.

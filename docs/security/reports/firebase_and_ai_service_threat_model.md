@@ -60,6 +60,9 @@ points at when CI runs. A moved or compromised tag changes what runs with
 this repository's permissions.
 **Fix:** pin each `uses:` to a commit SHA, with the release in a trailing
 comment, before the repository is opened to judges.
+**Status, 2026-10-27:** resolved for `license_check.yaml`, which is pinned to
+the v2.0.3 commit (CRQ-0003). It stays open as a rule for the workflows that
+replace `main.yaml`.
 
 ### Low — `pubspec.yaml` — `test_api: any` in runtime `dependencies`
 
@@ -137,6 +140,7 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §3 tag-pinning finding resolved for `license_check.yaml` (pinned to a commit SHA). | Theo |
 | 2026-10-27 | §3 tag-pinning finding moved from the removed `main.yaml` to `license_check.yaml` and its successors. | Theo |
 | 2026-10-27 | §2 corrected: the FlutterFire client config files are now tracked deliberately and are not secrets. | Theo |
 | 2026-10-27 | Initial version: clean baseline, three findings on the scaffold, seven clinical-safety rules (S-1 to S-7) and twelve security threats (T-1 to T-12) with controls and proofs, and the remediation roadmap. | Theo |

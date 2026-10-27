@@ -435,10 +435,10 @@ to see. Greptile is pointed at this section.
    fixed in the same change that replaces `es` with `sw`.
 2. **The counter example feature is still in `lib/` and `test/`.** Delete it
    when the first real feature lands.
-3. **CI actions are pinned to tags (`@v1`), not commit SHAs.** A moved tag
-   changes what runs. Pin `license_check.yaml`, and every workflow that
-   replaces `main.yaml`, to SHAs with the release in a trailing comment.
-   Until those workflows land, nothing but the license check runs in CI, so
+3. **Every `uses:` is pinned to a full commit SHA with the release in a
+   trailing comment** (`license_check.yaml` is, since CRQ-0003). A tag can be
+   moved; a SHA cannot. The workflows that replace `main.yaml` follow the
+   same rule. Until those workflows land, nothing but the license check runs in CI, so
    format, analysis, tests and spelling are only as reliable as running the
    `make` targets before each commit.
 4. **`test_api: any` is listed under `dependencies`**, not
@@ -468,6 +468,6 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
-| 2026-10-27 | §13 rewritten for the interim CI: `main.yaml` removed pending purpose-built workflows; only the license check runs in CI, now fixed for Flutter; every other gate is a local `make` target. §16 item 3 updated. | Theo |
+| 2026-10-27 | §13 rewritten for the interim CI: `main.yaml` removed pending purpose-built workflows; only the license check runs in CI, now fixed for Flutter; every other gate is a local `make` target. §16 item 3 updated; the license check is now pinned to a commit SHA. | Theo |
 | 2026-10-27 | §16 updated for the Firebase connection: item 5 narrowed to rules and functions; items 8 (web not configured) and 9 (one project for every flavor) added. | Theo |
 | 2026-10-26 | Initial version: target architecture for the three-role app, the Firebase/AI-service split, data and lifecycle conventions, standing rules, and a watchlist of what the scaffold does not yet match. | Theo |

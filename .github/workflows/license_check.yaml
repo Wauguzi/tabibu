@@ -22,7 +22,7 @@ on:
 
 jobs:
   license_check:
-    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/license_check.yml@v1
+    uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/license_check.yml@bf86fc749b907c6cc60e655f7f2ef619287b1b15 # v2.0.3
     with:
       # Setting a Flutter version is what makes the workflow run `flutter pub
       # get`; without it, it runs `dart pub get` and fails on a Flutter app.
