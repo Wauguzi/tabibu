@@ -160,6 +160,7 @@ The loop from idea to live demo:
 | Baseten | Muse Spark Open (`meta-models/muse-spark-open-1026`): reports, alert drafts, patient explanations |
 | Modal | The Tabibu AI service; the Muse Glimmer fine-tune (stretch goal) |
 | Talsec portal | freeRASP threat events, once the app is wired to it |
+| Muse Code | A second coding agent in its own terminal, for repetitive work from written briefs. It reads `AGENTS.md`, never commits, and runs on the Meta API credits through `make muse` (CRQ-0013) |
 | Hackathon Discord, Meta office hours | Credit requests, platform questions, live sessions |
 
 ## 6. Definition of done
@@ -251,6 +252,7 @@ the rest keep the build honest.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §5 adds Muse Code (CRQ-0013). | Theo |
 | 2026-10-27 | §4 step 8 and §5 updated for the production APK workflow (CRQ-0008). | Theo |
 | 2026-10-27 | §4 step 7 now describes the branch and pull request flow, with a 5/5 Greptile confidence score as the merge bar; §5 adds `CODEOWNERS` and the labels; §6 adds the merge criterion. | Theo |
 | 2026-10-27 | §4 step 8, §5 and §6 updated for the interim CI: only the license check runs in CI; the other gates are local `make` targets. | Theo |
