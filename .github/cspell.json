@@ -20,6 +20,7 @@
   ],
   "useGitignore": true,
   "words": [
+    "Achieng",
     "afya",
     "Amina",
     "Aminah",
@@ -54,6 +55,7 @@
     "geohash",
     "geohashes",
     "geolocator",
+    "googleusercontent",
     "grayscale",
     "Greptile",
     "gsettings",
@@ -84,6 +86,7 @@
     "macbook",
     "madaktari",
     "matokeo",
+    "Mbagathi",
     "Metaspace",
     "mgonjwa",
     "mhudumu",
@@ -95,8 +98,10 @@
     "mostrado",
     "mtaalamu",
     "Mundo",
+    "Mwangi",
     "Naskh",
     "ndogo",
+    "Njeri",
     "Noto",
     "Odhiambo",
     "Otieno",
@@ -105,6 +110,7 @@
     "pbxproj",
     "pbxuser",
     "perspectivev",
+    "plutil",
     "Podfile",
     "podspec",
     "practised",
@@ -163,6 +169,7 @@
   ],
   "ignoreRegExpList": [
     "/\\b[0-9A-Fa-f]{6}\\b/",
-    "/uses: \\S+/"
+    "/uses: \\S+/",
+    "/[0-9]+-[a-z0-9]+\\.apps\\.googleusercontent\\.com/"
   ]
 }

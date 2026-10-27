@@ -132,6 +132,7 @@ fastlane-setup:
 KEYCHAIN_BASETEN := tabibu-baseten-api-key
 KEYCHAIN_META := tabibu-meta-api-key
 KEYCHAIN_APP_CHECK := tabibu-app-check-debug-token
+KEYCHAIN_SEED := tabibu-seed-password
 
 # Each prompt asks twice and shows nothing as you paste; re-run to replace a key.
 keys-add:
@@ -266,6 +267,26 @@ functions-test:
 		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,auth --project demo-tabibu \
 		    "cd functions && npm test"
 
+# Demo accounts, one per role (CRQ-0018). The password lives in the Keychain only.
+seed-password:
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_SEED) -w
+
+# Into running emulators (make emulators in another terminal).
+seed-emulator:
+		cd functions && npm install --silent && \
+		  FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
+		  FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 \
+		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
+		  ./node_modules/.bin/ts-node src/seed.ts
+
+# Into the live project, through Application Default Credentials (gcloud auth application-default login).
+seed-live:
+		@test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make seed-live CONFIRM=$(PROJECT)"; exit 1; }
+		cd functions && npm install --silent && \
+		  SEED_CONFIRM=$(CONFIRM) SEED_EMAIL_DOMAIN="$(SEED_EMAIL_DOMAIN)" \
+		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
+		  ./node_modules/.bin/ts-node src/seed.ts --live
+
 deploy-rules:
 		$(FIREBASE) deploy --only firestore:rules --project $(PROJECT)
 
@@ -284,5 +305,5 @@ deploy-hosting:
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
 	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
-	emulators rules-test functions-test \
+	emulators rules-test functions-test seed-password seed-emulator seed-live \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting

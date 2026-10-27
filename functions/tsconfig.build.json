@@ -3,5 +3,5 @@
   "compilerOptions": {
     "types": ["node"]
   },
-  "exclude": ["src/**/*.test.ts", "src/**/*.test-support.ts"]
+  "exclude": ["src/**/*.test.ts", "src/**/*.test-support.ts", "src/seed.ts"]
 }

@@ -17,7 +17,8 @@
         "firebase-debug.*.log",
         "*.local",
         "src/**/*.test.ts",
-        "src/**/*.test-support.ts"
+        "src/**/*.test-support.ts",
+        "src/seed.ts"
       ],
       "predeploy": [
         "cd \"$RESOURCE_DIR\" && ./node_modules/.bin/eslint src",
