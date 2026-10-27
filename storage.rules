@@ -1,7 +1,7 @@
 rules_version = '2';
 
-// Storage paths (architecture §6.1, CRQ-0016). Pictures are images under 3 MB; a license may also
-// be a PDF. Everything not matched here is denied. Tests: test/firestore_rules/ (make rules-test).
+// Storage paths (architecture §6.1, CRQ-0016, CRQ-0026). Pictures are images under 3 MB; licence
+// files are images or PDFs under 10 MB. Everything not matched here is denied. Tests: test/firestore_rules/ (make rules-test).
 
 service firebase.storage {
   match /b/{bucket}/o {
@@ -58,7 +58,8 @@ service firebase.storage {
       allow get: if signedIn()
           && (request.auth.uid == owner || request.auth.token.get('admin', false) == true);
       allow create, update: if signedIn() && request.auth.uid == owner && notVerified()
-          && under3MB() && (isImage() || request.resource.contentType == 'application/pdf');
+          && request.resource.size < 10 * 1024 * 1024
+          && (isImage() || request.resource.contentType == 'application/pdf');
       allow delete: if signedIn() && request.auth.uid == owner && notVerified();
     }
   }

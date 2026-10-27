@@ -231,6 +231,10 @@ indices follow the Freezed constructor's field order exactly, so the two can
 be compared line by line in review. A Hive model never imports another
 feature's Hive classes except inside `toModel`/`fromModel`.
 
+That holds only until the first release. Once a build has shipped, a field
+whose type changes takes a new index and its old one is retired, because an
+older cache still holds the old type at that index.
+
 **Hive typeIds are allocated once and never reused.** A reused id lets an
 old install decode bytes written for a different class without any error.
 The registry below is the record. Add a row in the same commit as the model.
@@ -340,15 +344,16 @@ uid.
 | `title`, `firstName`, `lastName` | String | Owner | |
 | `email` | String | Server | From the Auth token; never changes |
 | `phoneNumber` | String (E.164) | Owner | |
-| `profilePictureUrl` | String | Owner | Public: copied to the directory |
+| `profilePictureUrl` | String | Owner | Required from sign-up and cannot be removed; public: copied to the directory |
 | `isPathologist` | bool | Server | Chosen on sign-up; fixed after |
-| `specialization`, `bio` | String | Owner | `bio` is plain text through `InputSanitizer` |
+| `specialties` | List\<String\> | Owner | One to five from the role's own list (`Specialty`), stored in list order. A pathologist may report in several areas |
+| `bio` | String | Owner | Plain text through `InputSanitizer` |
 | `kmpdcNumber` | String | Owner until verified | Unique across accounts. Final once `Verified` |
-| `licenseUrl` | String | Owner until verified | The practising license. Final once `Verified`; never public |
+| `licenseUrls` | List\<String\> | Owner until verified | One or two files (the practising license, and a certificate if needed), each in the owner's `licenses/` folder. Final once `Verified`; never public |
 | `verificationStatus` | String (`VerificationStatus`) | Server | `Pending`, `Verified` or `Rejected` |
 | `facilityId`, `facilityMflCode`, `facilityName` | String | Owner picks; server checks | From the facility list (§6.2) |
 | `county`, `subCounty`, `geohash` | String | Server | Copied from the facility; `geohash` is the facility's 9 characters |
-| `isAvailable` | bool | Owner | |
+| `isAvailable` | bool | Owner | Set at sign-up (accepting new patients, or new cases); defaults to `true` |
 | `fcmTokens`, `language`, `receiveNotifications` | | Owner | As for patients |
 | `appointmentsHandled`, `ordersCreated`, `reportsSigned` | int | Server | `reportsSigned` stays 0 for doctors |
 | `termsAcceptedAt`, `createdAt`, `lastUpdatedAt` | String | Server, Both | |
@@ -358,7 +363,7 @@ the `syncPractitioner` trigger on `doctors` writes it, and only while the
 doctor is `Verified`; a doctor's own profile edit therefore updates the entry,
 and an entry is removed if the doctor stops being verified. Its fields are the
 public subset of `doctors`, in the same order: `uid`, `title`, `firstName`,
-`lastName`, `profilePictureUrl`, `isPathologist`, `specialization`, `bio`,
+`lastName`, `profilePictureUrl`, `isPathologist`, `specialties`, `bio`,
 the facility fields, `county`, `subCounty`, `geohash`, `isAvailable`, the three
 counters, and `lastUpdatedAt`. The facility fields come from the server's
 facility list, not from what the client sent. It never carries email, phone,
@@ -397,7 +402,7 @@ uploads must be `image/*`; a license may also be `application/pdf`.
 | Path | Who writes | Who reads | Limit |
 |---|---|---|---|
 | `profilePictures/{id}/…` (`id` is a `doctors` uid or a `patientId`) | The owner; or, for an unregistered patient, a doctor in their `doctorUids` | Any signed-in user; no listing | 3 MB |
-| `licenses/{uid}/…` | Owner, until `Verified` | Owner and admin | 3 MB |
+| `licenses/{uid}/…` | Owner, until `Verified` | Owner and admin | 10 MB (a scanned PDF) |
 
 There is no picture collection: the download URL is stored on the profile
 (`profilePictureUrl`), and the trigger copies a practitioner's into the
@@ -745,6 +750,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-28 | §6.1: `specialties` (one to five from the role's list) replaces `specialization`; one or two `licenseUrls` up to 10 MB; profile picture required; `isAvailable` set at sign-up (CRQ-0026). | Theo |
 | 2026-10-27 | §13: four workflows, including the labeler and the draft release (CRQ-0025). | Theo |
 | 2026-10-27 | §10 RASP: tiers, notices, screen-capture blocking, obfuscation; §16 item 10 (CRQ-0024). | Theo |
 | 2026-10-27 | §6: `DBHelper`, delete-not-clear on sign-out, the cache owner check, the unencrypted preferences box; typeId 3 (CRQ-0020). | Theo |

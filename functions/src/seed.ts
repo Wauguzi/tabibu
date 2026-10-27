@@ -82,6 +82,22 @@ async function license(uid: string, bucketName: string): Promise<string> {
   return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
 }
 
+/** A placeholder photo where the rules expect one; the demo uses the app's own portraits. */
+async function picture(uid: string, bucketName: string): Promise<string> {
+  const token = randomUUID();
+  const path = `profilePictures/${uid}/photo.png`;
+  // A 1x1 PNG: the seed proves the path and the rules, not the picture.
+  const png = Buffer.from(
+    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=',
+    'base64',
+  );
+  await getStorage()
+    .bucket(bucketName)
+    .file(path)
+    .save(png, { contentType: 'image/png', metadata: { metadata: { firebaseStorageDownloadTokens: token } } });
+  return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
+}
+
 async function practitioner(
   deps: Deps,
   admin: Caller,
@@ -92,7 +108,8 @@ async function practitioner(
     ...input.fields,
     isPathologist: input.isPathologist,
     facilityId: input.facilityId,
-    licenseUrl: await license(uid, deps.bucket),
+    licenseUrls: [await license(uid, deps.bucket)],
+    profilePictureUrl: await picture(uid, deps.bucket),
     termsAccepted: true,
   });
   await verifyPractitionerHandler(deps, admin, { uid, decision: 'Verified' });
@@ -128,7 +145,7 @@ async function main(): Promise<void> {
       firstName: 'Achieng',
       lastName: 'Odhiambo',
       phoneNumber: '+254700000101',
-      specialization: 'Family medicine',
+      specialties: ['Family medicine', 'General practice'],
       bio: 'General practice and outpatient care.',
       kmpdcNumber: 'DEMO-D-0001',
     },
@@ -147,7 +164,7 @@ async function main(): Promise<void> {
       firstName: 'Wanjiru',
       lastName: 'Kamau',
       phoneNumber: '+254700000102',
-      specialization: 'Anatomical pathology',
+      specialties: ['Histopathology', 'Cytology'],
       bio: 'Histopathology and cytology.',
       kmpdcNumber: 'DEMO-P-0001',
     },

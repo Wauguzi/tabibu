@@ -53,11 +53,11 @@ function practitionerInput(uid: string, overrides: Record<string, unknown> = {})
     lastName: 'Kamau',
     phoneNumber: '+254722000111',
     isPathologist: true,
-    specialization: 'Anatomical pathology',
     bio: 'Twelve years in histopathology.',
     kmpdcNumber: 'a1234',
-    licenseUrl: downloadUrl('licenses', uid, 'license.pdf'),
+    licenseUrls: [downloadUrl('licenses', uid, 'license.pdf'), downloadUrl('licenses', uid, 'cert.pdf')],
     profilePictureUrl: downloadUrl('profilePictures', uid, 'me.jpg'),
+    specialties: ['Cytology', 'Histopathology'],
     facilityId: OPEN.facilityId,
     termsAccepted: true,
     ...overrides,
@@ -268,10 +268,78 @@ describe('identity', () => {
         completePractitionerSignUpHandler(
           deps,
           me,
-          practitionerInput(me.uid, { licenseUrl: downloadUrl('licenses', 'someone-else', 'l.pdf') }),
+          practitionerInput(me.uid, { licenseUrls: [downloadUrl('licenses', 'someone-else', 'l.pdf')] }),
         ),
         'invalidLicense',
       );
+    });
+
+    it('takes one or two licence files, never none or three', async () => {
+      const me = await account(deps, 'wanjiru@example.com');
+      const file = (n: string) => downloadUrl('licenses', me.uid, n);
+      await refusedWith(
+        completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid, { licenseUrls: [] })),
+        'invalidLicense',
+      );
+      await refusedWith(
+        completePractitionerSignUpHandler(
+          deps,
+          me,
+          practitionerInput(me.uid, { licenseUrls: [file('a.pdf'), file('b.pdf'), file('c.pdf')] }),
+        ),
+        'invalidLicense',
+      );
+      await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid, { licenseUrls: [file('a.pdf')] }));
+      const doc = (await deps.db.collection(DOCTORS).doc(me.uid).get()).data()!;
+      assert.deepEqual(doc.licenseUrls, [file('a.pdf')]);
+    });
+
+    it('requires a profile photo', async () => {
+      const me = await account(deps, 'wanjiru@example.com');
+      await refusedWith(
+        completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid, { profilePictureUrl: '' })),
+        'invalidPicture',
+      );
+    });
+
+    it("stores specialties in the list's order", async () => {
+      const me = await account(deps, 'wanjiru@example.com');
+      await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid));
+      const doc = (await deps.db.collection(DOCTORS).doc(me.uid).get()).data()!;
+      assert.deepEqual(doc.specialties, ['Histopathology', 'Cytology']);
+    });
+
+    it("takes one to five specialties from the role's own list", async () => {
+      const path = await account(deps, 'path@example.com');
+      for (const specialties of [[], ['Astrology'], ['Oncology'], ['Cytology', 'Cytology']]) {
+        await refusedWith(
+          completePractitionerSignUpHandler(deps, path, practitionerInput(path.uid, { specialties })),
+          'invalidSpecialties',
+        );
+      }
+      const doc = await account(deps, 'doc@example.com');
+      await refusedWith(
+        completePractitionerSignUpHandler(
+          deps,
+          doc,
+          practitionerInput(doc.uid, { isPathologist: false, specialties: ['Histopathology'] }),
+        ),
+        'invalidSpecialties',
+      );
+      await completePractitionerSignUpHandler(
+        deps,
+        doc,
+        practitionerInput(doc.uid, { isPathologist: false, kmpdcNumber: 'D777', specialties: ['General surgery', 'Breast surgery'] }),
+      );
+      const saved = (await deps.db.collection(DOCTORS).doc(doc.uid).get()).data()!;
+      assert.deepEqual(saved.specialties, ['General surgery', 'Breast surgery']);
+    });
+
+    it('takes availability from the sign-up switch', async () => {
+      const me = await account(deps, 'wanjiru@example.com');
+      await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid, { isAvailable: false }));
+      const doc = (await deps.db.collection(DOCTORS).doc(me.uid).get()).data()!;
+      assert.equal(doc.isAvailable, false);
     });
 
     it('requires the terms to be accepted', async () => {
@@ -331,11 +399,13 @@ describe('identity', () => {
         'written',
       );
       const entry = (await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).data()!;
-      for (const hidden of ['email', 'phoneNumber', 'kmpdcNumber', 'licenseUrl', 'fcmTokens']) {
+      for (const hidden of ['email', 'phoneNumber', 'kmpdcNumber', 'licenseUrls', 'fcmTokens']) {
         assert.equal(hidden in entry, false, hidden);
       }
       assert.equal(entry.facilityName, facilityById(OPEN.facilityId)!.name);
       assert.equal(entry.bio, 'Twelve years in histopathology.');
+      assert.deepEqual(entry.specialties, ['Histopathology', 'Cytology']);
+      assert.equal('licenseUrls' in entry, false);
 
       assert.equal(await syncPractitionerHandler(deps.db, me.uid, undefined), 'removed');
       assert.equal((await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).exists, false);

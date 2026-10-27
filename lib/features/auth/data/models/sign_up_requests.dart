@@ -65,13 +65,14 @@ class PractitionerSignUpRequest extends Equatable {
     required this.lastName,
     required this.phoneNumber,
     required this.isPathologist,
-    required this.specialization,
+    required this.specialties,
     required this.bio,
     required this.kmpdcNumber,
-    required this.licenseUrl,
+    required this.licenseUrls,
     required this.profilePictureUrl,
     required this.facilityId,
     required this.termsAccepted,
+    required this.isAvailable,
     required this.language,
   });
 
@@ -80,15 +81,22 @@ class PractitionerSignUpRequest extends Equatable {
   final String lastName;
   final String phoneNumber;
   final bool isPathologist;
-  final String specialization;
+
+  /// One to five, from [Specialty.forRole] of the chosen role.
+  final List<Specialty> specialties;
   final String bio;
   final String kmpdcNumber;
-  final String licenseUrl;
 
-  /// `''` when none was uploaded.
+  /// One or two files, uploaded first to the caller's own licences folder.
+  final List<String> licenseUrls;
+
+  /// Required: patients choose a practitioner partly by face.
   final String profilePictureUrl;
   final String facilityId;
   final bool termsAccepted;
+
+  /// The sign-up switch: accepting new patients, or new cases.
+  final bool isAvailable;
   final AppLanguage language;
 
   Map<String, Object?> toCallableData() => {
@@ -97,13 +105,14 @@ class PractitionerSignUpRequest extends Equatable {
     'lastName': lastName,
     'phoneNumber': phoneNumber,
     'isPathologist': isPathologist,
-    'specialization': specialization,
+    'specialties': [for (final s in specialties) s.value],
     'bio': bio,
     'kmpdcNumber': kmpdcNumber,
-    'licenseUrl': licenseUrl,
+    'licenseUrls': licenseUrls,
     'profilePictureUrl': profilePictureUrl,
     'facilityId': facilityId,
     'termsAccepted': termsAccepted,
+    'isAvailable': isAvailable,
     'language': language.value,
   };
 
@@ -114,13 +123,14 @@ class PractitionerSignUpRequest extends Equatable {
     lastName,
     phoneNumber,
     isPathologist,
-    specialization,
+    specialties,
     bio,
     kmpdcNumber,
-    licenseUrl,
+    licenseUrls,
     profilePictureUrl,
     facilityId,
     termsAccepted,
+    isAvailable,
     language,
   ];
 }

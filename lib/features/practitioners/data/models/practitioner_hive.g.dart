@@ -23,7 +23,7 @@ class PractitionerHiveAdapter extends TypeAdapter<PractitionerHive> {
       lastName: fields[3] as String,
       profilePictureUrl: fields[4] as String,
       isPathologist: fields[5] as bool,
-      specialization: fields[6] as String,
+      specialties: (fields[6] as List).cast<String>(),
       bio: fields[7] as String,
       facilityId: fields[8] as String,
       facilityMflCode: fields[9] as String,
@@ -57,7 +57,7 @@ class PractitionerHiveAdapter extends TypeAdapter<PractitionerHive> {
       ..writeByte(5)
       ..write(obj.isPathologist)
       ..writeByte(6)
-      ..write(obj.specialization)
+      ..write(obj.specialties)
       ..writeByte(7)
       ..write(obj.bio)
       ..writeByte(8)

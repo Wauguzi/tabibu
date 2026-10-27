@@ -5,6 +5,7 @@ import { join } from 'node:path';
 
 import { dateOfBirth, normalizeKenyanPhone } from './common';
 import { encodeGeohash } from './geohash';
+import { CLINICAL_SPECIALTIES, PATHOLOGY_SPECIALTIES } from './identity';
 import { DATA_DIR, countyById, facilityById, nairobiSubCountyById } from './reference-data';
 
 describe('reference data', () => {
@@ -61,5 +62,33 @@ describe('input checks', () => {
     assert.throws(() => dateOfBirth('2001-02-29', now));
     assert.throws(() => dateOfBirth('1890-01-01', now));
     assert.throws(() => dateOfBirth('27/10/1990', now));
+  });
+});
+
+describe('specialties', () => {
+  // Three copies: this function's lists, firestore.rules (which cannot import) and the app's enum.
+  const root = join(DATA_DIR, '..', '..');
+  const quoted = (s: string) => [...s.matchAll(/'([^']+)'/g)].map((m) => m[1]);
+
+  it('the rules hold the same two lists', () => {
+    const rules = readFileSync(join(root, 'firestore.rules'), 'utf8');
+    const block = /function specialties\(\) \{([\s\S]*?)return chosen/.exec(rules)?.[1] ?? '';
+    const [pathology, clinical] = block.split(':');
+    assert.deepEqual(quoted(pathology), [...PATHOLOGY_SPECIALTIES]);
+    assert.deepEqual(quoted(clinical), [...CLINICAL_SPECIALTIES]);
+  });
+
+  it("the app's Specialty enum holds the same values, pathology first", () => {
+    const enums = readFileSync(join(root, 'lib', 'core', 'constants', 'enums.dart'), 'utf8');
+    const block = /enum Specialty \{([\s\S]*?);\n/.exec(enums)?.[1] ?? '';
+    const values = [...block.matchAll(/\w+\('([^']+)'(, isPathology: true)?\)/g)];
+    assert.deepEqual(
+      values.filter((v) => v[2]).map((v) => v[1]),
+      [...PATHOLOGY_SPECIALTIES],
+    );
+    assert.deepEqual(
+      values.filter((v) => !v[2]).map((v) => v[1]),
+      [...CLINICAL_SPECIALTIES],
+    );
   });
 });

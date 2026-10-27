@@ -275,6 +275,61 @@ export async function linkPatientAccountHandler(
 
 const TITLES = ['Dr.', 'Prof.', 'Mr.', 'Mrs.', 'Ms.'] as const;
 
+/** A pathologist's specialties are the areas they report on, which decide the cases on their desk. */
+export const PATHOLOGY_SPECIALTIES = [
+  'Histopathology',
+  'Cytology',
+  'Haematology',
+  'Microbiology',
+  'Immunohistochemistry',
+] as const;
+
+/** A doctor's specialties, as patients search for them. */
+export const CLINICAL_SPECIALTIES = [
+  'General practice',
+  'Family medicine',
+  'Internal medicine',
+  'General surgery',
+  'Breast surgery',
+  'Obstetrics and gynaecology',
+  'Paediatrics',
+  'Oncology',
+  'Dermatology',
+  'Ear, nose and throat',
+  'Urology',
+  'Gastroenterology',
+  'Infectious diseases',
+  'Cardiology',
+  'Orthopaedics',
+] as const;
+
+export const MAX_SPECIALTIES = 5;
+
+/** One or two files: the practising licence, and a certificate if there is one. */
+export const MAX_LICENSE_FILES = 2;
+
+function licenseUrls(raw: unknown, bucket: string, uid: string): string[] {
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > MAX_LICENSE_FILES) {
+    throw refuse('invalid-argument', 'invalidLicense');
+  }
+  const urls = raw.map((url) =>
+    storageUrl(url, bucket, 'licenses', uid, 'invalidLicense', { allowEmpty: false }),
+  );
+  if (new Set(urls).size !== urls.length) throw refuse('invalid-argument', 'invalidLicense');
+  return urls;
+}
+
+/** One to five, from the role's own list, stored in the list's order so a choice always reads the same. */
+function specialties(raw: unknown, isPathologist: boolean): string[] {
+  const allowed: readonly string[] = isPathologist ? PATHOLOGY_SPECIALTIES : CLINICAL_SPECIALTIES;
+  if (!Array.isArray(raw) || raw.length < 1 || raw.length > MAX_SPECIALTIES) {
+    throw refuse('invalid-argument', 'invalidSpecialties');
+  }
+  const chosen = raw.map((s) => oneOf(s, allowed, 'invalidSpecialties'));
+  if (new Set(chosen).size !== chosen.length) throw refuse('invalid-argument', 'invalidSpecialties');
+  return allowed.filter((s) => chosen.includes(s));
+}
+
 export async function completePractitionerSignUpHandler(
   deps: Deps,
   caller: Caller | null,
@@ -286,6 +341,10 @@ export async function completePractitionerSignUpHandler(
   const now = (deps.now ?? (() => new Date()))();
 
   if (typeof raw.isPathologist !== 'boolean') throw refuse('invalid-argument', 'invalidRole');
+  const isPathologist = raw.isPathologist;
+  if (raw.isAvailable !== undefined && typeof raw.isAvailable !== 'boolean') {
+    throw refuse('invalid-argument', 'invalidAvailability');
+  }
   if (raw.termsAccepted !== true) throw refuse('failed-precondition', 'termsRequired');
   const kmpdcNumber = boundedText(raw.kmpdcNumber, 3, 30, 'invalidKmpdcNumber').toUpperCase();
   if (!/^[A-Z0-9/-]+$/.test(kmpdcNumber)) throw refuse('invalid-argument', 'invalidKmpdcNumber');
@@ -304,16 +363,15 @@ export async function completePractitionerSignUpHandler(
     lastName: boundedText(raw.lastName, 1, NAME_MAX, 'invalidName'),
     email: c.email,
     phoneNumber: normalizeKenyanPhone(raw.phoneNumber),
+    // Patients choose a practitioner partly by face, so the photo is required.
     profilePictureUrl: storageUrl(raw.profilePictureUrl, deps.bucket, 'profilePictures', c.uid, 'invalidPicture', {
-      allowEmpty: true,
-    }),
-    isPathologist: raw.isPathologist,
-    specialization: boundedText(raw.specialization, 1, 80, 'invalidSpecialization'),
-    bio: boundedText(raw.bio, 0, 1000, 'invalidBio'),
-    kmpdcNumber,
-    licenseUrl: storageUrl(raw.licenseUrl, deps.bucket, 'licenses', c.uid, 'invalidLicense', {
       allowEmpty: false,
     }),
+    isPathologist,
+    specialties: specialties(raw.specialties, isPathologist),
+    bio: boundedText(raw.bio, 0, 1000, 'invalidBio'),
+    kmpdcNumber,
+    licenseUrls: licenseUrls(raw.licenseUrls, deps.bucket, c.uid),
     verificationStatus: 'Pending',
     facilityId: facility.facilityId,
     facilityMflCode: facility.mflCode,
@@ -321,7 +379,7 @@ export async function completePractitionerSignUpHandler(
     county: facility.county,
     subCounty: facility.subCounty,
     geohash: facility.geohash,
-    isAvailable: true,
+    isAvailable: raw.isAvailable !== false,
     fcmTokens: [],
     language: raw.language === undefined ? 'en' : oneOf(raw.language, LANGUAGES, 'invalidLanguage'),
     receiveNotifications: true,
@@ -388,7 +446,7 @@ const PUBLIC_FIELDS = [
   'lastName',
   'profilePictureUrl',
   'isPathologist',
-  'specialization',
+  'specialties',
   'bio',
 ] as const;
 
@@ -408,7 +466,8 @@ export async function syncPractitionerHandler(
   }
   const facility = facilityById(String(after.facilityId ?? ''));
   const entry: DocumentData = {};
-  for (const key of PUBLIC_FIELDS) entry[key] = after[key];
+  // A profile written before a field existed has no value for it; Firestore refuses undefined.
+  for (const key of PUBLIC_FIELDS) entry[key] = after[key] ?? (key === 'specialties' ? [] : '');
   Object.assign(entry, {
     facilityId: facility?.facilityId ?? '',
     facilityMflCode: facility?.mflCode ?? '',

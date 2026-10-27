@@ -25,10 +25,10 @@ class DoctorHiveAdapter extends TypeAdapter<DoctorHive> {
       phoneNumber: fields[5] as String,
       profilePictureUrl: fields[6] as String,
       isPathologist: fields[7] as bool,
-      specialization: fields[8] as String,
+      specialties: (fields[8] as List).cast<String>(),
       bio: fields[9] as String,
       kmpdcNumber: fields[10] as String,
-      licenseUrl: fields[11] as String,
+      licenseUrls: (fields[11] as List).cast<String>(),
       verificationStatus: fields[12] as String,
       facilityId: fields[13] as String,
       facilityMflCode: fields[14] as String,
@@ -71,13 +71,13 @@ class DoctorHiveAdapter extends TypeAdapter<DoctorHive> {
       ..writeByte(7)
       ..write(obj.isPathologist)
       ..writeByte(8)
-      ..write(obj.specialization)
+      ..write(obj.specialties)
       ..writeByte(9)
       ..write(obj.bio)
       ..writeByte(10)
       ..write(obj.kmpdcNumber)
       ..writeByte(11)
-      ..write(obj.licenseUrl)
+      ..write(obj.licenseUrls)
       ..writeByte(12)
       ..write(obj.verificationStatus)
       ..writeByte(13)

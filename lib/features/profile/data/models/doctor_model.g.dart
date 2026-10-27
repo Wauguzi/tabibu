@@ -15,10 +15,14 @@ _DoctorModel _$DoctorModelFromJson(Map<String, dynamic> json) => _DoctorModel(
   phoneNumber: json['phoneNumber'] as String,
   profilePictureUrl: json['profilePictureUrl'] as String,
   isPathologist: json['isPathologist'] as bool,
-  specialization: json['specialization'] as String,
+  specialties: (json['specialties'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   bio: json['bio'] as String,
   kmpdcNumber: json['kmpdcNumber'] as String,
-  licenseUrl: json['licenseUrl'] as String,
+  licenseUrls: (json['licenseUrls'] as List<dynamic>)
+      .map((e) => e as String)
+      .toList(),
   verificationStatus: json['verificationStatus'] as String,
   facilityId: json['facilityId'] as String,
   facilityMflCode: json['facilityMflCode'] as String,
@@ -50,10 +54,10 @@ Map<String, dynamic> _$DoctorModelToJson(_DoctorModel instance) =>
       'phoneNumber': instance.phoneNumber,
       'profilePictureUrl': instance.profilePictureUrl,
       'isPathologist': instance.isPathologist,
-      'specialization': instance.specialization,
+      'specialties': instance.specialties,
       'bio': instance.bio,
       'kmpdcNumber': instance.kmpdcNumber,
-      'licenseUrl': instance.licenseUrl,
+      'licenseUrls': instance.licenseUrls,
       'verificationStatus': instance.verificationStatus,
       'facilityId': instance.facilityId,
       'facilityMflCode': instance.facilityMflCode,

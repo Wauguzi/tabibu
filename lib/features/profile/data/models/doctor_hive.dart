@@ -15,10 +15,10 @@ class DoctorHive {
     required this.phoneNumber,
     required this.profilePictureUrl,
     required this.isPathologist,
-    required this.specialization,
+    required this.specialties,
     required this.bio,
     required this.kmpdcNumber,
-    required this.licenseUrl,
+    required this.licenseUrls,
     required this.verificationStatus,
     required this.facilityId,
     required this.facilityMflCode,
@@ -49,10 +49,10 @@ class DoctorHive {
       phoneNumber: model.phoneNumber,
       profilePictureUrl: model.profilePictureUrl,
       isPathologist: model.isPathologist,
-      specialization: model.specialization,
+      specialties: model.specialties,
       bio: model.bio,
       kmpdcNumber: model.kmpdcNumber,
-      licenseUrl: model.licenseUrl,
+      licenseUrls: model.licenseUrls,
       verificationStatus: model.verificationStatus,
       facilityId: model.facilityId,
       facilityMflCode: model.facilityMflCode,
@@ -84,10 +84,10 @@ class DoctorHive {
       phoneNumber: phoneNumber,
       profilePictureUrl: profilePictureUrl,
       isPathologist: isPathologist,
-      specialization: specialization,
+      specialties: specialties,
       bio: bio,
       kmpdcNumber: kmpdcNumber,
-      licenseUrl: licenseUrl,
+      licenseUrls: licenseUrls,
       verificationStatus: verificationStatus,
       facilityId: facilityId,
       facilityMflCode: facilityMflCode,
@@ -134,7 +134,7 @@ class DoctorHive {
   final bool isPathologist;
 
   @HiveField(8)
-  final String specialization;
+  final List<String> specialties;
 
   @HiveField(9)
   final String bio;
@@ -143,7 +143,7 @@ class DoctorHive {
   final String kmpdcNumber;
 
   @HiveField(11)
-  final String licenseUrl;
+  final List<String> licenseUrls;
 
   @HiveField(12)
   final String verificationStatus;

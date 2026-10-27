@@ -107,6 +107,87 @@ enum PractitionerTitle {
   };
 }
 
+/// A practitioner's specialties (CRQ-0026). A pathologist's are the areas
+/// they report on, which decide the cases on their desk; a doctor's are what
+/// patients search for. Stored as [value], which the callable and the rules
+/// check against the same two lists.
+enum Specialty {
+  histopathology('Histopathology', isPathology: true),
+  cytology('Cytology', isPathology: true),
+  haematology('Haematology', isPathology: true),
+  microbiology('Microbiology', isPathology: true),
+  immunohistochemistry('Immunohistochemistry', isPathology: true),
+  generalPractice('General practice'),
+  familyMedicine('Family medicine'),
+  internalMedicine('Internal medicine'),
+  generalSurgery('General surgery'),
+  breastSurgery('Breast surgery'),
+  obstetricsAndGynaecology('Obstetrics and gynaecology'),
+  paediatrics('Paediatrics'),
+  oncology('Oncology'),
+  dermatology('Dermatology'),
+  earNoseAndThroat('Ear, nose and throat'),
+  urology('Urology'),
+  gastroenterology('Gastroenterology'),
+  infectiousDiseases('Infectious diseases'),
+  cardiology('Cardiology'),
+  orthopaedics('Orthopaedics');
+
+  const Specialty(this.value, {this.isPathology = false});
+
+  final String value;
+  final bool isPathology;
+
+  static const maxSelected = 5;
+
+  /// The specialties a role may choose from.
+  static List<Specialty> forRole({required bool isPathologist}) => [
+    for (final s in values)
+      if (s.isPathology == isPathologist) s,
+  ];
+
+  /// Null for a value this app version does not know.
+  static Specialty? fromValue(String value) {
+    for (final s in values) {
+      if (s.value == value) return s;
+    }
+    return null;
+  }
+
+  String description(AppLocalizations l10n) => switch (this) {
+    histopathology => l10n.specialtyHistopathology,
+    cytology => l10n.specialtyCytology,
+    haematology => l10n.specialtyHaematology,
+    microbiology => l10n.specialtyMicrobiology,
+    immunohistochemistry => l10n.specialtyImmunohistochemistry,
+    generalPractice => l10n.specialtyGeneralPractice,
+    familyMedicine => l10n.specialtyFamilyMedicine,
+    internalMedicine => l10n.specialtyInternalMedicine,
+    generalSurgery => l10n.specialtyGeneralSurgery,
+    breastSurgery => l10n.specialtyBreastSurgery,
+    obstetricsAndGynaecology => l10n.specialtyObstetricsAndGynaecology,
+    paediatrics => l10n.specialtyPaediatrics,
+    oncology => l10n.specialtyOncology,
+    dermatology => l10n.specialtyDermatology,
+    earNoseAndThroat => l10n.specialtyEarNoseAndThroat,
+    urology => l10n.specialtyUrology,
+    gastroenterology => l10n.specialtyGastroenterology,
+    infectiousDiseases => l10n.specialtyInfectiousDiseases,
+    cardiology => l10n.specialtyCardiology,
+    orthopaedics => l10n.specialtyOrthopaedics,
+  };
+
+  /// What each pathology area covers, as the area picker shows it (F2b).
+  String? hint(AppLocalizations l10n) => switch (this) {
+    histopathology => l10n.specialtyHistopathologyHint,
+    cytology => l10n.specialtyCytologyHint,
+    haematology => l10n.specialtyHaematologyHint,
+    microbiology => l10n.specialtyMicrobiologyHint,
+    immunohistochemistry => l10n.specialtyImmunohistochemistryHint,
+    _ => null,
+  };
+}
+
 /// Every translatable reason a Bloc operation can fail — both app-level
 /// guard conditions and Firebase-derived error codes (via [fromFirebaseCode]
 /// and [fromFunctionsException]). Implements [Exception] so helpers can throw
@@ -164,7 +245,8 @@ enum AppError implements Exception {
   facilityNotOperational,
   invalidTitle,
   invalidPicture,
-  invalidSpecialization,
+  invalidSpecialties,
+  invalidAvailability,
   invalidBio,
   invalidLicense,
   kmpdcNumberInUse,
@@ -205,7 +287,8 @@ enum AppError implements Exception {
       'facilityNotOperational' => AppError.facilityNotOperational,
       'invalidTitle' => AppError.invalidTitle,
       'invalidPicture' => AppError.invalidPicture,
-      'invalidSpecialization' => AppError.invalidSpecialization,
+      'invalidSpecialties' => AppError.invalidSpecialties,
+      'invalidAvailability' => AppError.invalidAvailability,
       'invalidBio' => AppError.invalidBio,
       'invalidLicense' => AppError.invalidLicense,
       'kmpdcNumberInUse' => AppError.kmpdcNumberInUse,
@@ -292,7 +375,8 @@ enum AppError implements Exception {
     .facilityNotOperational => l10n.errorFacilityNotOperational,
     .invalidTitle => l10n.errorInvalidTitle,
     .invalidPicture => l10n.errorInvalidPicture,
-    .invalidSpecialization => l10n.errorInvalidSpecialization,
+    .invalidSpecialties => l10n.errorInvalidSpecialties,
+    .invalidAvailability => l10n.errorInvalidAvailability,
     .invalidBio => l10n.errorInvalidBio,
     .invalidLicense => l10n.errorInvalidLicense,
     .kmpdcNumberInUse => l10n.errorKmpdcNumberInUse,

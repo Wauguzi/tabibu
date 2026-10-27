@@ -68,12 +68,12 @@ function doctorProfile(overrides = {}) {
     lastName: 'Kamau',
     email: 'wanjiru@example.com',
     phoneNumber: '+254722000111',
-    profilePictureUrl: '',
+    profilePictureUrl: url('profilePictures', 'drWanjiru'),
     isPathologist: true,
-    specialization: 'Anatomical pathology',
+    specialties: ['Histopathology', 'Cytology'],
     bio: '',
     kmpdcNumber: 'A1234',
-    licenseUrl: url('licenses', 'drWanjiru', 'l.pdf'),
+    licenseUrls: [url('licenses', 'drWanjiru', 'l.pdf')],
     verificationStatus: 'Pending',
     facilityId: 'f1',
     facilityMflCode: '13043',
@@ -258,7 +258,7 @@ describe('doctors', () => {
         bio: 'Histopathology.',
         isAvailable: false,
         kmpdcNumber: 'A1235',
-        licenseUrl: url('licenses', 'drWanjiru', 'new.pdf'),
+        licenseUrls: [url('licenses', 'drWanjiru', 'new.pdf'), url('licenses', 'drWanjiru', 'cert.pdf')],
         ...at,
       }),
     );
@@ -278,7 +278,7 @@ describe('doctors', () => {
   it('RT-21 KMPDC number and license are final once verified (T-14)', async () => {
     await seed('doctors/drWanjiru', doctorProfile({ verificationStatus: 'Verified' }));
     await assertFails(updateDoc(mine(), { kmpdcNumber: 'A1235', ...at }));
-    await assertFails(updateDoc(mine(), { licenseUrl: url('licenses', 'drWanjiru', 'new.pdf'), ...at }));
+    await assertFails(updateDoc(mine(), { licenseUrls: [url('licenses', 'drWanjiru', 'new.pdf')], ...at }));
     await assertSucceeds(updateDoc(mine(), { bio: 'Still editable.', ...at }));
   });
 
@@ -290,6 +290,35 @@ describe('doctors', () => {
 
   it('RT-23 counters are server-only', async () => {
     await assertFails(updateDoc(mine(), { reportsSigned: 50, ...at }));
+  });
+
+  it("RT-32 specialties: one to five, from the role's own list", async () => {
+    await assertSucceeds(updateDoc(mine(), { specialties: ['Cytology'], ...at }));
+    await assertFails(updateDoc(mine(), { specialties: [], ...at }));
+    await assertFails(updateDoc(mine(), { specialties: ['Oncology'], ...at }));
+    await assertFails(updateDoc(mine(), { specialties: ['Cytology', 'Cytology'], ...at }));
+    await seed('doctors/drOkello', doctorProfile({
+      uid: 'drOkello',
+      isPathologist: false,
+      specialties: ['General surgery'],
+      profilePictureUrl: url('profilePictures', 'drOkello'),
+      licenseUrls: [url('licenses', 'drOkello', 'l.pdf')],
+    }));
+    const doctor = doc(db('drOkello', {}), 'doctors/drOkello');
+    await assertSucceeds(updateDoc(doctor, { specialties: ['General surgery', 'Breast surgery'], ...at }));
+    await assertFails(updateDoc(doctor, { specialties: ['Histopathology'], ...at }));
+  });
+
+  it('RT-33 one or two licence files, each in the owner folder', async () => {
+    const file = (n) => url('licenses', 'drWanjiru', n);
+    await assertFails(updateDoc(mine(), { licenseUrls: [], ...at }));
+    await assertFails(updateDoc(mine(), { licenseUrls: [file('a.pdf'), file('b.pdf'), file('c.pdf')], ...at }));
+    await assertFails(updateDoc(mine(), { licenseUrls: [file('a.pdf'), url('licenses', 'other', 'b.pdf')], ...at }));
+  });
+
+  it('RT-34 a practitioner photo can be changed but not removed', async () => {
+    await assertSucceeds(updateDoc(mine(), { profilePictureUrl: url('profilePictures', 'drWanjiru', 'new.jpg'), ...at }));
+    await assertFails(updateDoc(mine(), { profilePictureUrl: '', ...at }));
   });
 });
 
@@ -337,6 +366,13 @@ describe('storage', () => {
     await assertFails(put('drStranger', DOCTOR, 'profilePictures/p1/me.jpg'));
     await seed('patients/p1', patient({ patientId: 'p1', uid: 'amina2', isRegistered: true }));
     await assertFails(put('drOdhiambo', DOCTOR, 'profilePictures/p1/again.jpg'));
+  });
+
+  it('RT-35 a licence file may be up to 10 MB', async () => {
+    const nine = new Uint8Array(9 * 1024 * 1024);
+    const eleven = new Uint8Array(11 * 1024 * 1024);
+    await assertSucceeds(put('drNew', {}, 'licenses/drNew/scan.pdf', nine, 'application/pdf'));
+    await assertFails(put('drNew', {}, 'licenses/drNew/huge.pdf', eleven, 'application/pdf'));
   });
 
   it('RT-29 a license is uploaded before sign-up and frozen once verified (T-14)', async () => {

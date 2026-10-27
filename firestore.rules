@@ -1,9 +1,223 @@
 rules_version = '2';
 
-// The data boundary (architecture §6.1, §11; threat model T-1, T-2, T-9, T-14 to T-16; CRQ-0016).
-// Profiles are created by Cloud Functions only. A client may change only the fields §6.1 marks
-// as the owner's (or, for an unregistered patient, the care team's); everything not matched here
-// is denied. Tests: test/firestore_rules/ (make rules-test).
+// ════════════════════════════════════════════════════════════════════════════
+// TABIBU: FIRESTORE SECURITY RULES
+// Information security review document
+// Last updated : 2026-10-28
+// Prepared by  : Engineering (Theo)
+// Review target: the pull request reviewer and Greptile, before each deploy
+// Emulator test: make rules-test → 35/35 passing (Firestore and Storage)
+// Change records: CRQ-0016 (identity rules), CRQ-0026 (licences, specialties)
+// Threat model  : docs/security/reports/firebase_and_ai_service_threat_model.md
+// Storage rules : storage.rules, same suite (RT-26 to RT-31, RT-35)
+// ════════════════════════════════════════════════════════════════════════════
+//
+// ── 1. PURPOSE & SCOPE ──────────────────────────────────────────────────────
+//
+// These rules are the only access control between a client and Firestore.
+// They enforce architecture §6.1 and §11: who may read a profile, which
+// fields an owner may change, and that every privileged write (creating a
+// profile, setting a role, verifying a practitioner, adding to a care team)
+// is a Cloud Function's. The app's own checks (RoleHelper, scoped cache
+// reads) mirror them; these are what hold when the app is bypassed.
+//
+// The Admin SDK (Cloud Functions, the seed script) bypasses everything here.
+// What the functions may do is governed by their own validation and tests
+// (functions/src/*.test.ts).
+//
+// ── 2. COLLECTION LAYOUT ────────────────────────────────────────────────────
+//
+//   patients/{patientId}        a patient record. patientId is the Auth uid
+//                               for a self-registered patient, generated
+//                               for a doctor-added one; `uid` names the
+//                               account ('' until one is linked)
+//   doctors/{uid}               a doctor's or pathologist's private profile
+//   practitioners/{uid}         the public directory: a projection of
+//                               verified doctors, written by syncPractitioner
+//   everything else             closed until its feature lands (§8)
+//
+// ── 3. ACTOR MODEL ──────────────────────────────────────────────────────────
+//
+//   ACTOR                 IDENTITY                 PRIVILEGE
+//   ───────────────────── ──────────────────────── ────────────────────────────
+//   Unauthenticated       none                     nothing
+//   Signed in, no role    Auth uid, no role claim  reads the directory; reads
+//     (sign-up unfinished                          and edits its own doctors
+//     or pending)                                  profile if it has one
+//   Patient               role == 'patient'        reads its own record (by
+//                                                  uid); edits names, phone,
+//                                                  picture, preferences;
+//                                                  removes care-team members
+//   Doctor                role == 'doctor'         reads patients whose care
+//                                                  team includes it; corrects
+//                                                  an unregistered patient it
+//                                                  cares for; edits its profile
+//   Pathologist           role == 'pathologist'    reads patients whose care
+//                                                  team includes it; edits its
+//                                                  profile
+//   Alert approver        alertApprover == true    (a doctor) nothing more
+//                                                  here; alerts land later
+//   Admin                 admin == true            reads and lists doctors
+//                                                  profiles (verification)
+//   Cloud Functions       Admin SDK                everything; see §1
+//
+//   Every role is a custom claim set only by a Cloud Function (T-2). No rule
+//   reads a role from a document.
+//
+// ── 4. HELPER FUNCTIONS ─────────────────────────────────────────────────────
+//
+//   signedIn()            request.auth != null
+//   role(), isAdmin()     read the claims, defaulting to none; never throw
+//   changed()             the keys an update touches (diff.affectedKeys)
+//   text(f, max)          a string no longer than max
+//   phone()               +254 and nine digits, as the callables normalise
+//   isStorageUrl(v,f,o)   a Firebase Storage download URL for a file under
+//                         <f>/<o>/. A URL is a bearer link, so a profile may
+//                         only point at its owner's own folder
+//   storageUrl(f,fl,o)    the same, or ''
+//   tokens()              fcmTokens is a list of at most ten
+//   preferences()         language en or sw; receiveNotifications a bool
+//
+//   Per collection:
+//   patients   isOwner()          uid == auth.uid and role patient
+//              onCareTeam()       practitioner role and auth.uid in doctorUids
+//              ownerUpdate()      the owner's field whitelist, with types
+//              careTeamUpdate()   a doctor, an unregistered record, the
+//                                 correction whitelist
+//   doctors    editable()         the whitelist; KMPDC number and licence
+//                                 files only while not verified; the status
+//                                 only Rejected → Pending
+//              licenseUrls()      one or two, each in the owner's folder
+//              specialties()      one to five from the role's own list
+//
+//   Read cost: none of these helpers reads another document.
+//
+// ── 5. PER-COLLECTION ANALYSIS ──────────────────────────────────────────────
+//
+// 5.1  patients/{patientId}
+//
+//   OPERATION  RULE                              NOTES
+//   ────────── ───────────────────────────────── ───────────────────────────
+//   read       own uid, or onCareTeam()          a list must filter on uid or
+//                                                array-contains doctorUids
+//   update     ownerUpdate() or careTeamUpdate() sex, birth date, email,
+//                                                location, geohash, counters
+//                                                and isRegistered are never
+//                                                the client's
+//   create     denied                            completePatientSignUp,
+//                                                addPatient
+//   delete     denied
+//
+// 5.2  doctors/{uid}
+//
+//   OPERATION  RULE                              NOTES
+//   ────────── ───────────────────────────────── ───────────────────────────
+//   get        owner or admin
+//   list       admin                             the verification queue
+//   update     ownerUpdate()                     email, isPathologist,
+//                                                facility, geohash, counters
+//                                                and verification are never
+//                                                the client's
+//   create     denied                            completePractitionerSignUp
+//   delete     denied
+//
+// 5.3  practitioners/{uid}
+//
+//   OPERATION  RULE                              NOTES
+//   ────────── ───────────────────────────────── ───────────────────────────
+//   read       any signed-in user                public fields only, by
+//                                                construction (syncPractitioner)
+//   write      denied
+//
+// ── 6. CROSS-CUTTING CONCERNS ───────────────────────────────────────────────
+//
+// 6.1  Claims are the boundary. A role granted after a token was issued is
+//      invisible until the token refreshes; the app forces one refresh
+//      (AuthHelper). A revoked role persists until the token expires (an
+//      hour at most).
+// 6.2  Download URLs are bearer links. The rules keep a profile from pointing
+//      at someone else's file; they cannot revoke a leaked URL (CRQ-0014 §5).
+// 6.3  No rate limiting in rules. App Check, once enforced, is the throttle
+//      (T-7, CRQ-0010).
+// 6.4  The specialties lists are written three times: here, in
+//      functions/src/identity.ts and in the app's Specialty enum. A functions
+//      test (reference-data.test.ts) fails when they differ.
+// 6.5  The Admin SDK bypasses all of this; functions validate their own
+//      input and are tested on the emulators.
+//
+// ── 7. THREAT SCENARIOS ─────────────────────────────────────────────────────
+//
+//   T-1   reading another patient       RT-2, RT-3, RT-5
+//   T-2   escalating a role             RT-6, RT-17, RT-19, RT-25
+//   T-9   storing a precise location    RT-8
+//   T-14  posing as a practitioner      RT-19, RT-21, RT-22, RT-29, RT-33
+//   T-15  taking over a clinic record   functions: completePatientSignUp
+//   T-16  joining a care team uninvited RT-10, RT-11
+//
+// ── 8. PENDING: WHAT IS CLOSED UNTIL ITS FEATURE LANDS ──────────────────────
+//
+//   cases, pre-reads, orders, reports, alerts, notifications: closed by the
+//   default deny. Each arrives with its rules and tests (architecture §16
+//   item 5). Changing a practitioner's facility or a patient's sub-county
+//   needs a callable (the geohash is the server's); both are refused here.
+//
+// ── 9. DECISION CHECKLIST ───────────────────────────────────────────────────
+//
+//   ID    SEVERITY  STATUS                DECISION
+//   ───── ───────── ───────────────────── ──────────────────────────────────
+//   C-1   HIGH      RESOLVED 2026-10-27   Roles are claims set by functions,
+//                                         never document fields. RT-17, RT-19
+//   C-2   HIGH      RESOLVED 2026-10-27   Clients create no profile. RT-6,
+//                                         RT-17, RT-24
+//   C-3   HIGH      RESOLVED 2026-10-27   KMPDC number and licence files lock
+//                                         on verification; email never
+//                                         changes. RT-20, RT-21, RT-29
+//   C-4   HIGH      RESOLVED 2026-10-27   Only server code adds to a care
+//                                         team. RT-10, RT-11
+//   C-5   MEDIUM    RESOLVED 2026-10-27   The geohash and location are the
+//                                         server's. RT-8, RT-20
+//   C-6   MEDIUM    RESOLVED 2026-10-28   One or two licence files, 10 MB
+//                                         each; a required practitioner
+//                                         photo. RT-33, RT-34, RT-35
+//   C-7   MEDIUM    RESOLVED 2026-10-28   Specialties from the role's own
+//                                         list, one to five. RT-32
+//   C-8   MEDIUM    RESOLVED 2026-10-28   The specialties lists in these
+//                                         rules, the callable and the app's
+//                                         enum are held equal by a functions
+//                                         test (§6.4)
+//   C-9   HIGH      BLOCKING (rollout)    Enforce App Check on Firestore,
+//                                         Storage and Functions (§6.3)
+//   C-10  LOW       DEFERRED              Fetch patient pictures through the
+//                                         SDK instead of storing URLs (§6.2)
+//
+// ── 10. EMULATOR TEST COVERAGE ──────────────────────────────────────────────
+//
+//   test/firestore_rules/rules.test.js: 35 scenarios (31 added 2026-10-27,
+//   +4 for licence files, specialties, the required photo and the 10 MB
+//   limit added 2026-10-28, C-6 and C-7).
+//
+//   patients        RT-1 own record · RT-2 another patient · RT-3 care team ·
+//                   RT-4 no role · RT-5 scoped lists · RT-6 no create or
+//                   delete · RT-7 owner edits · RT-8 no location (T-9) ·
+//                   RT-9 locked fields · RT-10 remove, never add (T-16) ·
+//                   RT-11 doctor self-add (T-16) · RT-12 own picture folder ·
+//                   RT-13 care-team corrections · RT-14 pathologist cannot
+//                   correct · RT-15 linked record by uid
+//   doctors         RT-16 owner and admin read · RT-17 no create · RT-18
+//                   pending edits · RT-19 no self-verify (T-14) · RT-20 email
+//                   and facility locked · RT-21 final once verified (T-14) ·
+//                   RT-22 resubmit to Pending only · RT-23 counters · RT-32
+//                   specialties · RT-33 licence files · RT-34 photo required
+//   practitioners   RT-24 read by any signed-in user, written by none
+//   everything else RT-25 closed
+//   storage         RT-26 own images under 3 MB · RT-27 linked patient ·
+//                   RT-28 care team until registered · RT-29 licence frozen
+//                   once verified (T-14) · RT-30 licence readers · RT-31
+//                   other paths closed · RT-35 licence files up to 10 MB
+//
+//   On every rules change: update "Last updated", the passing count, §9 and
+//   this list, in the same commit.
+// ════════════════════════════════════════════════════════════════════════════
 
 service cloud.firestore {
   match /databases/{database}/documents {
@@ -32,12 +246,17 @@ service cloud.firestore {
       return request.resource.data.phoneNumber.matches('^\\+254[17][0-9]{8}$');
     }
 
-    // A download URL for a file under <folder>/<owner>/ in a Firebase Storage bucket, or ''.
+    // A download URL for a file under <folder>/<owner>/ in a Firebase Storage bucket.
+    function isStorageUrl(value, folder, owner) {
+      return value is string && value.size() <= 2048 && value.matches(
+          '^https://firebasestorage\\.googleapis\\.com/v0/b/[^/]+/o/'
+          + folder + '%2F' + owner + '%2F[^?]+[?].*');
+    }
+
+    // The same, or ''.
     function storageUrl(field, folder, owner) {
       return request.resource.data[field] == ''
-          || (text(field, 2048) && request.resource.data[field].matches(
-                '^https://firebasestorage\\.googleapis\\.com/v0/b/[^/]+/o/'
-                + folder + '%2F' + owner + '%2F[^?]+[?].*'));
+          || isStorageUrl(request.resource.data[field], folder, owner);
     }
 
     function tokens() {
@@ -114,12 +333,36 @@ service cloud.firestore {
         return resource.data.verificationStatus == 'Verified';
       }
 
-      // The KMPDC number and license are final once verified; email never changes (T-14).
+      // One or two files in the owner's own licences folder. Rules cannot loop, so each index
+      // is checked.
+      function licenseUrls() {
+        let urls = request.resource.data.licenseUrls;
+        return urls is list && urls.size() >= 1 && urls.size() <= 2
+            && isStorageUrl(urls[0], 'licenses', uid)
+            && (urls.size() == 1 || isStorageUrl(urls[1], 'licenses', uid));
+      }
+
+      // One to five, from the role's own list (the callable's lists, CRQ-0026).
+      function specialties() {
+        let chosen = request.resource.data.specialties;
+        let allowed = resource.data.isPathologist
+            ? ['Histopathology', 'Cytology', 'Haematology', 'Microbiology',
+               'Immunohistochemistry']
+            : ['General practice', 'Family medicine', 'Internal medicine', 'General surgery',
+               'Breast surgery', 'Obstetrics and gynaecology', 'Paediatrics', 'Oncology',
+               'Dermatology', 'Ear, nose and throat', 'Urology', 'Gastroenterology',
+               'Infectious diseases', 'Cardiology', 'Orthopaedics'];
+        return chosen is list && chosen.size() >= 1 && chosen.size() <= 5
+            && chosen.toSet().size() == chosen.size()
+            && chosen.toSet().difference(allowed.toSet()).size() == 0;
+      }
+
+      // The KMPDC number and licence files are final once verified; email never changes (T-14).
       function editable() {
         return ['title', 'firstName', 'lastName', 'phoneNumber', 'profilePictureUrl',
-                'specialization', 'bio', 'isAvailable', 'fcmTokens', 'language',
+                'specialties', 'bio', 'isAvailable', 'fcmTokens', 'language',
                 'receiveNotifications', 'lastUpdatedAt']
-            .concat(verified() ? [] : ['kmpdcNumber', 'licenseUrl'])
+            .concat(verified() ? [] : ['kmpdcNumber', 'licenseUrls'])
             // A rejected practitioner may resubmit; nothing else moves the status.
             .concat(resource.data.verificationStatus == 'Rejected'
                     && request.resource.data.verificationStatus == 'Pending'
@@ -133,11 +376,11 @@ service cloud.firestore {
             && text('firstName', 50) && request.resource.data.firstName.size() > 0
             && text('lastName', 50) && request.resource.data.lastName.size() > 0
             && phone()
-            && storageUrl('profilePictureUrl', 'profilePictures', uid)
-            && text('specialization', 80) && request.resource.data.specialization.size() > 0
+            && isStorageUrl(request.resource.data.profilePictureUrl, 'profilePictures', uid)
+            && specialties()
             && text('bio', 1000)
             && text('kmpdcNumber', 30) && request.resource.data.kmpdcNumber.matches('^[A-Z0-9/-]{3,30}$')
-            && storageUrl('licenseUrl', 'licenses', uid) && request.resource.data.licenseUrl != ''
+            && licenseUrls()
             && request.resource.data.isAvailable is bool
             && tokens()
             && preferences();

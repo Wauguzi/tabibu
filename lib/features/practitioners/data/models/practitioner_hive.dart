@@ -13,7 +13,7 @@ class PractitionerHive {
     required this.lastName,
     required this.profilePictureUrl,
     required this.isPathologist,
-    required this.specialization,
+    required this.specialties,
     required this.bio,
     required this.facilityId,
     required this.facilityMflCode,
@@ -37,7 +37,7 @@ class PractitionerHive {
       lastName: model.lastName,
       profilePictureUrl: model.profilePictureUrl,
       isPathologist: model.isPathologist,
-      specialization: model.specialization,
+      specialties: model.specialties,
       bio: model.bio,
       facilityId: model.facilityId,
       facilityMflCode: model.facilityMflCode,
@@ -62,7 +62,7 @@ class PractitionerHive {
       lastName: lastName,
       profilePictureUrl: profilePictureUrl,
       isPathologist: isPathologist,
-      specialization: specialization,
+      specialties: specialties,
       bio: bio,
       facilityId: facilityId,
       facilityMflCode: facilityMflCode,
@@ -98,7 +98,7 @@ class PractitionerHive {
   final bool isPathologist;
 
   @HiveField(6)
-  final String specialization;
+  final List<String> specialties;
 
   @HiveField(7)
   final String bio;

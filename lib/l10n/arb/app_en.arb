@@ -188,10 +188,6 @@
     "@errorInvalidPicture": {
         "description": "Refusal when the uploaded picture is not valid"
     },
-    "errorInvalidSpecialization": "The specialization is not valid.",
-    "@errorInvalidSpecialization": {
-        "description": "Refusal when the specialization is not valid"
-    },
     "errorInvalidBio": "The biography is not valid. Check it and try again.",
     "@errorInvalidBio": {
         "description": "Refusal when the biography is not valid"
@@ -307,5 +303,113 @@
     "notificationSecurityClosing": "Tabibu will close to protect your data.",
     "@notificationSecurityClosing": {
         "description": "Appended to a critical security notice, just before the app closes."
+    },
+    "errorInvalidSpecialties": "Choose one to five specialties from the list.",
+    "@errorInvalidSpecialties": {
+        "description": "Refusal when the chosen specialties are empty, too many, or not on the role's list"
+    },
+    "errorInvalidAvailability": "Choose whether you are accepting new patients.",
+    "@errorInvalidAvailability": {
+        "description": "Refusal when the availability switch is missing or malformed"
+    },
+    "specialtyHistopathology": "Histopathology",
+    "@specialtyHistopathology": {
+        "description": "Pathology area: tissue"
+    },
+    "specialtyHistopathologyHint": "Tissue, including lymph nodes",
+    "@specialtyHistopathologyHint": {
+        "description": "What histopathology covers, under its name in the area picker"
+    },
+    "specialtyCytology": "Cytology",
+    "@specialtyCytology": {
+        "description": "Pathology area: cells"
+    },
+    "specialtyCytologyHint": "Smears, FNA and Pap tests",
+    "@specialtyCytologyHint": {
+        "description": "What cytology covers"
+    },
+    "specialtyHaematology": "Haematology",
+    "@specialtyHaematology": {
+        "description": "Pathology area: blood"
+    },
+    "specialtyHaematologyHint": "Blood films, malaria",
+    "@specialtyHaematologyHint": {
+        "description": "What haematology covers"
+    },
+    "specialtyMicrobiology": "Microbiology",
+    "@specialtyMicrobiology": {
+        "description": "Pathology area: microbes"
+    },
+    "specialtyMicrobiologyHint": "Cultures and PCR",
+    "@specialtyMicrobiologyHint": {
+        "description": "What microbiology covers"
+    },
+    "specialtyImmunohistochemistry": "Immunohistochemistry",
+    "@specialtyImmunohistochemistry": {
+        "description": "Pathology area: stains"
+    },
+    "specialtyImmunohistochemistryHint": "IHC stains and markers",
+    "@specialtyImmunohistochemistryHint": {
+        "description": "What immunohistochemistry covers"
+    },
+    "specialtyGeneralPractice": "General practice",
+    "@specialtyGeneralPractice": {
+        "description": "Clinical specialty"
+    },
+    "specialtyFamilyMedicine": "Family medicine",
+    "@specialtyFamilyMedicine": {
+        "description": "Clinical specialty"
+    },
+    "specialtyInternalMedicine": "Internal medicine",
+    "@specialtyInternalMedicine": {
+        "description": "Clinical specialty"
+    },
+    "specialtyGeneralSurgery": "General surgery",
+    "@specialtyGeneralSurgery": {
+        "description": "Clinical specialty"
+    },
+    "specialtyBreastSurgery": "Breast surgery",
+    "@specialtyBreastSurgery": {
+        "description": "Clinical specialty"
+    },
+    "specialtyObstetricsAndGynaecology": "Obstetrics and gynaecology",
+    "@specialtyObstetricsAndGynaecology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyPaediatrics": "Paediatrics",
+    "@specialtyPaediatrics": {
+        "description": "Clinical specialty"
+    },
+    "specialtyOncology": "Oncology",
+    "@specialtyOncology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyDermatology": "Dermatology",
+    "@specialtyDermatology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyEarNoseAndThroat": "Ear, nose and throat",
+    "@specialtyEarNoseAndThroat": {
+        "description": "Clinical specialty"
+    },
+    "specialtyUrology": "Urology",
+    "@specialtyUrology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyGastroenterology": "Gastroenterology",
+    "@specialtyGastroenterology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyInfectiousDiseases": "Infectious diseases",
+    "@specialtyInfectiousDiseases": {
+        "description": "Clinical specialty"
+    },
+    "specialtyCardiology": "Cardiology",
+    "@specialtyCardiology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyOrthopaedics": "Orthopaedics",
+    "@specialtyOrthopaedics": {
+        "description": "Clinical specialty"
     }
 }

@@ -8,7 +8,7 @@ Map<String, dynamic> practitionerJson() => {
   'lastName': 'Mwangi',
   'profilePictureUrl': 'https://example.com/brian.jpg',
   'isPathologist': true,
-  'specialization': 'Histopathology',
+  'specialties': ['Histopathology', 'Cytology'],
   'bio': 'Pathologist in Nairobi.',
   'facilityId': 'facility-1',
   'facilityMflCode': '13043',
@@ -61,7 +61,7 @@ void main() {
         'email',
         'phoneNumber',
         'kmpdcNumber',
-        'licenseUrl',
+        'licenseUrls',
         'fcmTokens',
       ]) {
         expect(json.containsKey(key), isFalse, reason: key);

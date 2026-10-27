@@ -14,7 +14,9 @@ _PractitionerModel _$PractitionerModelFromJson(Map<String, dynamic> json) =>
       lastName: json['lastName'] as String,
       profilePictureUrl: json['profilePictureUrl'] as String,
       isPathologist: json['isPathologist'] as bool,
-      specialization: json['specialization'] as String,
+      specialties: (json['specialties'] as List<dynamic>)
+          .map((e) => e as String)
+          .toList(),
       bio: json['bio'] as String,
       facilityId: json['facilityId'] as String,
       facilityMflCode: json['facilityMflCode'] as String,
@@ -37,7 +39,7 @@ Map<String, dynamic> _$PractitionerModelToJson(_PractitionerModel instance) =>
       'lastName': instance.lastName,
       'profilePictureUrl': instance.profilePictureUrl,
       'isPathologist': instance.isPathologist,
-      'specialization': instance.specialization,
+      'specialties': instance.specialties,
       'bio': instance.bio,
       'facilityId': instance.facilityId,
       'facilityMflCode': instance.facilityMflCode,
