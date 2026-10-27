@@ -1,0 +1,15 @@
+# Firebase client API keys are public identifiers (threat model §2, CRQ-0007).
+[extend]
+useDefault = true
+
+[[allowlists]]
+description = "Firebase client API keys in the FlutterFire config"
+targetRules = ["gcp-api-key", "generic-api-key"]
+condition = "AND"
+regexTarget = "secret"
+regexes = ['''^AIza[0-9A-Za-z_-]{35}$''']
+paths = [
+  '''^android/app/google-services\.json$''',
+  '''^ios/Runner/GoogleService-Info\.plist$''',
+  '''^lib/firebase_options\.dart$''',
+]

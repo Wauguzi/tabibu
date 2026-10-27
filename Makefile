@@ -34,7 +34,7 @@ bloc-lint:
 
 spell:
 		npx --yes cspell@8 --no-progress \
-		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/*" "ai_service/*" .gitignore \
+		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/*" "ai_service/*" .gitignore .gitleaks.toml \
 		    Makefile Gemfile pubspec.yaml "lib/**/*.dart" "test/**/*.dart"
 
 # Same allow-list and skip list as .github/workflows/license_check.yaml; change both together.

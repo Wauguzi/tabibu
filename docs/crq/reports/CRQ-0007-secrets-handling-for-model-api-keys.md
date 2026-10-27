@@ -149,7 +149,7 @@ itself.
 |---|---|
 | 1. `make keys-add` with both keys | Done 2026-10-27: both stored; `make keys-check` shows 45 and 48 characters |
 | 2. Repository secret scanning and push protection | Enabled 2026-10-27, confirmed through the API |
-| 3. `brew install gitleaks`, then `make secrets` | Pending |
+| 3. `brew install gitleaks`, then `make secrets` | Done 2026-10-27 with gitleaks 8.30.1: 20 commits, clean once the Firebase keys were exempted (below) |
 | 4. Modal secret `tabibu-models` with `META_API_KEY` and `BASETEN_API_KEY` | Pending: when the AI service exists |
 
 **Secret-scanning alerts.** The first scan raised two `google_api_key`
@@ -159,8 +159,24 @@ keys in `google-services.json`, `GoogleService-Info.plist` and
 carried Firebase's API restrictions (24 Firebase APIs, confirmed in the
 Google Cloud console), so the alerts were closed as "won't fix" on
 2026-10-27. App restrictions were considered and declined; the reasoning is
-in the threat model §2. When gitleaks is installed, the same three files
-will need an exemption in `.gitleaks.toml`, scoped to those paths only.
+in the threat model §2.
+
+**gitleaks exemption.** The first `make secrets` found the same keys three
+times (`gcp-api-key`). `.gitleaks.toml` keeps the default rules and exempts
+a finding only when all three hold: the rule is `gcp-api-key` or
+`generic-api-key`, the file is one of the three FlutterFire files, and the
+secret is a Google `AIza…` key. Tested with planted values:
+
+| Planted | File | Result |
+|---|---|---|
+| `AIza…` key | `lib/firebase_options.dart` | Allowed |
+| GitHub token and a non-`AIza` generic key | `lib/firebase_options.dart` | Both found |
+| All three | Any other file | All found |
+
+The first attempt, a global path allowlist, also hid a GitHub token placed
+in an exempted file: gitleaks skips an allowlisted path entirely before any
+`AND` condition applies. Scoping the allowlist to the two rules closed
+that.
 
 **Signing fingerprints.** The SHA-1 and SHA-256 of the upload keystore and
 the debug keystore are registered on the Firebase Android app, and
