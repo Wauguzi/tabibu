@@ -279,11 +279,12 @@ seed-emulator:
 		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
 		  ./node_modules/.bin/ts-node src/seed.ts
 
-# Into the live project, through Application Default Credentials (gcloud auth application-default login).
+# Into the live project, through Application Default Credentials (gcloud auth application-default login),
+# e.g. make seed-live CONFIRM=tabibu-86ea2 SEED_EMAIL_TEMPLATE='tabibu.demo+{role}@gmail.com'
 seed-live:
 		@test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make seed-live CONFIRM=$(PROJECT)"; exit 1; }
 		cd functions && npm install --silent && \
-		  SEED_CONFIRM=$(CONFIRM) SEED_EMAIL_DOMAIN="$(SEED_EMAIL_DOMAIN)" \
+		  SEED_CONFIRM=$(CONFIRM) SEED_EMAIL_TEMPLATE="$(SEED_EMAIL_TEMPLATE)" \
 		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
 		  ./node_modules/.bin/ts-node src/seed.ts --live
 

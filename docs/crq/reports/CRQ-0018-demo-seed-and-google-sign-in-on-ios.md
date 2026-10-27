@@ -32,8 +32,10 @@
      (`tabibu-seed-password`).
    - `seed-emulator` seeds running emulators.
    - `seed-live CONFIRM=tabibu-86ea2` seeds the live project through
-     Application Default Credentials. `SEED_EMAIL_DOMAIN` sets the account
-     domain (the default is `tabibu.test`).
+     Application Default Credentials. `SEED_EMAIL_TEMPLATE` sets the account
+     addresses, with `{role}` replaced per account (the default is
+     `{role}@tabibu.test`); a plus-addressed Gmail sends every account's mail
+     to one inbox.
 3. **Guards** in the script:
    - Emulator mode needs all three emulator hosts (Firestore, Auth,
      Storage). A missing host would otherwise send that service's writes

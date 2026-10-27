@@ -45,8 +45,14 @@ function config() {
   }
   const password = process.env.SEED_PASSWORD ?? '';
   if (password.length < 12) throw new Error('SEED_PASSWORD must be at least 12 characters.');
-  const domain = process.env.SEED_EMAIL_DOMAIN ?? 'tabibu.test';
-  return { live, password, domain };
+  // `{role}` is replaced per account, e.g. `tabibu.demo+{role}@gmail.com`: plus addressing sends
+  // every account's mail to one inbox, so password reset works.
+  const template = process.env.SEED_EMAIL_TEMPLATE || '{role}@tabibu.test';
+  if (!template.includes('{role}') || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(template.replace('{role}', 'x'))) {
+    throw new Error('SEED_EMAIL_TEMPLATE must be an email address containing {role}.');
+  }
+  const email = (role: string) => template.replace('{role}', role).toLowerCase();
+  return { live, password, email };
 }
 
 async function user(email: string, password: string, displayName: string): Promise<string> {
@@ -97,7 +103,7 @@ async function practitioner(
 }
 
 async function main(): Promise<void> {
-  const { live, password, domain } = config();
+  const { live, password, email } = config();
   initializeApp({ projectId: PROJECT, storageBucket: `${PROJECT}.firebasestorage.app` });
   const deps: Deps = {
     db: getFirestore(),
@@ -105,13 +111,13 @@ async function main(): Promise<void> {
     bucket: getStorage().bucket().name,
   };
 
-  const adminEmail = `admin@${domain}`;
+  const adminEmail = email('admin');
   const adminUid = await user(adminEmail, password, 'Tabibu admin');
   const existing = (await getAuth().getUser(adminUid)).customClaims ?? {};
   await getAuth().setCustomUserClaims(adminUid, { ...existing, admin: true });
   const admin = caller(adminUid, adminEmail, '', true);
 
-  const doctorEmail = `doctor@${domain}`;
+  const doctorEmail = email('doctor');
   const doctorUid = await practitioner(deps, admin, {
     email: doctorEmail,
     password,
@@ -132,7 +138,7 @@ async function main(): Promise<void> {
   await getAuth().setCustomUserClaims(doctorUid, { ...doctorClaims, alertApprover: true });
 
   await practitioner(deps, admin, {
-    email: `pathologist@${domain}`,
+    email: email('pathologist'),
     password,
     isPathologist: true,
     facilityId: KENYATTA_NATIONAL_HOSPITAL,
@@ -147,7 +153,7 @@ async function main(): Promise<void> {
     },
   });
 
-  const patientEmail = `patient@${domain}`;
+  const patientEmail = email('patient');
   const patientUid = await user(patientEmail, password, 'Amina Otieno');
   await completePatientSignUpHandler(deps, caller(patientUid, patientEmail), {
     firstName: 'Amina',
@@ -179,7 +185,7 @@ async function main(): Promise<void> {
     });
   }
 
-  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin, doctor (approver), pathologist, patient @${domain}; 2 clinic patients.`);
+  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin, doctor (approver), pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
 }
 
 main().catch((e: Error) => {
