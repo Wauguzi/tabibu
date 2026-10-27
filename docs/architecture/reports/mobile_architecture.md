@@ -352,8 +352,11 @@ workflow runs in CI:
 Every other gate runs locally and is part of the definition of done
 ([`mobile_workflow.md` §6](../../workflow/reports/mobile_workflow.md#6-definition-of-done)):
 `make fmt`, `make analyze`, `make bloc-lint`, `make test`, `make spell` (cspell
-over every Markdown file, with `.github/cspell.json` as the project
-dictionary) and `make licenses`.
+over docs, config, scripts and Dart, with `.github/cspell.json` as the project
+dictionary, imported by the root `.cspell.json`) and `make licenses`. The
+Firebase targets (`emulators`, `rules-test`, `deploy-rules`,
+`deploy-indexes`, `deploy-storage`, `deploy-functions`, `deploy-hosting`) use
+one pinned CLI version against `tabibu-86ea2` (CRQ-0006).
 
 **Release lanes** (fastlane, `fastlane/Fastfile`): `ios beta` builds the
 `production` IPA and uploads it to TestFlight; `android deploy` builds the
@@ -474,6 +477,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §13 describes the repository-wide spell check and the Firebase `make` targets (CRQ-0006). | Theo |
 | 2026-10-27 | §13 adds the fastlane release lanes (CRQ-0005). | Theo |
 | 2026-10-27 | §13 rewritten for the interim CI: `main.yaml` removed pending purpose-built workflows; only the license check runs in CI, now fixed for Flutter; every other gate is a local `make` target. §16 item 3 updated; the license check is now pinned to a commit SHA. | Theo |
 | 2026-10-27 | §16 updated for the Firebase connection: item 5 narrowed to rules and functions; items 8 (web not configured) and 9 (one project for every flavor) added. | Theo |

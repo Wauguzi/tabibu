@@ -75,6 +75,32 @@
     "Appfile",
     "Fastfile",
     "tabibukenya",
-    "appbundle"
+    "appbundle",
+    "androiddebugkey",
+    "elif",
+    "findall",
+    "IPHONEOS",
+    "keypass",
+    "keytool",
+    "logcat",
+    "pbxproj",
+    "spinkit",
+    "storepass",
+    "testflight",
+    "Podfile",
+    "deintegrate"
+  ],
+  "ignorePaths": [
+    "**/lib/firebase_options.dart",
+    "**/lib/l10n/gen/**",
+    "**/lib/gen/**",
+    "**/*.g.dart",
+    "**/*.freezed.dart",
+    "**/*.config.dart",
+    "**/pubspec.lock",
+    "**/Gemfile.lock"
+  ],
+  "ignoreRegExpList": [
+    "/\\b[0-9A-Fa-f]{6}\\b/"
   ]
 }

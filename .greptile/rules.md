@@ -149,7 +149,8 @@ finding.
 - **Nothing is committed until the author has run and certified it.** Documentation-only changes
   are exempt.
 - **A change that alters what a doc says updates that doc in the same change.**
-- **Every Markdown change passes `make spell`** (cspell); new terms go in `.github/cspell.json`.
+- **Every change passes `make spell`**, which covers docs, config, scripts and Dart; new terms go in
+  `.github/cspell.json`. Generated files are excluded by path, never by adding their fragments as words.
 - **Rationale lives in the CRQ; inline comments stay lean**, except where a decision would
   otherwise look arbitrary and be undone. A comment that merely restates the code is a finding;
   length alone is not.
