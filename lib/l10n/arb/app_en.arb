@@ -251,5 +251,29 @@
     "languageSw": "Kiswahili",
     "@languageSw": {
         "description": "Name of the Kiswahili language option"
+    },
+    "notificationChannelAccount": "Account and security",
+    "@notificationChannelAccount": {
+        "description": "Android notification channel for sign-in, sign-up, password reset and security notices."
+    },
+    "notificationChannelAccountDescription": "Sign-in, sign-up, password reset and security notices.",
+    "@notificationChannelAccountDescription": {
+        "description": "Description of the account and security notification channel."
+    },
+    "notificationChannelAlerts": "Outbreak alerts",
+    "@notificationChannelAlerts": {
+        "description": "Android notification channel for approved outbreak alerts."
+    },
+    "notificationChannelAlertsDescription": "Approved alerts about disease in your area.",
+    "@notificationChannelAlertsDescription": {
+        "description": "Description of the outbreak alerts notification channel."
+    },
+    "notificationChannelCaseUpdates": "Case updates",
+    "@notificationChannelCaseUpdates": {
+        "description": "Android notification channel for case progress."
+    },
+    "notificationChannelCaseUpdatesDescription": "Reports, results and invitations on your cases.",
+    "@notificationChannelCaseUpdatesDescription": {
+        "description": "Description of the case updates notification channel."
     }
 }

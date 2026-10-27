@@ -62,5 +62,11 @@
     "verificationStatusVerified": "Imethibitishwa",
     "verificationStatusRejected": "Imekataliwa",
     "languageEn": "Kiingereza",
-    "languageSw": "Kiswahili"
+    "languageSw": "Kiswahili",
+    "notificationChannelAccount": "Akaunti na usalama",
+    "notificationChannelAccountDescription": "Taarifa za kuingia, kujisajili, kubadilisha nenosiri na usalama.",
+    "notificationChannelAlerts": "Tahadhari za milipuko",
+    "notificationChannelAlertsDescription": "Tahadhari zilizoidhinishwa kuhusu magonjwa katika eneo lako.",
+    "notificationChannelCaseUpdates": "Taarifa za kesi",
+    "notificationChannelCaseUpdatesDescription": "Ripoti, matokeo na mialiko kuhusu kesi zako."
 }

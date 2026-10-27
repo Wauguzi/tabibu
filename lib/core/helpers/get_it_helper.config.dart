@@ -25,6 +25,7 @@ import 'package:tabibu/core/helpers/db_helper.dart' as _i705;
 import 'package:tabibu/core/helpers/facilities_helper.dart' as _i598;
 import 'package:tabibu/core/helpers/get_it_helper.dart' as _i810;
 import 'package:tabibu/core/helpers/hive_helper.dart' as _i418;
+import 'package:tabibu/core/services/notification_service.dart' as _i1051;
 import 'package:tabibu/features/auth/data/datasources/auth_firebase.dart'
     as _i82;
 
@@ -46,6 +47,9 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i809.FirebaseFunctions>(() => dIModule.firebaseFunctions);
     gh.singleton<_i457.FirebaseStorage>(() => dIModule.firebaseStorage);
     gh.singleton<_i398.FirebaseAnalytics>(() => dIModule.firebaseAnalytics);
+    gh.singleton<_i1051.NotificationService>(
+      () => dIModule.notificationService,
+    );
     gh.singleton<_i705.DBHelper>(() => _i705.DBHelperImpl());
     gh.lazySingleton<_i82.AuthFirebase>(
       () => _i82.AuthFirebase(

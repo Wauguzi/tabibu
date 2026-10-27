@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Resources looked up only by NAME at runtime (Resources.getIdentifier), which
+  R8's resource shrinker cannot see, so it strips them from release builds
+  while debug builds keep them. NotificationService names
+  drawable/ic_notification as a string; without this entry, the plugin's
+  initialize() fails with invalid_icon in release and every later show()
+  throws. Anything else resolved by name belongs here too (CRQ-0022).
+-->
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_notification" />

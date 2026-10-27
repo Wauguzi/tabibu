@@ -14,6 +14,7 @@ import 'package:flutter/widgets.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/google_sign_in_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
+import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/firebase_options.dart';
 
 class AppBlocObserver extends BlocObserver {
@@ -184,6 +185,16 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     await getIt<HiveHelper>().initBoxes().timeout(_bootstrapStepTimeout);
   } catch (e) {
     if (kDebugMode) debugPrint('[Bootstrap] Cache init failed: $e');
+  }
+
+  // Raises the OS permission dialog before the first frame exists, so it is
+  // bounded like every other step.
+  try {
+    await getIt<NotificationService>().initialize().timeout(
+      _bootstrapStepTimeout,
+    );
+  } catch (e) {
+    if (kDebugMode) debugPrint('[Bootstrap] Notifications init failed: $e');
   }
 
   runApp(await builder());

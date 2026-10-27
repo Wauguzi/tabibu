@@ -28,6 +28,8 @@ patient reads, or the alert path.
 | [CRQ-0019](./CRQ-0019-identity-models-errors-and-di.md) | Identity models, facility reference data, enums, translated errors, and dependency injection | 2026-10-27 | Implemented |
 | [CRQ-0020](./CRQ-0020-session-layer-auth-and-encrypted-cache.md) | Session layer: auth datasource and helper, RoleHelper, the encrypted cache through DBHelper, and bootstrap wiring | 2026-10-27 | Implemented |
 | [CRQ-0021](./CRQ-0021-launcher-icons.md) | Launcher icons on Android and iOS: the missing iOS icon set, and a guard against 16-bit logos | 2026-10-27 | Implemented |
+| [CRQ-0022](./CRQ-0022-notification-service.md) | Notification service: three channels, a kept Android icon, iOS presentation, and a show that never throws | 2026-10-27 | Implemented |
+| [CRQ-0023](./CRQ-0023-android-toolchain.md) | Android builds run again: Kotlin 2.3.20, Gradle 9.3.1, compileSdk 37, one launcher background colour, and no template icons on dev and staging | 2026-10-27 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

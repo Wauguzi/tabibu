@@ -127,9 +127,26 @@ Cloud Functions compose push text in the recipient's stored language.
 | Foreground banner | A new row addressed to the signed-in person arrives through the listener | `flutter_local_notifications`, with the row `uid` as payload |
 | Push | App backgrounded or closed | FCM: tokens in `fcmTokens` on `patients/{patientId}` or `doctors/{uid}`; county topics for alerts |
 
-Two Android channels: **Alerts** (high importance) and **Case updates**
-(default). On iOS, foreground presentation options are set explicitly so
-the messaging plugin does not suppress banners. The listener opens on the
+Three Android channels, each mutable separately in system settings, so a
+kind of message never changes channel once shipped (CRQ-0022):
+
+| Channel | Importance | Carries |
+|---|---|---|
+| **Account and security** | High | Sign-in, sign-up and password-reset confirmations; security notices from the runtime protection (RASP) |
+| **Alerts** | High | Approved outbreak alerts |
+| **Case updates** | Default | Case discussions and chat messages, invitations to join a case or an MDT, a report signed, a result released |
+
+Channel names come from the ARB files in the device's language, because they
+are created before any screen exists. On iOS, the app delegate sets the
+notification-centre delegate and each notification asks for a banner, so
+foreground notifications are not suppressed. `UIBackgroundModes` declares
+`remote-notification` for FCM; the Push Notifications capability waits for
+the Apple Developer account.
+
+`NotificationService.showNotification` never throws. A notification is a
+side effect, and the reference implementation once lost a sign-in to a
+plugin exception on that path. Failures are recorded to Crashlytics as
+non-fatal. The listener opens on the
 role shell and on resume, and closes on background and sign-out (see
 [`mobile_architecture.md` §9](./mobile_architecture.md#9-lifecycle)).
 
@@ -157,5 +174,6 @@ push, and alert delivery last.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §7: three channels and what each carries; iOS presentation and background mode; the never-throwing show (CRQ-0022). | Theo |
 | 2026-10-27 | §7: tokens live on the profile documents; there is no `users` collection (CRQ-0014). | Theo |
 | 2026-10-27 | Initial version: the Local/Cloud rule, the event catalogue with lock-screen-safe push copy, the model, the three idempotency guards, server-only creation, localisation, delivery surfaces and retention. | Theo |

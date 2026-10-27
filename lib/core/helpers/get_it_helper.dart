@@ -8,6 +8,7 @@ import 'package:get_it/get_it.dart';
 import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabibu/core/helpers/get_it_helper.config.dart';
+import 'package:tabibu/core/services/notification_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -43,4 +44,9 @@ abstract class DIModule {
 
   @singleton
   FirebaseAnalytics get firebaseAnalytics => FirebaseAnalytics.instance;
+
+  /// A singleton behind its own factory; registered so helpers take it as a
+  /// dependency and tests can replace it.
+  @singleton
+  NotificationService get notificationService => NotificationService();
 }
