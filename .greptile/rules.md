@@ -93,6 +93,9 @@ finding.
 - **A credential anywhere the client can read it is a P1 finding**: in `--dart-define`, a Flutter
   asset, a `.env` under `lib/`, Remote Config, Firestore, or any committed file. Keys live in Modal
   secrets, Firebase Secret Manager and the macOS Keychain only (T-13).
+- **One exception: the App Check debug token**, read from the Keychain and passed as
+  `--dart-define=APP_CHECK_DEBUG_TOKEN` by `make run-dev` only. It is used only outside release
+  builds; passing it to a release build, a CI workflow or fastlane is a P1 finding.
 - **Remote Config is for non-secret settings** (model ids, base URLs, thresholds, kill switches).
   It is served to every app instance and is fetchable with the public client config.
 - **`.env.example` holds names and non-secret values only**; a real value in it is a leak.

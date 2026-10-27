@@ -4,6 +4,7 @@ import 'dart:async';
 import 'dart:developer';
 
 import 'package:bloc/bloc.dart';
+import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
 import 'package:flutter/foundation.dart';
@@ -53,6 +54,9 @@ bool _isPlatformStreamTeardownError(FlutterErrorDetails details) {
 /// leaves the user stuck on the native splash screen forever.
 const _bootstrapStepTimeout = Duration(seconds: 10);
 
+/// Set only by `make run-dev`, from the Keychain; never in a release build.
+const _appCheckDebugToken = String.fromEnvironment('APP_CHECK_DEBUG_TOKEN');
+
 Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
@@ -68,6 +72,24 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
   } catch (e, s) {
     if (kDebugMode) {
       debugPrint('[Bootstrap] Firebase initialization failed: $e\n$s');
+    }
+  }
+
+  final debugToken = _appCheckDebugToken.isEmpty ? null : _appCheckDebugToken;
+  try {
+    await FirebaseAppCheck.instance
+        .activate(
+          providerAndroid: kReleaseMode
+              ? const AndroidPlayIntegrityProvider()
+              : AndroidDebugProvider(debugToken: debugToken),
+          providerApple: kReleaseMode
+              ? const AppleAppAttestProvider()
+              : AppleDebugProvider(debugToken: debugToken),
+        )
+        .timeout(_bootstrapStepTimeout);
+  } catch (e) {
+    if (kDebugMode) {
+      debugPrint('[Bootstrap] App Check activation failed: $e');
     }
   }
 

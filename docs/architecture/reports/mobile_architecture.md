@@ -296,6 +296,11 @@ In summary:
   script. They are never a field a client can write.
 - **App Check**: Play Integrity on Android, App Attest on iOS, reCAPTCHA
   Enterprise on the web demo. Enforced on Firestore, Storage and Functions.
+  Activated in `bootstrap` (CRQ-0010): release builds use the attestation
+  providers, debug and profile builds the debug provider, with a token from
+  the Keychain (`make app-check-token`, injected by `make run-dev`).
+  **Not yet enforced**: enforcement applies per API to every client, so it
+  waits until each platform's release build can attest (§16 item 7).
 - **RASP**: freeRASP, configured in `core/constants/rasp_config.dart`.
 - **Secrets**: no model or service key is in the app, in any form: not in
   `--dart-define`, not in a Flutter asset, not in Remote Config (Firebase's
@@ -473,8 +478,11 @@ to see. Greptile is pointed at this section.
    at demo volumes; a pilot with real caseloads needs delta sync that
    survives sign-out, which in turn needs a policy decision on health data
    at rest on shared devices.
-7. **iOS App Attest and reCAPTCHA Enterprise site keys are not yet
-   provisioned.** App Check stays in debug-provider mode until they are.
+7. **App Check is active but not enforced.** Play Integrity needs a Play
+   Console app record with at least one upload; App Attest needs an Apple
+   Developer team registered in Firebase; the web demo needs a reCAPTCHA
+   Enterprise key. Until each exists, that platform's release build cannot
+   attest, and enforcing would reject it, App Distribution builds included.
 8. **Firebase is not configured for web**, and the web demo is the main
    judged surface. `DefaultFirebaseOptions.currentPlatform` throws on web,
    `bootstrap` catches it, and the app starts with no Firebase. Re-run
@@ -489,6 +497,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §10 App Check activated, not enforced; §16 item 7 lists what enforcement waits on (CRQ-0010). | Theo |
 | 2026-10-27 | §10 crash reporting: what is recorded, at what severity, and that reports carry no patient data (CRQ-0009). | Theo |
 | 2026-10-27 | §2 SDK floor lowered to Dart `^3.12.2`, Flutter `^3.47.8`. §13 adds the production APK workflow; §16 item 3 updated (CRQ-0008). | Theo |
 | 2026-10-27 | §10 sets where secrets may live, and that Remote Config never carries one (CRQ-0007). | Theo |

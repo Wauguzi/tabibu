@@ -91,8 +91,10 @@ rdr:
 rpr:
 		flutter run --flavor production --target lib/main_production.dart --release
 
+# Passes the App Check debug token from the Keychain, if stored (make app-check-token).
 run-dev:
-		flutter run --flavor development --target lib/main_development.dart
+		flutter run --flavor development --target lib/main_development.dart \
+		    --dart-define=APP_CHECK_DEBUG_TOKEN="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_APP_CHECK) -w 2>/dev/null)"
 
 run-web:
 		flutter run -d chrome --target lib/main_development.dart
@@ -124,6 +126,7 @@ fastlane-setup:
 # Model API keys live in the macOS Keychain, never in a file (CRQ-0007).
 KEYCHAIN_BASETEN := tabibu-baseten-api-key
 KEYCHAIN_META := tabibu-meta-api-key
+KEYCHAIN_APP_CHECK := tabibu-app-check-debug-token
 
 # Each prompt asks twice and shows nothing as you paste; re-run to replace a key.
 keys-add:
@@ -135,11 +138,19 @@ keys-add:
 
 # Confirms each key is stored, showing only its length and last four characters.
 keys-check:
-		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META); do \
+		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META) $(KEYCHAIN_APP_CHECK); do \
 		  k="$$(security find-generic-password -a "$$USER" -s "$$s" -w 2>/dev/null)"; \
-		  if [ -n "$$k" ]; then printf '%-24s stored  (%s chars, ends …%s)\n' "$$s" "$${#k}" "$${k: -4}"; \
-		  else printf '%-24s MISSING\n' "$$s"; fi; \
+		  if [ -n "$$k" ]; then printf '%-30s stored  (%s chars, ends …%s)\n' "$$s" "$${#k}" "$${k: -4}"; \
+		  else printf '%-30s MISSING\n' "$$s"; fi; \
 		done
+
+# Creates an App Check debug token, stores it in the Keychain and copies it to the clipboard
+# for Firebase → App Check → Apps → ⋮ → Manage debug tokens. Re-running replaces it.
+app-check-token:
+		@t="$$(uuidgen)"; \
+		security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_APP_CHECK) -w "$$t" && \
+		printf '%s' "$$t" | pbcopy && \
+		echo "Stored as $(KEYCHAIN_APP_CHECK) and copied; register it for the Android and iOS apps."
 
 # make ai-dev CMD="<command>" runs it with both keys in its environment only.
 ai-dev:
@@ -231,6 +242,6 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check ai-dev pods-ios-target test test-randomize test-watch coverage \
+	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token ai-dev pods-ios-target test test-randomize test-watch coverage \
 	emulators rules-test functions-test \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting
