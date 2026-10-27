@@ -34,6 +34,11 @@ licenses:
 		    --dependency-type="direct-main,transitive" \
 		    --skip-packages="antlr4,pubspec_lock_parse,dbus,geoclue,gsettings"
 
+# Installs fastlane into vendor/bundle; run once after cloning or after editing the Gemfile.
+fastlane-setup:
+		bundle config set --local path vendor/bundle
+		bundle install
+
 test:
 		flutter test --coverage --reporter=expanded
 
@@ -47,4 +52,4 @@ run-dev:
 run-web:
 		flutter run -d chrome --target lib/main_development.dart
 
-.PHONY: gen gen-watch l10n fmt analyze bloc-lint spell licenses test test-randomize run-dev run-web
+.PHONY: gen gen-watch l10n fmt analyze bloc-lint spell licenses fastlane-setup test test-randomize run-dev run-web

@@ -1,0 +1,93 @@
+# frozen_string_literal: true
+
+require "base64"
+require "securerandom"
+
+APP_ID = "com.tabibukenya.tabibu"
+# Lane code runs in fastlane/ and actions in the root; absolute paths avoid the mismatch.
+ROOT = File.expand_path("..", __dir__)
+
+platform :ios do
+  KEYCHAIN_NAME = "tabibu_ci_keychain"
+  KEYCHAIN_PASSWORD = SecureRandom.base64
+
+  desc "Build a production IPA and upload it to TestFlight"
+  lane :beta do
+    api_key = app_store_connect_api_key(
+      key_id: ENV.fetch("APP_STORE_CONNECT_KEY_ID"),
+      issuer_id: ENV.fetch("APP_STORE_CONNECT_ISSUER_ID"),
+      key_content: ENV.fetch("APP_STORE_CONNECT_KEY_CONTENT"),
+      is_key_content_base64: true,
+      in_house: false,
+    )
+
+    create_keychain(
+      name: KEYCHAIN_NAME,
+      password: KEYCHAIN_PASSWORD,
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: false,
+    )
+
+    cert_path = "/tmp/tabibu_dist.p12"
+    File.write(cert_path, Base64.decode64(ENV.fetch("IOS_DIST_CERT_P12_BASE64")))
+    import_certificate(
+      certificate_path: cert_path,
+      certificate_password: ENV.fetch("IOS_DIST_CERT_PASSWORD"),
+      keychain_name: KEYCHAIN_NAME,
+      keychain_password: KEYCHAIN_PASSWORD,
+    )
+
+    get_provisioning_profile(api_key: api_key, app_identifier: APP_ID, readonly: true)
+
+    update_code_signing_settings(
+      use_automatic_signing: false,
+      path: "#{ROOT}/ios/Runner.xcodeproj",
+      team_id: ENV.fetch("APPLE_TEAM_ID"),
+      bundle_identifier: APP_ID,
+      profile_uuid: lane_context[SharedValues::SIGH_UUID],
+      code_sign_identity: "iPhone Distribution",
+    )
+
+    sh(
+      "cd #{ROOT} && flutter build ipa --flavor production --release " \
+        "--target lib/main_production.dart --obfuscate --split-debug-info=debug-symbols",
+    )
+
+    upload_to_testflight(
+      api_key: api_key,
+      ipa: Dir.glob("#{ROOT}/build/ios/ipa/*.ipa").first,
+      skip_waiting_for_build_processing: true,
+    )
+  ensure
+    delete_keychain(name: KEYCHAIN_NAME) rescue nil
+    File.delete(cert_path) if cert_path && File.exist?(cert_path)
+  end
+end
+
+platform :android do
+  desc "Build a production AAB and upload it to the Play Store internal track"
+  lane :deploy do
+    keystore_path = "/tmp/tabibu_release.jks"
+    File.write(keystore_path, Base64.decode64(ENV.fetch("RELEASE_KEYSTORE")))
+    # Read by the release signingConfig in android/app/build.gradle.kts.
+    ENV["ANDROID_KEYSTORE_PATH"] = keystore_path
+    %w[ANDROID_KEYSTORE_ALIAS ANDROID_KEYSTORE_PASSWORD ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD].each do |key|
+      ENV.fetch(key)
+    end
+
+    sh(
+      "cd #{ROOT} && flutter build appbundle --flavor production --release " \
+        "--target lib/main_production.dart --obfuscate --split-debug-info=debug-symbols",
+    )
+
+    upload_to_play_store(
+      track: "internal",
+      aab: "#{ROOT}/build/app/outputs/bundle/productionRelease/app-production-release.aab",
+      json_key_data: ENV.fetch("SUPPLY_JSON_KEY_DATA"),
+    )
+  ensure
+    File.delete(keystore_path) if keystore_path && File.exist?(keystore_path)
+  end
+end

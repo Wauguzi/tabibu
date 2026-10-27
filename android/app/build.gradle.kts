@@ -69,12 +69,12 @@ android {
         }
         create("staging") {
             dimension = "default"
-            applicationIdSuffix = ".stg"
+            applicationIdSuffix = ""
             manifestPlaceholders["appName"] = "[STG] Tabibu"
         }
         create("development") {
             dimension = "default"
-            applicationIdSuffix = ".dev"
+            applicationIdSuffix = ""
             manifestPlaceholders["appName"] = "[DEV] Tabibu"
         }
     }

@@ -355,6 +355,12 @@ Every other gate runs locally and is part of the definition of done
 over every Markdown file, with `.github/cspell.json` as the project
 dictionary) and `make licenses`.
 
+**Release lanes** (fastlane, `fastlane/Fastfile`): `ios beta` builds the
+`production` IPA and uploads it to TestFlight; `android deploy` builds the
+`production` AAB and uploads it to the Play internal track. Both read every
+secret from the environment and leave none on disk (CRQ-0005). Install with
+`make fastlane-setup`; run with `bundle exec fastlane <platform> <lane>`.
+
 Release builds use `--obfuscate --split-debug-info`. The web demo is
 deployed to Firebase Hosting. Rules, indexes and functions are deployed with
 `make deploy-*` targets, and a commit that changes them is not finished
@@ -468,6 +474,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §13 adds the fastlane release lanes (CRQ-0005). | Theo |
 | 2026-10-27 | §13 rewritten for the interim CI: `main.yaml` removed pending purpose-built workflows; only the license check runs in CI, now fixed for Flutter; every other gate is a local `make` target. §16 item 3 updated; the license check is now pinned to a commit SHA. | Theo |
 | 2026-10-27 | §16 updated for the Firebase connection: item 5 narrowed to rules and functions; items 8 (web not configured) and 9 (one project for every flavor) added. | Theo |
 | 2026-10-26 | Initial version: target architecture for the three-role app, the Firebase/AI-service split, data and lifecycle conventions, standing rules, and a watchlist of what the scaffold does not yet match. | Theo |

@@ -113,3 +113,15 @@ app.*.map.json
 
 # Generated l10n files
 lib/l10n/gen/
+# Bundler (gems install to vendor/bundle)
+.bundle/
+vendor/bundle/
+
+# fastlane generated output
+fastlane/report.xml
+fastlane/Preview.html
+fastlane/screenshots/
+fastlane/test_output/
+
+# Obfuscation symbols from release builds (uploaded to Crashlytics, never committed)
+debug-symbols/
