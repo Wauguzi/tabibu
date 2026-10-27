@@ -585,9 +585,16 @@ until it is deployed.
   That helper **imports** the app's localizations, theme and providers rather
   than re-declaring them, so tests cannot drift from what ships. Screens are
   tested at 1.0x and 2.0x text scale, in `en` and `sw`.
-- **Rules tests** under `test/firestore_rules/` against the emulator, with one
-  case per row of the §11 table, run by `make rules-test`. A rules change
-  without a rules test is not finished.
+- **Rules tests** under `test/firestore_rules/` against the Firestore and
+  Storage emulators, with one case per row of the §11 table, run by
+  `make rules-test`. A rules change without a rules test is not finished.
+  Each denial has a matching allowed write that differs only in the field
+  under test, so a test cannot pass because of an unrelated failure.
+- **Function tests** in `functions/src/*.test.ts`, run by
+  `make functions-test`: lint and build as a deploy would, then the handlers
+  against the Firestore and Auth emulators, so transactions and queries
+  behave as in production. Both suites run on the `demo-tabibu` project id,
+  which cannot reach the live project.
 - **Model evaluation** in the AI service: held-out PatchCamelyon tiles and NIH
   cells, a fixed sample, recorded with the
   [evaluation template](../../testing/templates/MODEL_EVALUATION_TEMPLATE.md).
@@ -659,10 +666,12 @@ to see. Greptile is pointed at this section.
 4. **`test_api: any` is listed under `dependencies`**, not
    `dev_dependencies`, and is unconstrained. Move it, or remove it if nothing
    imports it.
-5. **Firebase is connected (Android and iOS) but no `firestore.rules`,
-   `functions/` or rules test harness exists yet**, and neither do the
-   `make rules-test` and `make deploy-*` targets that drive them. Until they
-   land, §10 and §11 describe intent, not enforcement.
+5. **Rules and functions cover identity only, and are not deployed yet**
+   (CRQ-0016). `firestore.rules`, `storage.rules` and `functions/` enforce
+   §6.1, and every other collection is closed. Cases, orders, reports and
+   alerts get their rules with their features. Deploy (`make deploy-rules`,
+   `deploy-storage`, `deploy-functions`) waits for the pull request's
+   review; until then the live project runs whatever the console holds.
 6. **Cache wipe on sign-out costs a full re-download on sign-in.** Acceptable
    at demo volumes; a pilot with real caseloads needs delta sync that
    survives sign-out, which in turn needs a policy decision on health data
@@ -686,6 +695,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §14 function tests and the rules-test discipline; §16 item 5: identity rules and functions exist, not yet deployed (CRQ-0016). | Theo |
 | 2026-10-27 | §1 reach: the Nairobi facility count and the national census figures, linked to their sources. §6.2 rewritten for the generated assets: all 1,447 facilities with `isOperational`, approximate locations, sanitising rules; `make facilities` (CRQ-0015). | Theo |
 | 2026-10-27 | §6.1 identity collections (`patients`, `doctors`, `practitioners`), their callables and Storage paths; §6.2 bundled facility data; typeIds 0–2 reserved; §4 features and §11 roles updated (CRQ-0014). | Theo |
 | 2026-10-27 | §13: iOS target 15.0 and Swift Package Manager (CRQ-0012). | Theo |

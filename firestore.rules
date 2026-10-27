@@ -1,0 +1,159 @@
+rules_version = '2';
+
+// The data boundary (architecture §6.1, §11; threat model T-1, T-2, T-9, T-14 to T-16; CRQ-0016).
+// Profiles are created by Cloud Functions only. A client may change only the fields §6.1 marks
+// as the owner's (or, for an unregistered patient, the care team's); everything not matched here
+// is denied. Tests: test/firestore_rules/ (make rules-test).
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function role() {
+      return request.auth.token.get('role', '');
+    }
+
+    function isAdmin() {
+      return request.auth.token.get('admin', false) == true;
+    }
+
+    function changed() {
+      return request.resource.data.diff(resource.data).affectedKeys();
+    }
+
+    function text(field, max) {
+      return request.resource.data[field] is string && request.resource.data[field].size() <= max;
+    }
+
+    function phone() {
+      return request.resource.data.phoneNumber.matches('^\\+254[17][0-9]{8}$');
+    }
+
+    // A download URL for a file under <folder>/<owner>/ in a Firebase Storage bucket, or ''.
+    function storageUrl(field, folder, owner) {
+      return request.resource.data[field] == ''
+          || (text(field, 2048) && request.resource.data[field].matches(
+                '^https://firebasestorage\\.googleapis\\.com/v0/b/[^/]+/o/'
+                + folder + '%2F' + owner + '%2F[^?]+[?].*'));
+    }
+
+    function tokens() {
+      return request.resource.data.fcmTokens is list && request.resource.data.fcmTokens.size() <= 10;
+    }
+
+    function preferences() {
+      return request.resource.data.language in ['en', 'sw']
+          && request.resource.data.receiveNotifications is bool
+          && text('lastUpdatedAt', 40);
+    }
+
+    // ── patients/{patientId} ──────────────────────────────────────────────────────────────
+
+    match /patients/{patientId} {
+      function isOwner() {
+        return resource.data.uid == request.auth.uid && role() == 'patient';
+      }
+
+      function onCareTeam() {
+        return role() in ['doctor', 'pathologist'] && request.auth.uid in resource.data.doctorUids;
+      }
+
+      // Sex, date of birth, location and geohash are not here: the first two anchor the
+      // duplicate check, and the geohash is the server's (T-9).
+      function ownerUpdate() {
+        return isOwner()
+            && changed().hasOnly(['firstName', 'middleName', 'lastName', 'phoneNumber',
+                                  'profilePictureUrl', 'doctorUids', 'fcmTokens', 'language',
+                                  'receiveNotifications', 'lastUpdatedAt'])
+            && text('firstName', 50) && request.resource.data.firstName.size() > 0
+            && text('middleName', 50)
+            && text('lastName', 50) && request.resource.data.lastName.size() > 0
+            && phone()
+            && storageUrl('profilePictureUrl', 'profilePictures', patientId)
+            // The patient may remove a doctor, never add one (T-16).
+            && request.resource.data.doctorUids is list
+            && resource.data.doctorUids.toSet().hasAll(request.resource.data.doctorUids)
+            && tokens()
+            && preferences();
+      }
+
+      // Until a patient registers, the doctors caring for them keep their details and picture.
+      function careTeamUpdate() {
+        return role() == 'doctor'
+            && request.auth.uid in resource.data.doctorUids
+            && resource.data.isRegistered == false
+            && changed().hasOnly(['firstName', 'middleName', 'lastName', 'phoneNumber', 'email',
+                                  'profilePictureUrl', 'lastUpdatedAt'])
+            && text('firstName', 50) && request.resource.data.firstName.size() > 0
+            && text('middleName', 50)
+            && text('lastName', 50) && request.resource.data.lastName.size() > 0
+            && phone()
+            && (request.resource.data.email == ''
+                || (text('email', 254) && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')))
+            && storageUrl('profilePictureUrl', 'profilePictures', patientId)
+            && text('lastUpdatedAt', 40);
+      }
+
+      // `doctorUids` grants the profile only; each case's participants decide its cases.
+      allow read: if signedIn() && (resource.data.uid == request.auth.uid || onCareTeam());
+      allow update: if signedIn() && (ownerUpdate() || careTeamUpdate());
+      allow create, delete: if false;
+    }
+
+    // ── doctors/{uid}: doctors and pathologists ───────────────────────────────────────────
+
+    match /doctors/{uid} {
+      function isOwner() {
+        return request.auth.uid == uid;
+      }
+
+      function verified() {
+        return resource.data.verificationStatus == 'Verified';
+      }
+
+      // The KMPDC number and license are final once verified; email never changes (T-14).
+      function editable() {
+        return ['title', 'firstName', 'lastName', 'phoneNumber', 'profilePictureUrl',
+                'specialization', 'bio', 'isAvailable', 'fcmTokens', 'language',
+                'receiveNotifications', 'lastUpdatedAt']
+            .concat(verified() ? [] : ['kmpdcNumber', 'licenseUrl'])
+            // A rejected practitioner may resubmit; nothing else moves the status.
+            .concat(resource.data.verificationStatus == 'Rejected'
+                    && request.resource.data.verificationStatus == 'Pending'
+                    ? ['verificationStatus'] : []);
+      }
+
+      function ownerUpdate() {
+        return isOwner()
+            && changed().hasOnly(editable())
+            && request.resource.data.title in ['Dr.', 'Prof.', 'Mr.', 'Mrs.', 'Ms.']
+            && text('firstName', 50) && request.resource.data.firstName.size() > 0
+            && text('lastName', 50) && request.resource.data.lastName.size() > 0
+            && phone()
+            && storageUrl('profilePictureUrl', 'profilePictures', uid)
+            && text('specialization', 80) && request.resource.data.specialization.size() > 0
+            && text('bio', 1000)
+            && text('kmpdcNumber', 30) && request.resource.data.kmpdcNumber.matches('^[A-Z0-9/-]{3,30}$')
+            && storageUrl('licenseUrl', 'licenses', uid) && request.resource.data.licenseUrl != ''
+            && request.resource.data.isAvailable is bool
+            && tokens()
+            && preferences();
+      }
+
+      allow get: if signedIn() && (isOwner() || isAdmin());
+      allow list: if signedIn() && isAdmin();
+      allow update: if signedIn() && ownerUpdate();
+      allow create, delete: if false;
+    }
+
+    // ── practitioners/{uid}: the public directory, written by the syncPractitioner trigger ─
+
+    match /practitioners/{uid} {
+      allow read: if signedIn();
+      allow write: if false;
+    }
+  }
+}

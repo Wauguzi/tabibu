@@ -1,1 +1,75 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"tabibu-86ea2","appId":"1:270369739916:android:488605da76eaf0aa7f17a9","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"tabibu-86ea2","appId":"1:270369739916:ios:93526f86a6a4e2f17f17a9","uploadDebugSymbols":true,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"tabibu-86ea2","configurations":{"android":"1:270369739916:android:488605da76eaf0aa7f17a9","ios":"1:270369739916:ios:93526f86a6a4e2f17f17a9"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local",
+        "src/**/*.test.ts",
+        "src/**/*.test-support.ts"
+      ],
+      "predeploy": [
+        "cd \"$RESOURCE_DIR\" && ./node_modules/.bin/eslint src",
+        "cd \"$RESOURCE_DIR\" && ./node_modules/.bin/tsc -p tsconfig.build.json"
+      ]
+    }
+  ],
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
+    },
+    "storage": {
+      "port": 9199
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "tabibu-86ea2",
+          "appId": "1:270369739916:android:488605da76eaf0aa7f17a9",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "tabibu-86ea2",
+          "appId": "1:270369739916:ios:93526f86a6a4e2f17f17a9",
+          "uploadDebugSymbols": true,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "tabibu-86ea2",
+          "configurations": {
+            "android": "1:270369739916:android:488605da76eaf0aa7f17a9",
+            "ios": "1:270369739916:ios:93526f86a6a4e2f17f17a9"
+          }
+        }
+      }
+    }
+  }
+}

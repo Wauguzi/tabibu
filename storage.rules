@@ -1,0 +1,65 @@
+rules_version = '2';
+
+// Storage paths (architecture §6.1, CRQ-0016). Pictures are images under 3 MB; a license may also
+// be a PDF. Everything not matched here is denied. Tests: test/firestore_rules/ (make rules-test).
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function under3MB() {
+      return request.resource.size < 3 * 1024 * 1024;
+    }
+
+    function isImage() {
+      return request.resource.contentType.matches('image/.*');
+    }
+
+    function patient(id) {
+      return firestore.get(/databases/(default)/documents/patients/$(id)).data;
+    }
+
+    function hasPatient(id) {
+      return firestore.exists(/databases/(default)/documents/patients/$(id));
+    }
+
+    // `owner` is a doctors uid or a patientId; a linked patient's id is not their uid.
+    function ownsPicture(owner) {
+      return request.auth.uid == owner
+          || (hasPatient(owner) && patient(owner).uid == request.auth.uid);
+    }
+
+    function caresForUnregistered(owner) {
+      return request.auth.token.get('role', '') == 'doctor'
+          && hasPatient(owner)
+          && patient(owner).isRegistered == false
+          && request.auth.uid in patient(owner).doctorUids;
+    }
+
+    // The URL stored on the profile is what reaches people; this only stops listing a folder.
+    match /profilePictures/{owner}/{file} {
+      allow get: if signedIn();
+      allow create, update: if signedIn() && isImage() && under3MB()
+          && (ownsPicture(owner) || caresForUnregistered(owner));
+      allow delete: if signedIn() && (ownsPicture(owner) || caresForUnregistered(owner));
+    }
+
+    // Uploaded before sign-up creates the profile, so a missing profile counts as not yet verified.
+    match /licenses/{owner}/{file} {
+      function notVerified() {
+        return !firestore.exists(/databases/(default)/documents/doctors/$(owner))
+            || firestore.get(/databases/(default)/documents/doctors/$(owner)).data
+                   .verificationStatus != 'Verified';
+      }
+
+      allow get: if signedIn()
+          && (request.auth.uid == owner || request.auth.token.get('admin', false) == true);
+      allow create, update: if signedIn() && request.auth.uid == owner && notVerified()
+          && under3MB() && (isImage() || request.resource.contentType == 'application/pdf');
+      allow delete: if signedIn() && request.auth.uid == owner && notVerified();
+    }
+  }
+}

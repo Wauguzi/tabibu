@@ -1,0 +1,19 @@
+[
+{"id":24,"name":"Dagoretti North","countyId":47,"latitude":-1.286596,"longitude":36.785027,"geohash":"kzf0tjf11"},
+{"id":169,"name":"Dagoretti South","countyId":47,"latitude":-1.286071,"longitude":36.72462,"geohash":"kzf0etyh1"},
+{"id":132,"name":"Embakasi Central","countyId":47,"latitude":-1.271736,"longitude":36.915879,"geohash":"kzf2b03rd"},
+{"id":48,"name":"Embakasi East","countyId":47,"latitude":-1.303789,"longitude":36.909733,"geohash":"kzf0xfsug"},
+{"id":90,"name":"Embakasi North","countyId":47,"latitude":-1.251307,"longitude":36.893333,"geohash":"kzf0zs0ys"},
+{"id":94,"name":"Embakasi South","countyId":47,"latitude":-1.32009,"longitude":36.888649,"geohash":"kzf0rrtmz"},
+{"id":130,"name":"Embakasi West","countyId":47,"latitude":-1.2737,"longitude":36.891338,"geohash":"kzf0z2pkn"},
+{"id":65,"name":"Kamukunji","countyId":47,"latitude":-1.277681,"longitude":36.850263,"geohash":"kzf0wx3sc"},
+{"id":120,"name":"Kasarani","countyId":47,"latitude":-1.242147,"longitude":36.945053,"geohash":"kzf2btyef"},
+{"id":35,"name":"Kibra","countyId":47,"latitude":-1.307233,"longitude":36.789791,"geohash":"kzf0t4j8b"},
+{"id":174,"name":"Langata","countyId":47,"latitude":-1.3246,"longitude":36.781537,"geohash":"kzf0kyz7x"},
+{"id":85,"name":"Makadara","countyId":47,"latitude":-1.293583,"longitude":36.867092,"geohash":"kzf0wutb3"},
+{"id":91,"name":"Mathare","countyId":47,"latitude":-1.25971,"longitude":36.859541,"geohash":"kzf0yf8m9"},
+{"id":93,"name":"Roysambu","countyId":47,"latitude":-1.203265,"longitude":36.894446,"geohash":"kzf1pscwq"},
+{"id":89,"name":"Ruaraka","countyId":47,"latitude":-1.244936,"longitude":36.880023,"geohash":"kzf0zjr5w"},
+{"id":72,"name":"Starehe","countyId":47,"latitude":-1.285185,"longitude":36.827403,"geohash":"kzf0wn0ck"},
+{"id":30,"name":"Westlands","countyId":47,"latitude":-1.25679,"longitude":36.792513,"geohash":"kzf0v5pqx"}
+]

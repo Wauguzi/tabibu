@@ -35,7 +35,8 @@ bloc-lint:
 spell:
 		npx --yes cspell@8 --no-progress \
 		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/*" "ai_service/*" .gitignore .gitleaks.toml \
-		    Makefile Gemfile pubspec.yaml "lib/**/*.dart" "test/**/*.dart"
+		    Makefile Gemfile pubspec.yaml "lib/**/*.dart" "test/**/*.dart" \
+		    firebase.json firestore.rules storage.rules "functions/src/*.ts" "test/firestore_rules/*.js"
 
 # Same allow-list and skip list as .github/workflows/license_check.yaml; change both together.
 licenses:
@@ -197,6 +198,7 @@ facilities:
 		textutil -convert txt -output build/facilities/facilities.txt "$(wildcard $(FACILITIES))"
 		textutil -convert txt -output build/facilities/counties.txt "$(wildcard $(COUNTIES))"
 		dart run scripts/facilities/build_facility_assets.dart build/facilities/facilities.txt build/facilities/counties.txt assets/data
+		cp assets/data/*.json functions/data/
 
 test:
 		flutter test --coverage --reporter=expanded
@@ -248,13 +250,17 @@ rules-test:
 		@! lsof -nP -iTCP:9199 -sTCP:LISTEN >/dev/null 2>&1 || \
 		  { echo "Port 9199 (Storage emulator) is taken; stop that emulator first."; exit 1; }
 		cd test/firestore_rules && npm install --silent
-		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,storage --project $(PROJECT) \
+		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,storage --project demo-tabibu \
 		    "cd test/firestore_rules && node_modules/.bin/mocha --timeout 20000 '*.test.js'"
 
+# Lint and build as a deploy would, then the handler suites against Firestore and Auth emulators
+# on a demo- project, which cannot reach the live one.
 functions-test:
-		cd functions && ./node_modules/.bin/eslint src \
-		    && ./node_modules/.bin/tsc -p tsconfig.build.json \
-		    && npm test
+		$(require_java21)
+		cd functions && npm install --silent && ./node_modules/.bin/eslint src \
+		    && ./node_modules/.bin/tsc -p tsconfig.build.json
+		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,auth --project demo-tabibu \
+		    "cd functions && npm test"
 
 deploy-rules:
 		$(FIREBASE) deploy --only firestore:rules --project $(PROJECT)
