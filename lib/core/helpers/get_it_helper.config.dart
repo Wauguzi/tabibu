@@ -25,10 +25,17 @@ import 'package:tabibu/core/helpers/db_helper.dart' as _i705;
 import 'package:tabibu/core/helpers/facilities_helper.dart' as _i598;
 import 'package:tabibu/core/helpers/get_it_helper.dart' as _i810;
 import 'package:tabibu/core/helpers/hive_helper.dart' as _i418;
+import 'package:tabibu/core/helpers/notifications_helper.dart' as _i210;
+import 'package:tabibu/core/helpers/theme_helper.dart' as _i655;
+import 'package:tabibu/core/services/analytics_service.dart' as _i399;
+import 'package:tabibu/core/services/app_update_service.dart' as _i75;
+import 'package:tabibu/core/services/internet_service.dart' as _i76;
 import 'package:tabibu/core/services/notification_service.dart' as _i1051;
 import 'package:tabibu/core/services/rasp_service.dart' as _i390;
 import 'package:tabibu/features/auth/data/datasources/auth_firebase.dart'
     as _i82;
+import 'package:tabibu/features/auth/data/datasources/profile_storage.dart'
+    as _i275;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -52,7 +59,15 @@ extension GetItInjectableX on _i174.GetIt {
       () => dIModule.notificationService,
     );
     gh.singleton<_i390.RaspService>(() => dIModule.raspService);
+    gh.lazySingleton<_i75.AppUpdateService>(() => _i75.AppUpdateService());
+    gh.lazySingleton<_i76.InternetService>(() => _i76.InternetService());
+    gh.lazySingleton<_i399.AnalyticsService>(
+      () => _i399.AnalyticsService(analytics: gh<_i398.FirebaseAnalytics>()),
+    );
     gh.singleton<_i705.DBHelper>(() => _i705.DBHelperImpl());
+    gh.lazySingleton<_i655.ThemeHelper>(
+      () => _i655.ThemeHelper(preferences: gh<_i460.SharedPreferences>()),
+    );
     gh.lazySingleton<_i82.AuthFirebase>(
       () => _i82.AuthFirebase(
         auth: gh<_i59.FirebaseAuth>(),
@@ -63,10 +78,18 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i598.FacilitiesHelper>(
       () => _i598.FacilitiesHelper(bundle: gh<_i281.AssetBundle>()),
     );
+    gh.lazySingleton<_i210.NotificationsHelper>(
+      () => _i210.NotificationsHelper(
+        notificationService: gh<_i1051.NotificationService>(),
+        hiveHelper: gh<_i418.HiveHelper>(),
+      ),
+    );
     gh.lazySingleton<_i569.AuthHelper>(
       () => _i569.AuthHelper(
         authFirebase: gh<_i82.AuthFirebase>(),
         hiveHelper: gh<_i418.HiveHelper>(),
+        profileStorage: gh<_i275.ProfileStorage>(),
+        notificationService: gh<_i1051.NotificationService>(),
       ),
     );
     gh.singleton<_i418.HiveHelper>(
@@ -74,6 +97,9 @@ extension GetItInjectableX on _i174.GetIt {
         dbHelper: gh<_i705.DBHelper>(),
         secureStorage: gh<_i558.FlutterSecureStorage>(),
       ),
+    );
+    gh.lazySingleton<_i275.ProfileStorage>(
+      () => _i275.ProfileStorage(storage: gh<_i457.FirebaseStorage>()),
     );
     return this;
   }

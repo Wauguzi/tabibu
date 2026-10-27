@@ -200,6 +200,10 @@
     "@errorKmpdcNumberInUse": {
         "description": "Refusal when another account holds the KMPDC number"
     },
+    "errorFileTooLarge": "That file is too large. Choose a smaller photo or scan.",
+    "@errorFileTooLarge": {
+        "description": "A photo or licence file is over the upload limit"
+    },
     "errorAdminOnly": "Only an administrator can perform this action.",
     "@errorAdminOnly": {
         "description": "Refusal when a non-admin calls an admin-only function"
@@ -271,6 +275,22 @@
     "notificationChannelCaseUpdatesDescription": "Reports, results and invitations on your cases.",
     "@notificationChannelCaseUpdatesDescription": {
         "description": "Description of the case updates notification channel."
+    },
+    "notificationWelcomeTitle": "Welcome to Tabibu",
+    "@notificationWelcomeTitle": {
+        "description": "Local notification after a patient finishes sign-up; no personal details (lock screens are public)"
+    },
+    "notificationWelcomeMessage": "Your account is ready.",
+    "@notificationWelcomeMessage": {
+        "description": "Body of the welcome notification"
+    },
+    "notificationLicenceReceivedTitle": "Licence received",
+    "@notificationLicenceReceivedTitle": {
+        "description": "Local notification after a practitioner submits sign-up"
+    },
+    "notificationLicenceReceivedMessage": "We are checking your licence. We will let you know when you are verified.",
+    "@notificationLicenceReceivedMessage": {
+        "description": "Body of the licence received notification"
     },
     "notificationSecurityAlertTitle": "Security alert",
     "@notificationSecurityAlertTitle": {
@@ -411,5 +431,17 @@
     "specialtyOrthopaedics": "Orthopaedics",
     "@specialtyOrthopaedics": {
         "description": "Clinical specialty"
+    },
+    "themeLight": "Light",
+    "@themeLight": {
+        "description": "Theme choice"
+    },
+    "themeDark": "Dark",
+    "@themeDark": {
+        "description": "Theme choice"
+    },
+    "themeSystem": "Same as device",
+    "@themeSystem": {
+        "description": "Theme choice that follows the device setting"
     }
 }

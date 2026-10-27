@@ -42,7 +42,7 @@ gated and committed by me.
    The signed report becomes a deep green panel and the AI draft stays a
    pale surface (design doc §2.1). Theo chose this during the session.
 6. **`lib/gen/`** (flutter_gen output for `Assets` and `FontFamily`) is
-   tracked, as in the reference pattern.
+   tracked, so a fresh checkout builds without running the generator.
 7. **`make fmt`** now formats the same file set as CI's format check, so it
    no longer rewrites `lib/firebase_options.dart`.
 8. Docs: design system §2.1 and §8; architecture §4 and §16 items 1 and 2.
@@ -85,7 +85,7 @@ removes a crash that would have hit the first Swahili screen.
 
 ## 6. Implementation plan
 
-1. Brief written, with the reference files to port.
+1. Brief written.
 2. Muse Code implemented it and ran the gates.
 3. Reviewed the diff; fixed `make fmt`; reran every gate on the combined
    tree.

@@ -13,7 +13,7 @@
 
 ## 1. Description of change
 
-Ported from the reference implementation's `main` branch and fitted to
+Fitted to
 [the notifications engine](../../architecture/reports/notifications_engine.md#7-delivery-surfaces).
 
 1. **`NotificationService`** (`lib/core/services/`) wraps
@@ -58,8 +58,8 @@ Ported from the reference implementation's `main` branch and fitted to
 
 Sign-in, sign-up and reset confirmations, security notices, case discussions,
 MDT invitations and alerts all reach people this way. The guarantees are
-the ones the reference learned from incidents: a lost icon in release
-builds, and a notification failure that stopped a sign-in.
+against two known failure modes: an icon stripped from release builds,
+and a notification failure that stops a sign-in.
 
 ## 3. Scope
 
@@ -86,7 +86,7 @@ builds, and a notification failure that stopped a sign-in.
 - **Channel settings are sticky on Android.** Once created, a channel's
   importance cannot be raised by the app, so the importances here are
   deliberate.
-- **The permission dialog appears at first launch**, as in the reference.
+- **The permission dialog appears at first launch.**
   If that turns out to be too early for onboarding, move the request behind
   `requestOrOpenSettings` and drop it from `initialize`.
 
@@ -94,9 +94,9 @@ builds, and a notification failure that stopped a sign-in.
 
 ## 6. Implementation plan
 
-Read the reference's service, manifest, delegate, `keep.xml` and bootstrap
-on `main`; ported them; added channels and the tap stream; built a release
-APK through R8 to check the icon survives shrinking.
+Wrote the service, manifest entries, delegate, `keep.xml` and bootstrap
+step; added channels and the tap stream; built a release APK through R8 to
+check the icon survives shrinking.
 
 ## 7. Testing & verification evidence
 

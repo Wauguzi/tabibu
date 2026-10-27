@@ -50,6 +50,7 @@
     "errorInvalidBio": "Wasifu si sahihi. Angalia kisha ujaribu tena.",
     "errorInvalidLicense": "Leseni si sahihi. Angalia kisha ujaribu tena.",
     "errorKmpdcNumberInUse": "Namba hii ya KMPDC tayari imesajiliwa. Angalia, au wasiliana na msaada.",
+    "errorFileTooLarge": "Faili hilo ni kubwa mno. Chagua picha au nakala ndogo zaidi.",
     "errorAdminOnly": "Msimamizi pekee anaweza kufanya kitendo hiki.",
     "errorInvalidPractitioner": "Mhudumu wa afya aliyechaguliwa si sahihi.",
     "errorInvalidDecision": "Uamuzi si sahihi.",
@@ -68,6 +69,10 @@
     "notificationChannelAlertsDescription": "Tahadhari zilizoidhinishwa kuhusu magonjwa katika eneo lako.",
     "notificationChannelCaseUpdates": "Taarifa za kesi",
     "notificationChannelCaseUpdatesDescription": "Ripoti, matokeo na mialiko kuhusu kesi zako.",
+    "notificationWelcomeTitle": "Karibu Tabibu",
+    "notificationWelcomeMessage": "Akaunti yako iko tayari.",
+    "notificationLicenceReceivedTitle": "Leseni imepokelewa",
+    "notificationLicenceReceivedMessage": "Tunakagua leseni yako. Tutakujulisha utakapothibitishwa.",
     "notificationSecurityAlertTitle": "Tahadhari ya usalama",
     "notificationSecurityWarningTitle": "Onyo la usalama",
     "notificationSecurityNoticeTitle": "Taarifa ya usalama",
@@ -102,5 +107,8 @@
     "specialtyGastroenterology": "Magonjwa ya mfumo wa chakula",
     "specialtyInfectiousDiseases": "Magonjwa ya kuambukiza",
     "specialtyCardiology": "Magonjwa ya moyo",
-    "specialtyOrthopaedics": "Magonjwa ya mifupa"
+    "specialtyOrthopaedics": "Magonjwa ya mifupa",
+    "themeLight": "Mwanga",
+    "themeDark": "Giza",
+    "themeSystem": "Kama kifaa"
 }

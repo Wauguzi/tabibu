@@ -144,8 +144,8 @@ foreground notifications are not suppressed. `UIBackgroundModes` declares
 the Apple Developer account.
 
 `NotificationService.showNotification` never throws. A notification is a
-side effect, and the reference implementation once lost a sign-in to a
-plugin exception on that path. Failures are recorded to Crashlytics as
+side effect, and a plugin exception on a sign-in path would otherwise
+stop the sign-in. Failures are recorded to Crashlytics as
 non-fatal. The listener opens on the
 role shell and on resume, and closes on background and sign-out (see
 [`mobile_architecture.md` §9](./mobile_architecture.md#9-lifecycle)).

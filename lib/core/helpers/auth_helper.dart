@@ -3,9 +3,12 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
+import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/features/auth/data/datasources/auth_firebase.dart';
+import 'package:tabibu/features/auth/data/datasources/profile_storage.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_requests.dart';
+import 'package:tabibu/features/auth/data/models/upload_file.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 
@@ -13,12 +16,25 @@ import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 /// cache-versus-remote decision for the profile (architecture §3, §6).
 @lazySingleton
 class AuthHelper {
-  AuthHelper({AuthFirebase? authFirebase, HiveHelper? hiveHelper})
-    : _remote = authFirebase ?? getIt<AuthFirebase>(),
-      _cache = hiveHelper ?? getIt<HiveHelper>();
+  AuthHelper({
+    AuthFirebase? authFirebase,
+    HiveHelper? hiveHelper,
+    ProfileStorage? profileStorage,
+    NotificationService? notificationService,
+  }) : _remote = authFirebase ?? getIt<AuthFirebase>(),
+       _cache = hiveHelper ?? getIt<HiveHelper>(),
+       _storage = profileStorage ?? getIt<ProfileStorage>(),
+       _notifications = notificationService ?? getIt<NotificationService>();
 
   final AuthFirebase _remote;
   final HiveHelper _cache;
+  final ProfileStorage _storage;
+  final NotificationService _notifications;
+
+  /// The rules' `tokens()` limit.
+  static const maxDeviceTokens = 10;
+
+  String? get currentUid => _remote.currentUser?.uid;
 
   /// Failures that mean "the cloud cannot be reached", for which the cached
   /// profile stands in.
@@ -71,12 +87,110 @@ class AuthHelper {
     return await resolveSession();
   }
 
-  /// Signs out of Firebase first, so nothing is fetched into the cache after
-  /// it is wiped.
-  Future<void> signOut() async {
+  /// Uploads the practitioner's photo and one or two license files into
+  /// their own folders, for the sign-up request to name.
+  Future<({String pictureUrl, List<String> licenseUrls})> uploadSignUpFiles({
+    required UploadFile picture,
+    required List<UploadFile> licenses,
+  }) async {
+    final uid = currentUid;
+    if (uid == null) throw AppError.unauthenticated;
+    if (licenses.isEmpty || licenses.length > 2) throw AppError.invalidLicense;
+    final pictureUrl = await _storage.uploadProfilePicture(
+      owner: uid,
+      file: picture,
+    );
+    final licenseUrls = [
+      for (var i = 0; i < licenses.length; i++)
+        await _storage.uploadLicense(uid: uid, index: i, file: licenses[i]),
+    ];
+    return (pictureUrl: pictureUrl, licenseUrls: licenseUrls);
+  }
+
+  /// Adds this install's push token to the signed-in profile, making room
+  /// at the rules' limit by dropping the oldest. Best-effort: a device with
+  /// no token yet still signs in.
+  Future<void> registerDeviceToken(AuthSession session) async {
+    final target = _tokenTarget(session);
+    if (target == null) return;
+    final token = await _notifications.deviceToken();
+    if (token == null || target.tokens.contains(token)) return;
+    if (target.tokens.length >= maxDeviceTokens) {
+      await _remote.removeFcmToken(
+        collection: target.collection,
+        docId: target.docId,
+        token: target.tokens.first,
+      );
+    }
+    await _remote.addFcmToken(
+      collection: target.collection,
+      docId: target.docId,
+      token: token,
+    );
+  }
+
+  /// On the device first, so the app switches at once and the choice
+  /// survives sign-out; then on the profile, best-effort, for push text.
+  Future<void> changeLanguage(
+    AppLanguage language, {
+    required AuthSession session,
+  }) async {
+    await _cache.updateLanguage(languageString: language.value);
+    final target = _tokenTarget(session);
+    if (target == null) return;
+    try {
+      await _remote.updateLanguage(
+        collection: target.collection,
+        docId: target.docId,
+        language: language,
+      );
+    } on AppError catch (_) {
+      // Offline: the profile catches up on the next change.
+    }
+  }
+
+  /// Removes this install's token first, while the credentials can still
+  /// write it, then signs out of Firebase before the cache is wiped, so
+  /// nothing is fetched into it afterwards.
+  Future<void> signOut({AuthSession? session}) async {
+    if (session != null) await _forgetDeviceToken(session);
     await _remote.signOut();
     await _cache.clearOnSignOut();
   }
+
+  /// A signed-out phone must not keep receiving this person's pushes; a
+  /// failure here never blocks the sign-out.
+  Future<void> _forgetDeviceToken(AuthSession session) async {
+    try {
+      final target = _tokenTarget(session);
+      if (target == null) return;
+      final token = await _notifications.deviceToken();
+      if (token == null) return;
+      await _remote.removeFcmToken(
+        collection: target.collection,
+        docId: target.docId,
+        token: token,
+      );
+    } on AppError catch (_) {
+      // Offline, or the profile is gone. The stale token rotates out once
+      // the list reaches its limit.
+    }
+  }
+
+  static ({String collection, String docId, List<String> tokens})? _tokenTarget(
+    AuthSession session,
+  ) => switch (session) {
+    PatientSession(:final patient) => (
+      collection: 'patients',
+      docId: patient.patientId,
+      tokens: patient.fcmTokens,
+    ),
+    PractitionerSession(:final doctor) ||
+    PendingVerificationSession(
+      :final doctor,
+    ) => (collection: 'doctors', docId: doctor.uid, tokens: doctor.fcmTokens),
+    _ => null,
+  };
 
   /// Where this user belongs now. [forceRefresh] fetches a new ID token, for
   /// a role granted since the current one was issued.

@@ -90,6 +90,28 @@ enum AppLanguage {
   };
 }
 
+/// Light, dark, or the device's setting, kept on the device across
+/// sign-outs. An unknown value reads as [system].
+enum ThemePreference {
+  light,
+  dark,
+  system;
+
+  String get value => name;
+
+  static ThemePreference fromValue(String? value) => switch (value) {
+    'light' => .light,
+    'dark' => .dark,
+    _ => .system,
+  };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .light => l10n.themeLight,
+    .dark => l10n.themeDark,
+    .system => l10n.themeSystem,
+  };
+}
+
 /// A practitioner's title, stored as its display value.
 enum PractitionerTitle {
   dr,
@@ -250,6 +272,8 @@ enum AppError implements Exception {
   invalidBio,
   invalidLicense,
   kmpdcNumberInUse,
+  // Checked on the device before an upload, against the Storage rules' limits.
+  fileTooLarge,
   adminOnly,
   invalidPractitioner,
   invalidDecision,
@@ -321,7 +345,7 @@ enum AppError implements Exception {
     'expired-action-code' => .expiredActionCode,
     'invalid-action-code' => .invalidActionCode,
     'user-token-expired' => .userTokenExpired,
-    'permission-denied' => .permissionDenied,
+    'permission-denied' || 'unauthorized' => .permissionDenied,
     'not-found' => .dataNotFound,
     'unavailable' => .serviceUnavailable,
     'deadline-exceeded' => .requestTimeout,
@@ -380,6 +404,7 @@ enum AppError implements Exception {
     .invalidBio => l10n.errorInvalidBio,
     .invalidLicense => l10n.errorInvalidLicense,
     .kmpdcNumberInUse => l10n.errorKmpdcNumberInUse,
+    .fileTooLarge => l10n.errorFileTooLarge,
     .adminOnly => l10n.errorAdminOnly,
     .invalidPractitioner => l10n.errorInvalidPractitioner,
     .invalidDecision => l10n.errorInvalidDecision,

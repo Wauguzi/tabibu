@@ -96,7 +96,7 @@ auth helper, the router.
 
 ## 6. Implementation plan
 
-1. Brief 02 to Muse Code, with the reference files to port.
+1. Brief 02 to Muse Code.
 2. Review: changed the throwing parsers, rewrote the two role errors that
    had identical copy for different situations, and applied the Swahili
    fixes Muse Code suggested.

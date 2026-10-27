@@ -9,6 +9,7 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/google_sign_in_helper.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
+import 'package:tabibu/core/utils/sync_cursor.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_requests.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
@@ -181,6 +182,43 @@ class AuthFirebase {
         if (snapshot.docs.isEmpty) return null;
         return PatientModel.fromJson(snapshot.docs.first.data());
       });
+
+  /// [collection] is `patients` or `doctors`; [docId] is the patientId or
+  /// the uid. Array operations, so another device's token written since the
+  /// session was read is never overwritten.
+  Future<void> addFcmToken({
+    required String collection,
+    required String docId,
+    required String token,
+  }) => _updateTokens(collection, docId, FieldValue.arrayUnion([token]));
+
+  Future<void> removeFcmToken({
+    required String collection,
+    required String docId,
+    required String token,
+  }) => _updateTokens(collection, docId, FieldValue.arrayRemove([token]));
+
+  /// The profile's language decides the language of its push notifications.
+  Future<void> updateLanguage({
+    required String collection,
+    required String docId,
+    required AppLanguage language,
+  }) => _guard(
+    'Updating language',
+    () => _firestore.collection(collection).doc(docId).update({
+      'language': language.value,
+      'lastUpdatedAt': syncTimestamp(),
+    }),
+  );
+
+  Future<void> _updateTokens(String collection, String docId, FieldValue op) =>
+      _guard(
+        'Updating device tokens',
+        () => _firestore.collection(collection).doc(docId).update({
+          'fcmTokens': op,
+          'lastUpdatedAt': syncTimestamp(),
+        }),
+      );
 
   Future<DoctorModel?> fetchDoctorProfile(String uid) =>
       _guard('Reading practitioner profile', () async {

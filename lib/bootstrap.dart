@@ -3,7 +3,6 @@
 import 'dart:async';
 import 'dart:developer';
 
-import 'package:bloc/bloc.dart';
 import 'package:firebase_app_check/firebase_app_check.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_crashlytics/firebase_crashlytics.dart';
@@ -11,6 +10,8 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tabibu/core/helpers/blocs_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/google_sign_in_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
@@ -214,5 +215,10 @@ Future<void> bootstrap(
     if (kDebugMode) debugPrint('[Bootstrap] RASP init failed: $e');
   }
 
-  runApp(await builder());
+  runApp(
+    MultiBlocProvider(
+      providers: BlocsHelper.initializeBlocs(),
+      child: await builder(),
+    ),
+  );
 }

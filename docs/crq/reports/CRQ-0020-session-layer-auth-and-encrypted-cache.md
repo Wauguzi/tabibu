@@ -40,9 +40,8 @@
      instance, is not hidden.
    - **A role with no profile** opens nothing.
    - **Sign-out** leaves Firebase before the cache is wiped.
-4. **`DBHelper`**, ported from the reference pattern: typed CRUD with every
-   failure mapped to `AppError`, and `deleteAll` dispatching on each box's
-   type. Two defects in the pattern are fixed here:
+4. **`DBHelper`**: typed CRUD with every failure mapped to `AppError`, and
+   `deleteAll` dispatching on each box's type. Two failure modes are closed:
    - `HiveError` is an `Error`, so `on Exception` never caught it.
    - Closing a typed box as `Hive.box<dynamic>` throws, which would have
      left patient data on disk after sign-out. A test found this; it now
@@ -107,9 +106,9 @@ screens, uploads of pictures and licenses.
 
 ## 6. Implementation plan
 
-1. Reviewed the reference's `DBHelper` and Hive helper with Theo and kept
-   its typed access and selective retention. Left out its cached password
-   ("remember me"): Firebase holds the session.
+1. Designed `DBHelper` and the Hive helper with Theo: typed access and
+   selective retention, and no cached password ("remember me"), because
+   Firebase holds the session.
 2. Wrote each helper test-first where the behaviour is a rule (scoping, the
    wipe, the merge, the session decisions).
 

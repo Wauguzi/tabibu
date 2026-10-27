@@ -13,8 +13,6 @@
 
 ## 1. Description of change
 
-Ported from the reference implementation's `main` branch.
-
 1. **`RaspService`** (`lib/core/services/`) over freeRASP, behind a
    `RaspPlatform` interface for tests. Every `Threat` is classified:
    - **critical**: root or jailbreak, hooks, tampering, a debugger, missing
@@ -54,7 +52,7 @@ Ported from the reference implementation's `main` branch.
 6. **`make apk` and `make dev-apk` now obfuscate.** Without it, a release
    binary detects missing obfuscation and terminates itself. CI and
    fastlane already did.
-7. **Ported from the reference's enhancement branch:**
+7. **Notices and capture:**
    - **Screen capture follows the build:** blocked in production, allowed
      elsewhere so the demo can be recorded. A permitted capture raises no
      notice, so none lands in the recording.
@@ -117,9 +115,9 @@ closed.
 
 ## 6. Implementation plan
 
-Read the reference's service, config, tests, manifest, Gradle, Makefile and
-bootstrap on `main`; ported them with Tabibu's identifiers and fingerprints;
-moved the user binding out of bootstrap; built a debug APK to check the
+Wrote the service, config, tests, manifest, Gradle and Makefile changes and
+the bootstrap step with Tabibu's identifiers and fingerprints; bound the
+user after sign-in rather than in bootstrap; built a debug APK to check the
 merged manifest.
 
 ## 7. Testing & verification evidence

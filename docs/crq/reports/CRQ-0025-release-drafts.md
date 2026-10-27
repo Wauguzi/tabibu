@@ -13,8 +13,7 @@
 
 ## 1. Description of change
 
-Ported from the reference implementation's web repository, with one change:
-the version comes from `pubspec.yaml` instead of being computed from tags.
+The version comes from `pubspec.yaml`, never computed from tags.
 
 1. **`.github/workflows/release-draft.yaml`** runs when a pull request
    merges to `main`:
@@ -93,9 +92,9 @@ GitHub.
 
 ## 6. Implementation plan
 
-Read the reference workflow, script, Makefile targets and tests; replaced the
-tag arithmetic with the pubspec version; kept its ownership, notes, target
-and Latest rules; added CI checks.
+Wrote the workflow, script, Makefile targets and tests: the tag from the
+pubspec version, draft ownership, notes, target and Latest rules; added CI
+checks.
 
 ## 7. Testing & verification evidence
 

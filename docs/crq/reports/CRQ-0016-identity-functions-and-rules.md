@@ -111,7 +111,7 @@ and `deploy-storage` from the previous commit restore the rules;
 
 ## 6. Implementation plan
 
-1. Ported the reference pattern: pure handlers, thin wrappers, reason-key
+1. Pure handlers, thin wrappers, reason-key
    refusals, the geohash pinned to the app's vectors.
 2. Tested the handlers on the emulators rather than a hand-written fake, so
    transactions and query reads are the real ones.

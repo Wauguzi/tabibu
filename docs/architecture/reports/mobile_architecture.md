@@ -134,7 +134,7 @@ lib/
 │   ├── helpers/               # <feature>_helper.dart (cache/remote),
 │   │                          # hive_helper.dart, db_helper.dart,
 │   │                          # role_helper.dart, get_it_helper.dart
-│   ├── routing/               # app_router.dart, app_routes.dart
+│   ├── routing/               # app_router.dart, app_routes.dart, landing.dart
 │   ├── services/              # analytics, notification, internet,
 │   │                          # rasp, remote_config, performance
 │   ├── utils/                 # extensions, sync_cursor, input_sanitizer,
@@ -194,10 +194,12 @@ Bloc, enforced by `bloc_lint` in CI. The rules:
    listener refreshes where only the latest matters.
 7. **Every user-visible action logs one analytics event** in its handler.
    A new action that logs nothing is an omission.
-8. **Blocs are provided above the router and outlive individual screens.** A
-   screen that keeps local state derived from a bloc seeds it from
-   `bloc.state` on build rather than waiting for an emission that may never
-   come.
+8. **Blocs are provided above the router and outlive individual screens.**
+   `BlocsHelper.initializeBlocs()` lists them, and `bootstrap` mounts them
+   in the one `MultiBlocProvider` around `App`; a feature bloc joins that
+   list, never a screen's own provider. A screen that keeps local state
+   derived from a bloc seeds it from `bloc.state` on build rather than
+   waiting for an emission that may never come.
 
 **UI consumers.** Use the narrowest widget for the job:
 
@@ -461,14 +463,53 @@ hand, so tests can substitute any of them.
 ## 8. Routing / navigation
 
 `go_router` with typed routes from `go_router_builder`: every route is a
-`GoRouteData` subclass, and one `TabibuRouter` holds the generated
-`$appRoutes`. A cold start lands on a `DecisionRoute`, which reads the
-cached session and the role claim and sends the person to onboarding,
-sign-in, or their role's shell. Each role has its own
-`StatefulShellRoute` with its own tabs. A patient cannot reach a
-pathologist route by typing a URL on web, because the redirect checks the
-role claim, not a cached flag. Page transitions use
-`CupertinoPageTransitionsBuilder` on every platform.
+`GoRouteData` subclass in `core/routing/app_routes.dart`, and
+`TabibuRouter.create` builds the one router from the generated `$appRoutes`
+(CRQ-0027). `AuthBloc` and `SignUpBloc` are provided above it.
+
+**Cold start.** The app opens on `DecisionRoute` (A1). It asks `AuthBloc`
+for the session, awaits the force-update check, reads whether onboarding was
+seen, and hands all three to `resolveLanding`, a pure function. Its order:
+an outdated build goes to the update screen and nothing else is checked;
+signed out goes to onboarding the first time and sign-in after; a signed-in
+account with no profile goes back to the role choice; then the clinic-record
+notice, the pending screen, or the role's home.
+
+**The guard** (`guardLocation`, also pure) runs on every navigation and
+again whenever the session changes. It reads the role claims carried by the
+session, which came from the ID token, never a cached flag:
+
+- `/patient`, `/doctor` and `/pathologist` need that role. A pending
+  practitioner holds no role, so reaches none of them (T-14).
+- `/account/…` and the sign-up steps that act as the user (phone, area,
+  licence, facility, review) need a signed-in account.
+- Everything else is public.
+
+A refused location goes to the decision route with `from`, which follows it
+once the session allows. Signing out therefore moves anyone on a role route
+back through the decision route to sign-in. The rules still decide what is
+readable; the guard only keeps people off screens that would fail.
+
+**Sign-up** spans the C, D, E and F screens. `SignUpBloc` holds the draft in
+memory (never the password; the account is created on the screen that asks
+for it), so going back keeps what was entered. `AuthBloc` submits it. The
+draft is cleared after sign-up or sign-out, so photos and licence scans
+leave memory.
+
+**Role shells.** Each role home becomes its own `StatefulShellRoute` when
+its tabs are designed; until then it is a single guarded route. Routes whose
+screen is not built yet render `RoutePlaceholder`.
+
+Page transitions use `CupertinoPageTransitionsBuilder` on every platform.
+
+**Theme and language.** `ThemeBloc` holds only the choice (light, dark, or
+the device's), read synchronously at start so the first frame is right;
+`App` maps it to `themeMode`, so following the device is the framework's
+job. The language chosen on A2 is saved on the device and, once signed in,
+on the profile, which sets the language of push notifications; `App`
+switches its locale on `LanguageChangeSuccess`. `MaterialApp.builder`
+scales type up on tablets (`core/utils/text_scale.dart`), keeping the
+person's own text scaling.
 
 ## 9. Lifecycle
 
@@ -478,10 +519,10 @@ cost are controlled:
 | Transition | What happens |
 |---|---|
 | `paused` | Set `_hasBeenBackgrounded`. Stop the Firestore listeners: the inbox, the pathologist's worklist, the pre-read status of an open case. Nothing listens while nobody is looking. |
-| `resumed` **after a real background** | Re-fetch Remote Config (kill switches, §10); reopen the listeners from the cache's cursor so nothing is missed; refresh the worklist; re-check that the account is still active. |
+| `resumed` **after a real background** | Re-fetch Remote Config (kill switches, §10) and re-run the force-update gate; re-resolve a signed-in session, so a verification granted meanwhile is picked up; reopen the listeners from the cache's cursor so nothing is missed; refresh the worklist. |
 | `inactive → resumed` on cold start | Ignored. The `DecisionRoute` already ran these checks, and only the one-way `_hasBeenBackgrounded` flag can tell a cold start from a real resume. |
 | Sign-out | Stop every listener, flush any queued writes while the credentials are still valid, then wipe the case-bearing boxes and rotate the key (§6). |
-| Notification tapped (cold or warm) | The payload (a case or alert uid) routes through the typed router; a cold launch reads it once after the `DecisionRoute` resolves. |
+| Notification tapped (cold or warm) | Local and push taps share one stream, and `launchPayload` covers both on a cold launch. The payload is a case or alert uid in `data.payload`; it is routed once the case and alert screens exist. |
 
 ## 10. Security
 
@@ -532,8 +573,10 @@ In summary:
   that long to reach a running install; debug builds fetch every launch.
   The force-update parameters (`min_required_version`, `force_update`,
   `store_url_android`, `store_url_ios`, `update_title`, `update_message`)
-  default to letting the app through; the gate itself arrives with the
-  router on the auth branch.
+  default to letting the app through. The gate (`AppUpdateService`) stops a
+  build only when `force_update` is true **and** the build is older than
+  `min_required_version`, so a minimum set ahead of time locks nobody out
+  until the switch is flipped.
 - **Input**: free text (symptoms, notes, report edits) goes through
   `InputSanitizer` at the call site before it is stored or sent to the AI
   service.
@@ -750,6 +793,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-28 | §5 rule 8: `BlocsHelper` in bootstrap; §8 rewritten as built: decision route, `resolveLanding`, the role-claim guard, the sign-up draft, theme and language; §9 push taps and resume; §10 force-update rule (CRQ-0027). | Theo |
 | 2026-10-28 | §6.1: `specialties` (one to five from the role's list) replaces `specialization`; one or two `licenseUrls` up to 10 MB; profile picture required; `isAvailable` set at sign-up (CRQ-0026). | Theo |
 | 2026-10-27 | §13: four workflows, including the labeler and the draft release (CRQ-0025). | Theo |
 | 2026-10-27 | §10 RASP: tiers, notices, screen-capture blocking, obfuscation; §16 item 10 (CRQ-0024). | Theo |

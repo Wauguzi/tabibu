@@ -52,9 +52,9 @@ screen, the notification icon (CRQ-0022).
 
 ## 6. Implementation plan
 
-Diagnosed the missing asset catalog and the 16-bit source against the
-reference (whose logo is 8-bit), restored the catalog, converted the logo,
-and added the guard.
+Traced the black icon to the missing asset catalog and the 16-bit source
+(iOS needs 8-bit), restored the catalog, converted the logo, and added the
+guard.
 
 ## 7. Testing & verification evidence
 

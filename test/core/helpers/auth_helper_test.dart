@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -5,9 +7,12 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/auth_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
+import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/features/auth/data/datasources/auth_firebase.dart';
+import 'package:tabibu/features/auth/data/datasources/profile_storage.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_requests.dart';
+import 'package:tabibu/features/auth/data/models/upload_file.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 
@@ -16,6 +21,13 @@ class _MockAuthFirebase extends Mock implements AuthFirebase {}
 class _MockHiveHelper extends Mock implements HiveHelper {}
 
 class _MockUser extends Mock implements User {}
+
+class _MockProfileStorage extends Mock implements ProfileStorage {}
+
+class _MockNotificationService extends Mock implements NotificationService {}
+
+final _photo = UploadFile(bytes: Uint8List(4), contentType: 'image/jpeg');
+final _scan = UploadFile(bytes: Uint8List(4), contentType: 'application/pdf');
 
 RoleHelper _roles(Map<String, dynamic> claims) => RoleHelper.fromClaims(claims);
 
@@ -44,19 +56,29 @@ void main() {
   late _MockAuthFirebase remote;
   late _MockHiveHelper cache;
   late _MockUser user;
+  late _MockProfileStorage storage;
+  late _MockNotificationService notifications;
   late AuthHelper helper;
 
   setUpAll(() {
     registerFallbackValue(PatientModel.empty());
     registerFallbackValue(DoctorModel.empty());
     registerFallbackValue(_request);
+    registerFallbackValue(_photo);
   });
 
   setUp(() {
     remote = _MockAuthFirebase();
     cache = _MockHiveHelper();
     user = _MockUser();
-    helper = AuthHelper(authFirebase: remote, hiveHelper: cache);
+    storage = _MockProfileStorage();
+    notifications = _MockNotificationService();
+    helper = AuthHelper(
+      authFirebase: remote,
+      hiveHelper: cache,
+      profileStorage: storage,
+      notificationService: notifications,
+    );
 
     when(() => user.uid).thenReturn('u1');
     when(() => user.email).thenReturn('amina@example.com');
@@ -238,10 +260,261 @@ void main() {
     expect(await helper.signInWithGoogle(), isNull);
   });
 
-  test('sign-out leaves Firebase before the cache is wiped', () async {
-    when(() => remote.signOut()).thenAnswer((_) async {});
-    when(() => cache.clearOnSignOut()).thenAnswer((_) async {});
-    await helper.signOut();
-    verifyInOrder([() => remote.signOut(), () => cache.clearOnSignOut()]);
+  group('sign-out', () {
+    setUp(() {
+      when(() => remote.signOut()).thenAnswer((_) async {});
+      when(() => cache.clearOnSignOut()).thenAnswer((_) async {});
+      when(() => notifications.deviceToken()).thenAnswer((_) async => 't1');
+      when(
+        () => remote.removeFcmToken(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          token: any(named: 'token'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    test('leaves Firebase before the cache is wiped', () async {
+      await helper.signOut();
+      verifyInOrder([() => remote.signOut(), () => cache.clearOnSignOut()]);
+      verifyNever(() => notifications.deviceToken());
+    });
+
+    test('removes this device token while it can still write it', () async {
+      await helper.signOut(
+        session: PatientSession(
+          patient: _patient.copyWith(patientId: 'p9', fcmTokens: ['t1']),
+          roles: _roles({'role': 'patient'}),
+        ),
+      );
+      verifyInOrder([
+        () => remote.removeFcmToken(
+          collection: 'patients',
+          docId: 'p9',
+          token: 't1',
+        ),
+        () => remote.signOut(),
+        () => cache.clearOnSignOut(),
+      ]);
+    });
+
+    test('an offline token removal never blocks it', () async {
+      when(
+        () => remote.removeFcmToken(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          token: any(named: 'token'),
+        ),
+      ).thenThrow(AppError.noInternet);
+      await helper.signOut(
+        session: PractitionerSession(
+          doctor: _doctor,
+          roles: _roles({'role': 'doctor'}),
+        ),
+      );
+      verify(() => remote.signOut()).called(1);
+      verify(() => cache.clearOnSignOut()).called(1);
+    });
+  });
+
+  group('registerDeviceToken', () {
+    setUp(() {
+      when(() => notifications.deviceToken()).thenAnswer((_) async => 'new');
+      when(
+        () => remote.addFcmToken(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          token: any(named: 'token'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => remote.removeFcmToken(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          token: any(named: 'token'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    test('adds a token the profile does not hold', () async {
+      await helper.registerDeviceToken(
+        PendingVerificationSession(doctor: _doctor.copyWith(fcmTokens: ['a'])),
+      );
+      verify(
+        () => remote.addFcmToken(
+          collection: 'doctors',
+          docId: 'u1',
+          token: 'new',
+        ),
+      ).called(1);
+      verifyNever(
+        () => remote.removeFcmToken(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          token: any(named: 'token'),
+        ),
+      );
+    });
+
+    test('writes nothing for a token already held', () async {
+      await helper.registerDeviceToken(
+        PatientSession(
+          patient: _patient.copyWith(fcmTokens: ['new']),
+          roles: _roles({'role': 'patient'}),
+        ),
+      );
+      verifyNever(
+        () => remote.addFcmToken(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          token: any(named: 'token'),
+        ),
+      );
+    });
+
+    test('drops the oldest at the rules limit of ten', () async {
+      final full = [for (var i = 0; i < 10; i++) 't$i'];
+      await helper.registerDeviceToken(
+        PractitionerSession(
+          doctor: _doctor.copyWith(fcmTokens: full),
+          roles: _roles({'role': 'doctor'}),
+        ),
+      );
+      verifyInOrder([
+        () => remote.removeFcmToken(
+          collection: 'doctors',
+          docId: 'u1',
+          token: 't0',
+        ),
+        () => remote.addFcmToken(
+          collection: 'doctors',
+          docId: 'u1',
+          token: 'new',
+        ),
+      ]);
+    });
+
+    test('an account with no profile has nowhere to keep one', () async {
+      await helper.registerDeviceToken(
+        const SignUpIncompleteSession(email: 'a@example.com'),
+      );
+      verifyNever(() => notifications.deviceToken());
+    });
+  });
+
+  group('uploadSignUpFiles', () {
+    test(
+      'uploads the photo and each license into the caller folders',
+      () async {
+        when(
+          () => storage.uploadProfilePicture(
+            owner: any(named: 'owner'),
+            file: any(named: 'file'),
+          ),
+        ).thenAnswer((_) async => 'photo-url');
+        when(
+          () => storage.uploadLicense(
+            uid: any(named: 'uid'),
+            index: any(named: 'index'),
+            file: any(named: 'file'),
+          ),
+        ).thenAnswer((i) async => 'license-${i.namedArguments[#index]}');
+
+        final files = await helper.uploadSignUpFiles(
+          picture: _photo,
+          licenses: [_scan, _photo],
+        );
+
+        expect(files.pictureUrl, 'photo-url');
+        expect(files.licenseUrls, ['license-0', 'license-1']);
+        verify(
+          () => storage.uploadProfilePicture(owner: 'u1', file: _photo),
+        ).called(1);
+      },
+    );
+
+    test('refuses none or more than two license files', () async {
+      for (final licenses in [
+        <UploadFile>[],
+        [_scan, _scan, _scan],
+      ]) {
+        await expectLater(
+          helper.uploadSignUpFiles(picture: _photo, licenses: licenses),
+          throwsA(AppError.invalidLicense),
+        );
+      }
+    });
+
+    test('refuses without a signed-in user', () async {
+      when(() => remote.currentUser).thenReturn(null);
+      await expectLater(
+        helper.uploadSignUpFiles(picture: _photo, licenses: [_scan]),
+        throwsA(AppError.unauthenticated),
+      );
+    });
+  });
+
+  group('changeLanguage', () {
+    setUp(() {
+      when(
+        () =>
+            cache.updateLanguage(languageString: any(named: 'languageString')),
+      ).thenAnswer((_) async {});
+      when(
+        () => remote.updateLanguage(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          language: AppLanguage.sw,
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    test('saves on the device, then on the profile for push text', () async {
+      await helper.changeLanguage(
+        AppLanguage.sw,
+        session: PatientSession(
+          patient: _patient.copyWith(patientId: 'p9'),
+          roles: _roles({'role': 'patient'}),
+        ),
+      );
+      verifyInOrder([
+        () => cache.updateLanguage(languageString: 'sw'),
+        () => remote.updateLanguage(
+          collection: 'patients',
+          docId: 'p9',
+          language: AppLanguage.sw,
+        ),
+      ]);
+    });
+
+    test('before sign-in, only the device keeps it', () async {
+      await helper.changeLanguage(
+        AppLanguage.sw,
+        session: const SignedOutSession(),
+      );
+      verify(() => cache.updateLanguage(languageString: 'sw')).called(1);
+      verifyNever(
+        () => remote.updateLanguage(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          language: AppLanguage.sw,
+        ),
+      );
+    });
+
+    test('offline, the profile write is skipped without failing', () async {
+      when(
+        () => remote.updateLanguage(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          language: AppLanguage.sw,
+        ),
+      ).thenThrow(AppError.noInternet);
+      await helper.changeLanguage(
+        AppLanguage.sw,
+        session: PendingVerificationSession(doctor: _doctor),
+      );
+      verify(() => cache.updateLanguage(languageString: 'sw')).called(1);
+    });
   });
 }

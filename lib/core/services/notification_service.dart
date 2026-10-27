@@ -28,6 +28,11 @@ enum NotificationChannel {
   final String id;
   final Importance importance;
 
+  /// A push names its channel in `data.channel`; anything else is a case
+  /// update, the quietest.
+  static NotificationChannel fromId(String? id) =>
+      values.firstWhere((c) => c.id == id, orElse: () => caseUpdates);
+
   String name(AppLocalizations l10n) => switch (this) {
     account => l10n.notificationChannelAccount,
     alerts => l10n.notificationChannelAlerts,
@@ -98,6 +103,63 @@ class NotificationService {
     await _createChannels();
     await _allowForegroundBannersOnIos();
     await _requestPermission();
+    _listenToPushes();
+  }
+
+  /// A push carries the case or alert uid in `data.payload`. A tap joins
+  /// [taps]; one that arrives while the app is open is shown as a local
+  /// banner on Android, which otherwise shows nothing in the foreground
+  /// (iOS shows it through the options above).
+  void _listenToPushes() {
+    try {
+      FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        final payload = _payloadOf(message);
+        if (payload != null) _taps.add(payload);
+      });
+      if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return;
+      FirebaseMessaging.onMessage.listen((message) {
+        final notification = message.notification;
+        if (notification == null) return;
+        unawaited(
+          showNotification(
+            title: notification.title ?? '',
+            message: notification.body ?? '',
+            channel: NotificationChannel.fromId(
+              message.data['channel'] as String?,
+            ),
+            payload: _payloadOf(message),
+          ),
+        );
+      });
+    } on Object catch (e, stackTrace) {
+      if (kDebugMode) _logger.w('Push listeners not attached: $e');
+      _report(e, stackTrace);
+    }
+  }
+
+  static String? _payloadOf(RemoteMessage message) {
+    final payload = message.data['payload'];
+    return payload is String && payload.isNotEmpty ? payload : null;
+  }
+
+  /// This install's FCM token, or null where there is none yet (an iOS
+  /// simulator, no APNs token, Firebase not initialised). Never throws.
+  Future<String?> deviceToken() async {
+    try {
+      return await _messaging().getToken();
+    } on Object catch (e) {
+      if (kDebugMode) _logger.w('No FCM token: $e');
+      return null;
+    }
+  }
+
+  /// FCM rotates tokens; each new one must reach the profile.
+  Stream<String> get tokenRefreshes {
+    try {
+      return _messaging().onTokenRefresh;
+    } on Object catch (_) {
+      return const Stream.empty();
+    }
   }
 
   /// Since firebase_messaging 16.7 its iOS plugin answers foreground
@@ -152,13 +214,20 @@ class NotificationService {
     await Permission.notification.request();
   }
 
-  /// The payload of the notification that launched the app, read once after
-  /// the decision route resolves (notifications engine §7).
+  /// The payload of the local or push notification that launched the app,
+  /// read once after the decision route resolves (notifications engine §7).
   Future<String?> launchPayload() async {
     final details = await _plugin.getNotificationAppLaunchDetails();
-    if (details == null || !details.didNotificationLaunchApp) return null;
-    final payload = details.notificationResponse?.payload;
-    return payload == null || payload.isEmpty ? null : payload;
+    if (details != null && details.didNotificationLaunchApp) {
+      final payload = details.notificationResponse?.payload;
+      if (payload != null && payload.isNotEmpty) return payload;
+    }
+    try {
+      final push = await _messaging().getInitialMessage();
+      return push == null ? null : _payloadOf(push);
+    } on Object catch (_) {
+      return null;
+    }
   }
 
   /// Asks for permission if it was not granted. True when app settings were
@@ -177,9 +246,9 @@ class NotificationService {
 
   Future<bool> areNotificationsGranted() => Permission.notification.isGranted;
 
-  /// Never throws. A notification is a side effect, and it once sat on a
-  /// sign-in path where a plugin exception stopped navigation and left
-  /// people on the form. Failures are recorded, not swallowed silently.
+  /// Never throws. A notification is a side effect, and it sits on sign-in
+  /// paths where a plugin exception would stop navigation and leave people
+  /// on the form. Failures are recorded, not swallowed silently.
   ///
   /// [id] defaults to a fresh one, so notifications stack; a fixed [id]
   /// replaces its predecessor instead (security notices do).
