@@ -109,7 +109,10 @@ These are the rules whose breach is a P1 even when no attacker is involved
 | T-6 | Demo data is sent to a contributor (training-enabled) endpoint | Endpoint ids are constants; a test fails if any names a contributor variant | Service test | Planned |
 | T-7 | Write flood or credit drain from a scripted client | App Check enforced on Firestore, Storage, Functions; per-user rate limits in the trigger functions; result cache | App Check enforcement checked in the Console; function test | Partial: App Check active, not enforced (CRQ-0010) |
 | T-8 | A slide image is fetched by URL guessing | Storage paths are not public; rules mirror case participation; signed URLs are never stored | Storage rules test | Planned |
-| T-9 | Patient location is collected | Patients choose a county; `geolocator` is never called for alerts; no location field exists on the patient profile | Code-review rule; rules test rejecting location fields | Planned |
+| T-9 | A patient's precise location is collected | Patients choose a county and sub-county; `geolocator` is never called on a patient's behalf; the patient geohash is computed by the server from the sub-county's centre, so no field locates a home (CRQ-0014) | Code-review rule; rules test rejecting a client-written `geohash` or any latitude/longitude field on `patients` | Planned |
+| T-14 | Someone claims to be a doctor or pathologist and signs reports | Practitioner sign-up sets no role claim; the claim follows verification of the KMPDC number and license by an admin; KMPDC number and license are final once verified | Function test: a pending practitioner has no claim; rules tests on the locked fields | Planned |
+| T-15 | Someone takes over a doctor-added patient's record by signing up with their phone and birth date | Sign-up never merges into an existing record; a doctor on the care team links an account in person | Function test: a matching sign-up creates nothing and returns `clinic-record-exists` | Planned |
+| T-16 | A doctor adds themselves to a patient's care team to read their profile | `doctorUids` is server-written: only `addPatient` (the creating doctor) and `inviteToCase` (the patient) add to it | Rules test: a doctor's own `arrayUnion` on `doctorUids` is denied | Planned |
 | T-10 | A tampered or repackaged app talks to the backend | freeRASP; App Check attestation | freeRASP configured with release signing hashes | Partial: App Check active, not enforced (CRQ-0010) |
 | T-11 | A case read from a shared clinic phone after sign-out | Sign-out wipes case boxes and rotates the Hive key; biometric re-entry option | Unit test on sign-out wipe | Planned |
 | T-12 | A prompt injected through free-text notes changes the draft's structure | Notes passed as data fields, never instructions; schema validation rejects off-schema output | Service test with injection fixtures | Planned |
@@ -147,6 +150,7 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | T-9 reworded for sub-county geohashes; T-14 to T-16 added for practitioner sign-up, record linking and the care team (CRQ-0014). | Theo |
 | 2026-10-27 | T-7 and T-10: App Check active, not enforced (CRQ-0010). | Theo |
 | 2026-10-27 | §2: API keys confirmed API-restricted by Firebase; app restrictions declined, with the reason; secret-scanning alerts closed (CRQ-0007). | Theo |
 | 2026-10-27 | §3 tag-pinning finding: `prod_apk.yaml` pinned to commit SHAs (CRQ-0008). | Theo |

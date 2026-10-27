@@ -127,9 +127,11 @@ a retried delivery never notifies anyone twice.
 
 ## 8. Privacy
 
-- **Patients choose a county; Tabibu never reads their location.**
-  `geolocator` is in `pubspec.yaml` for a possible facility-finder feature,
-  and it must never be called on the patient's behalf for alerts. A rules
+- **Patients choose a county and sub-county; Tabibu never reads their
+  location.** `geolocator` is in `pubspec.yaml` for a possible
+  facility-finder feature, and it must never be called on the patient's
+  behalf. The patient's geohash is the sub-county's centre (CRQ-0014), and
+  it never enters a notifiable event. A rules
   test and a code-review rule in the threat model guard this.
 - Events are anonymous at creation; nothing is "anonymised later".
 - Counts shown to patients are never shown below the minimum floor.
@@ -171,4 +173,5 @@ alert arriving on a doctor's phone and then a patient's.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §8: patients choose a sub-county too; the geohash is an area, never an event field (CRQ-0014). | Theo |
 | 2026-10-27 | Initial version: the six-step pipeline, the event shape and what never leaves a case, Rules A and B, approval and two-phase delivery, the rules shape and the demo. | Theo |

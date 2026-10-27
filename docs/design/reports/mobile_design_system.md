@@ -199,6 +199,31 @@ enforces it, so no screen implements it on its own.
 - Voice: calm, direct, respectful. Tabibu never reassures or alarms; it says
   what is known and who decides.
 
+**Clinical vocabulary.** Every `sw` string uses these terms, so a native
+speaker can review the vocabulary once rather than every string. All are
+best-effort and **pending native review**; a change here changes every
+string that uses the term.
+
+| en | sw |
+|---|---|
+| patient | mgonjwa (pl. wagonjwa) |
+| doctor | daktari (pl. madaktari) |
+| pathologist | mtaalamu wa patholojia |
+| practitioner | mhudumu wa afya |
+| case | kesi |
+| test | kipimo (pl. vipimo) |
+| sample | sampuli |
+| result | matokeo |
+| report | ripoti |
+| appointment | miadi |
+| alert | tahadhari |
+| facility | kituo cha afya |
+| county / sub-county | kaunti / kaunti ndogo |
+| license | leseni |
+| verification | uthibitisho |
+
+Quotation marks are straight double quotes in both languages.
+
 ## 8. Known debt / not-yet-adopted patterns
 
 1. **No palette yet.** Roles are fixed (§2.1); values and the icon set land
@@ -215,4 +240,5 @@ enforces it, so no screen implements it on its own.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §7 clinical vocabulary for `sw`, pending native review (CRQ-0014). | Theo |
 | 2026-10-27 | Initial version: semantic color roles, the type pairing, the 4-point spacing scale, clinical UI conventions (AI draft vs signed, confidence, urgency, viewer, patient copy), motion rules, and accessibility targets. | Theo |

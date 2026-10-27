@@ -126,7 +126,14 @@ lib/
 │   │                          # text_scale
 │   └── widgets/               # Shared Custom* components (design doc §4)
 ├── features/
-│   ├── auth/                  # Sign-in, role resolution, profile, county
+│   ├── auth/                  # Sign-in, the three sign-up routes, reset,
+│   │                          # session, the decision route
+│   ├── profile/               # The signed-in person's profile, language,
+│   │                          # picture, license, sign-out
+│   ├── patients/              # Patient records, self- or doctor-added (§6.1)
+│   ├── practitioners/         # The directory; nearest-first by geohash
+│   ├── facilities/            # The bundled facility, county and
+│   │                          # sub-county lists (§6.2)
 │   ├── cases/                 # The shared case record and its timeline
 │   ├── intake/                # Patient symptoms by voice or text
 │   ├── orders/                # Test catalogue, ordering, risk-check banner
@@ -215,7 +222,12 @@ The registry below is the record. Add a row in the same commit as the model.
 
 | typeId | Class | Feature | Added |
 |---|---|---|---|
-| — | none allocated yet | — | — |
+| 0 | `PatientHive` | `patients` | Reserved 2026-10-27 (CRQ-0014) |
+| 1 | `DoctorHive` | `profile` | Reserved 2026-10-27 (CRQ-0014) |
+| 2 | `PractitionerHive` | `practitioners` | Reserved 2026-10-27 (CRQ-0014) |
+
+A reserved row becomes "Added" in the commit that creates the class. Reserving
+ahead stops two agents working in parallel from taking the same id.
 
 **Adapters register in one hand-maintained cascade in `hive_helper.dart`**,
 and `test/core/helpers/hive_adapter_registration_test.dart` asserts that
@@ -251,6 +263,136 @@ the key**, because a clinic phone is often shared. The cost is a full
 re-download on the next sign-in, which is acceptable at demo volumes. Slide
 tiles and smear images are not stored in Hive; they stream from Storage
 through the image cache.
+
+### 6.1 Identity: patients, practitioners and the directory
+
+There is no `users` collection. A person is their role claim (§11) plus one
+profile document: `patients` for patients, `doctors` for doctors and
+pathologists. The public `practitioners` directory is a server-written
+projection of verified `doctors`. Field order below is the Freezed
+constructor order. "Server" means a Cloud Function or the trigger; "owner"
+means the signed-in person whose document it is.
+
+**`patients/{patientId}`.** A self-registered patient's `patientId` is their
+Auth uid. A doctor-added patient has no Auth account, so their `patientId`
+is generated, and it never changes, even when they later register.
+
+| Field | Type | Written by | Notes |
+|---|---|---|---|
+| `patientId` | String | Server | The document id |
+| `uid` | String | Server | Auth uid; `''` until the patient has an account |
+| `isRegistered` | bool | Server | `true` exactly when `uid` is set |
+| `createdByUid` | String | Server | The patient themselves, or the doctor who added them |
+| `firstName`, `middleName`, `lastName` | String | Server at creation; owner after | `middleName` may be `''` |
+| `sex` | String (`Sex`) | Server at creation; owner after | Clinical: reference ranges depend on it |
+| `dateOfBirth` | String (ISO date) | Server at creation; owner after | Required for every patient; age is derived, never stored |
+| `phoneNumber` | String (E.164) | Server at creation; owner after | Normalised to `+254…` |
+| `email` | String | Server | From the Auth token; never changes once registered. Before then, the creating doctor may correct it |
+| `profilePictureUrl` | String | Owner, or a care-team doctor while unregistered | `''` until uploaded; never public |
+| `county` | String | Owner | One of the 47; defaults to Nairobi |
+| `subCounty` | String | Owner | Nairobi sub-counties only; `''` outside Nairobi |
+| `geohash` | String | Server | 9 characters, computed from the sub-county's centre, so it locates an area, never a home (T-9). `''` outside Nairobi |
+| `doctorUids` | List\<String\> | Server | The care team: the doctors and pathologists who may read this profile |
+| `fcmTokens` | List\<String\> | Owner | One per signed-in device; read only by Cloud Functions |
+| `language` | String | Owner | `en` or `sw`; also the language of server-sent pushes |
+| `receiveNotifications` | bool | Owner | |
+| `casesReported`, `appointmentsBooked` | int | Server | Counters |
+| `createdAt`, `lastUpdatedAt` | String | Both | §6 timestamps |
+
+**`doctors/{uid}`**, for doctors and pathologists. The document id is the Auth
+uid.
+
+| Field | Type | Written by | Notes |
+|---|---|---|---|
+| `uid` | String | Server | |
+| `title`, `firstName`, `lastName` | String | Owner | |
+| `email` | String | Server | From the Auth token; never changes |
+| `phoneNumber` | String (E.164) | Owner | |
+| `profilePictureUrl` | String | Owner | Public: copied to the directory |
+| `isPathologist` | bool | Server | Chosen on sign-up; fixed after |
+| `specialization`, `bio` | String | Owner | `bio` is plain text through `InputSanitizer` |
+| `kmpdcNumber` | String | Owner until verified | Unique across accounts. Final once `Verified` |
+| `licenseUrl` | String | Owner until verified | The practising license. Final once `Verified`; never public |
+| `verificationStatus` | String (`VerificationStatus`) | Server | `Pending`, `Verified` or `Rejected` |
+| `facilityId`, `facilityMflCode`, `facilityName` | String | Owner picks; server checks | From the facility list (§6.2) |
+| `county`, `subCounty`, `geohash` | String | Server | Copied from the facility; `geohash` is the facility's 9 characters |
+| `isAvailable` | bool | Owner | |
+| `fcmTokens`, `language`, `receiveNotifications` | | Owner | As for patients |
+| `appointmentsHandled`, `ordersCreated`, `reportsSigned` | int | Server | `reportsSigned` stays 0 for doctors |
+| `termsAcceptedAt`, `createdAt`, `lastUpdatedAt` | String | Server, Both | |
+
+**`practitioners/{uid}`** is the directory every signed-in user may read. Only
+the `syncPractitioner` trigger on `doctors` writes it, and only while the
+doctor is `Verified`; a doctor's own profile edit therefore updates the entry,
+and an entry is removed if the doctor stops being verified. Its fields are the
+public subset of `doctors`, in the same order: `uid`, `title`, `firstName`,
+`lastName`, `profilePictureUrl`, `isPathologist`, `specialization`, `bio`,
+the facility fields, `county`, `subCounty`, `geohash`, `isAvailable`, the three
+counters, and `lastUpdatedAt`. The facility fields come from the server's
+facility list, not from what the client sent. It never carries email, phone,
+KMPDC number, license or tokens.
+
+**Every geohash is 9 characters** (about 5 m), from `GeohashService.encode`. A
+search widens by truncating the prefix. Characters that were never stored
+cannot be recovered.
+
+**Counters** are incremented only by triggers, with `FieldValue.increment`.
+Triggers are delivered at least once, so each records its event id before
+incrementing, and a redelivered event counts nothing. A counter added later
+is `@Default(0)` in its model, so older documents still parse.
+
+**How each document is created.** Clients never create a `patients`,
+`doctors` or `practitioners` document; callables do, and set the role claim
+in the same step.
+
+| Callable | Caller | Does |
+|---|---|---|
+| `completePatientSignUp` | A new account | Normalises the phone, then looks for an unregistered record with the same phone and date of birth. With no match, it creates `patients/{uid}` and sets `role: patient`. With a match, it creates nothing and returns `clinic-record-exists`: an account is linked to an existing record only in person (`linkPatientAccount`), because a phone number and birth date are not proof of identity |
+| `completePractitionerSignUp` | A new account | Checks the KMPDC number is unused and the facility exists, then creates `doctors/{uid}` as `Pending`. **No role claim is set**, so a pending account reaches no clinical route |
+| `verifyPractitioner` | Admin only (seed script for the pilot) | Sets `Verified` or `Rejected`; on `Verified`, sets `role: doctor` or `role: pathologist` |
+| `addPatient` | A verified doctor | Same duplicate check, then creates the record with `uid: ''` and the doctor in `doctorUids` |
+| `linkPatientAccount` | A doctor on the record's care team | Attaches a registered account to a doctor-added record, with the patient present |
+| `inviteToCase` | The patient | Adds a verified practitioner to a case's participants and to `doctorUids` |
+
+Being in `doctorUids` grants the patient's profile, not their cases. Each
+case's own participant list (§11) still decides who reads which case. A
+second-opinion doctor sees the shared case only. The patient may remove a
+doctor from `doctorUids`.
+
+**Storage.** Each path is written only by the people listed below. Image
+uploads must be `image/*`; a license may also be `application/pdf`.
+
+| Path | Who writes | Who reads | Limit |
+|---|---|---|---|
+| `profilePictures/{id}/…` (`id` is a `doctors` uid or a `patientId`) | The owner; or, for an unregistered patient, a doctor in their `doctorUids` | Any signed-in user; no listing | 3 MB |
+| `licenses/{uid}/…` | Owner, until `Verified` | Owner and admin | 3 MB |
+
+There is no picture collection: the download URL is stored on the profile
+(`profilePictureUrl`), and the trigger copies a practitioner's into the
+directory, so a screen fetches one document. A download URL works for
+anyone who holds it, so the Storage read rule only stops listing a folder.
+What actually keeps a patient's picture private is that its URL sits on a
+document only the patient and their care team can read.
+
+### 6.2 Reference data shipped with the app
+
+The pilot is Nairobi. Three JSON assets, produced by
+`scripts/facilities/` from the Ministry of Health's facility list, are
+read from the bundle and never written:
+
+| Asset | Holds |
+|---|---|
+| `assets/data/facilities_nairobi.json` | Every facility: `facilityId`, `mflCode`, `name`, `kephLevel`, `facilityType`, `owner`, `ward`, `subCounty`, `county`, `latitude`, `longitude`, `geohash` (9), `isLab`, `operationStatus`, `active` |
+| `assets/data/counties.json` | All 47 counties, with their official codes |
+| `assets/data/sub_counties_nairobi.json` | Nairobi's sub-counties, each with its centre and its 9-character geohash |
+
+The script turns `null` into `''`, `0` or `false`, trims every string, turns
+`is_lab` into a bool, de-duplicates by MFL code, and is safe to run again
+as more batches arrive. `functions/` holds a byte-identical copy, so the
+server checks a facility against its own list rather than trusting a
+client; a test compares the two. A patient outside Nairobi can still sign
+up: they see a pilot notice, and the directory lists every practitioner
+rather than the nearest.
 
 ## 7. Dependency injection
 
@@ -336,8 +478,9 @@ In summary:
 
 | Role / permission | Can | Cannot |
 |---|---|---|
-| Patient | Describe symptoms; see their own cases; read a signed result's explanation once released; choose a county; receive area alerts | See any other patient's case; see an AI draft; see a cancer result before the doctor marks it discussed |
-| Doctor | Accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
+| Patient | Describe symptoms; see their own cases; read a signed result's explanation once released; choose a county and sub-county; browse the practitioner directory; invite a practitioner to a case | See any other patient's case; see an AI draft; see a cancer result before the doctor marks it discussed |
+| Pending practitioner (no role claim) | Edit their own `doctors` profile, KMPDC number and license | Reach any clinical route or read any patient |
+| Doctor | Add a patient; read the profiles of patients whose care team they are on; accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
 | Pathologist | Work the ranked list of cases assigned to them; review, edit and sign reports; mark a result notifiable | Release a result to a patient |
 | Alert approver (a permission on a doctor) | Read, edit and approve a drafted alert | Approve an alert they drafted by hand without the draft being recorded |
 
@@ -510,6 +653,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §6.1 identity collections (`patients`, `doctors`, `practitioners`), their callables and Storage paths; §6.2 bundled facility data; typeIds 0–2 reserved; §4 features and §11 roles updated (CRQ-0014). | Theo |
 | 2026-10-27 | §13: iOS target 15.0 and Swift Package Manager (CRQ-0012). | Theo |
 | 2026-10-27 | §10 Remote Config at startup: defaults, fetch bounds, and the force-update parameters (CRQ-0011). | Theo |
 | 2026-10-27 | §10 App Check activated, not enforced; §16 item 7 lists what enforcement waits on (CRQ-0010). | Theo |

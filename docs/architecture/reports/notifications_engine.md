@@ -125,7 +125,7 @@ Cloud Functions compose push text in the recipient's stored language.
 |---|---|---|
 | Inbox | Always | Hive box, delta-pulled; a Firestore listener while in the foreground |
 | Foreground banner | A new row addressed to the signed-in person arrives through the listener | `flutter_local_notifications`, with the row `uid` as payload |
-| Push | App backgrounded or closed | FCM: tokens in `users/{uid}.fcmTokens`; county topics for alerts |
+| Push | App backgrounded or closed | FCM: tokens in `fcmTokens` on `patients/{patientId}` or `doctors/{uid}`; county topics for alerts |
 
 Two Android channels: **Alerts** (high importance) and **Case updates**
 (default). On iOS, foreground presentation options are set explicitly so
@@ -157,4 +157,5 @@ push, and alert delivery last.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §7: tokens live on the profile documents; there is no `users` collection (CRQ-0014). | Theo |
 | 2026-10-27 | Initial version: the Local/Cloud rule, the event catalogue with lock-screen-safe push copy, the model, the three idempotency guards, server-only creation, localisation, delivery surfaces and retention. | Theo |
