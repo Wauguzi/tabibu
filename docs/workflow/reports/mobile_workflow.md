@@ -120,11 +120,21 @@ The loop from idea to live demo:
 6. **Certification.** Code is not committed until I have run it and
    certified it on a device, the simulator, or the web demo. Documentation-only
    changes are exempt. This is a hard gate.
-7. **Commit and review.** During the hackathon, work lands directly on
-   `main`, with commit messages that explain the change. Once work moves to
-   branches, every pull request is reviewed by Greptile before merge, and
-   Greptile's findings are answered on the thread or recorded as an accepted
-   risk in the CRQ, never silenced in config.
+7. **Commit and review.** Foundation work lands directly on `main`. Feature
+   work happens on a branch, one CRQ per branch, and reaches `main` through a
+   pull request:
+   1. When the branch is complete, its title (Conventional Commits) and
+      description are written from
+      [`.github/PULL_REQUEST_TEMPLATE.md`](../../../.github/PULL_REQUEST_TEMPLATE.md).
+   2. Greptile reviews it. Every finding is fixed, or answered on its thread;
+      a finding accepted as a risk is recorded in CRQ §9, never silenced in
+      `.greptile/rules.md`.
+   3. **The merge bar is a 5/5 Greptile confidence score.** Below 5, the
+      branch is reworked and re-reviewed, not merged.
+   4. `CODEOWNERS` assigns every path to me, so I am requested on every pull
+      request, Dependabot's included. Labels come from the template's choices
+      and from `.github/labeler.yml`, using the set defined in
+      `scripts/labels.sh`.
 8. **CI.** For now only the license check runs in CI. The scaffold's main
    workflow was removed and purpose-built workflows arrive with the auth
    work, so format, analyze, `bloc_lint`, tests and the spell check run
@@ -142,7 +152,7 @@ The loop from idea to live demo:
 
 | System | Used for |
 |---|---|
-| GitHub (`Wauguzi/tabibu`, public) | Source control, pull requests, GitHub Actions |
+| GitHub (`Wauguzi/tabibu`, public) | Source control, pull requests, GitHub Actions, `CODEOWNERS`, the label taxonomy (`scripts/labels.sh`) and path-derived labels (`.github/labeler.yml`) |
 | GitHub Actions (Very Good Workflows) | License check today; the full pipeline returns with the auth work |
 | Greptile | Automated review of every pull request, the second approver. Its context is `.greptile/`: `files.json` points it at the governing docs, and `rules.md` summarises the conventions a diff does not show |
 | Firebase Console | Auth, Firestore, Storage, Functions, FCM, App Check, Remote Config, Crashlytics, Performance |
@@ -170,6 +180,8 @@ A change is done when, in order:
 8. The CRQ is filed (if one is due) and any affected doc in `docs/` is
    updated in the same commit.
 9. Only then is it committed.
+10. On a branch: Greptile has scored the pull request 5/5, and every finding
+    is resolved. Only then is it merged.
 
 ## 7. Escalation & severity
 
@@ -238,5 +250,6 @@ the rest keep the build honest.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §4 step 7 now describes the branch and pull request flow, with a 5/5 Greptile confidence score as the merge bar; §5 adds `CODEOWNERS` and the labels; §6 adds the merge criterion. | Theo |
 | 2026-10-27 | §4 step 8, §5 and §6 updated for the interim CI: only the license check runs in CI; the other gates are local `make` targets. | Theo |
 | 2026-10-26 | Initial version for a solo hackathon build: lean org (CTO plus Greptile, every other seat open), a P1 list that includes clinical-safety failures, and the ten-day cadence. | Theo |

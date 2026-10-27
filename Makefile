@@ -23,7 +23,7 @@ bloc-lint:
 
 # cspell over every Markdown file, with the project dictionary.
 spell:
-		npx --yes cspell@8 --no-progress --config .github/cspell.json "**/*.md" ".greptile/*.md"
+		npx --yes cspell@8 --no-progress --config .github/cspell.json "**/*.md" ".greptile/*.md" ".github/*.md"
 
 # The same check, allow-list and skip list as .github/workflows/license_check.yaml;
 # change both together.

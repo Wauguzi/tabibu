@@ -99,7 +99,7 @@ it. Write "N/A" only when §4 genuinely shows no impact in that area.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | `[name]` | `[YYYY-MM-DD]` | — |
-| Engineering reviewer | Always, on the pull request | `[Greptile — PR link; or "N/A — committed directly to main during the hackathon"]` | `[YYYY-MM-DD]` | `[Approved / Changes requested / Findings accepted in §9]` |
+| Engineering reviewer | Always, on the pull request | `[Greptile — PR link and confidence score (merge bar: 5/5); or "N/A — committed directly to main"]` | `[YYYY-MM-DD]` | `[5/5 — Approved / Changes requested / Findings accepted in §9]` |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | `[name, or "Covered by CTO"]` | `[YYYY-MM-DD]` | `[Approved / Rejected / Approved with changes]` |
 | Security Analyst | §4 flags security impact | `[name, or "Covered by CTO"]` | `[YYYY-MM-DD]` | `[...]` |
 | Compliance Officer | §4 flags data protection impact | `[name, or "Covered by CTO"]` | `[YYYY-MM-DD]` | `[...]` |

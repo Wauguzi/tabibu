@@ -1,0 +1,85 @@
+# Path-derived labels only. type/*, P1-P4, needs/* and clinical-safety come from the CRQ.
+
+"security-boundary":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "firestore.rules"
+          - "storage.rules"
+          - "firestore.indexes.json"
+          - "functions/**"
+          - "test/firestore_rules/**"
+
+"area/auth":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/auth/**"
+
+"area/cases":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/cases/**"
+          - "lib/features/intake/**"
+          - "lib/features/orders/**"
+
+"area/pathology":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/worklist/**"
+          - "lib/features/preread/**"
+          - "lib/features/results/**"
+
+"area/alerts":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/alerts/**"
+
+"area/notifications":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/features/notifications/**"
+
+"area/ai-service":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "ai_service/**"
+
+"area/core-ui":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/core/widgets/**"
+          - "lib/core/constants/**"
+          - "lib/features/themes/**"
+          - "lib/gen/**"
+          - "assets/**"
+          - "fonts/**"
+
+"area/l10n":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "lib/l10n/**"
+          - "l10n.yaml"
+
+"area/infra":
+  - changed-files:
+      - any-glob-to-any-file:
+          - ".github/**"
+          - ".greptile/**"
+          - "scripts/**"
+          - "android/**"
+          - "ios/**"
+          - "web/**"
+          - "Makefile"
+          - "pubspec.yaml"
+          - "pubspec.lock"
+          - "analysis_options.yaml"
+          - "firebase.json"
+          - "lib/firebase_options.dart"
+          - "lib/bootstrap.dart"
+          - "lib/main_*.dart"
+          - "lib/core/services/**"
+
+"area/docs":
+  - changed-files:
+      - any-glob-to-any-file:
+          - "docs/**"
+          - "README.md"
