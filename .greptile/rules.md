@@ -82,6 +82,11 @@ finding.
 - **Timestamps are ISO-8601 UTC strings from one helper.** Delta sync compares them as strings.
 - **Sign-out wipes the case-bearing boxes and rotates the Hive key.** Retaining case data across
   sign-out is a deliberate decision for a pilot, not an optimisation to make in passing.
+- **Hive is reached only through `DBHelper`.** A `Hive.box` call elsewhere bypasses the error
+  mapping, and `Hive.box<dynamic>` on a typed box throws. A new encrypted box needs its case in
+  `DBHelper.deleteAll`, or sign-out cannot delete it.
+- **Every cached read takes the signed-in uid, and `scopeTo(uid)` runs before a session's first
+  read.** A cache read with no uid filter is the on-device version of an unscoped query.
 
 ## AI service
 

@@ -26,6 +26,7 @@ patient reads, or the alert path.
 | [CRQ-0017](./CRQ-0017-foundations-theme-and-swahili.md) | Foundations: counter removed, Swahili replaces Spanish with the localizations-delegates fix, and the design-system theme | 2026-10-27 | Implemented — palette provisional |
 | [CRQ-0018](./CRQ-0018-demo-seed-and-google-sign-in-on-ios.md) | Demo seed (one account per role, an alert approver, clinic patients) and the iOS URL scheme for Google sign-in | 2026-10-27 | Implemented on the emulators — live seed pending |
 | [CRQ-0019](./CRQ-0019-identity-models-errors-and-di.md) | Identity models, facility reference data, enums, translated errors, and dependency injection | 2026-10-27 | Implemented |
+| [CRQ-0020](./CRQ-0020-session-layer-auth-and-encrypted-cache.md) | Session layer: auth datasource and helper, RoleHelper, the encrypted cache through DBHelper, and bootstrap wiring | 2026-10-27 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

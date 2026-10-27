@@ -240,6 +240,7 @@ The registry below is the record. Add a row in the same commit as the model.
 | 0 | `PatientHive` | `patients` | Added 2026-10-27 (CRQ-0019) |
 | 1 | `DoctorHive` | `profile` | Added 2026-10-27 (CRQ-0019) |
 | 2 | `PractitionerHive` | `practitioners` | Added 2026-10-27 (CRQ-0019) |
+| 3 | `OnboardingHive` | `auth` | Added 2026-10-27 (CRQ-0020) |
 
 A reserved row becomes "Added" in the commit that creates the class. Reserving
 ahead stops two agents working in parallel from taking the same id.
@@ -272,9 +273,25 @@ uid and role and filters on them. There is **no unscoped `getAll*` method**.
 The rules enforce the same scope server-side (§11); the client filter keeps
 the cache honest, and the rules are what actually protect the data.
 
+**One way into the boxes.** `HiveHelper` reaches Hive only through
+`DBHelper`, which opens each box through its own type and turns every
+failure, `HiveError` included, into an `AppError`. A box opened typed cannot
+be closed as `Hive.box<dynamic>`, so `DBHelper.deleteAll` dispatches on the
+box's type. An untyped close throws, and the data stays on disk.
+
 **Health data on the device.** The Hive boxes are AES-encrypted with a key
-held in secure storage. **Sign-out wipes every case-bearing box and rotates
-the key**, because a clinic phone is often shared. The cost is a full
+held in secure storage. **Sign-out deletes every encrypted box and rotates
+the key**, because a clinic phone is often shared. The boxes are deleted, not
+cleared: a cleared box would still be encrypted with the old key. Device
+preferences (onboarding seen, language) are not health data and live in an
+unencrypted box that survives sign-out.
+
+**The cache belongs to one person.** Its owner's uid is stored beside the key.
+Before a session's first cached read, `scopeTo(uid)` checks it. A cache
+filled for someone else is wiped first, which covers a session that ended
+without a sign-out: an expired token, a deleted account, a killed app. Every
+cached read also takes the signed-in uid (a patient's own record by `uid`; a
+care list by `doctorUids`). The cost is a full
 re-download on the next sign-in, which is acceptable at demo volumes. Slide
 tiles and smear images are not stored in Hive; they stream from Storage
 through the image cache.
@@ -698,6 +715,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §6: `DBHelper`, delete-not-clear on sign-out, the cache owner check, the unencrypted preferences box; typeId 3 (CRQ-0020). | Theo |
 | 2026-10-27 | §16 item 8: web registered; key restriction and web App Check outstanding. | Theo |
 | 2026-10-27 | §4 today's tree; §16 items 1 and 2 resolved (CRQ-0017). | Theo |
 | 2026-10-27 | §14 function tests and the rules-test discipline; §16 item 5: identity rules and functions exist, not yet deployed (CRQ-0016). | Theo |

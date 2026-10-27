@@ -3,6 +3,7 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
+import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_hive.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_hive.dart';
 import 'package:tabibu/features/profile/data/models/doctor_hive.dart';
@@ -10,6 +11,7 @@ import 'package:tabibu/features/profile/data/models/doctor_hive.dart';
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
     registerAdapter(DoctorHiveAdapter());
+    registerAdapter(OnboardingHiveAdapter());
     registerAdapter(PatientHiveAdapter());
     registerAdapter(PractitionerHiveAdapter());
   }
@@ -18,6 +20,7 @@ extension HiveRegistrar on HiveInterface {
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
     registerAdapter(DoctorHiveAdapter());
+    registerAdapter(OnboardingHiveAdapter());
     registerAdapter(PatientHiveAdapter());
     registerAdapter(PractitionerHiveAdapter());
   }

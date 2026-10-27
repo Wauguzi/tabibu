@@ -20,8 +20,13 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
 import 'package:shared_preferences/shared_preferences.dart' as _i460;
+import 'package:tabibu/core/helpers/auth_helper.dart' as _i569;
+import 'package:tabibu/core/helpers/db_helper.dart' as _i705;
 import 'package:tabibu/core/helpers/facilities_helper.dart' as _i598;
 import 'package:tabibu/core/helpers/get_it_helper.dart' as _i810;
+import 'package:tabibu/core/helpers/hive_helper.dart' as _i418;
+import 'package:tabibu/features/auth/data/datasources/auth_firebase.dart'
+    as _i82;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -41,8 +46,28 @@ extension GetItInjectableX on _i174.GetIt {
     gh.singleton<_i809.FirebaseFunctions>(() => dIModule.firebaseFunctions);
     gh.singleton<_i457.FirebaseStorage>(() => dIModule.firebaseStorage);
     gh.singleton<_i398.FirebaseAnalytics>(() => dIModule.firebaseAnalytics);
+    gh.singleton<_i705.DBHelper>(() => _i705.DBHelperImpl());
+    gh.lazySingleton<_i82.AuthFirebase>(
+      () => _i82.AuthFirebase(
+        auth: gh<_i59.FirebaseAuth>(),
+        firestore: gh<_i974.FirebaseFirestore>(),
+        functions: gh<_i809.FirebaseFunctions>(),
+      ),
+    );
     gh.lazySingleton<_i598.FacilitiesHelper>(
       () => _i598.FacilitiesHelper(bundle: gh<_i281.AssetBundle>()),
+    );
+    gh.lazySingleton<_i569.AuthHelper>(
+      () => _i569.AuthHelper(
+        authFirebase: gh<_i82.AuthFirebase>(),
+        hiveHelper: gh<_i418.HiveHelper>(),
+      ),
+    );
+    gh.singleton<_i418.HiveHelper>(
+      () => _i418.HiveHelperImpl(
+        dbHelper: gh<_i705.DBHelper>(),
+        secureStorage: gh<_i558.FlutterSecureStorage>(),
+      ),
     );
     return this;
   }

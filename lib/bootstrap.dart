@@ -11,6 +11,9 @@ import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
+import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/helpers/google_sign_in_helper.dart';
+import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/firebase_options.dart';
 
 class AppBlocObserver extends BlocObserver {
@@ -160,6 +163,27 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     if (kDebugMode) {
       debugPrint('[Bootstrap] Remote Config failed, using defaults: $e');
     }
+  }
+
+  // The cache and the auth layer resolve through DI, so it comes first.
+  try {
+    await configureDI().timeout(_bootstrapStepTimeout);
+  } catch (e) {
+    if (kDebugMode) debugPrint('[Bootstrap] DI failed: $e');
+  }
+
+  try {
+    await GoogleSignInHelper.initialize().timeout(_bootstrapStepTimeout);
+  } catch (e) {
+    if (kDebugMode) debugPrint('[Bootstrap] Google sign-in init failed: $e');
+  }
+
+  // Bounded because the key lives in secure storage, whose platform channel
+  // can deadlock on a corrupted Keystore entry (§15 rule 2).
+  try {
+    await getIt<HiveHelper>().initBoxes().timeout(_bootstrapStepTimeout);
+  } catch (e) {
+    if (kDebugMode) debugPrint('[Bootstrap] Cache init failed: $e');
   }
 
   runApp(await builder());
