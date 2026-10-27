@@ -148,6 +148,9 @@ finding.
 - **GitHub Actions and reusable workflows are pinned to a full commit SHA, never a tag**, with the
   release in a trailing comment (`@<sha> # v2.0.3`). A diff that replaces a SHA with a tag reopens a
   supply-chain hole. Dependabot updates the SHA and the comment together.
+- **Secrets reach a workflow step only through `env:`**, never interpolated into a `run:` script,
+  and signing material is written to `$RUNNER_TEMP` and removed in an `always()` step. Steps that
+  need secrets are gated on `CAN_SIGN`, so Dependabot and fork PRs still run every quality gate.
 - **The license check's `skip_packages` list is deliberate**: each entry never ships in an app
   build, and the reason sits beside the list. A new entry needs the same justification.
 

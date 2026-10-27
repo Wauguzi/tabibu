@@ -35,7 +35,7 @@ authoritative for what resolved.
 
 | Layer | Technology | Notes |
 |---|---|---|
-| Language / SDK | Dart `^3.13.0`, Flutter `^3.47.0` (3.47.8 locally) | |
+| Language / SDK | Dart `^3.12.2`, Flutter `^3.47.8` | The Dart floor sits below the toolchain's 3.13 because the code generators' `analyzer` cannot yet parse 3.13 syntax (CRQ-0008). |
 | UI libraries | `material_ui ^1.8.0`, `cupertino_ui ^1.1.4` | The Material and Cupertino libraries published separately from the framework. They carry their **own** localizations types; see §15 rule 1. |
 | State management | `bloc ^9.2.1`, `flutter_bloc ^9.1.1`, `bloc_concurrency ^0.3.0` | Bloc app-wide; transformers chosen per event (§5). |
 | Lint | `very_good_analysis ^11.0.0`, `bloc_lint ^0.4.1` | `bloc_lint` enforces bloc-layer hygiene and runs in CI. |
@@ -343,18 +343,22 @@ throws and never returns null.
 
 ## 13. CI/CD
 
-**Interim state (from 2026-10-27).** The scaffold's `main.yaml` was removed
-deliberately. It is replaced by purpose-built workflows that arrive with the
-auth work, and this section is rewritten when they land. Until then, one
-workflow runs in CI:
+Two workflows run in CI:
 
+- **Production APK** (`prod_apk.yaml`), on every pull request to `main`.
+  Format check, code generation, `flutter analyze`, bloc lint and the tests
+  run on every PR. When the signing secrets are present (not on Dependabot
+  or fork PRs), it then builds the `production` APK, obfuscated and signed
+  with the release keystore, keeps the debug symbols for 90 days, uploads
+  the Dart symbols to Crashlytics, and sends the APK to the
+  `internal-production` group in Firebase App Distribution (CRQ-0008).
 - **License check** (`license_check.yaml`), on changes to `pubspec.yaml`,
   `pubspec.lock` or the workflow itself. It fails if any dependency's license
   is outside MIT, BSD-2-Clause, BSD-3-Clause and Apache-2.0. Packages that
   never ship in an app build (dev-tool dependencies, Linux-only plugin code)
   are skipped by name, with the reason beside the list.
 
-Every other gate runs locally and is part of the definition of done
+Every gate also runs locally and is part of the definition of done
 ([`mobile_workflow.md` §6](../../workflow/reports/mobile_workflow.md#6-definition-of-done)):
 `make fmt`, `make analyze`, `make bloc-lint`, `make test`, `make spell` (cspell
 over docs, config, scripts and Dart, with `.github/cspell.json` as the project
@@ -451,10 +455,9 @@ to see. Greptile is pointed at this section.
    when the first real feature lands.
 3. **Every `uses:` is pinned to a full commit SHA with the release in a
    trailing comment** (`license_check.yaml` is, since CRQ-0003). A tag can be
-   moved; a SHA cannot. The workflows that replace `main.yaml` follow the
-   same rule. Until those workflows land, nothing but the license check runs in CI, so
-   format, analysis, tests and spelling are only as reliable as running the
-   `make` targets before each commit.
+   moved; a SHA cannot. `prod_apk.yaml` follows the same rule (CRQ-0008).
+   Spelling and secret scanning still run only locally, through
+   `make spell` and `make secrets`.
 4. **`test_api: any` is listed under `dependencies`**, not
    `dev_dependencies`, and is unconstrained. Move it, or remove it if nothing
    imports it.
@@ -482,6 +485,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §2 SDK floor lowered to Dart `^3.12.2`, Flutter `^3.47.8`. §13 adds the production APK workflow; §16 item 3 updated (CRQ-0008). | Theo |
 | 2026-10-27 | §10 sets where secrets may live, and that Remote Config never carries one (CRQ-0007). | Theo |
 | 2026-10-27 | §13 describes the repository-wide spell check and the Firebase `make` targets (CRQ-0006). | Theo |
 | 2026-10-27 | §13 adds the fastlane release lanes (CRQ-0005). | Theo |

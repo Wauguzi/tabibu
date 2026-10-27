@@ -27,7 +27,7 @@ commas:
 analyze:
 		flutter analyze lib test
 
-# The same check CI runs through very_good_workflows' run_bloc_lint.
+# The same check prod_apk.yaml runs in CI.
 bloc-lint:
 		dart pub global activate bloc_tools > /dev/null
 		dart pub global run bloc_tools:bloc lint .

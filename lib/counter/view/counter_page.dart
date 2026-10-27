@@ -4,7 +4,7 @@ import 'package:tabibu/counter/counter.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 class CounterPage extends StatelessWidget {
-  const new({super.key});
+  const CounterPage({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -16,7 +16,7 @@ class CounterPage extends StatelessWidget {
 }
 
 class CounterView extends StatelessWidget {
-  const new({super.key});
+  const CounterView({super.key});
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +44,7 @@ class CounterView extends StatelessWidget {
 }
 
 class CounterText extends StatelessWidget {
-  const new({super.key});
+  const CounterText({super.key});
 
   @override
   Widget build(BuildContext context) {

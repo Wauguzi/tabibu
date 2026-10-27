@@ -61,8 +61,8 @@ this repository's permissions.
 **Fix:** pin each `uses:` to a commit SHA, with the release in a trailing
 comment, before the repository is opened to judges.
 **Status, 2026-10-27:** resolved for `license_check.yaml`, which is pinned to
-the v2.0.3 commit (CRQ-0003). It stays open as a rule for the workflows that
-replace `main.yaml`.
+the v2.0.3 commit (CRQ-0003). `prod_apk.yaml` is pinned the same way
+(CRQ-0008). It stays open as a rule for every new workflow.
 
 ### Low — `pubspec.yaml` — `test_api: any` in runtime `dependencies`
 
@@ -141,6 +141,7 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §3 tag-pinning finding: `prod_apk.yaml` pinned to commit SHAs (CRQ-0008). | Theo |
 | 2026-10-27 | §4.2 adds T-13: API keys in the repository, the app bundle or Remote Config (CRQ-0007). | Theo |
 | 2026-10-27 | §3 tag-pinning finding resolved for `license_check.yaml` (pinned to a commit SHA). | Theo |
 | 2026-10-27 | §3 tag-pinning finding moved from the removed `main.yaml` to `license_check.yaml` and its successors. | Theo |

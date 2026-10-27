@@ -10,7 +10,7 @@ import 'package:flutter/widgets.dart';
 import 'package:tabibu/firebase_options.dart';
 
 class AppBlocObserver extends BlocObserver {
-  const new();
+  const AppBlocObserver();
 
   @override
   void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {

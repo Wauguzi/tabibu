@@ -11,7 +11,7 @@ import 'package:tabibu/counter/counter.dart';
 
 import '../../helpers/helpers.dart';
 
-class _MockCounterCubit extends MockCubit<int> implements CounterCubit;
+class _MockCounterCubit extends MockCubit<int> implements CounterCubit {}
 
 void main() {
   group('CounterPage', () {

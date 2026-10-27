@@ -1,0 +1,141 @@
+name: prod_apk
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+on:
+  pull_request:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      # Empty for Dependabot and fork PRs, which receive no secrets; the signed steps skip.
+      CAN_SIGN: ${{ secrets.RELEASE_KEYSTORE != '' }}
+      FIREBASE_ANDROID_APP_ID: "1:270369739916:android:488605da76eaf0aa7f17a9"
+    steps:
+      - name: 🧹 Free disk space
+        uses: jlumbroso/free-disk-space@ceedf095f4ec1a097402bc6bd80831f2e1a6fde6 # v2.0.0
+        with:
+          preinstalled-runtimes: true
+          android: false
+          dotnet: true
+          haskell: true
+          large-packages: true
+          docker-images: true
+          swap-storage: true
+
+      - name: ☕ Set up JDK 17
+        uses: actions/setup-java@b843ebf9b913146b38da2eaa7aeddf76074ae1ad # v6.1.0
+        with:
+          java-version: "17"
+          distribution: "temurin"
+
+      - name: 📥 Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: 🐦 Set up Flutter
+        uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
+        with:
+          flutter-version: "3.x"
+          cache: true
+
+      - name: 🔍 Flutter version
+        run: flutter --version
+
+      - name: 📦 Install dependencies
+        run: flutter pub get
+
+      - name: 🌐 Generate localization files
+        run: flutter gen-l10n
+
+      - name: 🎨 Format check
+        run: >
+          find lib test -type f -name "*.dart"
+          ! -path "lib/l10n/gen/*" ! -path "lib/gen/*" ! -name "firebase_options.dart" -print0
+          | xargs -0 dart format --set-exit-if-changed -o none
+
+      - name: ⚙️ Code generation
+        run: dart run build_runner build --delete-conflicting-outputs
+
+      - name: 🔬 Analyze
+        run: flutter analyze lib test
+
+      - name: 🧱 Bloc lint
+        run: |
+          dart pub global activate bloc_tools
+          dart pub global run bloc_tools:bloc lint .
+
+      - name: 🧪 Run unit and widget tests
+        run: flutter test --coverage
+
+      - name: 🔑 Decode Android keystore
+        if: env.CAN_SIGN == 'true'
+        env:
+          RELEASE_KEYSTORE: ${{ secrets.RELEASE_KEYSTORE }}
+        run: |
+          echo "$RELEASE_KEYSTORE" | base64 --decode > "$RUNNER_TEMP/release.jks"
+          echo "ANDROID_KEYSTORE_PATH=$RUNNER_TEMP/release.jks" >> "$GITHUB_ENV"
+
+      # Hosted runners have ~16 GB; gradle.properties asks for an 8 GB heap, which starves the
+      # Kotlin daemon and ends in an OOM kill (exit 143).
+      - name: 🧠 Tune Gradle for hosted runner memory
+        if: env.CAN_SIGN == 'true'
+        run: |
+          sed -i 's/^org.gradle.jvmargs=.*/org.gradle.jvmargs=-Xmx4g -XX:MaxMetaspaceSize=1g -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8/' android/gradle.properties
+          echo 'org.gradle.workers.max=2' >> android/gradle.properties
+          echo 'kotlin.daemon.jvmargs=-Xmx1536m' >> android/gradle.properties
+
+      - name: 🏗️ Build release APK
+        if: env.CAN_SIGN == 'true'
+        env:
+          ANDROID_KEYSTORE_ALIAS: ${{ secrets.ANDROID_KEYSTORE_ALIAS }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PRIVATE_KEY_PASSWORD }}
+        run: >
+          flutter build apk
+          --flavor production
+          --release
+          --target lib/main_production.dart
+          --obfuscate
+          --split-debug-info=debug-symbols
+
+      - name: 📦 Upload debug symbols
+        if: env.CAN_SIGN == 'true'
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: debug-symbols-${{ github.run_number }}
+          path: debug-symbols/
+          retention-days: 90
+
+      - name: 🔥 Upload Dart symbols to Crashlytics
+        if: env.CAN_SIGN == 'true'
+        env:
+          CREDENTIAL_FILE_CONTENT: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          GOOGLE_APPLICATION_CREDENTIALS: ${{ runner.temp }}/service-account.json
+        run: |
+          printf '%s' "$CREDENTIAL_FILE_CONTENT" > "$GOOGLE_APPLICATION_CREDENTIALS"
+          npx --yes firebase-tools@15.31.0 crashlytics:symbols:upload \
+            --app "$FIREBASE_ANDROID_APP_ID" debug-symbols/
+
+      - name: 🚀 Upload to Firebase App Distribution
+        if: env.CAN_SIGN == 'true'
+        uses: wzieba/Firebase-Distribution-Github-Action@bd494989dd4bec0343f78adee87fe66e48279ad6 # v1.7.1
+        with:
+          appId: ${{ env.FIREBASE_ANDROID_APP_ID }}
+          serviceCredentialsFileContent: ${{ secrets.CREDENTIAL_FILE_CONTENT }}
+          groups: internal-production
+          file: build/app/outputs/flutter-apk/app-production-release.apk
+
+      - name: 🧽 Remove signing material
+        if: always()
+        run: rm -f "$RUNNER_TEMP/release.jks" "$RUNNER_TEMP/service-account.json"

@@ -135,9 +135,9 @@ The loop from idea to live demo:
       request, Dependabot's included. Labels come from the template's choices
       and from `.github/labeler.yml`, using the set defined in
       `scripts/labels.sh`.
-8. **CI.** For now only the license check runs in CI. The scaffold's main
-   workflow was removed and purpose-built workflows arrive with the auth
-   work, so format, analyze, `bloc_lint`, tests and the spell check run
+8. **CI.** Every pull request to `main` runs `prod_apk.yaml`: format,
+   code generation, analyze, bloc lint and tests, then a signed release APK
+   to Firebase App Distribution. The spell check and the secret scan run
    locally through `make` before each commit (see
    [`mobile_architecture.md` §13](../../architecture/reports/mobile_architecture.md#13-cicd)).
 9. **Release.** The web demo is deployed with one seeded account per role.
@@ -153,7 +153,7 @@ The loop from idea to live demo:
 | System | Used for |
 |---|---|
 | GitHub (`Wauguzi/tabibu`, public) | Source control, pull requests, GitHub Actions, `CODEOWNERS`, the label taxonomy (`scripts/labels.sh`) and path-derived labels (`.github/labeler.yml`) |
-| GitHub Actions (Very Good Workflows) | License check today; the full pipeline returns with the auth work |
+| GitHub Actions | `prod_apk.yaml` (quality gates, signed APK, App Distribution) and the license check (Very Good Workflows) |
 | Greptile | Automated review of every pull request, the second approver. Its context is `.greptile/`: `files.json` points it at the governing docs, and `rules.md` summarises the conventions a diff does not show |
 | Firebase Console | Auth, Firestore, Storage, Functions, FCM, App Check, Remote Config, Crashlytics, Performance |
 | Meta Model API | Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe, standard (non-contributor) endpoints only |
@@ -251,6 +251,7 @@ the rest keep the build honest.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §4 step 8 and §5 updated for the production APK workflow (CRQ-0008). | Theo |
 | 2026-10-27 | §4 step 7 now describes the branch and pull request flow, with a 5/5 Greptile confidence score as the merge bar; §5 adds `CODEOWNERS` and the labels; §6 adds the merge criterion. | Theo |
 | 2026-10-27 | §4 step 8, §5 and §6 updated for the interim CI: only the license check runs in CI; the other gates are local `make` targets. | Theo |
 | 2026-10-26 | Initial version for a solo hackathon build: lean org (CTO plus Greptile, every other seat open), a P1 list that includes clinical-safety failures, and the ten-day cadence. | Theo |

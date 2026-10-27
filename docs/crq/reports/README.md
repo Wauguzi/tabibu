@@ -14,6 +14,7 @@ patient reads, or the alert path.
 | [CRQ-0005](./CRQ-0005-fastlane-release-lanes.md) | Fastlane release lanes for TestFlight and the Play Store internal track | 2026-10-27 | Implemented — first runs wait on store accounts |
 | [CRQ-0006](./CRQ-0006-makefile-targets-and-repo-wide-spell-check.md) | Full Makefile command set, including Firebase rules, indexes and Storage; repository-wide spell check | 2026-10-27 | Implemented |
 | [CRQ-0007](./CRQ-0007-secrets-handling-for-model-api-keys.md) | Secrets handling for the model API keys: Keychain for local runs, server-side stores in production, scanning before a push | 2026-10-27 | Implemented — scanning and key storage completed by hand |
+| [CRQ-0008](./CRQ-0008-production-apk-workflow.md) | Production APK workflow: quality gates on every pull request, then a signed APK to Firebase App Distribution | 2026-10-27 | Implemented — release stage awaits the secrets |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.
