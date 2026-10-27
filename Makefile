@@ -157,6 +157,16 @@ app-check-token-copy:
 		@security find-generic-password -a "$$USER" -s $(KEYCHAIN_APP_CHECK) -w | tr -d '\n' | pbcopy && \
 		echo "Copied $(KEYCHAIN_APP_CHECK)."
 
+# VS Code's debug launches read the token from this file (ignored under build/); removed after each session.
+APP_CHECK_DEFINES := build/app_check_defines.json
+app-check-defines:
+		@mkdir -p build
+		@umask 077; printf '{"APP_CHECK_DEBUG_TOKEN":"%s"}\n' \
+		    "$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_APP_CHECK) -w 2>/dev/null)" > $(APP_CHECK_DEFINES)
+
+app-check-defines-clean:
+		@rm -f $(APP_CHECK_DEFINES)
+
 # make ai-dev CMD="<command>" runs it with both keys in its environment only.
 ai-dev:
 		$(if $(CMD),,$(error Usage: make ai-dev CMD="<command>"))
@@ -247,6 +257,6 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy ai-dev pods-ios-target test test-randomize test-watch coverage \
+	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean ai-dev pods-ios-target test test-randomize test-watch coverage \
 	emulators rules-test functions-test \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting

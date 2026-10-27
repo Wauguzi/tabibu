@@ -18,6 +18,7 @@ patient reads, or the alert path.
 | [CRQ-0009](./CRQ-0009-crashlytics-error-reporting.md) | Crashlytics error reporting in bootstrap: framework, platform and bloc errors, release builds only | 2026-10-27 | Implemented |
 | [CRQ-0010](./CRQ-0010-app-check-activation.md) | App Check activated in bootstrap, with a Keychain-held debug token; enforcement deferred | 2026-10-27 | Implemented — enforcement awaits Play Console and Apple Developer |
 | [CRQ-0011](./CRQ-0011-remote-config-at-startup.md) | Remote Config at startup: in-app defaults, a bounded fetch, and the force-update parameters | 2026-10-27 | Implemented — the gate arrives with the auth branch |
+| [CRQ-0012](./CRQ-0012-vscode-launches-and-ios-15.md) | VS Code launch configurations with the App Check debug token; iOS 15.0 and Swift Package Manager | 2026-10-27 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

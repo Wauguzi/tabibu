@@ -13,22 +13,69 @@
         "--flavor",
         "development",
         "--target",
-        "lib/main_development.dart"
-      ]
+        "lib/main_development.dart",
+        "--dart-define-from-file=build/app_check_defines.json"
+      ],
+      "preLaunchTask": "app-check-defines",
+      "postDebugTask": "app-check-defines-clean"
     },
     {
       "name": "Launch staging",
       "request": "launch",
       "type": "dart",
       "program": "lib/main_staging.dart",
-      "args": ["--flavor", "staging", "--target", "lib/main_staging.dart"]
+      "args": [
+        "--flavor",
+        "staging",
+        "--target",
+        "lib/main_staging.dart",
+        "--dart-define-from-file=build/app_check_defines.json"
+      ],
+      "preLaunchTask": "app-check-defines",
+      "postDebugTask": "app-check-defines-clean"
     },
     {
       "name": "Launch production",
       "request": "launch",
       "type": "dart",
       "program": "lib/main_production.dart",
-      "args": ["--flavor", "production", "--target", "lib/main_production.dart"]
+      "args": [
+        "--flavor",
+        "production",
+        "--target",
+        "lib/main_production.dart",
+        "--dart-define-from-file=build/app_check_defines.json"
+      ],
+      "preLaunchTask": "app-check-defines",
+      "postDebugTask": "app-check-defines-clean"
+    },
+    {
+      "name": "Launch release",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor",
+        "production",
+        "--target",
+        "lib/main_production.dart"
+      ],
+      // The debug adapter detects release mode only in toolArgs.
+      "toolArgs": ["--release"]
+    },
+    {
+      "name": "Launch release (Logs)",
+      "request": "launch",
+      "type": "dart",
+      "program": "lib/main_production.dart",
+      "args": [
+        "--flavor", 
+        "production",
+        "--target", 
+        "lib/main_production.dart",
+        "--verbose"
+      ],
+      "toolArgs": ["--release"]
     },
     {
       "name": "Debug Current Widget Test Visually",

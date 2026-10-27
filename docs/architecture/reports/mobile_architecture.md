@@ -391,6 +391,10 @@ one pinned CLI version against `tabibu-86ea2` (CRQ-0006).
 secret from the environment and leave none on disk (CRQ-0005). Install with
 `make fastlane-setup`; run with `bundle exec fastlane <platform> <lane>`.
 
+**iOS** targets 15.0 (Firebase's minimum) and resolves plugins through
+Swift Package Manager; `Package.resolved` is committed so every machine
+builds the same Firebase SDK versions (CRQ-0012).
+
 Release builds use `--obfuscate --split-debug-info`. The web demo is
 deployed to Firebase Hosting. Rules, indexes and functions are deployed with
 `make deploy-*` targets, and a commit that changes them is not finished
@@ -506,6 +510,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §13: iOS target 15.0 and Swift Package Manager (CRQ-0012). | Theo |
 | 2026-10-27 | §10 Remote Config at startup: defaults, fetch bounds, and the force-update parameters (CRQ-0011). | Theo |
 | 2026-10-27 | §10 App Check activated, not enforced; §16 item 7 lists what enforcement waits on (CRQ-0010). | Theo |
 | 2026-10-27 | §10 crash reporting: what is recorded, at what severity, and that reports carry no patient data (CRQ-0009). | Theo |

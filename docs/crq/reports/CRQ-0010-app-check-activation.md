@@ -31,6 +31,8 @@
    - `make run-dev` passes it as `--dart-define=APP_CHECK_DEBUG_TOKEN`.
      Without it, the debug provider generates a token per install and logs
      it, and each one must be registered by hand.
+   - VS Code's debug launches get it through a pre-launch task instead
+     (CRQ-0012).
    - `make keys-check` reports it with the model keys.
    - It is read only by the debug provider, which release builds never use,
      and is never passed to a release build, CI or fastlane. The Greptile

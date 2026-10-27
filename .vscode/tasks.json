@@ -1,0 +1,17 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "app-check-defines",
+      "type": "shell",
+      "command": "make --no-print-directory app-check-defines",
+      "presentation": { "reveal": "silent" }
+    },
+    {
+      "label": "app-check-defines-clean",
+      "type": "shell",
+      "command": "make --no-print-directory app-check-defines-clean",
+      "presentation": { "reveal": "silent" }
+    }
+  ]
+}
