@@ -569,7 +569,7 @@ throws and never returns null.
 
 ## 13. CI/CD
 
-Two workflows run in CI:
+Four workflows run in CI:
 
 - **Production APK** (`prod_apk.yaml`), on every pull request to `main`.
   Format check, code generation, `flutter analyze`, bloc lint and the tests
@@ -583,6 +583,17 @@ Two workflows run in CI:
   is outside MIT, BSD-2-Clause, BSD-3-Clause and Apache-2.0. Packages that
   never ship in an app build (dev-tool dependencies, Linux-only plugin code)
   are skipped by name, with the reason beside the list.
+- **Labeler** (`labeler.yml`), on every pull request: path-derived labels
+  from `.github/labeler.yml`; it only adds labels (CRQ-0004).
+- **Draft release** (`release-draft.yaml`), when a pull request merges to
+  `main`. It drafts a release tagged with the merged `pubspec.yaml` version
+  (`1.0.02+1002` becomes `v1.0.02+1002`), with notes generated from every
+  pull request since the last published release. One rolling draft absorbs
+  later merges and takes the newest tag. It fails when the version was not
+  bumped past the latest release. `make release-publish` publishes the draft
+  and marks it Latest; a draft cannot be marked Latest, so CI never
+  publishes (CRQ-0025). The script's checks run in `prod_apk.yaml` and
+  through `make release-check`.
 
 Every gate also runs locally and is part of the definition of done
 ([`mobile_workflow.md` §6](../../workflow/reports/mobile_workflow.md#6-definition-of-done)):
@@ -734,6 +745,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §13: four workflows, including the labeler and the draft release (CRQ-0025). | Theo |
 | 2026-10-27 | §10 RASP: tiers, notices, screen-capture blocking, obfuscation; §16 item 10 (CRQ-0024). | Theo |
 | 2026-10-27 | §6: `DBHelper`, delete-not-clear on sign-out, the cache owner check, the unencrypted preferences box; typeId 3 (CRQ-0020). | Theo |
 | 2026-10-27 | §16 item 8: web registered; key restriction and web App Check outstanding. | Theo |

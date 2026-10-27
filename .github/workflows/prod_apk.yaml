@@ -78,6 +78,10 @@ jobs:
       - name: 🧪 Run unit and widget tests
         run: flutter test --coverage
 
+      # The release script runs only on a merge, so its checks run here, before one.
+      - name: 🏷️ Release script checks
+        run: node --test scripts/*.test.cjs
+
       - name: 🔑 Decode Android keystore
         if: env.CAN_SIGN == 'true'
         env:

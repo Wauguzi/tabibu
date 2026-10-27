@@ -294,6 +294,26 @@ seed-live:
 		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
 		  ./node_modules/.bin/ts-node src/seed.ts --live
 
+# The tag this commit would release: v + the pubspec.yaml version (CRQ-0025).
+release-next:
+		node scripts/next-release.cjs
+
+# The release script's arithmetic and the wiring of the files that call it.
+release-check:
+		node --test scripts/*.test.cjs
+
+# Publishes the draft the merge workflow left and marks it Latest: a draft cannot be marked Latest,
+# so it happens here, in the same command. It asks which draft is ours rather than taking the first.
+release-publish:
+		@tag=$$(gh release list --limit 50 --json tagName,isDraft \
+		          | node scripts/next-release.cjs --managed-draft); \
+		  case "$$tag" in \
+		    v*) ;; \
+		    *) echo "No draft matching the release convention is open."; exit 1;; \
+		  esac; \
+		  gh release edit "$$tag" --draft=false --latest && \
+		  echo "Published $$tag as the latest release."
+
 deploy-rules:
 		$(FIREBASE) deploy --only firestore:rules --project $(PROJECT)
 
@@ -313,4 +333,5 @@ deploy-hosting:
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
 	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
 	emulators rules-test functions-test seed-password seed-emulator seed-live \
+	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting

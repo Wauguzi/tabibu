@@ -140,9 +140,11 @@ The loop from idea to live demo:
    to Firebase App Distribution. The spell check and the secret scan run
    locally through `make` before each commit (see
    [`mobile_architecture.md` §13](../../architecture/reports/mobile_architecture.md#13-cicd)).
-9. **Release.** The web demo is deployed with one seeded account per role.
-   Android and iOS builds are produced for the video and for judges who want
-   to install the app.
+9. **Release.** Merging to `main` drafts a release tagged with the branch's
+   `pubspec.yaml` version, which is why every branch bumps it. Publishing
+   with `make release-publish` marks it Latest. The web demo is deployed
+   with one seeded account per role. Android and iOS builds are produced for
+   the video and for judges who want to install the app.
 10. **If something breaks**, see §7 and the
     [Incident Report](../../incidents/templates/IRP_TEMPLATE.md). A recurring
     or systemic cause is promoted to a
@@ -252,6 +254,7 @@ the rest keep the build honest.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §4 step 9: a merge drafts the release; `make release-publish` marks it Latest (CRQ-0025). | Theo |
 | 2026-10-27 | §5 adds Muse Code (CRQ-0013). | Theo |
 | 2026-10-27 | §4 step 8 and §5 updated for the production APK workflow (CRQ-0008). | Theo |
 | 2026-10-27 | §4 step 7 now describes the branch and pull request flow, with a 5/5 Greptile confidence score as the merge bar; §5 adds `CODEOWNERS` and the labels; §6 adds the merge criterion. | Theo |
