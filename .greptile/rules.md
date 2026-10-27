@@ -116,7 +116,7 @@ finding.
 - **Patients choose a county and sub-county; Tabibu never reads their location.** A `geolocator`
   call on a patient's behalf, a client-written `geohash`, or a latitude or longitude on a patient
   profile is a defect. The patient geohash is the server's, from the sub-county's centre.
-- **A practitioner has no role claim until verified**, and `kmpdcNumber`, `licenseUrl` and
+- **A practitioner has no role claim until verified**, and `kmpdcNumber`, `licenseUrls` and
   `email` are final once set as the architecture doc §6.1 describes. A rule that lets the owner
   change them after verification is a P1.
 - **`doctorUids` grants a patient's profile, never their cases.** A case read that trusts
