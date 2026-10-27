@@ -59,15 +59,18 @@ secrets:
 		gitleaks git --redact --verbose .
 		gitleaks git --redact --verbose --staged .
 
+# Every release build obfuscates: freeRASP terminates a release binary without it (CRQ-0024).
 apk:
-		flutter build apk --flavor production --target lib/main_production.dart -vv
+		flutter build apk --flavor production --target lib/main_production.dart \
+		    --obfuscate --split-debug-info=debug-symbols -vv
 
 apk-release:
 		flutter build apk --flavor production --release --target lib/main_production.dart \
 		    --obfuscate --split-debug-info=debug-symbols -vv
 
 dev-apk:
-		flutter build apk --flavor development --target lib/main_development.dart -vv
+		flutter build apk --flavor development --target lib/main_development.dart \
+		    --obfuscate --split-debug-info=debug-symbols -vv
 
 aab:
 		flutter build appbundle --flavor production --target lib/main_production.dart \

@@ -494,7 +494,17 @@ In summary:
   the Keychain (`make app-check-token`, injected by `make run-dev`).
   **Not yet enforced**: enforcement applies per API to every client, so it
   waits until each platform's release build can attest (§16 item 7).
-- **RASP**: freeRASP, configured in `core/constants/rasp_config.dart`.
+- **RASP**: freeRASP (`RaspService`, configured in
+  `core/constants/rasp_config.dart`), started in bootstrap after
+  notifications (CRQ-0024). Enforcement follows the build mode: release
+  binaries check the signing certificate and the store, and terminate on a
+  critical threat (root or jailbreak, hooks, tampering, a debugger, missing
+  obfuscation) after telling the person why. Severe and advisory threats are
+  notified on the account and security channel and logged to Crashlytics.
+  The notice names a coarse area (device, app, another app, network), never
+  the detection. Screens render black in screenshots and recordings.
+  **Every release build obfuscates**: without it, the release binary
+  terminates itself.
 - **Secrets**: no model or service key is in the app, in any form: not in
   `--dart-define`, not in a Flutter asset, not in Remote Config (Firebase's
   own guidance; every app instance can read it). The AI service reads its
@@ -710,11 +720,17 @@ to see. Greptile is pointed at this section.
    acceptable for the hackathon, but development writes land in the project
    the demo runs on, so seeded demo data must be kept apart from test data
    by convention until the flavors get their own projects.
+10. **Two RASP values wait on store accounts** (`rasp_config.dart`). One is
+    the Play App Signing certificate: Play re-signs every upload, so a Play
+    install presents Google's certificate, and without its hash every Play
+    install terminates. The other is the Apple Developer Team ID. Add both
+    before the first store build.
 
 ## 17. Change log
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §10 RASP: tiers, notices, screen-capture blocking, obfuscation; §16 item 10 (CRQ-0024). | Theo |
 | 2026-10-27 | §6: `DBHelper`, delete-not-clear on sign-out, the cache owner check, the unencrypted preferences box; typeId 3 (CRQ-0020). | Theo |
 | 2026-10-27 | §16 item 8: web registered; key restriction and web App Check outstanding. | Theo |
 | 2026-10-27 | §4 today's tree; §16 items 1 and 2 resolved (CRQ-0017). | Theo |

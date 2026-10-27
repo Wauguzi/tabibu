@@ -53,6 +53,7 @@
     "flutterfire",
     "footguns",
     "freerasp",
+    "Frida",
     "fvmrc",
     "geoclue",
     "geohash",
@@ -98,6 +99,7 @@
     "logcat",
     "macbook",
     "madaktari",
+    "MASVS",
     "matokeo",
     "Mbagathi",
     "Metaspace",
@@ -131,6 +133,7 @@
     "practised",
     "predeploy",
     "preread",
+    "proguard",
     "página",
     "RACI",
     "ripoti",
@@ -170,6 +173,7 @@
     "worklist",
     "wzieba",
     "xcuserdata",
+    "Xposed",
     "xxlg"
   ],
   "ignorePaths": [

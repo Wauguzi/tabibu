@@ -15,6 +15,7 @@ import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/google_sign_in_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/services/notification_service.dart';
+import 'package:tabibu/core/services/rasp_service.dart';
 import 'package:tabibu/firebase_options.dart';
 
 class AppBlocObserver extends BlocObserver {
@@ -62,7 +63,13 @@ const _bootstrapStepTimeout = Duration(seconds: 10);
 /// Set only by `make run-dev`, from the Keychain; never in a release build.
 const _appCheckDebugToken = String.fromEnvironment('APP_CHECK_DEBUG_TOKEN');
 
-Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
+/// [isProd] turns on freeRASP's enforcement. It follows the build mode, not
+/// the flavor: a debug build of any flavor is signed with the debug key, so
+/// enforcing certificates there would terminate it.
+Future<void> bootstrap(
+  FutureOr<Widget> Function() builder, {
+  bool isProd = kReleaseMode,
+}) async {
   FlutterError.onError = (details) {
     log(details.exceptionAsString(), stackTrace: details.stack);
   };
@@ -195,6 +202,16 @@ Future<void> bootstrap(FutureOr<Widget> Function() builder) async {
     );
   } catch (e) {
     if (kDebugMode) debugPrint('[Bootstrap] Notifications init failed: $e');
+  }
+
+  // After notifications, so a detection at startup can be shown. Screen
+  // capture is blocked inside initialize().
+  try {
+    await getIt<RaspService>()
+        .initialize(isProd: isProd)
+        .timeout(_bootstrapStepTimeout);
+  } catch (e) {
+    if (kDebugMode) debugPrint('[Bootstrap] RASP init failed: $e');
   }
 
   runApp(await builder());

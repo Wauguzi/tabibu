@@ -68,5 +68,13 @@
     "notificationChannelAlerts": "Tahadhari za milipuko",
     "notificationChannelAlertsDescription": "Tahadhari zilizoidhinishwa kuhusu magonjwa katika eneo lako.",
     "notificationChannelCaseUpdates": "Taarifa za kesi",
-    "notificationChannelCaseUpdatesDescription": "Ripoti, matokeo na mialiko kuhusu kesi zako."
+    "notificationChannelCaseUpdatesDescription": "Ripoti, matokeo na mialiko kuhusu kesi zako.",
+    "notificationSecurityAlertTitle": "Tahadhari ya usalama",
+    "notificationSecurityWarningTitle": "Onyo la usalama",
+    "notificationSecurityNoticeTitle": "Taarifa ya usalama",
+    "notificationSecurityHintDevice": "Kifaa hiki hakikidhi mahitaji ya usalama ya Tabibu.",
+    "notificationSecurityHintApp": "Nakala hii ya Tabibu haikuweza kuthibitishwa. Isakinishe upya kutoka duka rasmi.",
+    "notificationSecurityHintOtherApp": "Programu nyingine kwenye kifaa hiki inaingilia Tabibu.",
+    "notificationSecurityHintNetwork": "Muunganisho wako au mipangilio ya kifaa haiaminiki kwa sasa.",
+    "notificationSecurityClosing": "Tabibu itafungwa ili kulinda data yako."
 }

@@ -275,5 +275,37 @@
     "notificationChannelCaseUpdatesDescription": "Reports, results and invitations on your cases.",
     "@notificationChannelCaseUpdatesDescription": {
         "description": "Description of the case updates notification channel."
+    },
+    "notificationSecurityAlertTitle": "Security alert",
+    "@notificationSecurityAlertTitle": {
+        "description": "Title of a security notification for a critical threat; the app closes after it."
+    },
+    "notificationSecurityWarningTitle": "Security warning",
+    "@notificationSecurityWarningTitle": {
+        "description": "Title of a security notification for a severe threat."
+    },
+    "notificationSecurityNoticeTitle": "Security notice",
+    "@notificationSecurityNoticeTitle": {
+        "description": "Title of a security notification for an advisory threat."
+    },
+    "notificationSecurityHintDevice": "This device doesn't meet Tabibu's security requirements.",
+    "@notificationSecurityHintDevice": {
+        "description": "The device itself is unsuitable or compromised. Never names the detection."
+    },
+    "notificationSecurityHintApp": "This copy of Tabibu couldn't be verified. Reinstall it from the official store.",
+    "@notificationSecurityHintApp": {
+        "description": "This copy of the app cannot be verified."
+    },
+    "notificationSecurityHintOtherApp": "Another app on this device is interfering with Tabibu.",
+    "@notificationSecurityHintOtherApp": {
+        "description": "Something else on the device is watching or interfering."
+    },
+    "notificationSecurityHintNetwork": "Your connection or device settings can't be trusted right now.",
+    "@notificationSecurityHintNetwork": {
+        "description": "The connection or device settings cannot be trusted."
+    },
+    "notificationSecurityClosing": "Tabibu will close to protect your data.",
+    "@notificationSecurityClosing": {
+        "description": "Appended to a critical security notice, just before the app closes."
     }
 }

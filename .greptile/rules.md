@@ -153,6 +153,11 @@ finding.
   and anything resolved by name is verified against a release build.
 - **Writes that must land together use a batch**; a transaction is only for writes whose values
   depend on a read.
+- **Every release build passes `--obfuscate`.** freeRASP treats missing obfuscation as a critical
+  threat and terminates a release binary; a build target or workflow without it ships an app that
+  closes on launch.
+- **A RASP notice names an area, never the detection.** Naming the check tells whoever triggered it
+  which one to defeat next.
 - **The FlutterFire config files are tracked on purpose.** They are public client identifiers;
   flagging them as leaked secrets is a false positive.
 

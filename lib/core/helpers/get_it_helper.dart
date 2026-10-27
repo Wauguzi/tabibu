@@ -9,6 +9,7 @@ import 'package:injectable/injectable.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabibu/core/helpers/get_it_helper.config.dart';
 import 'package:tabibu/core/services/notification_service.dart';
+import 'package:tabibu/core/services/rasp_service.dart';
 
 final GetIt getIt = GetIt.instance;
 
@@ -49,4 +50,9 @@ abstract class DIModule {
   /// dependency and tests can replace it.
   @singleton
   NotificationService get notificationService => NotificationService();
+
+  /// One instance, so the threat stream and the user binding after sign-in
+  /// reach the one bootstrap started.
+  @singleton
+  RaspService get raspService => RaspService();
 }
