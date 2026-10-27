@@ -10,16 +10,27 @@ on:
       - main
     paths:
       - "pubspec.yaml"
+      - "pubspec.lock"
       - ".github/workflows/license_check.yaml"
   push:
     branches:
       - main
     paths:
       - "pubspec.yaml"
+      - "pubspec.lock"
       - ".github/workflows/license_check.yaml"
 
 jobs:
   license_check:
     uses: VeryGoodOpenSource/very_good_workflows/.github/workflows/license_check.yml@v1
     with:
+      # Setting a Flutter version is what makes the workflow run `flutter pub
+      # get`; without it, it runs `dart pub get` and fails on a Flutter app.
+      flutter_version: "3.47.x"
       allowed: "MIT,BSD-3-Clause,BSD-2-Clause,Apache-2.0"
+      # Never shipped in an app build, so their licenses do not apply to it:
+      # antlr4 and pubspec_lock_parse arrive only through dev tools
+      # (fake_cloud_firestore, bloc_lint); dbus, geoclue and gsettings are
+      # Linux-only plugin code, and Tabibu has no Linux target. Re-check this
+      # list if a Linux target is ever added.
+      skip_packages: "antlr4,pubspec_lock_parse,dbus,geoclue,gsettings"

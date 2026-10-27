@@ -125,9 +125,10 @@ The loop from idea to live demo:
    branches, every pull request is reviewed by Greptile before merge, and
    Greptile's findings are answered on the thread or recorded as an accepted
    risk in the CRQ, never silenced in config.
-8. **CI.** On every push and pull request to `main`: semantic PR title,
-   format, analyze, `bloc_lint`, the test suite with coverage, a spell check
-   over every Markdown file, and a license check (see
+8. **CI.** For now only the license check runs in CI. The scaffold's main
+   workflow was removed and purpose-built workflows arrive with the auth
+   work, so format, analyze, `bloc_lint`, tests and the spell check run
+   locally through `make` before each commit (see
    [`mobile_architecture.md` §13](../../architecture/reports/mobile_architecture.md#13-cicd)).
 9. **Release.** The web demo is deployed with one seeded account per role.
    Android and iOS builds are produced for the video and for judges who want
@@ -142,7 +143,7 @@ The loop from idea to live demo:
 | System | Used for |
 |---|---|
 | GitHub (`Wauguzi/tabibu`, public) | Source control, pull requests, GitHub Actions |
-| GitHub Actions (Very Good Workflows) | Semantic PR, format/analyze/`bloc_lint`/test, spell check, license check |
+| GitHub Actions (Very Good Workflows) | License check today; the full pipeline returns with the auth work |
 | Greptile | Automated review of every pull request, the second approver. Its context is `.greptile/`: `files.json` points it at the governing docs, and `rules.md` summarises the conventions a diff does not show |
 | Firebase Console | Auth, Firestore, Storage, Functions, FCM, App Check, Remote Config, Crashlytics, Performance |
 | Meta Model API | Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe, standard (non-contributor) endpoints only |
@@ -156,7 +157,8 @@ The loop from idea to live demo:
 A change is done when, in order:
 
 1. It follows existing codebase patterns.
-2. `make fmt` has been run, and `make analyze` and `make bloc-lint` are clean.
+2. `make fmt` has been run, and `make analyze`, `make bloc-lint` and
+   `make spell` are clean (`make licenses` too, when dependencies changed).
 3. `make test` passes.
 4. For a UI change: tested live, on the golden path and the edge cases, at
    1.0x and 2.0x text scale, in English and Swahili, light and dark.
@@ -236,4 +238,5 @@ the rest keep the build honest.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §4 step 8, §5 and §6 updated for the interim CI: only the license check runs in CI; the other gates are local `make` targets. | Theo |
 | 2026-10-26 | Initial version for a solo hackathon build: lean org (CTO plus Greptile, every other seat open), a P1 list that includes clinical-safety failures, and the ten-day cadence. | Theo |

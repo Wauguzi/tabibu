@@ -338,18 +338,22 @@ throws and never returns null.
 
 ## 13. CI/CD
 
-`.github/workflows/main.yaml`, on every push and pull request to `main`,
-using Very Good Workflows:
+**Interim state (from 2026-10-27).** The scaffold's `main.yaml` was removed
+deliberately. It is replaced by purpose-built workflows that arrive with the
+auth work, and this section is rewritten when they land. Until then, one
+workflow runs in CI:
 
-1. **Semantic pull request**: the PR title follows Conventional Commits.
-2. **Build** (`flutter_package.yml`, Flutter 3.47.x): `dart format` check,
-   `flutter analyze`, `bloc_lint`, and `flutter test` with coverage. The
-   coverage threshold is the reusable workflow's default unless
-   `main.yaml` sets one.
-3. **Spell check**: cspell over every `**/*.md`, with
-   `.github/cspell.json` as the project dictionary. A new domain term in a doc
-   needs a dictionary entry in the same commit.
-4. **License check**: `license_check.yaml` on dependency changes.
+- **License check** (`license_check.yaml`), on changes to `pubspec.yaml`,
+  `pubspec.lock` or the workflow itself. It fails if any dependency's license
+  is outside MIT, BSD-2-Clause, BSD-3-Clause and Apache-2.0. Packages that
+  never ship in an app build (dev-tool dependencies, Linux-only plugin code)
+  are skipped by name, with the reason beside the list.
+
+Every other gate runs locally and is part of the definition of done
+([`mobile_workflow.md` §6](../../workflow/reports/mobile_workflow.md#6-definition-of-done)):
+`make fmt`, `make analyze`, `make bloc-lint`, `make test`, `make spell` (cspell
+over every Markdown file, with `.github/cspell.json` as the project
+dictionary) and `make licenses`.
 
 Release builds use `--obfuscate --split-debug-info`. The web demo is
 deployed to Firebase Hosting. Rules, indexes and functions are deployed with
@@ -432,8 +436,11 @@ to see. Greptile is pointed at this section.
 2. **The counter example feature is still in `lib/` and `test/`.** Delete it
    when the first real feature lands.
 3. **CI actions are pinned to tags (`@v1`), not commit SHAs.** A moved tag
-   changes what runs. Pin to SHAs, with the release in a trailing comment,
-   before the repository goes public for judging.
+   changes what runs. Pin `license_check.yaml`, and every workflow that
+   replaces `main.yaml`, to SHAs with the release in a trailing comment.
+   Until those workflows land, nothing but the license check runs in CI, so
+   format, analysis, tests and spelling are only as reliable as running the
+   `make` targets before each commit.
 4. **`test_api: any` is listed under `dependencies`**, not
    `dev_dependencies`, and is unconstrained. Move it, or remove it if nothing
    imports it.
@@ -461,5 +468,6 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §13 rewritten for the interim CI: `main.yaml` removed pending purpose-built workflows; only the license check runs in CI, now fixed for Flutter; every other gate is a local `make` target. §16 item 3 updated. | Theo |
 | 2026-10-27 | §16 updated for the Firebase connection: item 5 narrowed to rules and functions; items 8 (web not configured) and 9 (one project for every flavor) added. | Theo |
 | 2026-10-26 | Initial version: target architecture for the three-role app, the Firebase/AI-service split, data and lifecycle conventions, standing rules, and a watchlist of what the scaffold does not yet match. | Theo |

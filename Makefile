@@ -21,6 +21,19 @@ bloc-lint:
 		dart pub global activate bloc_tools > /dev/null
 		dart pub global run bloc_tools:bloc lint .
 
+# cspell over every Markdown file, with the project dictionary.
+spell:
+		npx --yes cspell@8 --no-progress --config .github/cspell.json "**/*.md" ".greptile/*.md"
+
+# The same check, allow-list and skip list as .github/workflows/license_check.yaml;
+# change both together.
+licenses:
+		dart pub global activate very_good_cli > /dev/null
+		dart pub global run very_good_cli:very_good packages check licenses \
+		    --allowed="MIT,BSD-3-Clause,BSD-2-Clause,Apache-2.0" \
+		    --dependency-type="direct-main,transitive" \
+		    --skip-packages="antlr4,pubspec_lock_parse,dbus,geoclue,gsettings"
+
 test:
 		flutter test --coverage --reporter=expanded
 
@@ -34,4 +47,4 @@ run-dev:
 run-web:
 		flutter run -d chrome --target lib/main_development.dart
 
-.PHONY: gen gen-watch l10n fmt analyze bloc-lint test test-randomize run-dev run-web
+.PHONY: gen gen-watch l10n fmt analyze bloc-lint spell licenses test test-randomize run-dev run-web

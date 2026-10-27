@@ -13,8 +13,9 @@ evaluation report.
 | Model evaluation | The AI is accurate, not just fluent | AI service eval command | [EVAL reports](#evaluation-reports) |
 | UAT | The feature works end to end for a real person | Manual, certified by me | [UAT reports](#uat-reports) |
 
-CI runs format, analyze, `bloc_lint`, the test suite with coverage, and the
-spell check on every push and pull request to `main`. A green CI run is
+For now CI runs only the license check; format, analyze, `bloc_lint`, the
+tests and the spell check run locally through `make` until the
+purpose-built workflows land with the auth work. Passing checks are
 necessary but not sufficient: code is committed only after I have run it
 and certified it (see
 [`mobile_workflow.md` §4](../../workflow/reports/mobile_workflow.md#4-core-workflow)).

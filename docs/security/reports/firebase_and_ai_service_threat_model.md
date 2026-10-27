@@ -49,7 +49,11 @@ but the health cache should not leave the device at all.
 `android:dataExtractionRules` and `android:fullBackupContent` that exclude
 everything, in the same change that introduces the Hive cache.
 
-### Medium — `.github/workflows/main.yaml` — reusable workflows pinned to a tag
+### Medium — `.github/workflows/license_check.yaml` — reusable workflows pinned to a tag
+
+*Updated 2026-10-27:* first raised against `main.yaml`, which has since been
+removed; the finding now applies to `license_check.yaml` and to every
+workflow that replaces `main.yaml`.
 
 `VeryGoodOpenSource/very_good_workflows/...@v1` resolves to whatever `v1`
 points at when CI runs. A moved or compromised tag changes what runs with
@@ -133,5 +137,6 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-27 | §3 tag-pinning finding moved from the removed `main.yaml` to `license_check.yaml` and its successors. | Theo |
 | 2026-10-27 | §2 corrected: the FlutterFire client config files are now tracked deliberately and are not secrets. | Theo |
 | 2026-10-27 | Initial version: clean baseline, three findings on the scaffold, seven clinical-safety rules (S-1 to S-7) and twelve security threats (T-1 to T-12) with controls and proofs, and the remediation roadmap. | Theo |
