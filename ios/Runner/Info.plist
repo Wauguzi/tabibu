@@ -9,6 +9,10 @@
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Tabibu uses the camera to take your profile photo or photograph your practising licence.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Tabibu opens the photo you choose for your profile or your practising licence.</string>
 	<key>CFBundleDisplayName</key>
 	<string>$(FLAVOR_APP_NAME)</string>
 	<key>CFBundleExecutable</key>

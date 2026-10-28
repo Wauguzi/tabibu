@@ -29,6 +29,7 @@ import 'package:tabibu/core/helpers/notifications_helper.dart' as _i210;
 import 'package:tabibu/core/helpers/theme_helper.dart' as _i655;
 import 'package:tabibu/core/services/analytics_service.dart' as _i399;
 import 'package:tabibu/core/services/app_update_service.dart' as _i75;
+import 'package:tabibu/core/services/file_picker_service.dart' as _i282;
 import 'package:tabibu/core/services/internet_service.dart' as _i76;
 import 'package:tabibu/core/services/notification_service.dart' as _i1051;
 import 'package:tabibu/core/services/rasp_service.dart' as _i390;
@@ -60,6 +61,7 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.singleton<_i390.RaspService>(() => dIModule.raspService);
     gh.lazySingleton<_i75.AppUpdateService>(() => _i75.AppUpdateService());
+    gh.lazySingleton<_i282.FilePickerService>(() => _i282.FilePickerService());
     gh.lazySingleton<_i76.InternetService>(() => _i76.InternetService());
     gh.lazySingleton<_i399.AnalyticsService>(
       () => _i399.AnalyticsService(analytics: gh<_i398.FirebaseAnalytics>()),
