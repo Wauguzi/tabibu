@@ -180,7 +180,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     try {
       final request = event.draft.toPatientRequest();
       await _requireInternet();
-      final session = await _auth.completePatientSignUp(request);
+      var session = await _auth.completePatientSignUp(request);
+      final picture = event.draft.picture;
+      if (session is PatientSession && picture != null) {
+        session = await _auth.addPatientPicture(session, picture);
+      }
       _afterSignIn(session);
       unawaited(_analytics.logCompleteSignUp(Role.patient));
       if (session is PatientSession) {

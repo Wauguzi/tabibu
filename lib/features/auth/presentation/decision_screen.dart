@@ -53,20 +53,8 @@ class _DecisionScreenState extends State<DecisionScreen> {
       context.go(from);
       return;
     }
-    _routeFor(landing).go(context);
+    routeForLanding(landing).go(context);
   }
-
-  static GoRouteData _routeFor(Landing landing) => switch (landing) {
-    Landing.update => const UpdateRoute(),
-    Landing.onboarding => const LanguageRoute(),
-    Landing.signIn => const SignInRoute(),
-    Landing.finishSignUp => const SignUpRoleRoute(),
-    Landing.clinicRecord => const ClinicRecordRoute(),
-    Landing.pending => const PendingVerificationRoute(),
-    Landing.patientHome => const PatientHomeRoute(),
-    Landing.doctorHome => const DoctorHomeRoute(),
-    Landing.pathologistHome => const PathologistHomeRoute(),
-  };
 
   @override
   Widget build(BuildContext context) {

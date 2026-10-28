@@ -309,6 +309,33 @@ void main() {
     );
 
     blocTest<AuthBloc, AuthState>(
+      'the optional photo is added after the record exists',
+      setUp: () {
+        when(
+          () => auth.completePatientSignUp(any()),
+        ).thenAnswer((_) async => _patient);
+        when(() => auth.addPatientPicture(_patient, _photo)).thenAnswer(
+          (_) async => PatientSession(
+            patient: _patient.patient.copyWith(profilePictureUrl: 'photo'),
+            roles: _patient.roles,
+          ),
+        );
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        PatientSignUpRequested(draft: _patientDraft.copyWith(picture: _photo)),
+      ),
+      expect: () => [
+        const SignUpInProgress(session: SignedOutSession()),
+        isA<SignUpSuccess>().having(
+          (s) => (s.session as PatientSession).patient.profilePictureUrl,
+          'photo',
+          'photo',
+        ),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
       'a clinic-record match is not welcomed (T-15)',
       setUp: () => when(
         () => auth.completePatientSignUp(any()),

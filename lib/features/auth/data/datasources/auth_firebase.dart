@@ -198,6 +198,18 @@ class AuthFirebase {
     required String token,
   }) => _updateTokens(collection, docId, FieldValue.arrayRemove([token]));
 
+  Future<void> updateProfilePicture({
+    required String collection,
+    required String docId,
+    required String url,
+  }) => _guard(
+    'Updating profile picture',
+    () => _firestore.collection(collection).doc(docId).update({
+      'profilePictureUrl': url,
+      'lastUpdatedAt': syncTimestamp(),
+    }),
+  );
+
   /// The profile's language decides the language of its push notifications.
   Future<void> updateLanguage({
     required String collection,

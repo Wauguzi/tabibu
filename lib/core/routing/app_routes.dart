@@ -2,12 +2,33 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/routing/landing.dart';
 import 'package:tabibu/core/routing/route_placeholder.dart';
+import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
 
 part 'app_routes.g.dart';
 
 // Screen ids follow the designs (A1 to F5). A route whose screen is not
 // built yet renders a RoutePlaceholder.
+
+/// The route for each [Landing], shared by the decision route and every
+/// screen that finishes a sign-in or sign-up step.
+GoRouteData routeForLanding(Landing landing) => switch (landing) {
+  Landing.update => const UpdateRoute(),
+  Landing.onboarding => const LanguageRoute(),
+  Landing.signIn => const SignInRoute(),
+  Landing.finishSignUp => const SignUpRoleRoute(),
+  Landing.clinicRecord => const ClinicRecordRoute(),
+  Landing.pending => const PendingVerificationRoute(),
+  Landing.patientHome => const PatientHomeRoute(),
+  Landing.doctorHome => const DoctorHomeRoute(),
+  Landing.pathologistHome => const PathologistHomeRoute(),
+};
+
+/// Sends a person who has just signed in or signed up where [session]
+/// belongs, by the same order as a cold start.
+void goToSession(BuildContext context, AuthSession session) => routeForLanding(
+  resolveLanding(session: session, updateRequired: false, isOnboarded: true),
+).go(context);
 
 @TypedGoRoute<DecisionRoute>(path: RoutePaths.decision)
 class DecisionRoute extends GoRouteData with $DecisionRoute {

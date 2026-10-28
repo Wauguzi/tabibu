@@ -107,6 +107,33 @@ class AuthHelper {
     return (pictureUrl: pictureUrl, licenseUrls: licenseUrls);
   }
 
+  /// The optional photo from D1, added once the record exists (sign-up
+  /// takes no picture). Returns the session with the photo, or [session]
+  /// unchanged if any step fails: a photo never fails a sign-up.
+  Future<PatientSession> addPatientPicture(
+    PatientSession session,
+    UploadFile picture,
+  ) async {
+    final patientId = session.patient.patientId;
+    try {
+      final url = await _storage.uploadProfilePicture(
+        owner: patientId,
+        file: picture,
+      );
+      await _remote.updateProfilePicture(
+        collection: 'patients',
+        docId: patientId,
+        url: url,
+      );
+      return PatientSession(
+        patient: session.patient.copyWith(profilePictureUrl: url),
+        roles: session.roles,
+      );
+    } on AppError catch (_) {
+      return session;
+    }
+  }
+
   /// Adds this install's push token to the signed-in profile, making room
   /// at the rules' limit by dropping the oldest. Best-effort: a device with
   /// no token yet still signs in.

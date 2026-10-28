@@ -517,4 +517,52 @@ void main() {
       verify(() => cache.updateLanguage(languageString: 'sw')).called(1);
     });
   });
+
+  group('addPatientPicture', () {
+    final session = PatientSession(
+      patient: _patient.copyWith(patientId: 'p9'),
+      roles: _roles({'role': 'patient'}),
+    );
+
+    test('uploads into the record folder and saves the URL', () async {
+      when(
+        () => storage.uploadProfilePicture(
+          owner: any(named: 'owner'),
+          file: any(named: 'file'),
+        ),
+      ).thenAnswer((_) async => 'photo-url');
+      when(
+        () => remote.updateProfilePicture(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          url: any(named: 'url'),
+        ),
+      ).thenAnswer((_) async {});
+
+      final updated = await helper.addPatientPicture(session, _photo);
+
+      expect(updated.patient.profilePictureUrl, 'photo-url');
+      verify(
+        () => storage.uploadProfilePicture(owner: 'p9', file: _photo),
+      ).called(1);
+      verify(
+        () => remote.updateProfilePicture(
+          collection: 'patients',
+          docId: 'p9',
+          url: 'photo-url',
+        ),
+      ).called(1);
+    });
+
+    test('a failed upload never fails the sign-up', () async {
+      when(
+        () => storage.uploadProfilePicture(
+          owner: any(named: 'owner'),
+          file: any(named: 'file'),
+        ),
+      ).thenThrow(AppError.fileTooLarge);
+
+      expect(await helper.addPatientPicture(session, _photo), same(session));
+    });
+  });
 }
