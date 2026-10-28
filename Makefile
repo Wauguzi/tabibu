@@ -138,6 +138,8 @@ fastlane-setup:
 KEYCHAIN_BASETEN := tabibu-baseten-api-key
 KEYCHAIN_META := tabibu-meta-api-key
 KEYCHAIN_FIREWORKS := tabibu-fireworks-api-key
+KEYCHAIN_MODAL_ID := tabibu-modal-token-id
+KEYCHAIN_MODAL_SECRET := tabibu-modal-token-secret
 KEYCHAIN_APP_CHECK := tabibu-app-check-debug-token
 KEYCHAIN_SEED := tabibu-seed-password
 
@@ -158,9 +160,26 @@ key-add:
 		@security add-generic-password -U -a "$$USER" -s tabibu-$(KEY)-api-key -w
 		@$(MAKE) --no-print-directory keys-check
 
+# Modal authenticates with a token pair (dashboard → Settings → API Tokens), kept here instead
+# of the plain-text ~/.modal.toml that `modal token new` writes.
+modal-token-add:
+		@echo "Modal token ID, ak-… (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_MODAL_ID) -w
+		@echo "Modal token secret, as-… (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_MODAL_SECRET) -w
+		@$(MAKE) --no-print-directory keys-check
+
+# make modal ARGS="profile current" runs the Modal CLI with the token pair in its environment only.
+modal:
+		@command -v modal >/dev/null 2>&1 || { echo "modal not found: pip install modal"; exit 1; }
+		@MODAL_TOKEN_ID="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_MODAL_ID) -w 2>/dev/null)" \
+		MODAL_TOKEN_SECRET="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_MODAL_SECRET) -w 2>/dev/null)" \
+		modal $(ARGS)
+
 # Confirms each key is stored, showing only its length and last four characters.
 keys-check:
-		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META) $(KEYCHAIN_FIREWORKS) $(KEYCHAIN_APP_CHECK); do \
+		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META) $(KEYCHAIN_FIREWORKS) $(KEYCHAIN_MODAL_ID) \
+		    $(KEYCHAIN_MODAL_SECRET) $(KEYCHAIN_APP_CHECK); do \
 		  k="$$(security find-generic-password -a "$$USER" -s "$$s" -w 2>/dev/null)"; \
 		  if [ -n "$$k" ]; then printf '%-30s stored  (%s chars, ends …%s)\n' "$$s" "$${#k}" "$${k: -4}"; \
 		  else printf '%-30s MISSING\n' "$$s"; fi; \
@@ -342,7 +361,7 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
+	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
 	emulators rules-test functions-test seed-password seed-emulator seed-live \
 	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting
