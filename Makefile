@@ -137,6 +137,7 @@ fastlane-setup:
 # Model API keys live in the macOS Keychain, never in a file (CRQ-0007).
 KEYCHAIN_BASETEN := tabibu-baseten-api-key
 KEYCHAIN_META := tabibu-meta-api-key
+KEYCHAIN_FIREWORKS := tabibu-fireworks-api-key
 KEYCHAIN_APP_CHECK := tabibu-app-check-debug-token
 KEYCHAIN_SEED := tabibu-seed-password
 
@@ -146,11 +147,20 @@ keys-add:
 		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_BASETEN) -w
 		@echo "Meta Model API key (paste, Enter, then paste again to confirm):"
 		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_META) -w
+		@echo "Fireworks API key (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_FIREWORKS) -w
+		@$(MAKE) --no-print-directory keys-check
+
+# make key-add KEY=fireworks stores or replaces one key, leaving the others alone.
+key-add:
+		$(if $(filter $(KEY),baseten meta fireworks),,$(error Usage: make key-add KEY=baseten|meta|fireworks))
+		@echo "$(KEY) API key (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s tabibu-$(KEY)-api-key -w
 		@$(MAKE) --no-print-directory keys-check
 
 # Confirms each key is stored, showing only its length and last four characters.
 keys-check:
-		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META) $(KEYCHAIN_APP_CHECK); do \
+		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META) $(KEYCHAIN_FIREWORKS) $(KEYCHAIN_APP_CHECK); do \
 		  k="$$(security find-generic-password -a "$$USER" -s "$$s" -w 2>/dev/null)"; \
 		  if [ -n "$$k" ]; then printf '%-30s stored  (%s chars, ends …%s)\n' "$$s" "$${#k}" "$${k: -4}"; \
 		  else printf '%-30s MISSING\n' "$$s"; fi; \
@@ -186,11 +196,12 @@ muse:
 		test -n "$$k" || { echo "Meta key missing: make keys-add"; exit 1; }; \
 		META_API_KEY="$$k" muse $(ARGS)
 
-# make ai-dev CMD="<command>" runs it with both keys in its environment only.
+# make ai-dev CMD="<command>" runs it with the model keys in its environment only.
 ai-dev:
 		$(if $(CMD),,$(error Usage: make ai-dev CMD="<command>"))
 		@BASETEN_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_BASETEN) -w)" \
 		META_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_META) -w)" \
+		FIREWORKS_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_FIREWORKS) -w)" \
 		$(CMD)
 
 # make pods-ios-target IOS_MIN=16.0 (Firebase needs 15.0+). The Podfile exists once an iOS build has run.
@@ -331,7 +342,7 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
+	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
 	emulators rules-test functions-test seed-password seed-emulator seed-live \
 	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting

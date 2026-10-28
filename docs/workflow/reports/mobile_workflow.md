@@ -160,6 +160,7 @@ The loop from idea to live demo:
 | Firebase Console | Auth, Firestore, Storage, Functions, FCM, App Check, Remote Config, Crashlytics, Performance |
 | Meta Model API | Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe, standard (non-contributor) endpoints only |
 | Baseten | Muse Spark Open (`meta-models/muse-spark-open-1026`): reports, alert drafts, patient explanations |
+| Fireworks | Inference credit for the AI service ($100); the model is chosen when the service is wired (CRQ-0028) |
 | Modal | The Tabibu AI service; the Muse Glimmer fine-tune (stretch goal) |
 | Talsec portal | freeRASP threat events, once the app is wired to it |
 | Muse Code | A second coding agent in its own terminal, for repetitive work from written briefs. It reads `AGENTS.md`, never commits, and runs on the Meta API credits through `make muse` (CRQ-0013) |
