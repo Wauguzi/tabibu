@@ -113,21 +113,33 @@ run-web:
 clean-pods:
 		rm -f ios/Podfile.lock && rm -rf ios/Pods
 
+# iOS plugins come through Swift Package Manager, so there is no Podfile. This resolves the
+# packages without building; Flutter writes a Podfile only if a plugin needs CocoaPods, and
+# the pod targets below then install it.
+ios-deps:
+		flutter build ios --config-only --no-codesign --debug \
+		    --flavor development --target lib/main_development.dart
+		@if [ -f ios/Podfile ]; then cd ios && pod install --no-repo-update; fi
+
+# Each pod target runs pod install where a Podfile exists, and ios-deps where none does.
 pods:
-		cd ios && pod install --repo-update --verbose && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod install --repo-update --verbose; \
+		else $(MAKE) --no-print-directory ios-deps; fi
 
 pods-clean:
 		rm -rf ios/Pods
 		rm -f ios/Podfile.lock
 		rm -rf ios/.symlinks
 		pod cache clean --all --verbose || true
-		cd ios && pod deintegrate --verbose && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod deintegrate --verbose; fi
 
 pods-no-update:
-		cd ios && pod install && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod install; \
+		else $(MAKE) --no-print-directory ios-deps; fi
 
 pods-no-cdn:
-		cd ios && pod install --no-repo-update && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod install --no-repo-update; \
+		else $(MAKE) --no-print-directory ios-deps; fi
 
 # Installs fastlane into vendor/bundle; run once after cloning or after editing the Gemfile.
 fastlane-setup:
@@ -361,7 +373,7 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
+	clean-pods ios-deps pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities test test-randomize test-watch coverage \
 	emulators rules-test functions-test seed-password seed-emulator seed-live \
 	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting
