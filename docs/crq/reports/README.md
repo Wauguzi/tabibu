@@ -34,7 +34,7 @@ patient reads, or the alert path.
 | [CRQ-0025](./CRQ-0025-release-drafts.md) | Draft a release on every merge to main, tagged with the pubspec version; publish and mark Latest with one command | 2026-10-27 | Implemented — first run on the first merge |
 | [CRQ-0026](./CRQ-0026-specialties-and-license-files.md) | Practitioner specialties as a list, one or two license files, a required photo, and an information-security header on the Firestore rules | 2026-10-28 | Implemented — rules and functions deploy after review |
 | [CRQ-0027](./CRQ-0027-auth-bloc-and-router.md) | Auth, sign-up and theme blocs; typed router with a role-claim guard; app shell; analytics, connectivity, force-update and push-token services | 2026-10-28 | Implemented — screens in brief 04 |
-| [CRQ-0028](./CRQ-0028-fireworks-api-key.md) | Store the Fireworks API key the same way as the other model keys; replace one key at a time | 2026-10-28 | Implemented — key to be stored by Theo |
+| [CRQ-0028](./CRQ-0028-fireworks-api-key.md) | Store the Fireworks API key the same way as the other model keys; replace one key at a time | 2026-10-28 | Implemented — key stored |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

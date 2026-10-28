@@ -93,8 +93,8 @@ missing before it is stored.
 
 | Step | Result |
 |---|---|
-| 1. `make key-add KEY=fireworks` | Pending: Theo |
-| 2. `make keys-check` shows it stored | Pending |
+| 1. `make key-add KEY=fireworks` | Done 2026-10-28 by Theo |
+| 2. `make keys-check` shows it stored | Done 2026-10-28: 24 characters; the other three keys unchanged |
 | 3. Fireworks key in the Modal secret `tabibu-models` | Pending: when the AI service exists |
 
 ## 10. Related records
