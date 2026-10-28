@@ -161,7 +161,7 @@ key-add:
 		@$(MAKE) --no-print-directory keys-check
 
 # Modal authenticates with a token pair (dashboard → Settings → API Tokens), kept here instead
-# of the plain-text ~/.modal.toml that `modal token new` writes.
+# of the plain text ~/.modal.toml that `modal token new` writes.
 modal-token-add:
 		@echo "Modal token ID, ak-… (paste, Enter, then paste again to confirm):"
 		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_MODAL_ID) -w
