@@ -144,3 +144,6 @@ test/firestore_rules/node_modules/
 
 # Emulator logs
 *-debug.log
+
+# Coding-agent briefs; outside build/ so flutter clean keeps them.
+.briefs/
