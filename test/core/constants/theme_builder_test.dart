@@ -23,7 +23,7 @@ void main() {
       expect(dark.colorScheme.error, AppColors.errorDark);
     });
 
-    test('text-theme slots use the right family', () {
+    test('text-theme slots use Manrope throughout', () {
       for (final brightness in Brightness.values) {
         final textTheme = buildTheme(brightness).textTheme;
         for (final slot in [
@@ -34,10 +34,6 @@ void main() {
           textTheme.headlineMedium,
           textTheme.headlineSmall,
           textTheme.titleLarge,
-        ]) {
-          expect(slot?.fontFamily, FontFamily.aROneSans);
-        }
-        for (final slot in [
           textTheme.titleMedium,
           textTheme.titleSmall,
           textTheme.bodyLarge,
@@ -50,6 +46,18 @@ void main() {
           expect(slot?.fontFamily, FontFamily.manrope);
         }
       }
+    });
+
+    test('mapped slots carry the measured sizes', () {
+      final textTheme = buildTheme(Brightness.light).textTheme;
+      expect(textTheme.displaySmall?.fontSize, 34);
+      expect(textTheme.headlineMedium?.fontSize, 28);
+      expect(textTheme.titleLarge?.fontSize, 22);
+      expect(textTheme.titleMedium?.fontSize, 16);
+      expect(textTheme.labelLarge?.fontSize, 16);
+      expect(textTheme.bodyLarge?.fontSize, 16);
+      expect(textTheme.bodyMedium?.fontSize, 14);
+      expect(textTheme.bodySmall?.fontSize, 13);
     });
 
     test('AppStatusColors is present in both themes', () {
@@ -69,17 +77,6 @@ void main() {
         for (final platform in TargetPlatform.values) {
           expect(builders[platform], isA<CupertinoPageTransitionsBuilder>());
         }
-      }
-    });
-
-    test('aiDraft and signed differ in luminance by at least 0.15', () {
-      for (final brightness in Brightness.values) {
-        final status = buildTheme(brightness).extension<AppStatusColors>()!;
-        final difference =
-            (status.aiDraft.computeLuminance() -
-                    status.signed.computeLuminance())
-                .abs();
-        expect(difference, greaterThanOrEqualTo(0.15));
       }
     });
   });

@@ -1,8 +1,17 @@
 import 'package:material_ui/material_ui.dart';
-import 'package:tabibu/core/constants/app_spacing.dart';
+import 'package:tabibu/gen/fonts.gen.dart';
 
 /// Shared surface tokens: one shadow, one card geometry, one sheet radius.
 abstract final class AppStyles {
+  /// Big figures (counts, results): 40 bold with tabular figures so columns
+  /// of numbers align.
+  static const TextStyle numericLarge = TextStyle(
+    fontFamily: FontFamily.manrope,
+    fontSize: 40,
+    fontWeight: FontWeight.w700,
+    fontFeatures: [FontFeature.tabularFigures()],
+  );
+
   /// Standard elevated-card shadow. Subtle by design: clinical content sits
   /// on flat surfaces, so nothing decorative competes with the image.
   static List<BoxShadow> cardShadow({required bool isDark}) => <BoxShadow>[
@@ -18,8 +27,9 @@ abstract final class AppStyles {
   /// Corner radius for primary card containers.
   static const double cardRadius = 28;
 
-  /// Inner padding for primary card containers.
-  static const EdgeInsets cardPadding = EdgeInsets.all(AppSpacing.md);
+  /// Inner padding for primary card containers. Deliberately off the
+  /// spacing scale: the sheet sets card padding to 18.
+  static const EdgeInsets cardPadding = EdgeInsets.all(18);
 
   /// Top corner radius for bottom sheets (the Material 3 default).
   static const double sheetRadius = 28;

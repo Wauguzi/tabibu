@@ -36,6 +36,7 @@ patient reads, or the alert path.
 | [CRQ-0027](./CRQ-0027-auth-bloc-and-router.md) | Auth, sign-up and theme blocs; typed router with a role-claim guard; app shell; analytics, connectivity, force-update and push-token services | 2026-10-28 | Implemented — screens in brief 04 |
 | [CRQ-0028](./CRQ-0028-fireworks-api-key.md) | Store the Fireworks API key the same way as the other model keys; replace one key at a time | 2026-10-28 | Implemented — key stored |
 | [CRQ-0029](./CRQ-0029-modal-token-pair.md) | Keep the Modal token pair in the Keychain and run the Modal CLI through make | 2026-10-28 | Implemented — token stored, workspace confirmed |
+| [CRQ-0030](./CRQ-0030-design-tokens-and-shared-widgets.md) | Design tokens from the design system, the shared widget library and its assets; AI draft and signed told apart by structure | 2026-10-28 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

@@ -9,4 +9,13 @@ abstract final class AppSpacing {
   static const double lg = 20;
   static const double xlg = 24;
   static const double xxlg = 32;
+
+  /// Screen side margins (§5).
+  static const double screenMargin = 20;
+
+  /// Gaps inside bento grids (§5).
+  static const double bentoGap = 12;
+
+  /// Gaps between screen sections (§5).
+  static const double sectionGap = 20;
 }

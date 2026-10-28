@@ -57,24 +57,250 @@ class $AssetsDataGen {
 class $AssetsIconsGen {
   const $AssetsIconsGen();
 
+  /// File path: assets/icons/add_icon.svg
+  SvgGenImage get addIcon => const SvgGenImage('assets/icons/add_icon.svg');
+
+  /// File path: assets/icons/back_icon.svg
+  SvgGenImage get backIcon => const SvgGenImage('assets/icons/back_icon.svg');
+
+  /// File path: assets/icons/calendar_icon.svg
+  SvgGenImage get calendarIcon =>
+      const SvgGenImage('assets/icons/calendar_icon.svg');
+
+  /// File path: assets/icons/cancel_icon.svg
+  SvgGenImage get cancelIcon =>
+      const SvgGenImage('assets/icons/cancel_icon.svg');
+
+  /// File path: assets/icons/check_selected_icon.svg
+  SvgGenImage get checkSelectedIcon =>
+      const SvgGenImage('assets/icons/check_selected_icon.svg');
+
+  /// File path: assets/icons/check_unselected_icon.svg
+  SvgGenImage get checkUnselectedIcon =>
+      const SvgGenImage('assets/icons/check_unselected_icon.svg');
+
+  /// File path: assets/icons/delete_icon.svg
+  SvgGenImage get deleteIcon =>
+      const SvgGenImage('assets/icons/delete_icon.svg');
+
+  /// File path: assets/icons/document_icon.svg
+  SvgGenImage get documentIcon =>
+      const SvgGenImage('assets/icons/document_icon.svg');
+
+  /// File path: assets/icons/drop_down_icon.svg
+  SvgGenImage get dropDownIcon =>
+      const SvgGenImage('assets/icons/drop_down_icon.svg');
+
+  /// File path: assets/icons/edit_icon.svg
+  SvgGenImage get editIcon => const SvgGenImage('assets/icons/edit_icon.svg');
+
+  /// File path: assets/icons/email_icon.svg
+  SvgGenImage get emailIcon => const SvgGenImage('assets/icons/email_icon.svg');
+
+  /// File path: assets/icons/facility_icon.svg
+  SvgGenImage get facilityIcon =>
+      const SvgGenImage('assets/icons/facility_icon.svg');
+
+  /// File path: assets/icons/fingerprint_icon.svg
+  SvgGenImage get fingerprintIcon =>
+      const SvgGenImage('assets/icons/fingerprint_icon.svg');
+
+  /// File path: assets/icons/forward_icon.svg
+  SvgGenImage get forwardIcon =>
+      const SvgGenImage('assets/icons/forward_icon.svg');
+
   /// File path: assets/icons/google.png
   AssetGenImage get google => const AssetGenImage('assets/icons/google.png');
+
+  /// File path: assets/icons/heart_icon.svg
+  SvgGenImage get heartIcon => const SvgGenImage('assets/icons/heart_icon.svg');
+
+  /// File path: assets/icons/identity_icon.svg
+  SvgGenImage get identityIcon =>
+      const SvgGenImage('assets/icons/identity_icon.svg');
+
+  /// File path: assets/icons/in_progress_icon.svg
+  SvgGenImage get inProgressIcon =>
+      const SvgGenImage('assets/icons/in_progress_icon.svg');
+
+  /// File path: assets/icons/info_icon.svg
+  SvgGenImage get infoIcon => const SvgGenImage('assets/icons/info_icon.svg');
+
+  /// File path: assets/icons/language_icon.svg
+  SvgGenImage get languageIcon =>
+      const SvgGenImage('assets/icons/language_icon.svg');
+
+  /// File path: assets/icons/location_icon.svg
+  SvgGenImage get locationIcon =>
+      const SvgGenImage('assets/icons/location_icon.svg');
 
   /// File path: assets/icons/logo_transparent_primary.svg
   SvgGenImage get logoTransparentPrimary =>
       const SvgGenImage('assets/icons/logo_transparent_primary.svg');
 
+  /// File path: assets/icons/logo_transparent_white.svg
+  SvgGenImage get logoTransparentWhite =>
+      const SvgGenImage('assets/icons/logo_transparent_white.svg');
+
+  /// File path: assets/icons/notification_bell_icon.svg
+  SvgGenImage get notificationBellIcon =>
+      const SvgGenImage('assets/icons/notification_bell_icon.svg');
+
+  /// File path: assets/icons/password_icon.svg
+  SvgGenImage get passwordIcon =>
+      const SvgGenImage('assets/icons/password_icon.svg');
+
+  /// File path: assets/icons/password_show_icon.svg
+  SvgGenImage get passwordShowIcon =>
+      const SvgGenImage('assets/icons/password_show_icon.svg');
+
+  /// File path: assets/icons/patient_signed_up.svg
+  SvgGenImage get patientSignedUp =>
+      const SvgGenImage('assets/icons/patient_signed_up.svg');
+
+  /// File path: assets/icons/person_icon.svg
+  SvgGenImage get personIcon =>
+      const SvgGenImage('assets/icons/person_icon.svg');
+
+  /// File path: assets/icons/phone_icon.svg
+  SvgGenImage get phoneIcon => const SvgGenImage('assets/icons/phone_icon.svg');
+
+  /// File path: assets/icons/photo_icon.svg
+  SvgGenImage get photoIcon => const SvgGenImage('assets/icons/photo_icon.svg');
+
+  /// File path: assets/icons/practitioner_verified_icon.svg
+  SvgGenImage get practitionerVerifiedIcon =>
+      const SvgGenImage('assets/icons/practitioner_verified_icon.svg');
+
+  /// File path: assets/icons/search_rounded_icon.svg
+  SvgGenImage get searchRoundedIcon =>
+      const SvgGenImage('assets/icons/search_rounded_icon.svg');
+
+  /// File path: assets/icons/shield_icon.svg
+  SvgGenImage get shieldIcon =>
+      const SvgGenImage('assets/icons/shield_icon.svg');
+
+  /// File path: assets/icons/stethoscope_icon.svg
+  SvgGenImage get stethoscopeIcon =>
+      const SvgGenImage('assets/icons/stethoscope_icon.svg');
+
   /// File path: assets/icons/tabibu_logo.png
   AssetGenImage get tabibuLogo =>
       const AssetGenImage('assets/icons/tabibu_logo.png');
 
+  /// File path: assets/icons/test_tube_icon.svg
+  SvgGenImage get testTubeIcon =>
+      const SvgGenImage('assets/icons/test_tube_icon.svg');
+
+  /// File path: assets/icons/tick_icon.svg
+  SvgGenImage get tickIcon => const SvgGenImage('assets/icons/tick_icon.svg');
+
+  /// File path: assets/icons/upload_icon.svg
+  SvgGenImage get uploadIcon =>
+      const SvgGenImage('assets/icons/upload_icon.svg');
+
+  /// File path: assets/icons/verification_badge.svg
+  SvgGenImage get verificationBadge =>
+      const SvgGenImage('assets/icons/verification_badge.svg');
+
   /// List of all assets
-  List<dynamic> get values => [google, logoTransparentPrimary, tabibuLogo];
+  List<dynamic> get values => [
+    addIcon,
+    backIcon,
+    calendarIcon,
+    cancelIcon,
+    checkSelectedIcon,
+    checkUnselectedIcon,
+    deleteIcon,
+    documentIcon,
+    dropDownIcon,
+    editIcon,
+    emailIcon,
+    facilityIcon,
+    fingerprintIcon,
+    forwardIcon,
+    google,
+    heartIcon,
+    identityIcon,
+    inProgressIcon,
+    infoIcon,
+    languageIcon,
+    locationIcon,
+    logoTransparentPrimary,
+    logoTransparentWhite,
+    notificationBellIcon,
+    passwordIcon,
+    passwordShowIcon,
+    patientSignedUp,
+    personIcon,
+    phoneIcon,
+    photoIcon,
+    practitionerVerifiedIcon,
+    searchRoundedIcon,
+    shieldIcon,
+    stethoscopeIcon,
+    tabibuLogo,
+    testTubeIcon,
+    tickIcon,
+    uploadIcon,
+    verificationBadge,
+  ];
+}
+
+class $AssetsImagesGen {
+  const $AssetsImagesGen();
+
+  /// Directory path: assets/images/portraits
+  $AssetsImagesPortraitsGen get portraits => const $AssetsImagesPortraitsGen();
+}
+
+class $AssetsImagesPortraitsGen {
+  const $AssetsImagesPortraitsGen();
+
+  /// File path: assets/images/portraits/portrait_1.jpg
+  AssetGenImage get portrait1 =>
+      const AssetGenImage('assets/images/portraits/portrait_1.jpg');
+
+  /// File path: assets/images/portraits/portrait_2.jpg
+  AssetGenImage get portrait2 =>
+      const AssetGenImage('assets/images/portraits/portrait_2.jpg');
+
+  /// File path: assets/images/portraits/portrait_3.jpg
+  AssetGenImage get portrait3 =>
+      const AssetGenImage('assets/images/portraits/portrait_3.jpg');
+
+  /// File path: assets/images/portraits/portrait_4.jpg
+  AssetGenImage get portrait4 =>
+      const AssetGenImage('assets/images/portraits/portrait_4.jpg');
+
+  /// File path: assets/images/portraits/portrait_5.jpg
+  AssetGenImage get portrait5 =>
+      const AssetGenImage('assets/images/portraits/portrait_5.jpg');
+
+  /// File path: assets/images/portraits/portrait_6.jpg
+  AssetGenImage get portrait6 =>
+      const AssetGenImage('assets/images/portraits/portrait_6.jpg');
+
+  /// File path: assets/images/portraits/portrait_7.jpg
+  AssetGenImage get portrait7 =>
+      const AssetGenImage('assets/images/portraits/portrait_7.jpg');
+
+  /// List of all assets
+  List<AssetGenImage> get values => [
+    portrait1,
+    portrait2,
+    portrait3,
+    portrait4,
+    portrait5,
+    portrait6,
+    portrait7,
+  ];
 }
 
 abstract final class Assets {
   static const $AssetsDataGen data = $AssetsDataGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
+  static const $AssetsImagesGen images = $AssetsImagesGen();
   static const $FontsGen fonts = $FontsGen();
 }
 

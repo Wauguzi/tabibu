@@ -5,7 +5,7 @@ import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/gen/fonts.gen.dart';
 
 /// Material 3 theme for [brightness], seeded from that theme's primary and
-/// then overridden role by role.
+/// then overridden role by role from the sheet.
 ThemeData buildTheme(Brightness brightness) {
   final isDark = brightness == Brightness.dark;
 
@@ -15,8 +15,35 @@ ThemeData buildTheme(Brightness brightness) {
         brightness: brightness,
       ).copyWith(
         primary: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+        onPrimary: isDark ? AppColors.inkLight : Colors.white,
         secondary: isDark ? AppColors.secondaryDark : AppColors.secondaryLight,
+        onSecondary: isDark ? AppColors.inkLight : Colors.white,
         error: isDark ? AppColors.errorDark : AppColors.errorLight,
+        onError: isDark ? AppColors.inkLight : Colors.white,
+        surface: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        onSurface: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
+        surfaceContainerLowest: isDark
+            ? AppColors.surfaceLowestDark
+            : AppColors.surfaceLowestLight,
+        surfaceContainerLow: isDark
+            ? AppColors.surfaceLowDark
+            : AppColors.surfaceLowLight,
+        surfaceContainerHigh: isDark
+            ? AppColors.surfaceHighDark
+            : AppColors.surfaceHighLight,
+        primaryContainer: isDark
+            ? AppColors.brandContainerDark
+            : AppColors.brandContainerLight,
+        onPrimaryContainer: isDark
+            ? AppColors.brandTextDark
+            : AppColors.brandTextLight,
+        outline: isDark ? AppColors.outlineDark : AppColors.outlineLight,
+        outlineVariant: isDark
+            ? AppColors.outlineVariantDark
+            : AppColors.outlineVariantLight,
+        onSurfaceVariant: isDark
+            ? AppColors.onSurfaceVariantDark
+            : AppColors.onSurfaceVariantLight,
       );
 
   return ThemeData(
@@ -27,13 +54,84 @@ ThemeData buildTheme(Brightness brightness) {
         success: isDark ? AppColors.successDark : AppColors.successLight,
         warning: isDark ? AppColors.warningDark : AppColors.warningLight,
         aiDraft: isDark ? AppColors.aiDraftDark : AppColors.aiDraftLight,
+        aiDraftDot: isDark
+            ? AppColors.aiDraftDotDark
+            : AppColors.aiDraftDotLight,
         aiDraftContainer: isDark
             ? AppColors.aiDraftContainerDark
             : AppColors.aiDraftContainerLight,
         signed: isDark ? AppColors.signedDark : AppColors.signedLight,
+        signedDot: isDark ? AppColors.signedDotDark : AppColors.signedDotLight,
         signedContainer: isDark
             ? AppColors.signedContainerDark
             : AppColors.signedContainerLight,
+        infoContainer: isDark
+            ? AppColors.infoContainerDark
+            : AppColors.infoContainerLight,
+        infoDot: isDark ? AppColors.infoDotDark : AppColors.infoDotLight,
+        infoText: isDark ? AppColors.infoTextDark : AppColors.infoTextLight,
+        attentionContainer: isDark
+            ? AppColors.attentionContainerDark
+            : AppColors.attentionContainerLight,
+        attentionDot: isDark
+            ? AppColors.attentionDotDark
+            : AppColors.attentionDotLight,
+        attentionText: isDark
+            ? AppColors.attentionTextDark
+            : AppColors.attentionTextLight,
+        lowConfidenceContainer: isDark
+            ? AppColors.lowConfidenceContainerDark
+            : AppColors.lowConfidenceContainerLight,
+        lowConfidenceDot: isDark
+            ? AppColors.lowConfidenceDotDark
+            : AppColors.lowConfidenceDotLight,
+        lowConfidenceText: isDark
+            ? AppColors.lowConfidenceTextDark
+            : AppColors.lowConfidenceTextLight,
+        closedContainer: isDark
+            ? AppColors.closedContainerDark
+            : AppColors.closedContainerLight,
+        closedDot: isDark ? AppColors.closedDotDark : AppColors.closedDotLight,
+        closedText: isDark
+            ? AppColors.closedTextDark
+            : AppColors.closedTextLight,
+        neutralContainer: isDark
+            ? AppColors.neutralContainerDark
+            : AppColors.neutralContainerLight,
+        neutralDot: isDark
+            ? AppColors.neutralDotDark
+            : AppColors.neutralDotLight,
+        neutralText: isDark
+            ? AppColors.neutralTextDark
+            : AppColors.neutralTextLight,
+        brandContainer: isDark
+            ? AppColors.brandContainerDark
+            : AppColors.brandContainerLight,
+        brandDot: isDark ? AppColors.brandDotDark : AppColors.brandDotLight,
+        brandText: isDark ? AppColors.brandTextDark : AppColors.brandTextLight,
+        errorContainer: isDark
+            ? AppColors.errorContainerDark
+            : AppColors.errorContainerLight,
+        draftSurface: isDark
+            ? AppColors.draftSurfaceDark
+            : AppColors.draftSurfaceLight,
+        draftBorder: isDark
+            ? AppColors.draftBorderDark
+            : AppColors.draftBorderLight,
+        glassTint: isDark ? AppColors.glassTintDark : AppColors.glassTintLight,
+        glassBorder: isDark
+            ? AppColors.glassBorderDark
+            : AppColors.glassBorderLight,
+        editedSurface: isDark
+            ? AppColors.editedSurfaceDark
+            : AppColors.editedSurfaceLight,
+        editedBorder: isDark
+            ? AppColors.editedBorderDark
+            : AppColors.editedBorderLight,
+        ink: isDark ? AppColors.inkDark : AppColors.inkLight,
+        primaryText: isDark
+            ? AppColors.primaryTextDark
+            : AppColors.primaryTextLight,
         urgencyUrgent: isDark
             ? AppColors.urgencyUrgentDark
             : AppColors.urgencyUrgentLight,
@@ -57,7 +155,8 @@ ThemeData buildTheme(Brightness brightness) {
             : AppColors.overlayMaskUninfectedLight,
       ),
     ],
-    textTheme: _textTheme(brightness),
+    textTheme: _textTheme(colorScheme),
+    switchTheme: _switchTheme(colorScheme),
     pageTransitionsTheme: PageTransitionsTheme(
       builders: Map<TargetPlatform, PageTransitionsBuilder>.fromIterable(
         TargetPlatform.values,
@@ -67,35 +166,67 @@ ThemeData buildTheme(Brightness brightness) {
   );
 }
 
-/// Material's default type scale with the two families applied: AR One Sans
-/// for display, headline and titleLarge; Manrope for the rest (§2.2).
-TextTheme _textTheme(Brightness brightness) {
-  final base = brightness == Brightness.dark
-      ? ThemeData.dark().textTheme
-      : ThemeData.light().textTheme;
-  return base.copyWith(
-    displayLarge: base.displayLarge?.copyWith(fontFamily: FontFamily.aROneSans),
-    displayMedium: base.displayMedium?.copyWith(
-      fontFamily: FontFamily.aROneSans,
+/// Manrope throughout; the mapped slots carry the sheet's measured sizes.
+TextTheme _textTheme(ColorScheme scheme) {
+  TextStyle base(
+    double size,
+    FontWeight weight, {
+    required Color color,
+    double? height,
+    double? letterSpacing,
+  }) {
+    return TextStyle(
+      fontFamily: FontFamily.manrope,
+      fontSize: size,
+      fontWeight: weight,
+      height: height,
+      letterSpacing: letterSpacing,
+      color: color,
+    );
+  }
+
+  final onSurface = scheme.onSurface;
+  final onVariant = scheme.onSurfaceVariant;
+  return TextTheme(
+    displayLarge: base(57, FontWeight.w400, color: onSurface),
+    displayMedium: base(45, FontWeight.w400, color: onSurface),
+    displaySmall: base(
+      34,
+      FontWeight.w700,
+      height: 1.1,
+      letterSpacing: -0.5,
+      color: onSurface,
     ),
-    displaySmall: base.displaySmall?.copyWith(fontFamily: FontFamily.aROneSans),
-    headlineLarge: base.headlineLarge?.copyWith(
-      fontFamily: FontFamily.aROneSans,
+    headlineLarge: base(32, FontWeight.w400, color: onSurface),
+    headlineMedium: base(28, FontWeight.w700, color: onSurface),
+    headlineSmall: base(24, FontWeight.w400, color: onSurface),
+    titleLarge: base(22, FontWeight.w600, color: onSurface),
+    titleMedium: base(16, FontWeight.w600, color: onSurface),
+    titleSmall: base(14, FontWeight.w600, color: onSurface),
+    labelLarge: base(16, FontWeight.w600, color: onSurface),
+    labelMedium: base(14, FontWeight.w500, color: onSurface),
+    labelSmall: base(12, FontWeight.w500, color: onSurface),
+    bodyLarge: base(16, FontWeight.w400, color: onSurface),
+    bodyMedium: base(14, FontWeight.w400, color: onVariant),
+    bodySmall: base(13, FontWeight.w400, color: onVariant),
+  );
+}
+
+SwitchThemeData _switchTheme(ColorScheme scheme) {
+  final selectedThumb = scheme.brightness == Brightness.dark
+      ? AppColors.inkLight
+      : Colors.white;
+  return SwitchThemeData(
+    thumbColor: WidgetStateProperty.resolveWith(
+      (states) => states.contains(WidgetState.selected)
+          ? selectedThumb
+          : scheme.outline,
     ),
-    headlineMedium: base.headlineMedium?.copyWith(
-      fontFamily: FontFamily.aROneSans,
+    trackColor: WidgetStateProperty.resolveWith(
+      (states) => states.contains(WidgetState.selected)
+          ? scheme.primary
+          : scheme.surfaceContainerHigh,
     ),
-    headlineSmall: base.headlineSmall?.copyWith(
-      fontFamily: FontFamily.aROneSans,
-    ),
-    titleLarge: base.titleLarge?.copyWith(fontFamily: FontFamily.aROneSans),
-    titleMedium: base.titleMedium?.copyWith(fontFamily: FontFamily.manrope),
-    titleSmall: base.titleSmall?.copyWith(fontFamily: FontFamily.manrope),
-    bodyLarge: base.bodyLarge?.copyWith(fontFamily: FontFamily.manrope),
-    bodyMedium: base.bodyMedium?.copyWith(fontFamily: FontFamily.manrope),
-    bodySmall: base.bodySmall?.copyWith(fontFamily: FontFamily.manrope),
-    labelLarge: base.labelLarge?.copyWith(fontFamily: FontFamily.manrope),
-    labelMedium: base.labelMedium?.copyWith(fontFamily: FontFamily.manrope),
-    labelSmall: base.labelSmall?.copyWith(fontFamily: FontFamily.manrope),
+    trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
   );
 }
