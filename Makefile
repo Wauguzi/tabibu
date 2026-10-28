@@ -169,7 +169,7 @@ modal-token-add:
 		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_MODAL_SECRET) -w
 		@$(MAKE) --no-print-directory keys-check
 
-# make modal ARGS="profile current" runs the Modal CLI with the token pair in its environment only.
+# make modal ARGS="token info" runs the Modal CLI with the token pair in its environment only.
 modal:
 		@command -v modal >/dev/null 2>&1 || { echo "modal not found: pip install modal"; exit 1; }
 		@MODAL_TOKEN_ID="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_MODAL_ID) -w 2>/dev/null)" \

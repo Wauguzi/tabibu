@@ -31,6 +31,8 @@ they follow CRQ-0007's rule for every credential:
      variables in place of the config file
      ([docs](https://modal.com/docs/reference/modal.config)).
    - `make keys-check` lists both, as length and last four characters only.
+   - `make modal ARGS="token info"` confirms the workspace without
+     printing the secret.
 2. **`mobile_workflow.md` §5** records the credit on the Modal row.
 
 The redemption link in Modal's email is personal and limited to approved
@@ -64,7 +66,9 @@ length of the hackathon.
 - **`~/.modal.toml` left on disk** from an earlier `modal token new` holds
   the pair in plain text. Delete it once the Keychain holds the pair.
 - **A leaked token:** revoke it in the Modal dashboard, create another, and
-  store it with `make modal-token-add`.
+  store it with `make modal-token-add`. Never pass a token on the command
+  line (`modal token set --token-secret …`): it reaches shell history and
+  `~/.modal.toml`.
 
 **Rollback plan:** revert the commit, then delete both Keychain items with
 `security delete-generic-password -a "$USER" -s <name>`.
@@ -95,10 +99,11 @@ confirmed `keys-check` reports the pair missing before it is stored.
 
 | Step | Result |
 |---|---|
-| 1. Redeem the credit (personal form in Modal's email) | Pending: Theo |
-| 2. Create a token in the Modal dashboard | Pending: Theo |
-| 3. `make modal-token-add`, then `make keys-check` | Pending: Theo |
-| 4. `pip install modal`, then `make modal ARGS="profile current"` | Pending: Theo |
+| 1. Redeem the credit (personal form in Modal's email) | Done 2026-10-28 by Theo |
+| 2. Create a token in the Modal dashboard | Done 2026-10-28. The first token was pasted into a chat, so it was revoked and replaced before use |
+| 3. `make modal-token-add`, then `make keys-check` | Done 2026-10-28: both stored (25 characters each) |
+| 4. Install the CLI (`uv tool install modal`, 1.6.3), then `make modal ARGS="token info"` | Done 2026-10-28: workspace `theophilousworship`, the replacement token; `app list` empty. `profile current` prints `default` with no config file, so it proves nothing |
+| 5. No `~/.modal.toml` on disk | Confirmed 2026-10-28 |
 
 ## 10. Related records
 
