@@ -48,6 +48,24 @@ void main() {
       ).called(1);
     });
 
+    test('a web photo that is not JPEG or PNG is refused', () async {
+      for (final mime in ['image/heic', 'image/webp', 'image/svg+xml']) {
+        picks(XFile.fromData(Uint8List(10), name: 'me', mimeType: mime));
+        await expectLater(
+          service.pickPhoto(fromCamera: false),
+          throwsA(AppError.invalidPicture),
+          reason: mime,
+        );
+      }
+    });
+
+    test('a re-encoded photo with no type reads as JPEG', () async {
+      picks(XFile.fromData(Uint8List(10), name: 'scaled_1', path: '/tmp/x'));
+      final photo = await service.pickPhoto(fromCamera: false);
+
+      expect(photo!.contentType, 'image/jpeg');
+    });
+
     test('a cancelled pick is null, not an error', () async {
       picks(null);
       expect(await service.pickPhoto(fromCamera: false), isNull);
@@ -119,6 +137,17 @@ void main() {
         throwsA(AppError.fileTooLarge),
       );
       expect(reads, 0);
+    });
+
+    test('an image the Storage rules refuse is refused here', () async {
+      await expectLater(
+        FilePickerService.licenceFrom(
+          name: 'scan.heic',
+          size: 3,
+          readBytes: read,
+        ),
+        throwsA(AppError.invalidLicense),
+      );
     });
 
     test('any other type is refused', () async {

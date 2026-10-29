@@ -22,7 +22,7 @@ class Avatar extends StatelessWidget {
 
   String get _initials {
     final parts = name.trim().split(RegExp(r'\s+'));
-    if (parts.isEmpty) return '';
+    if (parts.first.isEmpty) return '';
     if (parts.length == 1) return parts.first.characters.first.toUpperCase();
     return (parts.first.characters.first + parts.last.characters.first)
         .toUpperCase();
@@ -34,36 +34,35 @@ class Avatar extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final image = this.image;
 
-    final fallback = image == null
-        ? Text(
-            _initials,
-            style: textTheme.titleSmall?.copyWith(color: status.infoText),
-          )
-        : null;
-
-    if (_circle) {
-      return CircleAvatar(
-        radius: radius,
-        backgroundColor: status.infoContainer,
-        backgroundImage: image,
-        child: fallback,
-      );
-    }
-    final size = radius * 2;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(14),
-      child: Container(
-        width: size,
-        height: size,
-        decoration: BoxDecoration(
-          color: status.infoContainer,
-          image: image == null
-              ? null
-              : DecorationImage(image: image, fit: BoxFit.cover),
-        ),
-        alignment: Alignment.center,
-        child: fallback,
-      ),
+    // The initials sit under the photo, so a photo that fails to load (a
+    // re-upload gives the file a new URL) shows them instead of a blank.
+    final initials = Text(
+      _initials,
+      style: textTheme.titleSmall?.copyWith(color: status.infoText),
     );
+    final size = radius * 2;
+    final face = Container(
+      width: size,
+      height: size,
+      color: status.infoContainer,
+      alignment: Alignment.center,
+      child: image == null
+          ? initials
+          : Stack(
+              fit: StackFit.expand,
+              alignment: Alignment.center,
+              children: [
+                Center(child: initials),
+                Image(
+                  image: image,
+                  fit: BoxFit.cover,
+                  errorBuilder: (_, _, _) => const SizedBox.shrink(),
+                ),
+              ],
+            ),
+    );
+    return _circle
+        ? ClipOval(child: face)
+        : ClipRRect(borderRadius: BorderRadius.circular(14), child: face);
   }
 }

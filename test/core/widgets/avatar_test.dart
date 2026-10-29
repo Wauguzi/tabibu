@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/avatar.dart';
@@ -30,8 +31,32 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('AW'), findsNothing);
+      expect(find.byType(Image), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('a photo that fails to load shows the initials', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        Avatar(
+          name: 'Amina Wambui',
+          image: MemoryImage(Uint8List.fromList([1, 2, 3])),
+        ),
+      );
+      await tester.runAsync(
+        () => Future<void>.delayed(const Duration(milliseconds: 100)),
+      );
+      await tester.pump();
+
+      expect(find.text('AW'), findsOneWidget);
+      expect(
+        find.descendant(
+          of: find.byType(Image),
+          matching: find.byType(RawImage),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('rounds the tile variant into a rectangle', (tester) async {
@@ -44,7 +69,7 @@ void main() {
         ),
       );
 
-      expect(find.byType(CircleAvatar), findsOneWidget);
+      expect(find.byType(ClipOval), findsOneWidget);
       final clipped = tester.widget<ClipRRect>(find.byType(ClipRRect));
       expect(clipped.borderRadius, BorderRadius.circular(14));
       expect(find.text('AW'), findsNWidgets(2));

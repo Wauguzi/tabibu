@@ -345,48 +345,68 @@ describe('everything else', () => {
 describe('storage', () => {
   const image = new Uint8Array([0xff, 0xd8, 0xff]);
   const big = new Uint8Array(3 * 1024 * 1024 + 1);
+  // An upload under the caller's own uid needs a confirmed email.
+  const CONFIRMED = { email_verified: true };
   const put = (uid, claims, path, data = image, contentType = 'image/jpeg') =>
     uploadBytes(ref(as(uid, claims).storage(), path), data, { contentType });
 
   it('RT-26 the owner uploads an image under 3 MB, and nothing else', async () => {
-    await assertSucceeds(put('drWanjiru', {}, 'profilePictures/drWanjiru/me.jpg'));
-    await assertFails(put('drWanjiru', {}, 'profilePictures/drWanjiru/big.jpg', big));
-    await assertFails(put('drWanjiru', {}, 'profilePictures/drWanjiru/doc.pdf', image, 'application/pdf'));
-    await assertFails(put('drWanjiru', {}, 'profilePictures/amina/me.jpg'));
+    await assertSucceeds(put('drWanjiru', CONFIRMED, 'profilePictures/drWanjiru/photo.jpg'));
+    await assertSucceeds(put('drWanjiru', CONFIRMED, 'profilePictures/drWanjiru/photo.png', image, 'image/png'));
+    await assertFails(put('drWanjiru', CONFIRMED, 'profilePictures/drWanjiru/photo.jpg', big));
+    await assertFails(put('drWanjiru', CONFIRMED, 'profilePictures/drWanjiru/photo.pdf', image, 'application/pdf'));
+    await assertFails(put('drWanjiru', CONFIRMED, 'profilePictures/amina/photo.jpg'));
   });
 
   it("RT-27 a linked patient uploads to their record's folder", async () => {
     await seed('patients/p3', patient({ patientId: 'p3', uid: 'linkedUser' }));
-    await assertSucceeds(put('linkedUser', PATIENT, 'profilePictures/p3/me.jpg'));
+    await assertSucceeds(put('linkedUser', PATIENT, 'profilePictures/p3/photo.jpg'));
   });
 
   it("RT-28 the care team uploads an unregistered patient's picture, until they register", async () => {
     await seed('patients/p1', patient({ patientId: 'p1', uid: '', isRegistered: false }));
-    await assertSucceeds(put('drOdhiambo', DOCTOR, 'profilePictures/p1/me.jpg'));
-    await assertFails(put('drStranger', DOCTOR, 'profilePictures/p1/me.jpg'));
+    await assertSucceeds(put('drOdhiambo', DOCTOR, 'profilePictures/p1/photo.jpg'));
+    await assertFails(put('drStranger', DOCTOR, 'profilePictures/p1/photo.jpg'));
     await seed('patients/p1', patient({ patientId: 'p1', uid: 'amina2', isRegistered: true }));
-    await assertFails(put('drOdhiambo', DOCTOR, 'profilePictures/p1/again.jpg'));
+    await assertFails(put('drOdhiambo', DOCTOR, 'profilePictures/p1/photo.jpg'));
   });
 
   it('RT-35 a licence file may be up to 10 MB', async () => {
     const nine = new Uint8Array(9 * 1024 * 1024);
     const eleven = new Uint8Array(11 * 1024 * 1024);
-    await assertSucceeds(put('drNew', {}, 'licenses/drNew/scan.pdf', nine, 'application/pdf'));
-    await assertFails(put('drNew', {}, 'licenses/drNew/huge.pdf', eleven, 'application/pdf'));
+    await assertSucceeds(put('drNew', CONFIRMED, 'licenses/drNew/license_1.pdf', nine, 'application/pdf'));
+    await assertFails(put('drNew', CONFIRMED, 'licenses/drNew/license_2.pdf', eleven, 'application/pdf'));
   });
 
   it('RT-29 a license is uploaded before sign-up and frozen once verified (T-14)', async () => {
-    await assertSucceeds(put('drNew', {}, 'licenses/drNew/license.pdf', image, 'application/pdf'));
-    await assertFails(put('drNew', {}, 'licenses/drNew/license.txt', image, 'text/plain'));
+    await assertSucceeds(put('drNew', CONFIRMED, 'licenses/drNew/license_1.pdf', image, 'application/pdf'));
+    await assertSucceeds(put('drNew', CONFIRMED, 'licenses/drNew/license_2.png', image, 'image/png'));
+    await assertFails(put('drNew', CONFIRMED, 'licenses/drNew/license_2.pdf', image, 'text/plain'));
     await seed('doctors/drNew', doctorProfile({ uid: 'drNew', verificationStatus: 'Verified' }));
-    await assertFails(put('drNew', {}, 'licenses/drNew/license2.pdf', image, 'application/pdf'));
+    await assertFails(put('drNew', CONFIRMED, 'licenses/drNew/license_2.pdf', image, 'application/pdf'));
+  });
+
+  it('RT-36 only the fixed names, each with its own type, are taken', async () => {
+    // Any other name would let one account keep files without bound.
+    await assertFails(put('drWanjiru', CONFIRMED, 'profilePictures/drWanjiru/me.jpg'));
+    await assertFails(put('drNew', CONFIRMED, 'licenses/drNew/license_3.pdf', image, 'application/pdf'));
+    await assertFails(put('drNew', CONFIRMED, 'licenses/drNew/scan.pdf', image, 'application/pdf'));
+    // The extension and the type agree, and only the app's types pass: no SVG, no HTML.
+    await assertFails(put('drWanjiru', CONFIRMED, 'profilePictures/drWanjiru/photo.png', image, 'image/jpeg'));
+    await assertFails(put('drWanjiru', CONFIRMED, 'profilePictures/drWanjiru/photo.jpg', image, 'image/svg+xml'));
+    await assertFails(put('drNew', CONFIRMED, 'licenses/drNew/license_1.jpg', image, 'text/html'));
+  });
+
+  it('RT-37 an account with an unconfirmed email uploads nothing under its uid', async () => {
+    await assertFails(put('drWanjiru', {}, 'profilePictures/drWanjiru/photo.jpg'));
+    await assertFails(put('drNew', {}, 'licenses/drNew/license_1.pdf', image, 'application/pdf'));
   });
 
   it('RT-30 a license is read by its owner and an admin only', async () => {
     await env.withSecurityRulesDisabled((ctx) =>
-      uploadBytes(ref(ctx.storage(), 'licenses/drNew/license.pdf'), image, { contentType: 'application/pdf' }),
+      uploadBytes(ref(ctx.storage(), 'licenses/drNew/license_1.pdf'), image, { contentType: 'application/pdf' }),
     );
-    const meta = (uid, claims) => getMetadata(ref(as(uid, claims).storage(), 'licenses/drNew/license.pdf'));
+    const meta = (uid, claims) => getMetadata(ref(as(uid, claims).storage(), 'licenses/drNew/license_1.pdf'));
     await assertSucceeds(meta('drNew', {}));
     await assertSucceeds(meta('admin', { admin: true }));
     await assertFails(meta('amina', PATIENT));

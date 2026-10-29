@@ -1,7 +1,10 @@
 rules_version = '2';
 
-// Storage paths (architecture §6.1, CRQ-0016, CRQ-0026). Pictures are images under 3 MB; licence
-// files are images or PDFs under 10 MB. Everything not matched here is denied. Tests: test/firestore_rules/ (make rules-test).
+// Storage paths (architecture §6.1, CRQ-0016, CRQ-0026). Pictures are JPEG or PNG under 3 MB;
+// licence files are JPEG, PNG or PDF under 10 MB. Each path takes fixed names only, so an account
+// holds one picture and two licence files however often it uploads, and an upload under the
+// caller's own uid needs a confirmed email. Everything not matched here is denied.
+// Tests: test/firestore_rules/ (make rules-test).
 
 service firebase.storage {
   match /b/{bucket}/o {
@@ -14,8 +17,19 @@ service firebase.storage {
       return request.resource.size < 3 * 1024 * 1024;
     }
 
-    function isImage() {
-      return request.resource.contentType.matches('image/.*');
+    // The name's extension and the content type agree, so an SVG or HTML file cannot pass as an
+    // image under a fixed name.
+    function typedAs(file) {
+      let type = request.resource.contentType;
+      return (file.matches('.*[.]jpg') && type == 'image/jpeg')
+          || (file.matches('.*[.]png') && type == 'image/png')
+          || (file.matches('.*[.]pdf') && type == 'application/pdf');
+    }
+
+    // The caller's own uid, with a confirmed email: a practitioner's files go up before their
+    // profile exists, so the confirmed account is what binds them.
+    function confirmedSelf(owner) {
+      return request.auth.uid == owner && request.auth.token.get('email_verified', false) == true;
     }
 
     function patient(id) {
@@ -28,7 +42,7 @@ service firebase.storage {
 
     // `owner` is a doctors uid or a patientId; a linked patient's id is not their uid.
     function ownsPicture(owner) {
-      return request.auth.uid == owner
+      return confirmedSelf(owner)
           || (hasPatient(owner) && patient(owner).uid == request.auth.uid);
     }
 
@@ -42,7 +56,8 @@ service firebase.storage {
     // The URL stored on the profile is what reaches people; this only stops listing a folder.
     match /profilePictures/{owner}/{file} {
       allow get: if signedIn();
-      allow create, update: if signedIn() && isImage() && under3MB()
+      allow create, update: if signedIn() && under3MB()
+          && file.matches('photo[.](jpg|png)') && typedAs(file)
           && (ownsPicture(owner) || caresForUnregistered(owner));
       allow delete: if signedIn() && (ownsPicture(owner) || caresForUnregistered(owner));
     }
@@ -57,9 +72,9 @@ service firebase.storage {
 
       allow get: if signedIn()
           && (request.auth.uid == owner || request.auth.token.get('admin', false) == true);
-      allow create, update: if signedIn() && request.auth.uid == owner && notVerified()
+      allow create, update: if signedIn() && confirmedSelf(owner) && notVerified()
           && request.resource.size < 10 * 1024 * 1024
-          && (isImage() || request.resource.contentType == 'application/pdf');
+          && file.matches('license_[12][.](jpg|png|pdf)') && typedAs(file);
       allow delete: if signedIn() && request.auth.uid == owner && notVerified();
     }
   }

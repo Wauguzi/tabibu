@@ -25,7 +25,7 @@ class ProfileStorage {
     required String owner,
     required UploadFile file,
   }) {
-    if (!file.isImage) throw AppError.invalidPicture;
+    if (!file.isUploadableImage) throw AppError.invalidPicture;
     if (file.bytes.length >= maxPictureBytes) throw AppError.fileTooLarge;
     return _put('profilePictures/$owner/photo.${file.extension}', file);
   }
@@ -37,7 +37,7 @@ class ProfileStorage {
     required UploadFile file,
   }) {
     if (index < 0 || index > 1) throw AppError.invalidLicense;
-    if (!file.isImage && !file.isPdf) throw AppError.invalidLicense;
+    if (!file.isUploadableImage && !file.isPdf) throw AppError.invalidLicense;
     if (file.bytes.length >= maxLicenseBytes) throw AppError.fileTooLarge;
     return _put('licenses/$uid/license_${index + 1}.${file.extension}', file);
   }

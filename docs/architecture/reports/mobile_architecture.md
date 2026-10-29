@@ -398,13 +398,18 @@ case's own participant list (§11) still decides who reads which case. A
 second-opinion doctor sees the shared case only. The patient may remove a
 doctor from `doctorUids`.
 
-**Storage.** Each path is written only by the people listed below. Image
-uploads must be `image/*`; a license may also be `application/pdf`.
+**Storage.** Each path is written only by the people listed below, and
+only under its fixed names, so an account holds one picture and two licence
+files however often it uploads. The name's extension must match the content
+type, and only JPEG, PNG and PDF pass, so an SVG or HTML file cannot be
+stored as an image. A practitioner's files go up before their profile
+exists, so an upload under the caller's own uid needs a confirmed email
+instead.
 
 | Path | Who writes | Who reads | Limit |
 |---|---|---|---|
-| `profilePictures/{id}/…` (`id` is a `doctors` uid or a `patientId`) | The owner; or, for an unregistered patient, a doctor in their `doctorUids` | Any signed-in user; no listing | 3 MB |
-| `licenses/{uid}/…` | Owner, until `Verified` | Owner and admin | 10 MB (a scanned PDF) |
+| `profilePictures/{id}/photo.jpg` or `photo.png` (`id` is a `doctors` uid or a `patientId`) | The owner (with a confirmed email when `id` is their uid); or, for an unregistered patient, a doctor in their `doctorUids` | Any signed-in user; no listing | 3 MB, JPEG or PNG |
+| `licenses/{uid}/license_1` or `license_2` (`.jpg`, `.png` or `.pdf`) | Owner with a confirmed email, until `Verified` | Owner and admin | 10 MB, JPEG, PNG or PDF |
 
 There is no picture collection: the download URL is stored on the profile
 (`profilePictureUrl`), and the trigger copies a practitioner's into the

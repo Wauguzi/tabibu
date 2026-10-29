@@ -22,11 +22,13 @@ class UploadFile extends Equatable {
   bool get isImage => contentType.startsWith('image/');
   bool get isPdf => contentType == 'application/pdf';
 
+  /// The only types `storage.rules` takes, each under its own extension.
+  bool get isUploadableImage =>
+      contentType == 'image/jpeg' || contentType == 'image/png';
+
   String get extension => switch (contentType) {
     'application/pdf' => 'pdf',
     'image/png' => 'png',
-    'image/webp' => 'webp',
-    'image/heic' => 'heic',
     _ => 'jpg',
   };
 

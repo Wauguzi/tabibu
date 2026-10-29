@@ -38,14 +38,24 @@ class FilePickerService {
       throw AppError.permissionDenied;
     }
     if (picked == null) return null;
+    // With imageQuality set, the picker re-encodes to JPEG on a phone; the
+    // web hands the original back, which the Storage rules take only as JPEG
+    // or PNG.
+    final mimeType = picked.mimeType;
+    final contentType =
+        contentTypeFor(picked.name, mimeType) ??
+        (mimeType == null || mimeType.isEmpty ? 'image/jpeg' : null);
+    if (contentType == null ||
+        (contentType != 'image/jpeg' && contentType != 'image/png')) {
+      throw AppError.invalidPicture;
+    }
     final bytes = await picked.readAsBytes();
     if (bytes.length >= ProfileStorage.maxPictureBytes) {
       throw AppError.fileTooLarge;
     }
     return UploadFile(
       bytes: bytes,
-      // With imageQuality set, the picker re-encodes to JPEG.
-      contentType: contentTypeFor(picked.name, picked.mimeType) ?? 'image/jpeg',
+      contentType: contentType,
       name: picked.name,
     );
   }
@@ -73,11 +83,7 @@ class FilePickerService {
   }) async {
     if (size >= ProfileStorage.maxLicenseBytes) throw AppError.fileTooLarge;
     final contentType = contentTypeFor(name, null);
-    if (contentType == null ||
-        !(contentType.startsWith('image/') ||
-            contentType == 'application/pdf')) {
-      throw AppError.invalidLicense;
-    }
+    if (contentType == null) throw AppError.invalidLicense;
     return UploadFile(
       bytes: await readBytes(),
       contentType: contentType,
@@ -86,15 +92,20 @@ class FilePickerService {
   }
 
   /// From the picker's MIME type when it gives one, else the extension. Null
-  /// for anything the Storage rules would refuse.
+  /// for anything the Storage rules would refuse: they take JPEG, PNG and PDF.
   static String? contentTypeFor(String name, String? mimeType) {
-    if (mimeType != null && mimeType.isNotEmpty) return mimeType;
-    return switch (name.split('.').last.toLowerCase()) {
-      'pdf' => 'application/pdf',
-      'png' => 'image/png',
-      'jpg' || 'jpeg' => 'image/jpeg',
-      'heic' => 'image/heic',
-      'webp' => 'image/webp',
+    final type = mimeType != null && mimeType.isNotEmpty
+        ? mimeType.toLowerCase()
+        : switch (name.split('.').last.toLowerCase()) {
+            'pdf' => 'application/pdf',
+            'png' => 'image/png',
+            'jpg' || 'jpeg' => 'image/jpeg',
+            _ => null,
+          };
+    return switch (type) {
+      'image/jpeg' || 'image/jpg' => 'image/jpeg',
+      'image/png' => 'image/png',
+      'application/pdf' => 'application/pdf',
       _ => null,
     };
   }

@@ -71,7 +71,7 @@ function caller(uid: string, email: string, role = '', isAdmin = false): Caller 
 /** A placeholder license, stored where the rules expect one, with its download URL. */
 async function license(uid: string, bucketName: string): Promise<string> {
   const token = randomUUID();
-  const path = `licenses/${uid}/license.pdf`;
+  const path = `licenses/${uid}/license_1.pdf`;
   await getStorage()
     .bucket(bucketName)
     .file(path)
