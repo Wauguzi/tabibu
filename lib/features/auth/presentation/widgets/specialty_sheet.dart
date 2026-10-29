@@ -79,12 +79,14 @@ class _SpecialtyBodyState extends State<_SpecialtyBody> {
           specialty,
     ];
 
+    final capped = _selected.length >= Specialty.maxSelected;
+
     return ConstrainedBox(
       constraints: BoxConstraints(
         maxHeight: MediaQuery.sizeOf(context).height * 0.7,
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: .min,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Text(widget.subtitle(_selected.length), style: textTheme.bodyMedium),
@@ -103,12 +105,13 @@ class _SpecialtyBodyState extends State<_SpecialtyBody> {
               separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
               itemBuilder: (context, index) {
                 final specialty = matches[index];
+                final selected = _selected.contains(specialty);
                 return OptionCard(
                   title: specialty.description(l10n),
                   supporting: specialty.hint(l10n),
-                  selected: _selected.contains(specialty),
+                  selected: selected,
                   markLeading: true,
-                  onTap: () => _toggle(specialty),
+                  onTap: !selected && capped ? null : () => _toggle(specialty),
                 );
               },
             ),
