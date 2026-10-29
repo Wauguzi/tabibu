@@ -259,6 +259,76 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Histopathology'), findsOneWidget);
+
+      await tester.tap(
+        find.byWidgetPredicate(
+          (w) => w is AssetIcon && w.asset.path == Assets.icons.cancelIcon.path,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Histopathology'), findsNothing);
+    });
+
+    testWidgets('the sheet allows all five areas', (tester) async {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Choose your areas'));
+      await tester.pumpAndSettle();
+      for (final area in [
+        'Histopathology',
+        'Cytology',
+        'Haematology',
+        'Microbiology',
+        'Immunohistochemistry',
+      ]) {
+        await tester.ensureVisible(find.text(area));
+        await tester.pumpAndSettle();
+        await tester.tap(find.text(area));
+        await tester.pumpAndSettle();
+      }
+      await tester.tap(find.text('Done · 5 selected'));
+      await tester.pumpAndSettle();
+
+      for (final area in [
+        'Histopathology',
+        'Cytology',
+        'Haematology',
+        'Microbiology',
+        'Immunohistochemistry',
+      ]) {
+        expect(find.text(area), findsOneWidget);
+      }
+    });
+
+    testWidgets("the document sheet shows the pathologist's subtitle", (
+      tester,
+    ) async {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Add another document'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add another document'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Licence, practising certificate or ID. Up to two.'),
+        findsOneWidget,
+      );
+      expect(
+        find.text('Practising licence or specialist certificate. Up to two.'),
+        findsNothing,
+      );
     });
 
     testWidgets('back keeps the KMPDC number in the draft', (tester) async {

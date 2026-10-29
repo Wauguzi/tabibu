@@ -82,7 +82,13 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
   }
 
   Future<void> _addDocument() async {
-    final source = await showDocumentSheet(context);
+    final l10n = context.l10n;
+    final source = await showDocumentSheet(
+      context,
+      subtitle: _isPathologist
+          ? l10n.documentSheetPathologistSubtitle
+          : l10n.documentSheetSubtitle,
+    );
     if (source == null || !mounted) return;
     try {
       final file = source == DocumentSource.camera

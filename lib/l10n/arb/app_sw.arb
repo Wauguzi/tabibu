@@ -280,6 +280,7 @@
     "addDocument": "Weka nyaraka nyingine",
     "documentSheetTitle": "Weka nyaraka",
     "documentSheetSubtitle": "Leseni ya kufanya kazi au cheti cha utaalamu. Hadi mbili.",
+    "documentSheetPathologistSubtitle": "Leseni, cheti cha utabibu au kitambulisho. Hadi mbili.",
     "documentTakePhotoBody": "Tumia kamera yako. Hakikisha ukurasa wote unaonekana.",
     "documentUploadFile": "Pakia faili",
     "documentUploadFileBody": "JPG, PNG au PDF kutoka simu yako, hadi MB 10",

@@ -1163,6 +1163,10 @@
     "@documentSheetSubtitle": {
         "description": "Document sheet subtitle"
     },
+    "documentSheetPathologistSubtitle": "Licence, practising certificate or ID. Up to two.",
+    "@documentSheetPathologistSubtitle": {
+        "description": "Document sheet subtitle for pathologists"
+    },
     "documentTakePhotoBody": "Use your camera. Keep the whole page in view.",
     "@documentTakePhotoBody": {
         "description": "Document sheet camera body"
