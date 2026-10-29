@@ -158,13 +158,17 @@ class $AssetsIconsGen {
   SvgGenImage get notificationBellIcon =>
       const SvgGenImage('assets/icons/notification_bell_icon.svg');
 
+  /// File path: assets/icons/password_hidden_icon.svg
+  SvgGenImage get passwordHiddenIcon =>
+      const SvgGenImage('assets/icons/password_hidden_icon.svg');
+
   /// File path: assets/icons/password_icon.svg
   SvgGenImage get passwordIcon =>
       const SvgGenImage('assets/icons/password_icon.svg');
 
-  /// File path: assets/icons/password_show_icon.svg
-  SvgGenImage get passwordShowIcon =>
-      const SvgGenImage('assets/icons/password_show_icon.svg');
+  /// File path: assets/icons/password_visible_icon.svg
+  SvgGenImage get passwordVisibleIcon =>
+      const SvgGenImage('assets/icons/password_visible_icon.svg');
 
   /// File path: assets/icons/patient_signed_up.svg
   SvgGenImage get patientSignedUp =>
@@ -241,8 +245,9 @@ class $AssetsIconsGen {
     logoTransparentPrimary,
     logoTransparentWhite,
     notificationBellIcon,
+    passwordHiddenIcon,
     passwordIcon,
-    passwordShowIcon,
+    passwordVisibleIcon,
     patientSignedUp,
     personIcon,
     phoneIcon,

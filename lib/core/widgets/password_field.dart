@@ -63,7 +63,12 @@ class _PasswordFieldState extends State<PasswordField> {
             onTap: _toggle,
             behavior: HitTestBehavior.opaque,
             child: Center(
-              child: AssetIcon(Assets.icons.passwordShowIcon, size: 22),
+              child: AssetIcon(
+                _obscured
+                    ? Assets.icons.passwordVisibleIcon
+                    : Assets.icons.passwordHiddenIcon,
+                size: 22,
+              ),
             ),
           ),
         ),

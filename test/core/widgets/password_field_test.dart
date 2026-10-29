@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/core/widgets/password_field.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 
 import '../../helpers/helpers.dart';
 
@@ -56,6 +57,44 @@ void main() {
 
       await tester.tap(find.byType(AssetIcon).last);
       await tester.pump();
+      expect(
+        tester.getSemantics(find.byType(AssetIcon).last),
+        matchesSemantics(
+          label: 'Hide password',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+    });
+
+    testWidgets('swaps the toggle icon and keeps its labels', (tester) async {
+      await tester.pumpApp(
+        const PasswordField(
+          label: 'Password',
+          showLabel: 'Show password',
+          hideLabel: 'Hide password',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      String toggleIcon() =>
+          tester.widget<AssetIcon>(find.byType(AssetIcon).last).asset.path;
+
+      // Hidden text offers the visible eye; the labels name the action.
+      expect(toggleIcon(), Assets.icons.passwordVisibleIcon.path);
+      expect(
+        tester.getSemantics(find.byType(AssetIcon).last),
+        matchesSemantics(
+          label: 'Show password',
+          isButton: true,
+          hasTapAction: true,
+        ),
+      );
+
+      await tester.tap(find.byType(AssetIcon).last);
+      await tester.pump();
+
+      expect(toggleIcon(), Assets.icons.passwordHiddenIcon.path);
       expect(
         tester.getSemantics(find.byType(AssetIcon).last),
         matchesSemantics(
