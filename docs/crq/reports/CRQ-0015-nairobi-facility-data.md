@@ -89,7 +89,8 @@ Nairobi.
 
 1. Profiled the export: shapes, nulls, duplicates, coordinate bounds,
    status agreement.
-2. Ported the geohash encoder and its vectors; wrote the sanitiser test-first
+2. Wrote the geohash encoder and checked it against the standard geohash test
+   vectors; wrote the sanitiser test-first
    on synthetic rows.
 3. Generated the assets and cross-checked all 1,464 hashes against an
    independent Python encoder.

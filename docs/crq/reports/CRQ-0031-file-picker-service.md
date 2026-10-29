@@ -69,7 +69,8 @@ screens.
 - **The device check mirrors `storage.rules` and does not replace it.** If
   the two drift, the rules still refuse, with a less helpful message.
 - **HEIC from an iPhone gallery** is re-encoded to JPEG by `image_picker`
-  when a quality is set, so the rules' `image/*` check holds.
+  when a quality is set, so the rules' image check holds. Since CRQ-0036 the
+  rules take JPEG and PNG only, and the picker refuses any other type first.
 
 **Rollback plan:** revert the commit.
 
@@ -97,6 +98,9 @@ service; added the iOS strings; confirmed with `make ios-deps` that no
 | Author | Always | Theo | 2026-10-28 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
 | Security Analyst | New dependencies and permissions | Covered by CTO | 2026-10-28 | Approved — two widely used plugins; camera and photos only on request |
+| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
+| Compliance Officer | §4 flags data protection impact | N/A | — | No impact in §4 |
+| Lead Designer | §4 flags design-system impact | N/A | — | No impact in §4 |
 
 ## 9. Post-implementation review
 

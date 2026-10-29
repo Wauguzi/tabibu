@@ -140,6 +140,10 @@ them yet.
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-29 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
+| Security Analyst | §4 flags security impact | N/A | — | No impact in §4 |
+| Compliance Officer | §4 flags data protection impact | N/A | — | No impact in §4 |
+| Lead Designer | §4 flags design-system impact | N/A | — | No impact in §4 |
 
 ## 9. Post-implementation review
 

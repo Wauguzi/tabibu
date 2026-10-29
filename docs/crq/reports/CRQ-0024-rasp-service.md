@@ -140,6 +140,9 @@ merged manifest.
 | Author | Always | Theo | 2026-10-27 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
 | Security Analyst | §4 flags security impact | Covered by CTO | 2026-10-27 | Approved |
+| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
+| Compliance Officer | §4 flags data protection impact | Covered by CTO | 2026-10-27 | Approved |
+| Lead Designer | §4 flags design-system impact | N/A | — | No impact in §4 |
 
 ## 9. Post-implementation review
 

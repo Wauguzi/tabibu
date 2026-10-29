@@ -15,7 +15,8 @@
 
 Device testing showed sign-up accepting any address and never confirming it.
 The design has a verification step between the account and the profile; this
-change builds everything under it. The screen itself follows in brief 05a.
+change builds everything under it. The screen itself follows in brief 05a
+([CRQ-0034](./CRQ-0034-sign-up-screens.md)).
 
 1. **Validation** (`lib/core/utils/email_address.dart`):
    - `isValidEmail`: one local part, one `@`, a dotted domain, a top-level
@@ -85,7 +86,7 @@ valid: its address was confirmed.
 
 ## 6. Implementation plan
 
-1. Read the reference's verification flow: check by reloading the user;
+1. The verification flow: check by reloading the user;
    resend; the decision screen holding unconfirmed accounts.
 2. The server gate, test first.
 3. The validator, the session flag, the landing, the route, the bloc
@@ -109,6 +110,9 @@ valid: its address was confirmed.
 | Author | Always | Theo | 2026-10-29 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
 | Security Analyst | Authentication | Covered by CTO | 2026-10-29 | Approved — enforced on the server |
+| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
+| Compliance Officer | §4 flags data protection impact | N/A | — | No impact in §4 |
+| Lead Designer | §4 flags design-system impact | N/A | — | No impact in §4 |
 
 ## 9. Post-implementation review
 

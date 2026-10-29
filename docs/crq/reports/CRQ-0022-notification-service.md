@@ -116,6 +116,8 @@ check the icon survives shrinking.
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
 | Clinical Reviewer | Notification text | Covered by CTO | 2026-10-27 | Approved — generic by contract |
 | Lead Designer | — | N/A | — | — |
+| Security Analyst | §4 flags security impact | Covered by CTO | 2026-10-27 | Approved |
+| Compliance Officer | §4 flags data protection impact | Covered by CTO | 2026-10-27 | Approved |
 
 ## 9. Post-implementation review
 

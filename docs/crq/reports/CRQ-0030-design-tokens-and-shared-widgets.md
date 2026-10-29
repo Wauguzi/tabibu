@@ -126,6 +126,9 @@ still bundled but unused (§8 item 5).
 | Author | Always | Theo | 2026-10-28 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
 | Clinical Reviewer | Draft versus signed presentation | Covered by CTO | 2026-10-28 | Approved — structural distinction, chosen by Theo |
+| Security Analyst | §4 flags security impact | N/A | — | No impact in §4 |
+| Compliance Officer | §4 flags data protection impact | N/A | — | No impact in §4 |
+| Lead Designer | §4 flags design-system impact | Covered by CTO | 2026-10-28 | Approved |
 
 ## 9. Post-implementation review
 

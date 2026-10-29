@@ -144,6 +144,9 @@ review.
 | Author | Always | Theo | 2026-10-28 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
 | Security Analyst | A rules change | Covered by CTO | 2026-10-28 | Approved — no new public field; license files stay owner-only |
+| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
+| Compliance Officer | Licence scans and the required photo are personal data | Covered by CTO | 2026-10-28 | Approved — owner and admin read licences; Storage rules bound them (CRQ-0036) |
+| Lead Designer | §4 flags design-system impact | N/A | — | No impact in §4 |
 
 ## 9. Post-implementation review
 

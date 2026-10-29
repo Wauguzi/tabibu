@@ -83,10 +83,15 @@ outside the repository; raised each failing version to a current release that bu
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-27 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
+| Security Analyst | §4 flags security impact | N/A | — | No impact in §4 |
+| Compliance Officer | §4 flags data protection impact | N/A | — | No impact in §4 |
+| Lead Designer | §4 flags design-system impact | N/A | — | No impact in §4 |
 
 ## 9. Post-implementation review
 
-- Plan the AGP 9 upgrade before Flutter drops 8.x support.
+- Plan the AGP 9 upgrade before Flutter drops 8.x support. Done on 2026-10-29:
+  AGP 9.1.1 and JVM 17 ([CRQ-0037](./CRQ-0037-build-platform-and-repository.md)).
 
 ## 10. Related records
 
