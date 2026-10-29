@@ -28,6 +28,7 @@ FacilityModel _facility({
   required String name,
   required String type,
   required String level,
+  String owner = 'Private Practice - General Practitioner',
   bool operational = true,
 }) => FacilityModel(
   facilityId: id,
@@ -35,7 +36,7 @@ FacilityModel _facility({
   name: name,
   kephLevel: level,
   facilityType: type,
-  owner: 'Private',
+  owner: owner,
   wardId: 1,
   ward: 'Parklands',
   subCountyId: 2,
@@ -60,15 +61,52 @@ final FacilityModel _hospital = _facility(
 final FacilityModel _clinic = _facility(
   id: 'c1',
   name: 'Embakasi Clinic',
-  type: 'Clinic',
+  type: 'Medical Clinic',
   level: 'Level 3',
 );
 final FacilityModel _closed = _facility(
   id: 'x1',
   name: 'Closed Clinic',
-  type: 'Clinic',
+  type: 'Medical Clinic',
   level: 'Level 2',
   operational: false,
+);
+final FacilityModel _healthCentre = _facility(
+  id: 'h2',
+  name: 'Dandora Health Centre',
+  type: 'Basic Health Centre',
+  level: 'Level 3',
+);
+final FacilityModel _dispensary = _facility(
+  id: 'd1',
+  name: 'Kawangware Dispensary',
+  type: 'Dispensary',
+  level: 'Level 2',
+);
+final FacilityModel _pharmacy = _facility(
+  id: 'p1',
+  name: 'Muthurwa Pharmacy',
+  type: 'Pharmacy',
+  level: 'Level 2',
+);
+final FacilityModel _lab = _facility(
+  id: 'l1',
+  name: 'Lancet Pathologists',
+  type: 'Laboratory',
+  level: 'Level 3',
+  owner: 'Ministry of Health',
+);
+final FacilityModel _labTwo = _facility(
+  id: 'l2',
+  name: 'Metropolis Lab',
+  type: 'Laboratory',
+  level: 'Level 5',
+);
+final FacilityModel _hospitalLow = _facility(
+  id: 'h3',
+  name: 'Pumwani Hospital',
+  type: 'Hospital',
+  level: 'Level 4',
 );
 
 void main() {
@@ -126,6 +164,19 @@ void main() {
       return (captured.last as SignUpDraftUpdated).draft;
     }
 
+    Future<void> tapChip(WidgetTester tester, String label) async {
+      await tester.ensureVisible(find.text(label));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(label));
+      await tester.pumpAndSettle();
+    }
+
+    void asPathologist() {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
+      );
+    }
+
     testWidgets('renders in light and dark', (tester) async {
       await tester.pumpApp(screen(), themeMode: ThemeMode.light);
       await tester.pumpAndSettle();
@@ -147,25 +198,70 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('filters come from the data', (tester) async {
+    testWidgets('group chips come from the code, level chips from the data', (
+      tester,
+    ) async {
+      stubResults([_hospital, _clinic, _healthCentre, _dispensary]);
+
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
       expect(find.text('All'), findsOneWidget);
       expect(find.text('Hospital'), findsOneWidget);
+      expect(find.text('Health centre'), findsOneWidget);
       expect(find.text('Clinic'), findsOneWidget);
+      expect(find.text('Dispensary'), findsOneWidget);
+      expect(find.text('Level 2'), findsOneWidget);
+      expect(find.text('Level 3'), findsOneWidget);
       expect(find.text('Level 6'), findsOneWidget);
+      expect(find.text('Level 4'), findsNothing);
     });
 
-    testWidgets('a filter narrows the cards', (tester) async {
+    testWidgets('chips filter and combine', (tester) async {
+      stubResults([_hospital, _clinic, _healthCentre, _dispensary]);
+
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      await tester.tap(find.text('Hospital'));
+      await tapChip(tester, 'Clinic');
+      expect(find.text('Embakasi Clinic'), findsOneWidget);
+      expect(find.text('Aga Khan University Hospital'), findsNothing);
+
+      await tapChip(tester, 'Level 3');
+      expect(find.text('Embakasi Clinic'), findsOneWidget);
+
+      await tapChip(tester, 'Level 6');
+      expect(find.text('Embakasi Clinic'), findsNothing);
+      expect(find.text('No facilities found'), findsOneWidget);
+
+      await tapChip(tester, 'All');
+      expect(find.text('Embakasi Clinic'), findsOneWidget);
+      expect(find.text('Aga Khan University Hospital'), findsOneWidget);
+    });
+
+    testWidgets('with no query the highest level comes first', (tester) async {
+      stubResults([_healthCentre, _clinic, _hospital]);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final rows = [
+        'Aga Khan University Hospital',
+        'Dandora Health Centre',
+        'Embakasi Clinic',
+      ].map((name) => tester.getTopLeft(find.text(name)).dy).toList();
+      expect(rows, orderedEquals([...rows]..sort()));
+    });
+
+    testWidgets('pharmacies and labs are absent', (tester) async {
+      stubResults([_hospital, _pharmacy, _lab]);
+
+      await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
       expect(find.text('Aga Khan University Hospital'), findsOneWidget);
-      expect(find.text('Embakasi Clinic'), findsNothing);
+      expect(find.text('Muthurwa Pharmacy'), findsNothing);
+      expect(find.text('Lancet Pathologists'), findsNothing);
     });
 
     testWidgets('a closed facility cannot be chosen', (tester) async {
@@ -250,15 +346,90 @@ void main() {
     });
 
     testWidgets('a pathologist sees lab copy', (tester) async {
-      when(() => signUpBloc.state).thenReturn(
-        const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
-      );
+      asPathologist();
 
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
       expect(find.text('Which lab do you report from?'), findsOneWidget);
       expect(find.text('Accepting new cases'), findsOneWidget);
+      expect(
+        find.text(
+          'Report from more than one lab? '
+          'You can add others later in your profile.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('a pathologist sees labs and hospitals only', (tester) async {
+      asPathologist();
+      stubResults([_lab, _labTwo, _hospital, _hospitalLow, _clinic, _pharmacy]);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Lancet Pathologists'), findsOneWidget);
+      expect(find.text('Metropolis Lab'), findsOneWidget);
+      expect(find.text('Aga Khan University Hospital'), findsOneWidget);
+      expect(find.text('Pumwani Hospital'), findsOneWidget);
+      expect(find.text('Embakasi Clinic'), findsNothing);
+      expect(find.text('Muthurwa Pharmacy'), findsNothing);
+    });
+
+    testWidgets('pathologist chips filter and combine', (tester) async {
+      asPathologist();
+      stubResults([_lab, _labTwo, _hospital, _hospitalLow]);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Labs'), findsOneWidget);
+      expect(find.text('Hospitals'), findsOneWidget);
+      expect(find.text('Level 5'), findsOneWidget);
+
+      await tapChip(tester, 'Labs');
+      expect(find.text('Metropolis Lab'), findsOneWidget);
+      expect(find.text('Aga Khan University Hospital'), findsNothing);
+
+      await tapChip(tester, 'Level 5');
+      expect(find.text('Metropolis Lab'), findsOneWidget);
+      expect(find.text('Lancet Pathologists'), findsNothing);
+
+      await tapChip(tester, 'All');
+      expect(find.text('Lancet Pathologists'), findsOneWidget);
+      expect(find.text('Pumwani Hospital'), findsOneWidget);
+    });
+
+    testWidgets('pathologist rows show ownership, level and sub-county', (
+      tester,
+    ) async {
+      asPathologist();
+      stubResults([_hospital, _lab]);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Private · Level 6 · Westlands'), findsOneWidget);
+      expect(find.text('Public · Level 3 · Westlands'), findsOneWidget);
+    });
+
+    testWidgets('pathologist order is labs first, then level, then name', (
+      tester,
+    ) async {
+      asPathologist();
+      stubResults([_hospital, _lab, _hospitalLow, _labTwo]);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final rows = [
+        'Metropolis Lab',
+        'Lancet Pathologists',
+        'Aga Khan University Hospital',
+        'Pumwani Hospital',
+      ].map((name) => tester.getTopLeft(find.text(name)).dy).toList();
+      expect(rows, orderedEquals([...rows]..sort()));
     });
 
     testWidgets('back keeps the facility in the draft', (tester) async {

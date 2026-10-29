@@ -1228,6 +1228,38 @@
     "@filterAll": {
         "description": "Facility filter: all"
     },
+    "filterHospital": "Hospital",
+    "@filterHospital": {
+        "description": "Facility filter: hospitals"
+    },
+    "filterHealthCentre": "Health centre",
+    "@filterHealthCentre": {
+        "description": "Facility filter: health centres"
+    },
+    "filterClinic": "Clinic",
+    "@filterClinic": {
+        "description": "Facility filter: clinics"
+    },
+    "filterDispensary": "Dispensary",
+    "@filterDispensary": {
+        "description": "Facility filter: dispensaries"
+    },
+    "filterLabs": "Labs",
+    "@filterLabs": {
+        "description": "Facility filter: laboratories"
+    },
+    "filterHospitals": "Hospitals",
+    "@filterHospitals": {
+        "description": "Facility filter: hospitals, plural"
+    },
+    "ownerPublic": "Public",
+    "@ownerPublic": {
+        "description": "Facility row: public ownership"
+    },
+    "ownerPrivate": "Private",
+    "@ownerPrivate": {
+        "description": "Facility row: private ownership"
+    },
     "facilityPilotNotice": "The pilot covers Nairobi facilities for now.",
     "@facilityPilotNotice": {
         "description": "E3/F3 pilot notice"

@@ -15,6 +15,7 @@ import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_state.dart';
+import 'package:tabibu/features/facilities/data/facility_group.dart';
 import 'package:tabibu/features/facilities/data/models/facility_model.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -34,8 +35,10 @@ class _PractitionerFacilityScreenState
     extends State<PractitionerFacilityScreen> {
   late final TextEditingController _bioController;
   List<FacilityModel>? _results;
-  List<String> _filters = [];
-  String? _filter;
+  List<String> _levels = [];
+  FacilityGroup? _typeFilter;
+  String? _levelFilter;
+  String _query = '';
   String _facilityId = '';
   bool _isAvailable = true;
   AppError? _error;
@@ -60,17 +63,15 @@ class _PractitionerFacilityScreenState
     if (state is FacilitiesSearchSuccess) {
       setState(() {
         _results = state.results;
-        // The filters come from the first success, which answers the empty
-        // query sent at init (the whole list), so typing never reshuffles
-        // them.
-        if (_filters.isEmpty) {
-          final types = <String>{};
+        // The level chips come from the first success, which answers the
+        // empty query sent at init (the whole list), so typing never
+        // reshuffles them.
+        if (_levels.isEmpty) {
           final levels = <String>{};
           for (final facility in state.results) {
-            types.add(facility.facilityType);
             levels.add(facility.kephLevel);
           }
-          _filters = [...types.toList()..sort(), ...levels.toList()..sort()];
+          _levels = levels.toList()..sort();
         }
       });
     } else if (state is FacilitiesSearchFailure) {
@@ -79,6 +80,85 @@ class _PractitionerFacilityScreenState
       setState(() => _results = null);
     }
   }
+
+  /// The F3 list: labs and hospitals only, chips combine, and with no
+  /// query the labs come first, then the highest level.
+  List<FacilityModel> _pathologistVisible(List<FacilityModel> results) {
+    final visible = [
+      for (final facility in results)
+        if (_labListed(facility)) facility,
+    ];
+    if (_query.trim().isEmpty) {
+      visible.sort((a, b) {
+        final aIsLab =
+            facilityGroupOf(a.facilityType) == FacilityGroup.laboratory;
+        final bIsLab =
+            facilityGroupOf(b.facilityType) == FacilityGroup.laboratory;
+        if (aIsLab != bIsLab) return aIsLab ? -1 : 1;
+        final byLevel = _levelNumber(
+          b.kephLevel,
+        ).compareTo(_levelNumber(a.kephLevel));
+        if (byLevel != 0) return byLevel;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    }
+    return visible;
+  }
+
+  bool _labListed(FacilityModel facility) {
+    final group = facilityGroupOf(facility.facilityType);
+    if (group != FacilityGroup.laboratory && group != FacilityGroup.hospital) {
+      return false;
+    }
+    if (_typeFilter != null && group != _typeFilter) return false;
+    if (_levelFilter != null && facility.kephLevel != _levelFilter) {
+      return false;
+    }
+    return true;
+  }
+
+  /// Only state-run owners read as public; faith-based, NGO and company
+  /// facilities report as private.
+  bool _isPublicOwner(String owner) {
+    final normalized = owner.toLowerCase();
+    return normalized.startsWith('ministry of health') ||
+        normalized.startsWith('public institution') ||
+        normalized.startsWith('local authority') ||
+        normalized == 'armed forces' ||
+        normalized == 'community';
+  }
+
+  /// The E3 list: ungrouped types and labs excluded, chips combine, and with
+  /// no query the highest-level facilities come first.
+  List<FacilityModel> _doctorVisible(List<FacilityModel> results) {
+    final visible = [
+      for (final facility in results)
+        if (_doctorListed(facility)) facility,
+    ];
+    if (_query.trim().isEmpty) {
+      visible.sort((a, b) {
+        final byLevel = _levelNumber(
+          b.kephLevel,
+        ).compareTo(_levelNumber(a.kephLevel));
+        if (byLevel != 0) return byLevel;
+        return a.name.toLowerCase().compareTo(b.name.toLowerCase());
+      });
+    }
+    return visible;
+  }
+
+  bool _doctorListed(FacilityModel facility) {
+    final group = facilityGroupOf(facility.facilityType);
+    if (group == null || group == FacilityGroup.laboratory) return false;
+    if (_typeFilter != null && group != _typeFilter) return false;
+    if (_levelFilter != null && facility.kephLevel != _levelFilter) {
+      return false;
+    }
+    return true;
+  }
+
+  int _levelNumber(String level) =>
+      int.tryParse(level.replaceAll('Level ', '')) ?? 0;
 
   SignUpDraft _fill(SignUpDraft draft) => draft.copyWith(
     facilityId: _facilityId,
@@ -103,17 +183,22 @@ class _PractitionerFacilityScreenState
     final textTheme = Theme.of(context).textTheme;
     final role = context.watch<SignUpBloc>().state.draft.role;
     final isPathologist = role == Role.pathologist;
-    final filter = _filter;
     final results = _results;
     final visible = results == null
         ? null
-        : filter == null
-        ? results
+        : isPathologist
+        ? _pathologistVisible(results)
+        : _doctorVisible(results);
+    final groupChips = isPathologist
+        ? [
+            (FacilityGroup.laboratory, l10n.filterLabs),
+            (FacilityGroup.hospital, l10n.filterHospitals),
+          ]
         : [
-            for (final facility in results)
-              if (facility.facilityType == filter ||
-                  facility.kephLevel == filter)
-                facility,
+            (FacilityGroup.hospital, l10n.filterHospital),
+            (FacilityGroup.healthCentre, l10n.filterHealthCentre),
+            (FacilityGroup.clinic, l10n.filterClinic),
+            (FacilityGroup.dispensary, l10n.filterDispensary),
           ];
 
     return BlocListener<FacilitiesBloc, FacilitiesState>(
@@ -146,7 +231,10 @@ class _PractitionerFacilityScreenState
                   context,
                 ).deleteButtonTooltip,
                 onChanged: (query) {
-                  setState(() => _error = null);
+                  setState(() {
+                    _error = null;
+                    _query = query;
+                  });
                   context.read<FacilitiesBloc>().add(
                     FacilitiesSearchRequested(query),
                   );
@@ -159,15 +247,33 @@ class _PractitionerFacilityScreenState
                   children: [
                     TabibuFilterChip(
                       label: l10n.filterAll,
-                      selected: filter == null,
-                      onTap: () => setState(() => _filter = null),
+                      selected: _typeFilter == null && _levelFilter == null,
+                      onTap: () => setState(() {
+                        _typeFilter = null;
+                        _levelFilter = null;
+                      }),
                     ),
-                    for (final value in _filters) ...[
+                    for (final (group, label) in groupChips) ...[
                       const SizedBox(width: AppSpacing.xs),
                       TabibuFilterChip(
-                        label: value,
-                        selected: filter == value,
-                        onTap: () => setState(() => _filter = value),
+                        label: label,
+                        selected: _typeFilter == group,
+                        onTap: () => setState(
+                          () =>
+                              _typeFilter = _typeFilter == group ? null : group,
+                        ),
+                      ),
+                    ],
+                    for (final level in _levels) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      TabibuFilterChip(
+                        label: level,
+                        selected: _levelFilter == level,
+                        onTap: () => setState(
+                          () => _levelFilter = _levelFilter == level
+                              ? null
+                              : level,
+                        ),
                       ),
                     ],
                   ],
@@ -192,15 +298,21 @@ class _PractitionerFacilityScreenState
                   itemCount: visible.length,
                   itemBuilder: (context, index) {
                     final facility = visible[index];
+                    final ownership = _isPublicOwner(facility.owner)
+                        ? l10n.ownerPublic
+                        : l10n.ownerPrivate;
+                    final supporting = isPathologist
+                        ? '$ownership · ${facility.kephLevel} · '
+                              '${facility.subCounty}'
+                        : '${facility.kephLevel} · ${facility.ward}, '
+                              '${facility.subCounty} · MFL ${facility.mflCode}';
                     final card = OptionCard(
                       icon: isPathologist
                           ? Assets.icons.testTubeIcon
                           : Assets.icons.facilityIcon,
                       tone: isPathologist ? .lavender : .mint,
                       title: facility.name,
-                      supporting:
-                          '${facility.kephLevel} · ${facility.ward}, '
-                          '${facility.subCounty} · MFL ${facility.mflCode}',
+                      supporting: supporting,
                       selected: _facilityId == facility.facilityId,
                       onTap: facility.isOperational
                           ? () => setState(() {
