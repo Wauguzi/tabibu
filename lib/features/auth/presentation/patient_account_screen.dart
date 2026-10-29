@@ -11,6 +11,7 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/presentation/widgets/field_errors.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
@@ -57,7 +58,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
       return;
     }
     if (!isValidEmail(_emailController.text)) {
-      setState(() => _localError = AppError.invalidEmail);
+      setState(() => _localError = .invalidEmail);
       return;
     }
     setState(() => _localError = null);
@@ -74,14 +75,17 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
     final l10n = context.l10n;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      // From the listener, not the builder: a stale failure must not
+      // reappear when the screen is revisited.
       listener: (context, state) {
         if (state is CreateAccountSuccess) _next(state.session);
+        if (state is CreateAccountFailure) {
+          setState(() => _localError = state.error);
+        }
       },
       builder: (context, state) {
         final busy = state is CreateAccountInProgress;
-        final failure = state is CreateAccountFailure
-            ? state.error
-            : _localError;
+        final failure = _localError;
         final signedIn = state.session is SignUpIncompleteSession;
         final strongEnough = isPasswordStrong(_passwordController.text);
 
@@ -92,7 +96,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
           onBack: busy ? null : () => Navigator.of(context).pop(),
           title: l10n.patientAccountTitle,
           subtitle: l10n.patientAccountSubtitle,
-          error: failure,
+          error: failure != null && fieldFor(failure) == null ? failure : null,
           role: Role.patient,
           footer: TabibuButton.primary(
             label: l10n.commonContinue,
@@ -108,17 +112,34 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
                   ignoring: busy,
                   child: Column(
                     children: [
-                      TabibuTextField(
-                        label: l10n.accountEmailLabel,
-                        hint: l10n.accountEmailHint,
-                        controller: _emailController,
-                        leading: FieldIcon(Assets.icons.emailIcon),
-                        errorText: _localError?.description(l10n),
-                        required: true,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email],
-                        onChanged: (_) => setState(() => _localError = null),
+                      Focus(
+                        onFocusChange: (hasFocus) {
+                          if (!hasFocus &&
+                              _emailController.text.trim().isNotEmpty &&
+                              !isValidEmail(_emailController.text)) {
+                            setState(() => _localError = .invalidEmail);
+                          }
+                        },
+                        child: TabibuTextField(
+                          label: l10n.accountEmailLabel,
+                          hint: l10n.accountEmailHint,
+                          controller: _emailController,
+                          leading: FieldIcon(Assets.icons.emailIcon),
+                          errorText:
+                              failure != null && fieldFor(failure) == .email
+                              ? fieldErrorText(failure, l10n)
+                              : null,
+                          required: true,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
+                          onChanged: (_) => setState(
+                            () => _localError = errorAfterChange(
+                              _localError,
+                              .email,
+                            ),
+                          ),
+                        ),
                       ),
                       const SizedBox(height: AppSpacing.md),
                       PasswordField(
@@ -126,10 +147,19 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
                         showLabel: l10n.passwordShow,
                         hideLabel: l10n.passwordHide,
                         controller: _passwordController,
+                        errorText:
+                            failure != null && fieldFor(failure) == .password
+                            ? fieldErrorText(failure, l10n)
+                            : null,
                         required: true,
                         textInputAction: TextInputAction.done,
                         autofillHints: const [AutofillHints.newPassword],
-                        onChanged: (_) => setState(() {}),
+                        onChanged: (_) => setState(
+                          () => _localError = errorAfterChange(
+                            _localError,
+                            .password,
+                          ),
+                        ),
                         onSubmitted: (_) {
                           if (signedIn || strongEnough) _submit(signedIn);
                         },

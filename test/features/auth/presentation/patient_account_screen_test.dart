@@ -96,7 +96,9 @@ void main() {
       ).called(1);
     });
 
-    testWidgets('a bad email shows its message', (tester) async {
+    testWidgets('a bad email shows its message under the field, once', (
+      tester,
+    ) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
@@ -106,10 +108,34 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      expect(find.text('The email address is not valid.'), findsNWidgets(2));
+      expect(
+        find.text("That doesn't look like an email address"),
+        findsOneWidget,
+      );
+      expect(find.byType(NoticeCard), findsNothing);
     });
 
-    testWidgets('a failure shows its message', (tester) async {
+    testWidgets('the email is checked when the field loses focus', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).at(0), 'not-an-email');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField).at(1));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("That doesn't look like an email address"),
+        findsOneWidget,
+      );
+      expect(find.byType(NoticeCard), findsNothing);
+    });
+
+    testWidgets('emailAlreadyInUse from the bloc shows under the email field', (
+      tester,
+    ) async {
       whenListen(
         authBloc,
         Stream.fromIterable([
@@ -123,7 +149,92 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
+      expect(
+        find.text('An account already uses this email. Sign in instead.'),
+        findsOneWidget,
+      );
+      expect(find.byType(NoticeCard), findsNothing);
+    });
+
+    testWidgets('typing a password keeps the email message', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const CreateAccountFailure(
+            session: SignedOutSession(),
+            error: AppError.emailAlreadyInUse,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(1), 'Str0ng!pass');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('An account already uses this email. Sign in instead.'),
+        findsOneWidget,
+      );
+
+      await tester.enterText(find.byType(TextField).at(0), 'a@b.co');
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('An account already uses this email. Sign in instead.'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('leaving an empty email shows no message', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(TextField).at(0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(TextField).at(1));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("That doesn't look like an email address"),
+        findsNothing,
+      );
+    });
+
+    testWidgets('no connection shows in the notice', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const CreateAccountFailure(
+            session: SignedOutSession(),
+            error: AppError.noInternet,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
       expect(find.byType(NoticeCard), findsOneWidget);
+      expect(find.text('No internet access.'), findsOneWidget);
+    });
+
+    testWidgets('an old failure does not reappear on revisit', (tester) async {
+      when(() => authBloc.state).thenReturn(
+        const CreateAccountFailure(
+          session: SignedOutSession(),
+          error: AppError.emailAlreadyInUse,
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('An account already uses this email. Sign in instead.'),
+        findsNothing,
+      );
+      expect(find.byType(NoticeCard), findsNothing);
     });
 
     testWidgets('success goes to D3', (tester) async {
