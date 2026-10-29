@@ -884,10 +884,6 @@
     "@dobHint": {
         "description": "D1 date of birth empty hint"
     },
-    "dobPickerHelp": "Select your date of birth",
-    "@dobPickerHelp": {
-        "description": "Date picker help text"
-    },
     "patientAccountTitle": "Your email and a password",
     "@patientAccountTitle": {
         "description": "D2 title"

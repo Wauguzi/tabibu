@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoDatePicker;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -250,10 +251,23 @@ void main() {
       await tester.tap(find.text('Select date'));
       await tester.pumpAndSettle();
 
-      expect(find.byType(DatePickerDialog), findsOneWidget);
-      await tester.tap(find.text('Cancel'));
+      expect(find.byType(CupertinoDatePicker), findsOneWidget);
+      await tester.tapAt(const Offset(20, 20));
       await tester.pumpAndSettle();
-      expect(find.byType(DatePickerDialog), findsNothing);
+      expect(find.byType(CupertinoDatePicker), findsNothing);
+    });
+
+    testWidgets('the field shows the formatted date', (tester) async {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(
+          draft: SignUpDraft(role: Role.patient, dateOfBirth: '1980-03-14'),
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('14 Mar 1980'), findsOneWidget);
     });
 
     testWidgets('a picked photo replaces Add with Change', (tester) async {

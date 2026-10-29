@@ -1,5 +1,11 @@
 import 'dart:async';
 
+import 'package:cupertino_ui/cupertino_ui.dart'
+    show
+        CupertinoDatePicker,
+        CupertinoTheme,
+        CupertinoThemeData,
+        showCupertinoModalPopup;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
@@ -71,21 +77,44 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
   }
 
   Future<void> _pickBirthDate() async {
-    final l10n = context.l10n;
     final now = DateTime.now();
-    final picked = await showDatePicker(
+    final brightness = Theme.of(context).brightness;
+    final surface = Theme.of(context).colorScheme.surfaceContainerLowest;
+    await showCupertinoModalPopup<void>(
       context: context,
-      helpText: l10n.dobPickerHelp,
-      initialDate: _birthDate ?? DateTime(now.year - 25, now.month, now.day),
-      firstDate: DateTime(now.year - 120),
-      lastDate: now,
+      builder: (context) => Container(
+        height: 216,
+        padding: const EdgeInsets.only(top: 6),
+        margin: EdgeInsets.only(
+          bottom: MediaQuery.viewInsetsOf(context).bottom,
+        ),
+        decoration: BoxDecoration(
+          color: surface,
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(30),
+            topRight: Radius.circular(30),
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: CupertinoTheme(
+            data: CupertinoThemeData(brightness: brightness),
+            child: CupertinoDatePicker(
+              backgroundColor: Colors.transparent,
+              initialDateTime:
+                  _birthDate ?? DateTime(now.year - 25, now.month, now.day),
+              minimumDate: DateTime(1900),
+              maximumDate: now,
+              mode: .date,
+              onDateTimeChanged: (picked) => setState(() {
+                _birthDate = picked;
+                _error = errorAfterChange(_error, .dateOfBirth);
+              }),
+            ),
+          ),
+        ),
+      ),
     );
-    if (picked != null) {
-      setState(() {
-        _birthDate = picked;
-        _error = errorAfterChange(_error, .dateOfBirth);
-      });
-    }
   }
 
   SignUpDraft _fill(SignUpDraft draft) {
