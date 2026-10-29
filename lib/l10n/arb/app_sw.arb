@@ -358,5 +358,14 @@
     "splashTagline": "Huduma unayoiamini, kutoka ziara yako ya kwanza hadi matokeo yaliyosainiwa",
     "errorEmailNotVerified": "Thibitisha barua pepe yako kwanza. Fungua kiungo tulichokutumia.",
     "introBookTitleA": "Wahudumu walioidhinishwa",
-    "introBookTitleB": "pekee"
+    "introBookTitleB": "pekee",
+    "verifyEmailTitle": "Angalia barua pepe yako",
+    "verifyEmailBody": "Tumetuma kiungo kwa {email}. Kifungue, kisha urudi ubonyeze Nimethibitisha.",
+    "verifyEmailHint": "Huioni? Angalia barua taka, au utume kiungo tena.",
+    "verifyEmailResend": "Tuma kiungo tena",
+    "verifyEmailResendIn": "Tuma tena baada ya sekunde {seconds}",
+    "verifyEmailResent": "Imetumwa. Angalia kikasha chako.",
+    "verifyEmailVerified": "Nimethibitisha",
+    "verifyEmailNotYet": "Bado haijathibitishwa. Fungua kiungo kwenye barua pepe, kisha ubonyeze Nimethibitisha.",
+    "verifyEmailBackToSignIn": "Rudi kuingia"
 }

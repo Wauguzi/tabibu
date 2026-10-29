@@ -156,7 +156,10 @@ void main() {
     testWidgets('a signed-in account skips creation', (tester) async {
       when(() => authBloc.state).thenReturn(
         const SignInSuccess(
-          session: SignUpIncompleteSession(email: 'w.kamau@akuh.example'),
+          session: SignUpIncompleteSession(
+            email: 'w.kamau@akuh.example',
+            emailVerified: true,
+          ),
         ),
       );
       when(() => signUpBloc.state).thenReturn(
@@ -228,7 +231,10 @@ void main() {
         authBloc,
         Stream.fromIterable([
           const CreateAccountSuccess(
-            session: SignUpIncompleteSession(email: 'w.kamau@akuh.example'),
+            session: SignUpIncompleteSession(
+              email: 'w.kamau@akuh.example',
+              emailVerified: true,
+            ),
           ),
         ]),
       );
@@ -250,6 +256,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('E2 stub'), findsOneWidget);
+    });
+
+    testWidgets('an unconfirmed address goes to verification', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const CreateAccountSuccess(
+            session: SignUpIncompleteSession(email: 'w.kamau@akuh.example'),
+          ),
+        ]),
+      );
+
+      final router = GoRouter(
+        initialLocation: '/sign-up/practitioner/details',
+        routes: [
+          GoRoute(
+            path: '/sign-up/practitioner/details',
+            builder: (_, _) => screen(),
+          ),
+          GoRoute(
+            path: '/account/verify-email',
+            builder: (_, _) => const Text('verify stub'),
+          ),
+        ],
+      );
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      expect(find.text('verify stub'), findsOneWidget);
     });
   });
 }

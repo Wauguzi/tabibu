@@ -1541,5 +1541,51 @@
     "introBookTitleB": "clinicians",
     "@introBookTitleB": {
         "description": "A3 title after the portrait pill"
+    },
+    "verifyEmailTitle": "Check your email",
+    "@verifyEmailTitle": {
+        "description": "Verify-email screen title"
+    },
+    "verifyEmailBody": "We sent a link to {email}. Open it, then come back and tap Verified.",
+    "@verifyEmailBody": {
+        "description": "Verify-email body; email is masked",
+        "placeholders": {
+            "email": {
+                "type": "String"
+            }
+        }
+    },
+    "verifyEmailHint": "Can't find it? Check spam, or resend the link.",
+    "@verifyEmailHint": {
+        "description": "Verify-email notice"
+    },
+    "verifyEmailResend": "Resend the link",
+    "@verifyEmailResend": {
+        "description": "Verify-email resend link"
+    },
+    "verifyEmailResendIn": "Resend in {seconds}s",
+    "@verifyEmailResendIn": {
+        "description": "Verify-email resend cooldown",
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "verifyEmailResent": "Sent. Check your inbox.",
+    "@verifyEmailResent": {
+        "description": "Verify-email resend success"
+    },
+    "verifyEmailVerified": "Verified",
+    "@verifyEmailVerified": {
+        "description": "Verify-email primary button"
+    },
+    "verifyEmailNotYet": "Not verified yet. Open the link in the email, then tap Verified.",
+    "@verifyEmailNotYet": {
+        "description": "Verify-email check found the address unverified"
+    },
+    "verifyEmailBackToSignIn": "Back to sign in",
+    "@verifyEmailBackToSignIn": {
+        "description": "Verify-email: sign out and return to sign-in"
     }
 }

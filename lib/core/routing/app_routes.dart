@@ -20,6 +20,7 @@ import 'package:tabibu/features/auth/presentation/reset_password_sent_screen.dar
 import 'package:tabibu/features/auth/presentation/role_screen.dart';
 import 'package:tabibu/features/auth/presentation/sign_in_screen.dart';
 import 'package:tabibu/features/auth/presentation/verified_screen.dart';
+import 'package:tabibu/features/auth/presentation/verify_email_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/get_started_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/intro_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/language_screen.dart';
@@ -264,7 +265,7 @@ class VerifyEmailRoute extends GoRouteData with $VerifyEmailRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'Verify your email');
+      const VerifyEmailScreen();
 }
 
 @TypedGoRoute<PendingVerificationRoute>(path: '${RoutePaths.account}/pending')

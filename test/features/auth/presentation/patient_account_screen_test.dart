@@ -131,7 +131,10 @@ void main() {
         authBloc,
         Stream.fromIterable([
           const CreateAccountSuccess(
-            session: SignUpIncompleteSession(email: 'a@b.co'),
+            session: SignUpIncompleteSession(
+              email: 'a@b.co',
+              emailVerified: true,
+            ),
           ),
         ]),
       );
@@ -153,6 +156,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('D3 stub'), findsOneWidget);
+    });
+
+    testWidgets('an unconfirmed address goes to verification', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const CreateAccountSuccess(
+            session: SignUpIncompleteSession(email: 'a@b.co'),
+          ),
+        ]),
+      );
+
+      final router = GoRouter(
+        initialLocation: '/sign-up/patient/account',
+        routes: [
+          GoRoute(
+            path: '/sign-up/patient/account',
+            builder: (_, _) => screen(),
+          ),
+          GoRoute(
+            path: '/account/verify-email',
+            builder: (_, _) => const Text('verify stub'),
+          ),
+        ],
+      );
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      expect(find.text('verify stub'), findsOneWidget);
     });
 
     testWidgets('back from D2 shows D1 with the draft intact', (tester) async {

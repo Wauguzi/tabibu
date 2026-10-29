@@ -76,8 +76,17 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     return name.isEmpty ? '?' : name;
   }
 
+  // An unconfirmed address is confirmed before E2; the server refuses a
+  // profile without it.
   void _forward() {
-    unawaited(const PractitionerLicenceRoute().push<void>(context));
+    final session = context.read<AuthBloc>().state.session;
+    final confirmed =
+        session is! SignUpIncompleteSession || session.emailVerified;
+    unawaited(
+      confirmed
+          ? const PractitionerLicenceRoute().push<void>(context)
+          : const VerifyEmailRoute().push<void>(context),
+    );
   }
 
   Future<void> _pickTitle() async {

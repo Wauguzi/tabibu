@@ -37,10 +37,22 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
     super.dispose();
   }
 
+  // An unconfirmed address is confirmed before D3; the server refuses a
+  // profile without it.
+  void _next(AuthSession session) {
+    final confirmed =
+        session is! SignUpIncompleteSession || session.emailVerified;
+    unawaited(
+      confirmed
+          ? const PatientPhoneRoute().push<void>(context)
+          : const VerifyEmailRoute().push<void>(context),
+    );
+  }
+
   void _submit(bool signedIn) {
     // Backed into from D3: the account already exists.
     if (signedIn) {
-      unawaited(const PatientPhoneRoute().push<void>(context));
+      _next(context.read<AuthBloc>().state.session);
       return;
     }
     if (!isValidEmail(_emailController.text)) {
@@ -62,9 +74,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
 
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
-        if (state is CreateAccountSuccess) {
-          unawaited(const PatientPhoneRoute().push<void>(context));
-        }
+        if (state is CreateAccountSuccess) _next(state.session);
       },
       builder: (context, state) {
         final busy = state is CreateAccountInProgress;

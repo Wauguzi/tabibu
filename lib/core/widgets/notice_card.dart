@@ -12,13 +12,15 @@ enum NoticeVariant { info, attention, neutral, aiDraft, signed, private, error }
 /// A notice card: an icon with a title and body on the tone's container.
 /// The title is optional; several notices lead with the body alone. Draft
 /// and signed notices carry fixed icons (and the draft a dashed frame), so
-/// the caller must not pass one for them.
+/// the caller must not pass one for them. An [action], such as a link, sits
+/// under the body.
 class NoticeCard extends StatelessWidget {
   const NoticeCard({
     required this.body,
     required this.variant,
     this.icon,
     this.title,
+    this.action,
     super.key,
   }) : assert(
          icon == null ||
@@ -31,6 +33,7 @@ class NoticeCard extends StatelessWidget {
   final String? title;
   final String body;
   final NoticeVariant variant;
+  final Widget? action;
 
   @override
   Widget build(BuildContext context) {
@@ -69,6 +72,7 @@ class NoticeCard extends StatelessWidget {
     };
 
     final title = this.title;
+    final action = this.action;
     final card = Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -94,6 +98,10 @@ class NoticeCard extends StatelessWidget {
                   body,
                   style: textTheme.bodyMedium?.copyWith(color: foreground),
                 ),
+                if (action != null) ...[
+                  const SizedBox(height: AppSpacing.xs),
+                  action,
+                ],
               ],
             ),
           ),
