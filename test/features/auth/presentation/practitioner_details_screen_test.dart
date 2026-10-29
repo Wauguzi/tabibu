@@ -300,7 +300,9 @@ void main() {
       ).called(1);
     });
 
-    testWidgets('a signed-in account skips creation', (tester) async {
+    testWidgets('once the account exists, E1 is read-only and moves on', (
+      tester,
+    ) async {
       when(() => authBloc.state).thenReturn(
         const SignInSuccess(
           session: SignUpIncompleteSession(
@@ -341,9 +343,30 @@ void main() {
       );
       await tester.pumpRouterApp(router);
       await tester.pumpAndSettle();
-      await fillAll(tester);
+
+      // The account's email shows and cannot change; no password is asked.
+      final email = find.widgetWithText(TextField, 'w.kamau@akuh.example');
+      expect(email, findsOneWidget);
+      expect(tester.widget<TextField>(email).readOnly, isTrue);
+      expect(find.byType(PasswordField), findsNothing);
+      expect(
+        find.text(
+          'Your account is set up with this email. Continue to the next step.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Choose your title'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dr.').last);
+      await tester.pumpAndSettle();
+      await tester.enterText(find.byType(TextField).at(0), 'Wanjiru');
+      await tester.enterText(find.byType(TextField).at(1), 'Kamau');
+      await tester.enterText(find.byType(TextField).at(3), '722118450');
+      await tester.pumpAndSettle();
 
       // The photo comes from the draft on this path.
+      await tester.ensureVisible(find.text('Continue'));
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 

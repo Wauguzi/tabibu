@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
@@ -82,17 +83,110 @@ void main() {
       expect(find.text('Up next'), findsNWidgets(2));
     });
 
-    testWidgets('every button is present, in order', (tester) async {
+    testWidgets('Check again sits above Sign out, the way out', (tester) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      final tops = [
-        'Check again',
-        'Explore Tabibu',
-        'Contact support',
-        'Sign out',
-      ].map((label) => tester.getTopLeft(find.text(label)).dy).toList();
-      expect(tops, orderedEquals([...tops]..sort()));
+      expect(
+        tester.getTopLeft(find.text('Check again')).dy,
+        lessThan(tester.getTopLeft(find.text('Sign out')).dy),
+      );
+      expect(find.text('Explore Tabibu'), findsNothing);
+      expect(find.text('Contact support'), findsNothing);
+    });
+
+    // Cupertino sheet routes never settle.
+    Future<void> settleSheet(WidgetTester tester) async {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+    }
+
+    testWidgets('Sign out asks first, then signs out', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Sign out'));
+      await settleSheet(tester);
+      expect(find.text('Sign out of Tabibu?'), findsOneWidget);
+      verifyNever(() => authBloc.add(const SignOutRequested()));
+
+      await tester.tap(
+        find.descendant(
+          of: find.byType(TabibuBottomSheet),
+          matching: find.text('Sign out'),
+        ),
+      );
+      await settleSheet(tester);
+
+      verify(() => authBloc.add(const SignOutRequested())).called(1);
+    });
+
+    testWidgets('a check that finds no change says so', (tester) async {
+      final session = PendingVerificationSession(doctor: _doctor());
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          SessionLoadInProgress(session: session),
+          SessionLoadSuccess(session: session),
+        ]),
+        initialState: SignInSuccess(session: session),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        find.text("Not verified yet. We'll let you know the moment it's done."),
+        findsOneWidget,
+      );
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
+    });
+
+    testWidgets('a check that finds a rejection does not say "not yet"', (
+      tester,
+    ) async {
+      final session = PendingVerificationSession(
+        doctor: _doctor(verificationStatus: 'Rejected'),
+      );
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          SessionLoadInProgress(session: session),
+          SessionLoadSuccess(session: session),
+        ]),
+        initialState: SignInSuccess(session: session),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(
+        find.text("Not verified yet. We'll let you know the moment it's done."),
+        findsNothing,
+      );
+      expect(find.text("Verification didn't pass"), findsOneWidget);
+    });
+
+    testWidgets('a failed sign-out says why', (tester) async {
+      final session = PendingVerificationSession(doctor: _doctor());
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          SignOutFailure(session: session, error: AppError.noInternet),
+        ]),
+        initialState: SignInSuccess(session: session),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('No internet access.'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('check again refreshes the session', (tester) async {

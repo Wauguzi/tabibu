@@ -85,7 +85,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text("You're verified, Dr. Otieno"), findsOneWidget);
-      expect(find.text('Finish my profile'), findsOneWidget);
+      expect(find.text('Finish my profile'), findsNothing);
     });
 
     testWidgets('a doctor goes to their day', (tester) async {

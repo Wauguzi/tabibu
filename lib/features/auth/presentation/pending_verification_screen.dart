@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -8,6 +10,7 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/presentation/widgets/sign_out_sheet.dart';
 import 'package:tabibu/features/auth/presentation/widgets/timeline_helpers.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -32,7 +35,39 @@ class PendingVerificationScreen extends StatelessWidget {
         doctor.verificationStatusValue == VerificationStatus.rejected;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      listenWhen: (previous, current) =>
+          current is SignOutFailure ||
+          (current is SessionLoadSuccess &&
+              (current.session is PractitionerSession ||
+                  previous is SessionLoadInProgress)),
       listener: (context, state) {
+        if (state is SignOutFailure) {
+          unawaited(
+            showTabibuNotification(
+              context,
+              message: state.error.description(l10n),
+              isError: true,
+              dismissLabel: l10n.commonDismiss,
+            ),
+          );
+          return;
+        }
+        // A check that finds no change says so, instead of looking as if
+        // nothing happened. A rejection changes the title instead.
+        final checked = state.session;
+        if (state is SessionLoadSuccess &&
+            checked is PendingVerificationSession &&
+            checked.doctor.verificationStatusValue !=
+                VerificationStatus.rejected) {
+          unawaited(
+            showTabibuNotification(
+              context,
+              message: l10n.pendingStillChecking,
+              isError: false,
+              dismissLabel: l10n.commonDismiss,
+            ),
+          );
+        }
         if (state is SessionLoadSuccess &&
             state.session is PractitionerSession) {
           const VerifiedRoute().go(context);
@@ -40,6 +75,7 @@ class PendingVerificationScreen extends StatelessWidget {
       },
       builder: (context, state) {
         final busy = state is SessionLoadInProgress;
+        final signingOut = state is SignOutInProgress;
         final failure = state is SessionLoadFailure ? state.error : null;
 
         final scaffold = Scaffold(
@@ -100,29 +136,27 @@ class PendingVerificationScreen extends StatelessWidget {
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  TabibuButton.primary(
+                  TabibuButton.secondary(
                     label: l10n.pendingCheckAgain,
                     isLoading: busy,
-                    onTap: busy
+                    onTap: busy || signingOut
                         ? null
                         : () => context.read<AuthBloc>().add(
                             const SessionRequested(forceRefresh: true),
                           ),
                   ),
-                  // The reviewer wires these; the order matches the design,
-                  // with check-again and sign-out around it.
                   const SizedBox(height: AppSpacing.sm),
-                  TabibuButton.secondary(
-                    label: l10n.pendingExplore,
-                    onTap: () {},
+                  // Pending holds no role, so no profile tab: this is the way
+                  // out, here and when a pending practitioner signs in.
+                  TabibuButton.primary(
+                    label: l10n.profileSignOut,
+                    isLoading: signingOut,
+                    onTap: busy || signingOut
+                        ? null
+                        : () => unawaited(
+                            confirmSignOut(context, isPatient: false),
+                          ),
                   ),
-                  const SizedBox(height: AppSpacing.sm),
-                  TabibuButton.ghost(
-                    label: l10n.pendingContactSupport,
-                    onTap: () {},
-                  ),
-                  const SizedBox(height: AppSpacing.sm),
-                  TabibuButton.ghost(label: l10n.profileSignOut, onTap: () {}),
                 ],
               ),
             ),

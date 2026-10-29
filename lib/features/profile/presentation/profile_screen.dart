@@ -9,9 +9,9 @@ import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
-import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/presentation/widgets/sign_out_sheet.dart';
 import 'package:tabibu/features/home/presentation/widgets/shell_tab_page.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
@@ -37,30 +37,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   bool _biometrics = false;
   bool? _healthNotices;
   bool? _acceptCases;
-
-  Future<void> _confirmSignOut() async {
-    final l10n = context.l10n;
-    final confirmed = await TabibuBottomSheet.show<bool>(
-      context,
-      leading: IconTile(
-        icon: Assets.icons.signOutIcon,
-        tone: .danger,
-        size: .l,
-      ),
-      title: l10n.signOutTitle,
-      subtitle: widget.role == .patient
-          ? l10n.signOutPatientBody
-          : l10n.signOutPractitionerBody,
-      cancelLabel: l10n.commonCancel,
-      builder: (sheet) => TabibuButton.primary(
-        label: l10n.profileSignOut,
-        onTap: () => Navigator.of(sheet).pop(true),
-      ),
-    );
-    if (confirmed != true || !mounted) return;
-    // The guard moves this route to sign-in once the session clears.
-    context.read<AuthBloc>().add(const SignOutRequested());
-  }
 
   String _languageName(AppLocalizations l10n) =>
       Localizations.localeOf(context).languageCode == 'sw'
@@ -90,7 +66,11 @@ class _ProfileScreenState extends State<ProfileScreen> {
           icon: Assets.icons.signOutIcon,
           title: l10n.profileSignOut,
           destructive: true,
-          onTap: signingOut ? null : () => unawaited(_confirmSignOut()),
+          onTap: signingOut
+              ? null
+              : () => unawaited(
+                  confirmSignOut(context, isPatient: widget.role == .patient),
+                ),
         ),
         SettingsRow(
           icon: Assets.icons.deleteIcon,

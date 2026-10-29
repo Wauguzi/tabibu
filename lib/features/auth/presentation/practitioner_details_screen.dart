@@ -299,6 +299,9 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                               ? fieldErrorText(failure, l10n)
                               : null,
                           required: true,
+                          // The account exists: Continue moves on, so an
+                          // edit here would change nothing.
+                          readOnly: signedIn,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.email],
@@ -332,42 +335,51 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        PasswordField(
-                          label: l10n.passwordLabel,
-                          showLabel: l10n.passwordShow,
-                          hideLabel: l10n.passwordHide,
-                          controller: _passwordController,
-                          errorText: failure == .weakPassword
-                              ? fieldErrorText(failure!, l10n)
-                              : null,
-                          required: true,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: const [AutofillHints.newPassword],
-                          onChanged: (_) => setState(
-                            () => _localError = errorAfterChange(
-                              _localError,
-                              .password,
+                        if (!signedIn) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          PasswordField(
+                            label: l10n.passwordLabel,
+                            showLabel: l10n.passwordShow,
+                            hideLabel: l10n.passwordHide,
+                            controller: _passwordController,
+                            errorText: failure == .weakPassword
+                                ? fieldErrorText(failure!, l10n)
+                                : null,
+                            required: true,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.newPassword],
+                            onChanged: (_) => setState(
+                              () => _localError = errorAfterChange(
+                                _localError,
+                                .password,
+                              ),
                             ),
+                            onSubmitted: (_) {
+                              if (strongEnough) _submit();
+                            },
                           ),
-                          onSubmitted: (_) {
-                            if (signedIn || strongEnough) _submit();
-                          },
-                        ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  PasswordStrengthMeter(
-                    password: _passwordController.text,
-                    strengthWord: passwordStrengthWord(
-                      _passwordController.text,
-                      l10n,
+                  if (signedIn)
+                    NoticeCard(
+                      variant: .info,
+                      icon: Assets.icons.infoIcon,
+                      body: l10n.accountCreatedNotice,
+                    )
+                  else
+                    PasswordStrengthMeter(
+                      password: _passwordController.text,
+                      strengthWord: passwordStrengthWord(
+                        _passwordController.text,
+                        l10n,
+                      ),
+                      lengthLabel: l10n.passwordRuleLength,
+                      numberLabel: l10n.passwordRuleNumber,
+                      symbolLabel: l10n.passwordRuleSymbol,
                     ),
-                    lengthLabel: l10n.passwordRuleLength,
-                    numberLabel: l10n.passwordRuleNumber,
-                    symbolLabel: l10n.passwordRuleSymbol,
-                  ),
                 ],
               ),
             ),

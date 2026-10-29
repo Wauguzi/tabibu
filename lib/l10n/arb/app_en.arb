@@ -1488,7 +1488,7 @@
             }
         }
     },
-    "pendingNotice": "Meanwhile, you can explore Tabibu and finish your profile.",
+    "pendingNotice": "You can sign out now and sign in again later to see where it stands.",
     "@pendingNotice": {
         "description": "E5 notice"
     },
@@ -1496,13 +1496,9 @@
     "@pendingCheckAgain": {
         "description": "E5 check again"
     },
-    "pendingExplore": "Explore Tabibu",
-    "@pendingExplore": {
-        "description": "E5 explore"
-    },
-    "pendingContactSupport": "Contact support",
-    "@pendingContactSupport": {
-        "description": "E5 contact support"
+    "pendingStillChecking": "Not verified yet. We'll let you know the moment it's done.",
+    "@pendingStillChecking": {
+        "description": "E5/F4b: Check again found the account still pending"
     },
     "chipDone": "Done",
     "@chipDone": {
@@ -1575,10 +1571,6 @@
     "verifiedDoctorButton": "Go to my day",
     "@verifiedDoctorButton": {
         "description": "E6 action"
-    },
-    "verifiedFinishProfile": "Finish my profile",
-    "@verifiedFinishProfile": {
-        "description": "E6 finish profile"
     },
     "verifiedPathologistButton": "Go to my desk",
     "@verifiedPathologistButton": {
@@ -1920,8 +1912,8 @@
     "@signOutPractitionerBody": {
         "description": "Sign-out sheet body for doctors and pathologists"
     },
-    "patientAccountCreatedNotice": "Your account is set up with this email. Continue to the next step.",
-    "@patientAccountCreatedNotice": {
-        "description": "D2 once the account exists: why the email cannot change"
+    "accountCreatedNotice": "Your account is set up with this email. Continue to the next step.",
+    "@accountCreatedNotice": {
+        "description": "D2 and E1 once the account exists: why the email cannot change"
     }
 }

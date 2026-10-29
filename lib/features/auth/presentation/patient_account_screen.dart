@@ -207,7 +207,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
                     NoticeCard(
                       variant: .info,
                       icon: Assets.icons.infoIcon,
-                      body: l10n.patientAccountCreatedNotice,
+                      body: l10n.accountCreatedNotice,
                     )
                   else
                     PasswordStrengthMeter(
