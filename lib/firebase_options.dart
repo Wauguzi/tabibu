@@ -59,8 +59,10 @@ class DefaultFirebaseOptions {
     messagingSenderId: '270369739916',
     projectId: 'tabibu-86ea2',
     storageBucket: 'tabibu-86ea2.firebasestorage.app',
-    androidClientId: '270369739916-3bi06p7337k32nvn5o5gsplhpvo7ap07.apps.googleusercontent.com',
-    iosClientId: '270369739916-pg1tm5jc8vqbc15dh42gja1h107foaip.apps.googleusercontent.com',
+    androidClientId:
+        '270369739916-3bi06p7337k32nvn5o5gsplhpvo7ap07.apps.googleusercontent.com',
+    iosClientId:
+        '270369739916-pg1tm5jc8vqbc15dh42gja1h107foaip.apps.googleusercontent.com',
     iosBundleId: 'com.tabibukenya.tabibu',
   );
   static const FirebaseOptions web = FirebaseOptions(
