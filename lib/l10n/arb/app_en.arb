@@ -224,6 +224,14 @@
     "@errorNoRoleAssigned": {
         "description": "Shown when the signed-in account has no role claim"
     },
+    "fieldErrorTitle": "Choose your title",
+    "@fieldErrorTitle": {
+        "description": "Under E1/F1's title picker when none is chosen"
+    },
+    "fieldErrorPicture": "Add a photo of yourself",
+    "@fieldErrorPicture": {
+        "description": "Under E1/F1's photo row when no photo is added"
+    },
     "fieldErrorEmailInvalid": "That doesn't look like an email address",
     "@fieldErrorEmailInvalid": {
         "description": "Under the email field when the address has no email structure"

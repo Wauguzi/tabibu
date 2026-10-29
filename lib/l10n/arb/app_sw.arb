@@ -56,6 +56,8 @@
     "errorInvalidDecision": "Uamuzi si sahihi.",
     "errorPractitionerPendingVerification": "Akaunti yako inasubiri uthibitisho. Rudi baadaye.",
     "errorNoRoleAssigned": "Akaunti hii bado haijakamilika. Maliza kujisajili, au wasiliana na msaada.",
+    "fieldErrorTitle": "Chagua cheo chako",
+    "fieldErrorPicture": "Weka picha yako",
     "fieldErrorEmailInvalid": "Hiyo haionekani kama anwani ya barua pepe",
     "fieldErrorEmailInUse": "Tayari kuna akaunti inayotumia barua pepe hii. Ingia badala yake.",
     "fieldErrorPasswordWeak": "Tumia angalau herufi 8, namba na alama",

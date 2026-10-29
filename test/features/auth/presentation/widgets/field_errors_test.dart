@@ -7,6 +7,8 @@ import 'package:tabibu/l10n/l10n.dart';
 void main() {
   group('fieldFor', () {
     test('maps each field error to its field', () {
+      expect(fieldFor(AppError.invalidTitle), SignUpField.title);
+      expect(fieldFor(AppError.invalidPicture), SignUpField.picture);
       expect(fieldFor(AppError.invalidEmail), SignUpField.email);
       expect(fieldFor(AppError.emailAlreadyInUse), SignUpField.email);
       expect(fieldFor(AppError.weakPassword), SignUpField.password);
@@ -49,6 +51,11 @@ void main() {
     test('names the problem in English', () async {
       final l10n = await AppLocalizations.delegate.load(const Locale('en'));
 
+      expect(fieldErrorText(AppError.invalidTitle, l10n), 'Choose your title');
+      expect(
+        fieldErrorText(AppError.invalidPicture, l10n),
+        'Add a photo of yourself',
+      );
       expect(
         fieldErrorText(AppError.invalidEmail, l10n),
         "That doesn't look like an email address",
@@ -84,6 +91,8 @@ void main() {
     test('is translated to Kiswahili', () async {
       final l10n = await AppLocalizations.delegate.load(const Locale('sw'));
 
+      expect(fieldErrorText(AppError.invalidTitle, l10n), 'Chagua cheo chako');
+      expect(fieldErrorText(AppError.invalidPicture, l10n), 'Weka picha yako');
       expect(
         fieldErrorText(AppError.invalidEmail, l10n),
         'Hiyo haionekani kama anwani ya barua pepe',

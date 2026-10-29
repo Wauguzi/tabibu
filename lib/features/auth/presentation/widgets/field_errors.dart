@@ -4,6 +4,8 @@ import 'package:tabibu/l10n/l10n.dart';
 /// Sign-up fields that show their error under the field instead of the
 /// notice above the form.
 enum SignUpField {
+  title,
+  picture,
   email,
   password,
   name,
@@ -16,6 +18,8 @@ enum SignUpField {
 
 /// The field an error belongs to, or null when it stays in the notice.
 SignUpField? fieldFor(AppError error) => switch (error) {
+  .invalidTitle => .title,
+  .invalidPicture => .picture,
   .invalidEmail || .emailAlreadyInUse => .email,
   .weakPassword => .password,
   .invalidName => .name,
@@ -30,6 +34,8 @@ SignUpField? fieldFor(AppError error) => switch (error) {
 /// The short message naming the problem at its field. Errors with no
 /// field keep their notice text.
 String fieldErrorText(AppError error, AppLocalizations l10n) => switch (error) {
+  .invalidTitle => l10n.fieldErrorTitle,
+  .invalidPicture => l10n.fieldErrorPicture,
   .invalidEmail => l10n.fieldErrorEmailInvalid,
   .emailAlreadyInUse => l10n.fieldErrorEmailInUse,
   .weakPassword => l10n.fieldErrorPasswordWeak,
