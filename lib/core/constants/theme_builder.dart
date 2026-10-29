@@ -49,6 +49,10 @@ ThemeData buildTheme(Brightness brightness) {
   return ThemeData(
     brightness: brightness,
     colorScheme: colorScheme,
+    // Taps give no ripple or highlight anywhere.
+    splashFactory: NoSplash.splashFactory,
+    splashColor: Colors.transparent,
+    highlightColor: Colors.transparent,
     extensions: <ThemeExtension<dynamic>>[
       AppStatusColors(
         success: isDark ? AppColors.successDark : AppColors.successLight,
