@@ -121,8 +121,9 @@ The loop from idea to live demo:
    certified it on a device, the simulator, or the web demo. Documentation-only
    changes are exempt. This is a hard gate.
 7. **Commit and review.** Foundation work lands directly on `main`. Feature
-   work happens on a branch, one CRQ per branch, and reaches `main` through a
-   pull request:
+   work happens on a branch, with a CRQ for each change it carries (a long
+   branch has several), and reaches `main` through a pull request that lists
+   them all:
    1. When the branch is complete, its title (Conventional Commits) and
       description are written from
       [`.github/PULL_REQUEST_TEMPLATE.md`](../../../.github/PULL_REQUEST_TEMPLATE.md).
@@ -135,9 +136,11 @@ The loop from idea to live demo:
       request, Dependabot's included. Labels come from the template's choices
       and from `.github/labeler.yml`, using the set defined in
       `scripts/labels.sh`.
-8. **CI.** Every pull request to `main` runs `prod_apk.yaml`: format,
-   code generation, analyze, bloc lint and tests, then a signed release APK
-   to Firebase App Distribution. The spell check and the secret scan run
+8. **CI.** Every pull request to `main` runs `prod_apk.yaml` on Flutter
+   3.47.8: format, code generation, analyze, bloc lint and tests, then a
+   signed release APK to Firebase App Distribution; beside it, the
+   functions' lint, build and type-check. The rules and functions emulator
+   tests run locally (`make rules-test`, `make functions-test`). The spell check and the secret scan run
    locally through `make` before each commit (see
    [`mobile_architecture.md` §13](../../architecture/reports/mobile_architecture.md#13-cicd)).
 9. **Release.** Merging to `main` drafts a release tagged with the branch's
@@ -257,6 +260,7 @@ the rest keep the build honest.
 |---|---|---|
 | 2026-10-27 | §4 step 9: a merge drafts the release; `make release-publish` marks it Latest (CRQ-0025). | Theo |
 | 2026-10-27 | §5 adds Muse Code (CRQ-0013). | Theo |
+| 2026-10-30 | §4 step 7: a CRQ for each change a branch carries, all listed in its pull request, instead of one per branch (`feat/auth` carries CRQ-0014 to CRQ-0037). | Theo |
 | 2026-10-27 | §4 step 8 and §5 updated for the production APK workflow (CRQ-0008). | Theo |
 | 2026-10-27 | §4 step 7 now describes the branch and pull request flow, with a 5/5 Greptile confidence score as the merge bar; §5 adds `CODEOWNERS` and the labels; §6 adds the merge criterion. | Theo |
 | 2026-10-27 | §4 step 8, §5 and §6 updated for the interim CI: only the license check runs in CI; the other gates are local `make` targets. | Theo |

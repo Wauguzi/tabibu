@@ -162,7 +162,7 @@ flat surfaces, so nothing decorative competes with the image.
 
 ### 2.5 Iconography
 
-One icon set, landed with brief 03: 46 SVGs under `assets/icons/`,
+One icon set: 46 SVGs under `assets/icons/` (36 landed with brief 03, ten since),
 loaded only through the generated `Assets.icons` getters, never by path.
 `AssetIcon` renders them at the sheet's glyph boxes (18, 22, 24, 28) and
 tints only where the sheet calls for it, since several SVGs carry baked

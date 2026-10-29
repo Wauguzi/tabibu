@@ -14,7 +14,7 @@ system.
 | Architecture | [Outbreak alert engine](./architecture/reports/outbreak_alert_engine.md) | Tag, record, detect, draft, approve, deliver |
 | Architecture | [Notifications engine](./architecture/reports/notifications_engine.md) | Inbox, push, idempotency, lock-screen safety |
 | Design | [Design system](./design/reports/mobile_design_system.md) | Tokens, AI draft vs signed, motion, accessibility |
-| Security | [Threat model](./security/reports/firebase_and_ai_service_threat_model.md) | Clinical-safety rules S-1 to S-7, threats T-1 to T-12 |
+| Security | [Threat model](./security/reports/firebase_and_ai_service_threat_model.md) | Clinical-safety rules S-1 to S-7, threats T-1 to T-16 |
 | Testing | [Testing standard](./testing/reports/README.md) | The test layers, UAT and model evaluation reports |
 
 ## Records

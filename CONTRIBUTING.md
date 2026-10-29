@@ -73,9 +73,9 @@ make secrets
 
 Then:
 
-1. Work on a branch, with one change record per branch (copy
+1. Work on a branch, with a change record for each change it carries (copy
    [the CRQ template](docs/crq/templates/CRQ_TEMPLATE.md)) and the `pubspec.yaml` version
-   bumped.
+   bumped. The pull request lists every record.
 2. Write the title in [Conventional Commits](https://www.conventionalcommits.org/) form, for
    example `feat(auth): D3 phone field`, and the description from the
    [pull request template](.github/PULL_REQUEST_TEMPLATE.md), answering its clinical-safety

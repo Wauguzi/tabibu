@@ -63,6 +63,7 @@ authoritative for what resolved.
 | Secure storage | `flutter_secure_storage 11.2.0` (exact pin) | Holds the Hive encryption key. On the cold-start path; see §15 rule 2. |
 | Auth providers | `firebase_auth`, `google_sign_in ^7.2.0`, `local_auth ^3.0.2` | Email/password for the seeded demo accounts; Google sign-in; biometric re-entry. |
 | Charts / PDF | `fl_chart ^1.3.0`, `pdf ^3.13.1`, `printing ^5.15.1` | Evaluation charts on the proof screen; the signed report as a PDF. |
+| File picking | `file_picker ^13.3.0`, `image_picker ^1.2.4` | Sign-up photo and licence files, read as bytes so one path serves mobile and the web demo; sizes checked before upload (CRQ-0031, CRQ-0036). |
 | Asset/font codegen | `flutter_gen ^5.15.0` | Generates `Assets` and `FontFamily` into `lib/gen/`. No hand-written asset paths. |
 | Testing | `flutter_test`, `bloc_test ^10.0.0`, `mocktail ^1.0.5`, `fake_cloud_firestore ^4.4.0` | `fake_cloud_firestore` must track `cloud_firestore`'s minor version (§15 rule 9). |
 
@@ -651,9 +652,11 @@ throws and never returns null.
 
 Four workflows run in CI:
 
-- **Production APK** (`prod_apk.yaml`), on every pull request to `main`.
-  Format check, code generation, `flutter analyze`, bloc lint and the tests
-  run on every PR. When the signing secrets are present (not on Dependabot
+- **Production APK** (`prod_apk.yaml`), on every pull request to `main`,
+  on Flutter 3.47.8. Format check, code generation, `flutter analyze`, bloc
+  lint and the tests run on every PR; a second job lints, builds and
+  type-checks `functions/`, the seed included (their emulator tests run
+  locally). When the signing secrets are present (not on Dependabot
   or fork PRs), it then builds the `production` APK, obfuscated and signed
   with the release keystore, keeps the debug symbols for 90 days, uploads
   the Dart symbols to Crashlytics, and sends the APK to the
