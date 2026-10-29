@@ -283,40 +283,45 @@ class _SexCard extends StatelessWidget {
       child: Semantics(
         button: true,
         selected: selected,
-        child: Material(
-          color: selected
-              ? (scheme.brightness == Brightness.dark
-                    ? AppColors.mintDark
-                    : AppColors.mintLight)
-              : scheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          child: InkWell(
-            onTap: onTap,
+        onTap: onTap,
+        // The InkWell's focus, kept: it merges into the card's node.
+        child: Focus(
+          canRequestFocus: true,
+          child: Material(
+            color: selected
+                ? (scheme.brightness == Brightness.dark
+                      ? AppColors.mintDark
+                      : AppColors.mintLight)
+                : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.card),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.md,
-                vertical: AppSpacing.sm + 4,
-              ),
-              child: Row(
-                mainAxisAlignment: .center,
-                children: [
-                  ExcludeSemantics(
-                    child: AssetIcon(
-                      selected
-                          ? Assets.icons.checkSelectedIcon
-                          : Assets.icons.checkUnselectedIcon,
-                      size: 22,
+            child: GestureDetector(
+              onTap: onTap,
+              behavior: .opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.sm + 4,
+                ),
+                child: Row(
+                  mainAxisAlignment: .center,
+                  children: [
+                    ExcludeSemantics(
+                      child: AssetIcon(
+                        selected
+                            ? Assets.icons.checkSelectedIcon
+                            : Assets.icons.checkUnselectedIcon,
+                        size: 22,
+                      ),
                     ),
-                  ),
-                  const SizedBox(width: AppSpacing.xs),
-                  Flexible(
-                    child: Text(
-                      sex.description(context.l10n),
-                      style: textTheme.titleMedium,
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        sex.description(context.l10n),
+                        style: textTheme.titleMedium,
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),

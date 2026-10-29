@@ -352,23 +352,27 @@ class _DocumentsSection extends StatelessWidget {
           const SizedBox(height: AppSpacing.sm),
         ],
         if (onAdd != null)
-          Material(
-            color: scheme.brightness == Brightness.dark
-                ? AppColors.mintDark
-                : AppColors.mintLight,
-            borderRadius: BorderRadius.circular(AppRadii.card),
-            child: InkWell(
-              onTap: onAdd,
+          Semantics(
+            button: true,
+            onTap: onAdd,
+            child: Material(
+              color: scheme.brightness == Brightness.dark
+                  ? AppColors.mintDark
+                  : AppColors.mintLight,
               borderRadius: BorderRadius.circular(AppRadii.card),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  mainAxisAlignment: .center,
-                  children: [
-                    AssetIcon(Assets.icons.addIcon, size: 20),
-                    const SizedBox(width: AppSpacing.xs),
-                    Text(l10n.addDocument, style: textTheme.titleMedium),
-                  ],
+              child: GestureDetector(
+                onTap: onAdd,
+                behavior: .opaque,
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    mainAxisAlignment: .center,
+                    children: [
+                      AssetIcon(Assets.icons.addIcon, size: 20),
+                      const SizedBox(width: AppSpacing.xs),
+                      Text(l10n.addDocument, style: textTheme.titleMedium),
+                    ],
+                  ),
                 ),
               ),
             ),

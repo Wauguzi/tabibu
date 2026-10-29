@@ -227,29 +227,34 @@ class _TermsBox extends StatelessWidget {
       child: Semantics(
         checked: value,
         enabled: onChanged != null,
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: onChanged == null ? null : () => onChanged(!value),
-            borderRadius: BorderRadius.circular(12),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-              child: Row(
-                crossAxisAlignment: .start,
-                children: [
-                  Checkbox(
-                    value: value,
-                    onChanged: onChanged == null
-                        ? null
-                        : (checked) => onChanged(checked ?? false),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: Text(label, style: textTheme.bodyMedium),
+        onTap: onChanged == null ? null : () => onChanged(!value),
+        // The InkWell's focus, kept: it merges into the row's node.
+        child: Focus(
+          canRequestFocus: onChanged != null,
+          child: Material(
+            color: Colors.transparent,
+            child: GestureDetector(
+              onTap: onChanged == null ? null : () => onChanged(!value),
+              behavior: .opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
+                child: Row(
+                  crossAxisAlignment: .start,
+                  children: [
+                    Checkbox(
+                      value: value,
+                      onChanged: onChanged == null
+                          ? null
+                          : (checked) => onChanged(checked ?? false),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(top: AppSpacing.sm),
+                        child: Text(label, style: textTheme.bodyMedium),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),

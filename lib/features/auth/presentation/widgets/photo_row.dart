@@ -135,27 +135,31 @@ class PhotoRow extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        Material(
-          color: scheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-          child: InkWell(
-            onTap: () => _sheet(context),
+        Semantics(
+          button: true,
+          onTap: () => _sheet(context),
+          child: Material(
+            color: scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.pill),
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.sm,
-                vertical: AppSpacing.xs,
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  AssetIcon(Assets.icons.photoIcon, size: 20),
-                  const SizedBox(width: AppSpacing.xxs),
-                  Text(
-                    picture == null ? l10n.photoAdd : l10n.photoChange,
-                    style: textTheme.titleSmall,
-                  ),
-                ],
+            child: GestureDetector(
+              onTap: () => _sheet(context),
+              behavior: .opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.sm,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AssetIcon(Assets.icons.photoIcon, size: 20),
+                    const SizedBox(width: AppSpacing.xxs),
+                    Text(
+                      picture == null ? l10n.photoAdd : l10n.photoChange,
+                      style: textTheme.titleSmall,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
