@@ -247,6 +247,63 @@ void main() {
     });
   });
 
+  group('a session read and a sign-out side by side', () {
+    late Completer<AuthSession> read;
+
+    blocTest<AuthBloc, AuthState>(
+      'a read that answers after the sign-out is dropped',
+      setUp: () {
+        read = Completer<AuthSession>();
+        when(
+          () => auth.resolveSession(forceRefresh: any(named: 'forceRefresh')),
+        ).thenAnswer((_) => read.future);
+        when(
+          () => auth.signOut(session: any(named: 'session')),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (bloc) async {
+        bloc.add(const SessionRequested());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const SignOutRequested());
+        await Future<void>.delayed(Duration.zero);
+        read.complete(_patient);
+      },
+      wait: const Duration(milliseconds: 50),
+      expect: () => [
+        const SessionLoadInProgress(session: SignedOutSession()),
+        const SignOutInProgress(session: SignedOutSession()),
+        const SignOutSuccess(),
+      ],
+      verify: (_) => verifyNever(() => auth.registerDeviceToken(any())),
+    );
+  });
+
+  blocTest<AuthBloc, AuthState>(
+    'an account created but not read back stays signed in',
+    setUp: () {
+      when(() => internet.check()).thenAnswer((_) async => true);
+      when(() => auth.currentUid).thenReturn('u1');
+      when(
+        () => auth.createAccount(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenThrow(AppError.serviceUnavailable);
+    },
+    build: build,
+    act: (bloc) => bloc.add(
+      const CreateAccountRequested(email: ' a@b.co ', password: 'Str0ng!pass'),
+    ),
+    expect: () => [
+      const CreateAccountInProgress(session: SignedOutSession()),
+      const CreateAccountFailure(
+        session: SignUpIncompleteSession(email: 'a@b.co'),
+        error: AppError.serviceUnavailable,
+      ),
+    ],
+  );
+
   blocTest<AuthBloc, AuthState>(
     'a dismissed Google dialog is cancelled, not failed',
     setUp: () =>

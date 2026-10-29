@@ -93,7 +93,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   /// relaunch, and a role granted meanwhile (a verification) is picked up.
   Future<void> _onResume() async {
     final auth = context.read<AuthBloc>();
-    if (auth.state.session is! SignedOutSession) {
+    if (auth.state.session is! SignedOutSession &&
+        auth.state is! SignOutInProgress) {
       auth.add(const SessionRequested());
     }
     if (_isShowingUpdate) return;

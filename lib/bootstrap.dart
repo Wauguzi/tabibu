@@ -150,22 +150,26 @@ Future<void> bootstrap(
   // Defaults let the app through when nothing has been fetched yet.
   try {
     final remoteConfig = FirebaseRemoteConfig.instance;
-    await remoteConfig.setConfigSettings(
-      RemoteConfigSettings(
-        fetchTimeout: _bootstrapStepTimeout,
-        minimumFetchInterval: kReleaseMode
-            ? const Duration(hours: 12)
-            : Duration.zero,
-      ),
-    );
-    await remoteConfig.setDefaults(const {
-      'force_update': false,
-      'min_required_version': '',
-      'store_url_android': '',
-      'store_url_ios': '',
-      'update_title': '',
-      'update_message': '',
-    });
+    await remoteConfig
+        .setConfigSettings(
+          RemoteConfigSettings(
+            fetchTimeout: _bootstrapStepTimeout,
+            minimumFetchInterval: kReleaseMode
+                ? const Duration(hours: 12)
+                : Duration.zero,
+          ),
+        )
+        .timeout(_bootstrapStepTimeout);
+    await remoteConfig
+        .setDefaults(const {
+          'force_update': false,
+          'min_required_version': '',
+          'store_url_android': '',
+          'store_url_ios': '',
+          'update_title': '',
+          'update_message': '',
+        })
+        .timeout(_bootstrapStepTimeout);
     await remoteConfig.fetchAndActivate().timeout(_bootstrapStepTimeout);
     if (kDebugMode) {
       debugPrint(

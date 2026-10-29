@@ -179,6 +179,20 @@ void main() {
       await hive.clearOnSignOut();
       expect(secrets.containsKey('hiveOwnerUid'), isFalse);
     });
+
+    test('a row written after a sign-out is wiped before the next person '
+        'reads', () async {
+      final hive = helper();
+      await hive.initBoxes();
+      await hive.scopeTo('u1');
+      await hive.clearOnSignOut();
+      // A read that started before the sign-out lands after it.
+      await hive.cachePatients([_patient('p1', uid: 'u1')], fromCloud: true);
+
+      await hive.scopeTo('u2');
+      expect(await hive.getCachedOwnPatientRecord('u1'), isNull);
+      expect(secrets['hiveOwnerUid'], 'u2');
+    });
   });
 
   group('cachePatients', () {

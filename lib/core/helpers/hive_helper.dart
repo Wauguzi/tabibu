@@ -207,7 +207,8 @@ class HiveHelperImpl implements HiveHelper {
         .read(key: _ownerName)
         .timeout(_secureStorageTimeout);
     if (owner == uid) return;
-    if (owner != null) await clearOnSignOut();
+    // Unowned rows can only be a write that landed after a sign-out.
+    await clearOnSignOut();
     await _secureStorage
         .write(key: _ownerName, value: uid)
         .timeout(_secureStorageTimeout);

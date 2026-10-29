@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'dart:typed_data';
 
 import 'package:firebase_auth/firebase_auth.dart';
@@ -78,6 +80,7 @@ void main() {
       hiveHelper: cache,
       profileStorage: storage,
       notificationService: notifications,
+      bestEffortTimeout: const Duration(milliseconds: 20),
     );
 
     when(() => user.uid).thenReturn('u1');
@@ -141,6 +144,23 @@ void main() {
         PatientSession(patient: _patient, roles: roles),
       );
     });
+
+    test(
+      'offline with nothing cached is "could not read", not "none"',
+      () async {
+        when(
+          () => remote.roles(),
+        ).thenAnswer((_) async => _roles({'role': 'patient'}));
+        when(
+          () => remote.fetchOwnPatientRecord('u1'),
+        ).thenThrow(AppError.noInternet);
+        when(
+          () => cache.getCachedOwnPatientRecord('u1'),
+        ).thenAnswer((_) async => null);
+
+        await expectLater(helper.resolveSession, throwsA(AppError.noInternet));
+      },
+    );
 
     test('any other failure is not hidden by the cache', () async {
       when(
@@ -308,6 +328,25 @@ void main() {
         () => remote.signOut(),
         () => cache.clearOnSignOut(),
       ]);
+    });
+
+    test('a token removal that never answers does not hold it up', () async {
+      // Offline, a Firestore write waits for the server instead of failing.
+      when(
+        () => remote.removeFcmToken(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          token: any(named: 'token'),
+        ),
+      ).thenAnswer((_) => Completer<void>().future);
+      await helper.signOut(
+        session: PractitionerSession(
+          doctor: _doctor,
+          roles: _roles({'role': 'doctor'}),
+        ),
+      );
+      verify(() => remote.signOut()).called(1);
+      verify(() => cache.clearOnSignOut()).called(1);
     });
 
     test('an offline token removal never blocks it', () async {
@@ -564,6 +603,17 @@ void main() {
           url: 'photo-url',
         ),
       ).called(1);
+    });
+
+    test('an unexpected failure never fails the sign-up either', () async {
+      when(
+        () => storage.uploadProfilePicture(
+          owner: any(named: 'owner'),
+          file: any(named: 'file'),
+        ),
+      ).thenThrow(StateError('plugin gone'));
+
+      expect(await helper.addPatientPicture(session, _photo), same(session));
     });
 
     test('a failed upload never fails the sign-up', () async {

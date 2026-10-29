@@ -83,19 +83,26 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RaspService _rasp;
   late final StreamSubscription<String> _tokenRefreshes;
 
+  // Each sign-out moves this on, so a session read that started before it
+  // and answers after it is dropped instead of signing the person back in.
+  int _signOuts = 0;
+
   /// No connectivity check: offline, the cached profile answers.
   Future<void> _onSessionRequested(
     SessionRequested event,
     Emitter<AuthState> emit,
   ) async {
+    final signOuts = _signOuts;
     emit(SessionLoadInProgress(session: state.session));
     try {
       final session = await _auth.resolveSession(
         forceRefresh: event.forceRefresh,
       );
+      if (signOuts != _signOuts) return;
       _afterSignIn(session);
       emit(SessionLoadSuccess(session: session));
     } on Object catch (e) {
+      if (signOuts != _signOuts) return;
       // Object, not Exception: an Error would otherwise leave the decision
       // route spinning with no terminal state.
       emit(SessionLoadFailure(session: state.session, error: _appErrorOf(e)));
@@ -156,7 +163,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       unawaited(_analytics.logSignUp(SignInMethod.email));
       emit(CreateAccountSuccess(session: session));
     } on Object catch (e) {
-      emit(CreateAccountFailure(session: state.session, error: _appErrorOf(e)));
+      // The account may exist although reading it back failed; a retry
+      // would then meet emailAlreadyInUse, so the screen moves on as signed
+      // in instead.
+      final created = _auth.currentUid != null;
+      emit(
+        CreateAccountFailure(
+          session: created
+              ? SignUpIncompleteSession(email: event.email.trim())
+              : state.session,
+          error: _appErrorOf(e),
+        ),
+      );
     }
   }
 
@@ -239,6 +257,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     SignOutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    _signOuts++;
     emit(SignOutInProgress(session: state.session));
     try {
       await _auth.signOut(session: state.session);

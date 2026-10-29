@@ -22,6 +22,7 @@ class AuthHelper {
     HiveHelper? hiveHelper,
     ProfileStorage? profileStorage,
     NotificationService? notificationService,
+    @ignoreParam this.bestEffortTimeout = const Duration(seconds: 3),
   }) : _remote = authFirebase ?? getIt<AuthFirebase>(),
        _cache = hiveHelper ?? getIt<HiveHelper>(),
        _storage = profileStorage ?? getIt<ProfileStorage>(),
@@ -31,6 +32,15 @@ class AuthHelper {
   final HiveHelper _cache;
   final ProfileStorage _storage;
   final NotificationService _notifications;
+
+  /// How long a best-effort write may hold up what follows it. Offline, a
+  /// Firestore write waits for the server rather than failing, so without a
+  /// bound it would never end.
+  final Duration bestEffortTimeout;
+
+  /// An upload retries for minutes by default; an optional photo must not
+  /// hold a finished sign-up that long.
+  static const _photoTimeout = Duration(seconds: 30);
 
   /// The rules' `tokens()` limit.
   static const maxDeviceTokens = 10;
@@ -136,20 +146,23 @@ class AuthHelper {
   ) async {
     final patientId = session.patient.patientId;
     try {
-      final url = await _storage.uploadProfilePicture(
-        owner: patientId,
-        file: picture,
-      );
-      await _remote.updateProfilePicture(
-        collection: 'patients',
-        docId: patientId,
-        url: url,
-      );
+      final url = await _storage
+          .uploadProfilePicture(owner: patientId, file: picture)
+          .timeout(_photoTimeout);
+      await _remote
+          .updateProfilePicture(
+            collection: 'patients',
+            docId: patientId,
+            url: url,
+          )
+          .timeout(bestEffortTimeout);
       return PatientSession(
         patient: session.patient.copyWith(profilePictureUrl: url),
         roles: session.roles,
       );
-    } on AppError catch (_) {
+    } on Object catch (_) {
+      // A slow network or an odd failure still lets the patient in; the
+      // photo can be added from the profile.
       return session;
     }
   }
@@ -186,12 +199,14 @@ class AuthHelper {
     final target = _tokenTarget(session);
     if (target == null) return;
     try {
-      await _remote.updateLanguage(
-        collection: target.collection,
-        docId: target.docId,
-        language: language,
-      );
-    } on AppError catch (_) {
+      await _remote
+          .updateLanguage(
+            collection: target.collection,
+            docId: target.docId,
+            language: language,
+          )
+          .timeout(bestEffortTimeout);
+    } on Object catch (_) {
       // Offline: the profile catches up on the next change.
     }
   }
@@ -213,12 +228,14 @@ class AuthHelper {
       if (target == null) return;
       final token = await _notifications.deviceToken();
       if (token == null) return;
-      await _remote.removeFcmToken(
-        collection: target.collection,
-        docId: target.docId,
-        token: token,
-      );
-    } on AppError catch (_) {
+      await _remote
+          .removeFcmToken(
+            collection: target.collection,
+            docId: target.docId,
+            token: token,
+          )
+          .timeout(bestEffortTimeout);
+    } on Object catch (_) {
       // Offline, or the profile is gone. The stale token rotates out once
       // the list reaches its limit.
     }
@@ -303,7 +320,8 @@ class AuthHelper {
       return remote;
     } on AppError catch (e) {
       if (!_offline.contains(e)) rethrow;
-      return await _cache.getCachedOwnPatientRecord(uid);
+      // Nothing cached is "could not read", never "there is none".
+      return await _cache.getCachedOwnPatientRecord(uid) ?? (throw e);
     }
   }
 
@@ -316,7 +334,8 @@ class AuthHelper {
       return remote;
     } on AppError catch (e) {
       if (!_offline.contains(e)) rethrow;
-      return await _cache.getCachedDoctorProfile(uid);
+      // Nothing cached is "could not read", never "there is none".
+      return await _cache.getCachedDoctorProfile(uid) ?? (throw e);
     }
   }
 }
