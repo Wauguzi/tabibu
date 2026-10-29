@@ -15,6 +15,7 @@ import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
+import 'package:tabibu/features/auth/presentation/widgets/field_errors.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
 import 'package:tabibu/features/auth/presentation/widgets/single_select_sheet.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
@@ -104,7 +105,7 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
       _countyId = picked.id;
       _countyName = picked.name;
       _subCountyId = null;
-      _error = null;
+      _error = errorAfterChange(_error, .county);
     });
   }
 
@@ -114,7 +115,12 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
   void _finish(SignUpDraft draft) {
     final countyId = _countyId;
     if (countyId == null) {
-      setState(() => _error = AppError.invalidCounty);
+      setState(() => _error = .invalidCounty);
+      return;
+    }
+    // The server refuses Nairobi without one of its sub-counties.
+    if (_nairobiChosen && _subCountyId == null) {
+      setState(() => _error = .invalidSubCounty);
       return;
     }
     final submitted = draft.copyWith(
@@ -139,7 +145,10 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
     return BlocListener<FacilitiesBloc, FacilitiesState>(
       listener: (context, state) => _onFacilities(state),
       child: BlocConsumer<AuthBloc, AuthState>(
+        // A refusal is taken here, not in the builder, so the field that
+        // caused it clears on its change and an old one does not return.
         listener: (context, state) {
+          if (state is SignUpFailure) setState(() => _error = state.error);
           if (state is SignUpSuccess) {
             if (state.session is PatientSession) {
               // Replaces the stack: there is no back into a submitted form.
@@ -151,7 +160,7 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
         },
         builder: (context, authState) {
           final busy = authState is SignUpInProgress;
-          final failure = authState is SignUpFailure ? authState.error : _error;
+          final failure = _error;
           final draft = context.watch<SignUpBloc>().state.draft;
 
           return DraftPopScope(
@@ -164,7 +173,9 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
               onBack: busy ? null : () => Navigator.of(context).pop(),
               title: l10n.patientAreaTitle,
               subtitle: l10n.patientAreaSubtitle,
-              error: failure,
+              error: failure != null && fieldFor(failure) == null
+                  ? failure
+                  : null,
               role: Role.patient,
               footer: TabibuButton.primary(
                 label: l10n.patientFinish,
@@ -180,6 +191,9 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
                     hint: l10n.countyHint,
                     value: _countyName,
                     leading: Assets.icons.locationIcon,
+                    errorText: failure == .invalidCounty
+                        ? fieldErrorText(failure!, l10n)
+                        : null,
                     onTap: _counties == null ? null : _pickCounty,
                   ),
                   if (_countyId != null) ...[
@@ -189,9 +203,12 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
                         countyName: _countyName ?? '',
                         subCounties: _subCounties!,
                         selectedId: _subCountyId,
+                        errorText: failure == .invalidSubCounty
+                            ? fieldErrorText(failure!, l10n)
+                            : null,
                         onSelected: (id) => setState(() {
                           _subCountyId = id;
-                          _error = null;
+                          _error = errorAfterChange(_error, .subCounty);
                         }),
                       )
                     else if (_subCounties == null && failure == null)
@@ -225,12 +242,14 @@ class _SubCountyPicker extends StatefulWidget {
     required this.subCounties,
     required this.selectedId,
     required this.onSelected,
+    this.errorText,
   });
 
   final String countyName;
   final List<SubCountyModel> subCounties;
   final int? selectedId;
   final ValueChanged<int> onSelected;
+  final String? errorText;
 
   @override
   State<_SubCountyPicker> createState() => _SubCountyPickerState();
@@ -243,7 +262,9 @@ class _SubCountyPickerState extends State<_SubCountyPicker> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
     final material = MaterialLocalizations.of(context);
+    final errorText = widget.errorText;
     final q = _query.trim().toLowerCase();
     final matches = [
       for (final sub in widget.subCounties)
@@ -254,7 +275,18 @@ class _SubCountyPickerState extends State<_SubCountyPicker> {
       crossAxisAlignment: .start,
       mainAxisSize: .min,
       children: [
-        Text(l10n.subCountyLabel, style: textTheme.titleMedium),
+        Text.rich(
+          TextSpan(
+            text: l10n.subCountyLabel,
+            style: textTheme.titleMedium,
+            children: [
+              TextSpan(
+                text: ' *',
+                style: TextStyle(color: scheme.error),
+              ),
+            ],
+          ),
+        ),
         const SizedBox(height: AppSpacing.xs),
         SearchField(
           hint: l10n.subCountySearchHint(widget.countyName),
@@ -273,6 +305,12 @@ class _SubCountyPickerState extends State<_SubCountyPicker> {
           ),
           const SizedBox(height: AppSpacing.sm),
         ],
+        if (errorText != null)
+          Text(
+            errorText,
+            style: textTheme.bodySmall?.copyWith(color: scheme.error),
+            maxLines: 3,
+          ),
       ],
     );
   }

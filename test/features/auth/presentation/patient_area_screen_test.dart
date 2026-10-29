@@ -6,6 +6,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
@@ -145,14 +146,88 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('no county shows its message', (tester) async {
+    testWidgets('no county shows its message under the field', (tester) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Finish'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Select a valid county.'), findsOneWidget);
+      // The hint and the error share the text; the notice stays away.
+      expect(find.text('Choose your county'), findsNWidgets(2));
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is NoticeCard && w.variant == NoticeVariant.error,
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('an area refusal shows under the sub-county list', (
+      tester,
+    ) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const SignUpFailure(
+            session: SignUpIncompleteSession(email: 'a@b.co'),
+            error: AppError.invalidSubCounty,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await chooseCounty(tester, 'Nairobi');
+
+      expect(find.text('Choose your area'), findsOneWidget);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is NoticeCard && w.variant == NoticeVariant.error,
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('Nairobi with no sub-county asks for one, without submitting', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await chooseCounty(tester, 'Nairobi');
+
+      await tester.ensureVisible(find.text('Finish'));
+      await tester.tap(find.text('Finish'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose your area'), findsOneWidget);
+      verifyNever(() => authBloc.add(any()));
+    });
+
+    testWidgets('a county refusal clears when another county is picked', (
+      tester,
+    ) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const SignUpFailure(
+            session: SignUpIncompleteSession(email: 'a@b.co'),
+            error: AppError.invalidCounty,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      expect(find.text('Choose your county'), findsNWidgets(2));
+
+      // The hint and the message read alike; the hint comes first.
+      await tester.tap(find.text('Choose your county').first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Mombasa').last);
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose your county'), findsNothing);
     });
 
     testWidgets('Nairobi offers sub-counties and submits both', (tester) async {
