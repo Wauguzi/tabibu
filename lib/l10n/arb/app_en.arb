@@ -224,6 +224,42 @@
     "@errorNoRoleAssigned": {
         "description": "Shown when the signed-in account has no role claim"
     },
+    "fieldErrorEmailInvalid": "That doesn't look like an email address",
+    "@fieldErrorEmailInvalid": {
+        "description": "Under the email field when the address has no email structure"
+    },
+    "fieldErrorEmailInUse": "An account already uses this email. Sign in instead.",
+    "@fieldErrorEmailInUse": {
+        "description": "Under the email field when the address already has an account"
+    },
+    "fieldErrorPasswordWeak": "Use at least 8 characters, a number and a symbol",
+    "@fieldErrorPasswordWeak": {
+        "description": "Under the password field when it misses the strength rules"
+    },
+    "fieldErrorName": "Enter your name",
+    "@fieldErrorName": {
+        "description": "Under the first empty name field"
+    },
+    "fieldErrorSex": "Choose one",
+    "@fieldErrorSex": {
+        "description": "Under the sex cards when none is chosen"
+    },
+    "fieldErrorDateOfBirth": "Enter your date of birth",
+    "@fieldErrorDateOfBirth": {
+        "description": "Under the date-of-birth picker when empty"
+    },
+    "fieldErrorPhone": "Enter a Kenyan mobile number, like 712 345 678",
+    "@fieldErrorPhone": {
+        "description": "Under the phone field when the digits are not a Kenyan mobile"
+    },
+    "fieldErrorCounty": "Choose your county",
+    "@fieldErrorCounty": {
+        "description": "Under the county picker when empty"
+    },
+    "fieldErrorSubCounty": "Choose your area",
+    "@fieldErrorSubCounty": {
+        "description": "Under the sub-county picker when empty"
+    },
     "sexMale": "Male",
     "@sexMale": {
         "description": "Label for the male sex option"
