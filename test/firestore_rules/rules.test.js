@@ -215,6 +215,11 @@ describe('patients', () => {
     );
   });
 
+  it('RT-44 a patient update without a new stamp is refused', async () => {
+    await assertFails(updateDoc(doc(db('amina', PATIENT), 'patients/amina'), { language: 'sw' }));
+    await assertSucceeds(updateDoc(doc(db('amina', PATIENT), 'patients/amina'), { language: 'sw', ...at }));
+  });
+
   it('RT-13 the care team corrects an unregistered record, and stops once registered', async () => {
     await seed('patients/p1', patient({ patientId: 'p1', uid: '', isRegistered: false, createdByUid: 'drOdhiambo' }));
     const record = doc(db('drOdhiambo', DOCTOR), 'patients/p1');
@@ -320,6 +325,26 @@ describe('doctors', () => {
     await assertSucceeds(updateDoc(mine(), { profilePictureUrl: url('profilePictures', 'drWanjiru', 'new.jpg'), ...at }));
     await assertFails(updateDoc(mine(), { profilePictureUrl: '', ...at }));
   });
+
+  it('RT-38 the name is final once verified, as the KMPDC number is (T-14)', async () => {
+    await assertSucceeds(updateDoc(mine(), { firstName: 'Njeri', ...at }));
+    await seed('doctors/drWanjiru', doctorProfile({ verificationStatus: 'Verified' }));
+    await assertFails(updateDoc(mine(), { firstName: 'Someone', ...at }));
+    await assertFails(updateDoc(mine(), { lastName: 'Else', ...at }));
+    await assertFails(updateDoc(mine(), { title: 'Prof.', ...at }));
+  });
+
+  it("RT-39 a file URL must be in this project's bucket (T-14)", async () => {
+    const elsewhere = (folder, file) =>
+      `https://firebasestorage.googleapis.com/v0/b/someone-else.appspot.com/o/${folder}%2FdrWanjiru%2F${file}?alt=media&token=t`;
+    await assertFails(updateDoc(mine(), { licenseUrls: [elsewhere('licenses', 'a.pdf')], ...at }));
+    await assertFails(updateDoc(mine(), { profilePictureUrl: elsewhere('profilePictures', 'photo.jpg'), ...at }));
+  });
+
+  it('RT-40 every update carries a new stamp, so delta sync sees it', async () => {
+    await assertFails(updateDoc(mine(), { bio: 'No stamp.' }));
+    await assertSucceeds(updateDoc(mine(), { bio: 'Stamped.', ...at }));
+  });
 });
 
 describe('practitioners', () => {
@@ -410,6 +435,31 @@ describe('storage', () => {
     await assertSucceeds(meta('drNew', {}));
     await assertSucceeds(meta('admin', { admin: true }));
     await assertFails(meta('amina', PATIENT));
+  });
+
+  it("RT-41 a patient's picture is read by the patient and their care team only", async () => {
+    await seed('patients/p5', patient({ patientId: 'p5', uid: 'amina', doctorUids: ['drOdhiambo'] }));
+    await env.withSecurityRulesDisabled((ctx) =>
+      uploadBytes(ref(ctx.storage(), 'profilePictures/p5/photo.jpg'), image, { contentType: 'image/jpeg' }),
+    );
+    const meta = (uid, claims) => getMetadata(ref(as(uid, claims).storage(), 'profilePictures/p5/photo.jpg'));
+    await assertSucceeds(meta('amina', PATIENT));
+    await assertSucceeds(meta('drOdhiambo', DOCTOR));
+    await assertFails(meta('drStranger', DOCTOR));
+    await assertFails(meta('nobody', {}));
+  });
+
+  it("RT-42 a practitioner's picture is read by any signed-in user", async () => {
+    await env.withSecurityRulesDisabled((ctx) =>
+      uploadBytes(ref(ctx.storage(), 'profilePictures/drWanjiru/photo.jpg'), image, { contentType: 'image/jpeg' }),
+    );
+    await assertSucceeds(getMetadata(ref(as('amina', PATIENT).storage(), 'profilePictures/drWanjiru/photo.jpg')));
+  });
+
+  it('RT-43 only a role-less account uploads licence files', async () => {
+    await assertFails(put('amina', { ...CONFIRMED, ...PATIENT }, 'licenses/amina/license_1.pdf', image, 'application/pdf'));
+    await assertFails(put('drOk', { ...CONFIRMED, ...DOCTOR }, 'licenses/drOk/license_1.pdf', image, 'application/pdf'));
+    await assertSucceeds(put('drNew', CONFIRMED, 'licenses/drNew/license_1.pdf', image, 'application/pdf'));
   });
 
   it('RT-31 any other path is closed', async () => {

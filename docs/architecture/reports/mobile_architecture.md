@@ -322,13 +322,13 @@ is generated, and it never changes, even when they later register.
 | `isRegistered` | bool | Server | `true` exactly when `uid` is set |
 | `createdByUid` | String | Server | The patient themselves, or the doctor who added them |
 | `firstName`, `middleName`, `lastName` | String | Server at creation; owner after | `middleName` may be `''` |
-| `sex` | String (`Sex`) | Server at creation; owner after | Clinical: reference ranges depend on it |
-| `dateOfBirth` | String (ISO date) | Server at creation; owner after | Required for every patient; age is derived, never stored |
+| `sex` | String (`Sex`) | Server at creation | Clinical: reference ranges depend on it |
+| `dateOfBirth` | String (ISO date) | Server at creation | Required for every patient; age is derived, never stored. With the phone it anchors the duplicate check, so it does not change from the client |
 | `phoneNumber` | String (E.164) | Server at creation; owner after | Normalised to `+254…` |
 | `email` | String | Server | From the Auth token; never changes once registered. Before then, the creating doctor may correct it |
 | `profilePictureUrl` | String | Owner, or a care-team doctor while unregistered | `''` until uploaded; never public |
-| `county` | String | Owner | One of the 47; defaults to Nairobi |
-| `subCounty` | String | Owner | Nairobi sub-counties only; `''` outside Nairobi |
+| `county` | String | Server | One of the 47; defaults to Nairobi |
+| `subCounty` | String | Server | Nairobi sub-counties only; `''` outside Nairobi. The geohash follows it, so both are the server's (T-9) |
 | `geohash` | String | Server | 9 characters, computed from the sub-county's centre, so it locates an area, never a home (T-9). `''` outside Nairobi |
 | `doctorUids` | List\<String\> | Server | The care team: the doctors and pathologists who may read this profile |
 | `fcmTokens` | List\<String\> | Owner | One per signed-in device; read only by Cloud Functions |
@@ -399,8 +399,8 @@ second-opinion doctor sees the shared case only. The patient may remove a
 doctor from `doctorUids`.
 
 **Storage.** Each path is written only by the people listed below, and
-only under its fixed names, so an account holds one picture and two licence
-files however often it uploads. The name's extension must match the content
+only under its fixed names (one per slot and format), so an account holds at
+most two pictures and six licence files however often it uploads. The name's extension must match the content
 type, and only JPEG, PNG and PDF pass, so an SVG or HTML file cannot be
 stored as an image. A practitioner's files go up before their profile
 exists, so an upload under the caller's own uid needs a confirmed email
@@ -408,15 +408,15 @@ instead.
 
 | Path | Who writes | Who reads | Limit |
 |---|---|---|---|
-| `profilePictures/{id}/photo.jpg` or `photo.png` (`id` is a `doctors` uid or a `patientId`) | The owner (with a confirmed email when `id` is their uid); or, for an unregistered patient, a doctor in their `doctorUids` | Any signed-in user; no listing | 3 MB, JPEG or PNG |
+| `profilePictures/{id}/photo.jpg` or `photo.png` (`id` is a `doctors` uid or a `patientId`) | The owner (with a confirmed email when `id` is their uid); or, for an unregistered patient, a doctor in their `doctorUids` | A patient's: the patient and their care team. A practitioner's: any signed-in user. No listing | 3 MB, JPEG or PNG |
 | `licenses/{uid}/license_1` or `license_2` (`.jpg`, `.png` or `.pdf`) | Owner with a confirmed email, until `Verified` | Owner and admin | 10 MB, JPEG, PNG or PDF |
 
 There is no picture collection: the download URL is stored on the profile
 (`profilePictureUrl`), and the trigger copies a practitioner's into the
 directory, so a screen fetches one document. A download URL works for
-anyone who holds it, so the Storage read rule only stops listing a folder.
-What actually keeps a patient's picture private is that its URL sits on a
-document only the patient and their care team can read.
+anyone who holds it, and its URL sits on a document only the patient and
+their care team can read. With fixed names a path can be guessed, so the
+Storage read rule also limits a patient's picture to the same people.
 
 ### 6.2 Reference data shipped with the app
 
@@ -815,11 +815,11 @@ to see. Greptile is pointed at this section.
    acceptable for the hackathon, but development writes land in the project
    the demo runs on, so seeded demo data must be kept apart from test data
    by convention until the flavors get their own projects.
-10. **Two RASP values wait on store accounts** (`rasp_config.dart`). One is
-    the Play App Signing certificate: Play re-signs every upload, so a Play
+10. **One RASP value waits on the Play account** (`rasp_config.dart`): the
+    Play App Signing certificate. Play re-signs every upload, so a Play
     install presents Google's certificate, and without its hash every Play
-    install terminates. The other is the Apple Developer Team ID. Add both
-    before the first store build.
+    install terminates. Add it before the first Play build. The Apple
+    Developer Team ID is set (`Z5GNM65VQN`, the project's signing team).
 
 ## 17. Change log
 

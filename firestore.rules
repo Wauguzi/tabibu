@@ -3,13 +3,13 @@ rules_version = '2';
 // ════════════════════════════════════════════════════════════════════════════
 // TABIBU: FIRESTORE SECURITY RULES
 // Information security review document
-// Last updated : 2026-10-28
+// Last updated : 2026-10-29
 // Prepared by  : Engineering (Theo)
 // Review target: the pull request reviewer and Greptile, before each deploy
-// Emulator test: make rules-test → 35/35 passing (Firestore and Storage)
+// Emulator test: make rules-test → 44/44 passing (Firestore and Storage)
 // Change records: CRQ-0016 (identity rules), CRQ-0026 (licences, specialties)
 // Threat model  : docs/security/reports/firebase_and_ai_service_threat_model.md
-// Storage rules : storage.rules, same suite (RT-26 to RT-31, RT-35)
+// Storage rules : storage.rules, same suite (RT-26 to RT-31, RT-35 to RT-37, RT-41 to RT-43)
 // ════════════════════════════════════════════════════════════════════════════
 //
 // ── 1. PURPOSE & SCOPE ──────────────────────────────────────────────────────
@@ -192,9 +192,12 @@ rules_version = '2';
 //
 // ── 10. EMULATOR TEST COVERAGE ──────────────────────────────────────────────
 //
-//   test/firestore_rules/rules.test.js: 35 scenarios (31 added 2026-10-27,
+//   test/firestore_rules/rules.test.js: 44 scenarios (31 added 2026-10-27,
 //   +4 for licence files, specialties, the required photo and the 10 MB
-//   limit added 2026-10-28, C-6 and C-7).
+//   limit added 2026-10-28, C-6 and C-7; +9 from the pre-review on
+//   2026-10-29: fixed Storage names and types, a confirmed owner, the name
+//   final once verified, this project's bucket, a new stamp on every update,
+//   and who reads a patient's picture).
 //
 //   patients        RT-1 own record · RT-2 another patient · RT-3 care team ·
 //                   RT-4 no role · RT-5 scoped lists · RT-6 no create or
@@ -202,18 +205,24 @@ rules_version = '2';
 //                   RT-9 locked fields · RT-10 remove, never add (T-16) ·
 //                   RT-11 doctor self-add (T-16) · RT-12 own picture folder ·
 //                   RT-13 care-team corrections · RT-14 pathologist cannot
-//                   correct · RT-15 linked record by uid
+//                   correct · RT-15 linked record by uid · RT-44 a new stamp
 //   doctors         RT-16 owner and admin read · RT-17 no create · RT-18
 //                   pending edits · RT-19 no self-verify (T-14) · RT-20 email
 //                   and facility locked · RT-21 final once verified (T-14) ·
 //                   RT-22 resubmit to Pending only · RT-23 counters · RT-32
-//                   specialties · RT-33 licence files · RT-34 photo required
+//                   specialties · RT-33 licence files · RT-34 photo required ·
+//                   RT-38 name final once verified (T-14) · RT-39 this
+//                   project's bucket (T-14) · RT-40 a new stamp
 //   practitioners   RT-24 read by any signed-in user, written by none
 //   everything else RT-25 closed
 //   storage         RT-26 own images under 3 MB · RT-27 linked patient ·
 //                   RT-28 care team until registered · RT-29 licence frozen
 //                   once verified (T-14) · RT-30 licence readers · RT-31
-//                   other paths closed · RT-35 licence files up to 10 MB
+//                   other paths closed · RT-35 licence files up to 10 MB ·
+//                   RT-36 fixed names and types · RT-37 a confirmed owner ·
+//                   RT-41 a patient's picture, owner and care team only ·
+//                   RT-42 a practitioner's picture, any signed-in user ·
+//                   RT-43 licences for role-less accounts only
 //
 //   On every rules change: update "Last updated", the passing count, §9 and
 //   this list, in the same commit.
@@ -246,10 +255,13 @@ service cloud.firestore {
       return request.resource.data.phoneNumber.matches('^\\+254[17][0-9]{8}$');
     }
 
-    // A download URL for a file under <folder>/<owner>/ in a Firebase Storage bucket.
+    // A download URL for a file under <folder>/<owner>/ in this project's bucket. Any other
+    // bucket would let an owner serve a file they can swap after verification (T-14); the
+    // demo bucket exists only on the emulator.
     function isStorageUrl(value, folder, owner) {
       return value is string && value.size() <= 2048 && value.matches(
-          '^https://firebasestorage\\.googleapis\\.com/v0/b/[^/]+/o/'
+          '^https://firebasestorage\\.googleapis\\.com/v0/b/'
+          + '(tabibu-86ea2\\.firebasestorage\\.app|demo-tabibu\\.appspot\\.com)/o/'
           + folder + '%2F' + owner + '%2F[^?]+[?].*');
     }
 
@@ -259,6 +271,12 @@ service cloud.firestore {
           || isStorageUrl(request.resource.data[field], folder, owner);
     }
 
+    // Every update carries a new stamp, so delta sync sees it (class 36). Rules cannot read the
+    // server clock against a string, so a stamp is required to change, not to advance.
+    function stamped() {
+      return text('lastUpdatedAt', 40) && 'lastUpdatedAt' in changed();
+    }
+
     function tokens() {
       return request.resource.data.fcmTokens is list && request.resource.data.fcmTokens.size() <= 10;
     }
@@ -266,7 +284,7 @@ service cloud.firestore {
     function preferences() {
       return request.resource.data.language in ['en', 'sw']
           && request.resource.data.receiveNotifications is bool
-          && text('lastUpdatedAt', 40);
+          && stamped();
     }
 
     // ── patients/{patientId} ──────────────────────────────────────────────────────────────
@@ -280,8 +298,8 @@ service cloud.firestore {
         return role() in ['doctor', 'pathologist'] && request.auth.uid in resource.data.doctorUids;
       }
 
-      // Sex, date of birth, location and geohash are not here: the first two anchor the
-      // duplicate check, and the geohash is the server's (T-9).
+      // Sex, date of birth, location and geohash are not here: the date of birth and phone anchor
+      // the duplicate check, and the location and geohash are the server's (T-9).
       function ownerUpdate() {
         return isOwner()
             && changed().hasOnly(['firstName', 'middleName', 'lastName', 'phoneNumber',
@@ -313,7 +331,7 @@ service cloud.firestore {
             && (request.resource.data.email == ''
                 || (text('email', 254) && request.resource.data.email.matches('^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$')))
             && storageUrl('profilePictureUrl', 'profilePictures', patientId)
-            && text('lastUpdatedAt', 40);
+            && stamped();
       }
 
       // `doctorUids` grants the profile only; each case's participants decide its cases.
@@ -357,12 +375,13 @@ service cloud.firestore {
             && chosen.toSet().difference(allowed.toSet()).size() == 0;
       }
 
-      // The KMPDC number and licence files are final once verified; email never changes (T-14).
+      // The name, KMPDC number and licence files are final once verified, so the name checked
+      // against the register is the one patients and reports show; email never changes (T-14).
       function editable() {
-        return ['title', 'firstName', 'lastName', 'phoneNumber', 'profilePictureUrl',
-                'specialties', 'bio', 'isAvailable', 'fcmTokens', 'language',
-                'receiveNotifications', 'lastUpdatedAt']
-            .concat(verified() ? [] : ['kmpdcNumber', 'licenseUrls'])
+        return ['phoneNumber', 'profilePictureUrl', 'specialties', 'bio', 'isAvailable',
+                'fcmTokens', 'language', 'receiveNotifications', 'lastUpdatedAt']
+            .concat(verified() ? [] : ['title', 'firstName', 'lastName', 'kmpdcNumber',
+                                       'licenseUrls'])
             // A rejected practitioner may resubmit; nothing else moves the status.
             .concat(resource.data.verificationStatus == 'Rejected'
                     && request.resource.data.verificationStatus == 'Pending'
