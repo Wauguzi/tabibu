@@ -12,7 +12,7 @@ void main() {
       await tester.pumpApp(
         DocumentTile(
           fileName: 'practising_licence_2026.jpg',
-          meta: '2.1 MB · photo uploaded',
+          meta: '2.1 MB · photo',
           deleteLabel: 'Delete document',
           onDelete: () => taps++,
         ),
@@ -20,7 +20,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('practising_licence_2026.jpg'), findsOneWidget);
-      expect(find.text('2.1 MB · photo uploaded'), findsOneWidget);
+      expect(find.text('2.1 MB · photo'), findsOneWidget);
 
       await tester.tap(find.byType(AssetIcon).last);
       expect(taps, 1);
@@ -30,7 +30,7 @@ void main() {
       await tester.pumpApp(
         DocumentTile(
           fileName: 'licence.jpg',
-          meta: '2.1 MB · photo uploaded',
+          meta: '2.1 MB · photo',
           deleteLabel: 'Delete document',
           onDelete: () {},
         ),
@@ -57,7 +57,7 @@ void main() {
         SingleChildScrollView(
           child: DocumentTile(
             fileName: 'a_very_long_file_name_that_must_truncate.jpg',
-            meta: '2.1 MB · photo uploaded',
+            meta: '2.1 MB · photo',
             deleteLabel: 'Delete document',
             onDelete: () {},
           ),

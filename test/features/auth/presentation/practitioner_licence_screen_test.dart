@@ -9,12 +9,14 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/file_picker_service.dart';
+import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_state.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
 import 'package:tabibu/features/auth/presentation/practitioner_licence_screen.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 
 import '../../../helpers/helpers.dart';
 
@@ -181,6 +183,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('licence.pdf'), findsOneWidget);
+      expect(find.text('2.0 KB · PDF'), findsOneWidget);
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
@@ -207,6 +210,35 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Add another document'), findsNothing);
+    });
+
+    testWidgets('deleting a file removes its row', (tester) async {
+      when(() => signUpBloc.state).thenReturn(
+        SignUpState(
+          draft: SignUpDraft(
+            role: Role.doctor,
+            licenses: [_licence('a.pdf'), _licence('b.pdf')],
+          ),
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final remove = find
+          .byWidgetPredicate(
+            (w) =>
+                w is AssetIcon && w.asset.path == Assets.icons.deleteIcon.path,
+          )
+          .first;
+      await tester.ensureVisible(remove);
+      await tester.pumpAndSettle();
+      await tester.tap(remove);
+      await tester.pumpAndSettle();
+
+      expect(find.text('a.pdf'), findsNothing);
+      expect(find.text('b.pdf'), findsOneWidget);
+      expect(find.text('Add another document'), findsOneWidget);
     });
 
     testWidgets('a pathologist picks areas as chips', (tester) async {
