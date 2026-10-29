@@ -29,6 +29,32 @@ void main() {
       expect(taps, 1);
     });
 
+    testWidgets('labels are muted small and values regular body', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        SummaryCard(
+          title: 'You',
+          rows: const [('Name', 'Dr. Wanjiru Kamau')],
+          editLabel: 'Edit',
+          onEdit: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.text('Name'));
+      final textTheme = Theme.of(context).textTheme;
+      final scheme = Theme.of(context).colorScheme;
+
+      final label = tester.widget<Text>(find.text('Name'));
+      expect(
+        label.style,
+        textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
+      );
+      final value = tester.widget<Text>(find.text('Dr. Wanjiru Kamau'));
+      expect(value.style, textTheme.bodyMedium);
+    });
+
     testWidgets('grows at 2.0x text without overflow', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

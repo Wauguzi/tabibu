@@ -1384,9 +1384,13 @@
     "@availabilityOffPathologist": {
         "description": "Review availability off, pathologist"
     },
-    "reviewTerms": "I confirm these details are mine and correct.",
+    "reviewTerms": "I confirm these details are true and that I hold a current practising licence.",
     "@reviewTerms": {
-        "description": "Review terms checkbox"
+        "description": "Review terms checkbox, doctor"
+    },
+    "reviewTermsPathologist": "I confirm these details are true. I understand AI drafts are a starting point and I am responsible for every report I sign.",
+    "@reviewTermsPathologist": {
+        "description": "Review terms checkbox, pathologist"
     },
     "reviewSubmit": "Submit for verification",
     "@reviewSubmit": {

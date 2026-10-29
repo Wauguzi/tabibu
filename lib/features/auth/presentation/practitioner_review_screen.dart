@@ -13,6 +13,7 @@ import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
+import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_state.dart';
@@ -131,7 +132,10 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
                             .join(' '),
                       ),
                       if (email.isNotEmpty) (l10n.reviewEmailRow, email),
-                      (l10n.reviewPhoneRow, draft.phoneNumber),
+                      (
+                        l10n.reviewPhoneRow,
+                        formatKePhone(draft.phoneNumber, withPrefix: true),
+                      ),
                     ],
                     editLabel: l10n.reviewEdit,
                     onEdit: busy ? null : () => _edit(1),
@@ -198,7 +202,9 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
                   ),
                   const SizedBox(height: AppSpacing.sm),
                   _TermsBox(
-                    label: l10n.reviewTerms,
+                    label: isPathologist
+                        ? l10n.reviewTermsPathologist
+                        : l10n.reviewTerms,
                     value: _terms,
                     onChanged: busy ? null : _toggleTerms,
                   ),

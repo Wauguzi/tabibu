@@ -75,9 +75,14 @@ class SummaryCard extends StatelessWidget {
                 children: [
                   SizedBox(
                     width: 120,
-                    child: Text(label, style: textTheme.bodyMedium),
+                    child: Text(
+                      label,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
                   ),
-                  Expanded(child: Text(value, style: textTheme.titleMedium)),
+                  Expanded(child: Text(value, style: textTheme.bodyMedium)),
                 ],
               ),
             ),

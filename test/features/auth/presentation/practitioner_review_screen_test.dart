@@ -78,6 +78,13 @@ final _draft = SignUpDraft(
   facilityId: 'h1',
 );
 
+const _doctorTerms =
+    'I confirm these details are true and that I hold a current practising '
+    'licence.';
+const _pathologistTerms =
+    'I confirm these details are true. I understand AI drafts are a starting '
+    'point and I am responsible for every report I sign.';
+
 void main() {
   setUpAll(() {
     registerFallbackValue(const GoogleSignInRequested());
@@ -137,6 +144,37 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('rows read from the draft and session', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('w.kamau@akuh.example'), findsOneWidget);
+      expect(find.text('+254 722 118 450'), findsOneWidget);
+      expect(find.text('Parklands, Westlands'), findsOneWidget);
+      expect(find.text('A 12345'), findsOneWidget);
+      expect(find.text('General surgery'), findsOneWidget);
+      expect(find.text('1 document'), findsOneWidget);
+      expect(find.text('Accepting new patients'), findsOneWidget);
+    });
+
+    testWidgets('at 2.0x text the checkbox is hit-testable', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text(_doctorTerms));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text(_doctorTerms));
+      await tester.pumpAndSettle();
+
+      final updated =
+          verify(() => signUpBloc.add(captureAny())).captured.single
+              as SignUpDraftUpdated;
+      expect(updated.draft.termsAccepted, isTrue);
+    });
+
     testWidgets('submit waits for the terms', (tester) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
@@ -145,13 +183,9 @@ void main() {
       await tester.pumpAndSettle();
       verifyNever(() => authBloc.add(any()));
 
-      await tester.ensureVisible(
-        find.text('I confirm these details are mine and correct.'),
-      );
+      await tester.ensureVisible(find.text(_doctorTerms));
       await tester.pumpAndSettle();
-      await tester.tap(
-        find.text('I confirm these details are mine and correct.'),
-      );
+      await tester.tap(find.text(_doctorTerms));
       await tester.pumpAndSettle();
       await tester.tap(find.text('Submit for verification'));
       await tester.pumpAndSettle();
@@ -243,6 +277,26 @@ void main() {
 
       expect(find.text('/e1 stub'), findsOneWidget);
       expect(router.canPop(), isFalse);
+    });
+
+    testWidgets('a doctor sees the exact E4 terms', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text(_doctorTerms), findsOneWidget);
+      expect(find.text(_pathologistTerms), findsNothing);
+    });
+
+    testWidgets('a pathologist sees the exact F4 terms', (tester) async {
+      when(
+        () => signUpBloc.state,
+      ).thenReturn(SignUpState(draft: _draft.copyWith(role: Role.pathologist)));
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text(_pathologistTerms), findsOneWidget);
+      expect(find.text(_doctorTerms), findsNothing);
     });
 
     testWidgets('a pathologist sees lab rows', (tester) async {
