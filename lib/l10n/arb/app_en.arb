@@ -500,10 +500,6 @@
     "@languageSwahiliSupporting": {
         "description": "A2 Kiswahili card supporting text, always in Kiswahili"
     },
-    "introBookTitle": "Only verified clinicians",
-    "@introBookTitle": {
-        "description": "A3 title"
-    },
     "introBookBody": "Every doctor and pathologist is checked with KMPDC before they join. Patients book them in English or Kiswahili, close to home.",
     "@introBookBody": {
         "description": "A3 body"
@@ -516,15 +512,15 @@
     "@introBookDoctorDetail": {
         "description": "A3 mock booking card detail"
     },
-    "introBookSlot1": "10:30",
+    "introBookSlot1": "10:30 AM",
     "@introBookSlot1": {
         "description": "A3 mock booking slot"
     },
-    "introBookSlot2": "11:15",
+    "introBookSlot2": "11:15 AM",
     "@introBookSlot2": {
         "description": "A3 mock booking slot"
     },
-    "introBookSlot3": "12:00",
+    "introBookSlot3": "12:00 PM",
     "@introBookSlot3": {
         "description": "A3 mock booking slot"
     },
@@ -588,13 +584,13 @@
     "@introResultsChecked": {
         "description": "A5 mock checked line"
     },
-    "introResultsSigned": "Signed",
-    "@introResultsSigned": {
-        "description": "A5 mock signed pill"
+    "introResultsReviewed": "Reviewed",
+    "@introResultsReviewed": {
+        "description": "A5 mock reviewed stamp"
     },
-    "introResultsSignedDetail": "Dr. A. Odhiambo · 10:42",
-    "@introResultsSignedDetail": {
-        "description": "A5 mock signed detail"
+    "introResultsReviewedDetail": "Dr. A. Odhiambo · 10:42 AM",
+    "@introResultsReviewedDetail": {
+        "description": "A5 mock reviewed stamp detail"
     },
     "introGetStarted": "Get started",
     "@introGetStarted": {
@@ -1537,5 +1533,13 @@
     "errorEmailNotVerified": "Confirm your email address first. Open the link we sent you.",
     "@errorEmailNotVerified": {
         "description": "The server refused sign-up because the email address is not confirmed yet"
+    },
+    "introBookTitleA": "Only verified",
+    "@introBookTitleA": {
+        "description": "A3 title, first line"
+    },
+    "introBookTitleB": "clinicians",
+    "@introBookTitleB": {
+        "description": "A3 title after the portrait pill"
     }
 }

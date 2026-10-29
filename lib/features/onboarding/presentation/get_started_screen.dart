@@ -1,142 +1,125 @@
-import 'dart:async';
-
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:go_router/go_router.dart';
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
-import 'package:tabibu/features/onboarding/blocs/onboarding_bloc/onboarding_bloc.dart';
-import 'package:tabibu/features/onboarding/blocs/onboarding_bloc/onboarding_event.dart';
-import 'package:tabibu/features/onboarding/blocs/onboarding_bloc/onboarding_state.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
-/// A6. Both actions first mark onboarding done, then move on: creating an
-/// account goes to role choice, signing in goes to B1.
-class GetStartedScreen extends StatefulWidget {
+/// A6. Onboarding is already marked done (the intro did it); both actions
+/// push. No popping back into the intro: this is the point of no return.
+class GetStartedScreen extends StatelessWidget {
   const GetStartedScreen({super.key});
-
-  @override
-  State<GetStartedScreen> createState() => _GetStartedScreenState();
-}
-
-class _GetStartedScreenState extends State<GetStartedScreen> {
-  GoRouteData? _destination;
-
-  void _proceed(GoRouteData destination) {
-    setState(() => _destination = destination);
-    context.read<OnboardingBloc>().add(const OnboardingCompleted());
-  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final isDark = scheme.brightness == Brightness.dark;
 
-    return BlocListener<OnboardingBloc, OnboardingState>(
-      listenWhen: (_, state) =>
-          state is OnboardingComplete || state is OnboardingFailure,
-      listener: (context, state) {
-        switch (state) {
-          case OnboardingComplete():
-            _destination?.go(context);
-          case OnboardingFailure(:final error):
-            unawaited(
-              showTabibuNotification(
-                context,
-                message: error.description(l10n),
-                isError: true,
-                dismissLabel: l10n.commonDismiss,
-              ),
-            );
-          default:
-            break;
-        }
-      },
-      child: Scaffold(
-        body: SafeArea(
-          child: Padding(
-            padding: const EdgeInsets.all(AppSpacing.screenMargin),
-            child: LayoutBuilder(
-              builder: (context, constraints) => SingleChildScrollView(
-                child: ConstrainedBox(
-                  constraints: BoxConstraints(minHeight: constraints.maxHeight),
-                  child: IntrinsicHeight(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        PatternCard(
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              Row(
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
+        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+      ),
+      child: PopScope(
+        canPop: false,
+        child: Scaffold(
+          body: SafeArea(
+            child: Padding(
+              padding: const EdgeInsets.all(AppSpacing.screenMargin),
+              child: LayoutBuilder(
+                builder: (context, constraints) => SingleChildScrollView(
+                  child: ConstrainedBox(
+                    constraints: BoxConstraints(
+                      minHeight: constraints.maxHeight,
+                    ),
+                    child: IntrinsicHeight(
+                      child: Column(
+                        crossAxisAlignment: .start,
+                        children: [
+                          // Full width, however narrow its pills.
+                          SizedBox(
+                            width: double.infinity,
+                            child: PatternCard(
+                              // Fixed gaps, not a spacer: the card wraps its
+                              // content, so flex has no bound to fill.
+                              child: Column(
+                                crossAxisAlignment: .start,
                                 children: [
-                                  Assets.icons.logoTransparentWhite.svg(
-                                    width: 40,
-                                    height: 40,
+                                  ExcludeSemantics(
+                                    child: Assets.icons.logoTransparentWhite
+                                        .svg(width: 148),
                                   ),
-                                  const SizedBox(width: AppSpacing.xs),
-                                  Text(
-                                    l10n.appTitle.toLowerCase(),
-                                    style: textTheme.headlineMedium?.copyWith(
-                                      color: Colors.white,
+                                  const SizedBox(height: 72),
+                                  _HeroPill(
+                                    icon: Assets.icons.verificationBadge,
+                                    label: l10n.getStartedBadge1,
+                                  ),
+                                  const SizedBox(height: AppSpacing.md),
+                                  // The two results pills end on one edge; the
+                                  // second starts a step in from the first.
+                                  Padding(
+                                    padding: const EdgeInsets.only(
+                                      left: AppSpacing.md,
+                                    ),
+                                    child: IntrinsicWidth(
+                                      child: Column(
+                                        crossAxisAlignment: .end,
+                                        children: [
+                                          _HeroPill(
+                                            icon: Assets.icons.languageIcon,
+                                            label: l10n.getStartedBadge2,
+                                          ),
+                                          const SizedBox(height: AppSpacing.md),
+                                          _HeroPill(
+                                            icon:
+                                                Assets.icons.checkSelectedIcon,
+                                            label: l10n.getStartedBadge3,
+                                          ),
+                                        ],
+                                      ),
                                     ),
                                   ),
                                 ],
                               ),
-                              const SizedBox(height: AppSpacing.lg),
-                              _HeroPill(
-                                icon: Assets.icons.verificationBadge,
-                                label: l10n.getStartedBadge1,
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              Align(
-                                alignment: Alignment.centerRight,
-                                child: _HeroPill(
-                                  icon: Assets.icons.languageIcon,
-                                  label: l10n.getStartedBadge2,
-                                ),
-                              ),
-                              const SizedBox(height: AppSpacing.xs),
-                              _HeroPill(
-                                icon: Assets.icons.checkSelectedIcon,
-                                label: l10n.getStartedBadge3,
-                              ),
-                            ],
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.lg),
-                        Text(
-                          l10n.getStartedTitle,
-                          style: textTheme.displaySmall,
-                        ),
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(l10n.getStartedBody, style: textTheme.bodyLarge),
-                        const Spacer(),
-                        const SizedBox(height: AppSpacing.md),
-                        TabibuButton.primary(
-                          label: l10n.getStartedCreateAccount,
-                          onTap: () => _proceed(const SignUpRoleRoute()),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        TabibuButton.secondary(
-                          label: l10n.getStartedSignIn,
-                          onTap: () => _proceed(const SignInRoute()),
-                        ),
-                        const SizedBox(height: AppSpacing.sm),
-                        Center(
-                          child: Text(
-                            l10n.getStartedTerms,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: scheme.onSurfaceVariant,
                             ),
-                            textAlign: TextAlign.center,
                           ),
-                        ),
-                      ],
+                          const SizedBox(height: AppSpacing.lg),
+                          Text(
+                            l10n.getStartedTitle,
+                            style: textTheme.displaySmall,
+                          ),
+                          const SizedBox(height: AppSpacing.xs),
+                          Text(l10n.getStartedBody, style: textTheme.bodyLarge),
+                          const Spacer(),
+                          const SizedBox(height: AppSpacing.md),
+                          TabibuButton.primary(
+                            label: l10n.getStartedCreateAccount,
+                            onTap: () =>
+                                const SignUpRoleRoute().push<void>(context),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          TabibuButton.secondary(
+                            label: l10n.getStartedSignIn,
+                            onTap: () =>
+                                const SignInRoute().push<void>(context),
+                          ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Center(
+                            child: Text(
+                              l10n.getStartedTerms,
+                              style: textTheme.bodySmall?.copyWith(
+                                color: scheme.onSurfaceVariant,
+                              ),
+                              textAlign: .center,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
@@ -169,9 +152,9 @@ class _HeroPill extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: .min,
         children: [
-          AssetIcon(icon, size: 18),
+          AssetIcon(icon, size: 20, color: scheme.primary),
           const SizedBox(width: AppSpacing.xs),
           Flexible(child: Text(label, style: textTheme.titleSmall)),
         ],
