@@ -62,7 +62,6 @@ dependencies:
   qr_code_generator: ^1.0.3
   share_plus: ^13.3.1
   shared_preferences: ^2.5.6
-  smooth_page_indicator: ^3.0.0
   test_api: any
   url_launcher: ^6.3.3
   uuid: ^4.6.0
