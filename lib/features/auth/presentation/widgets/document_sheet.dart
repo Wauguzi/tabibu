@@ -9,15 +9,19 @@ import 'package:tabibu/l10n/l10n.dart';
 enum DocumentSource { camera, file }
 
 /// E2b/F2c: photograph the page or upload a file. Dismissing pops null.
-Future<DocumentSource?> showDocumentSheet(BuildContext context) {
+/// The caller passes its role's subtitle; without one the doctor's shows.
+Future<DocumentSource?> showDocumentSheet(
+  BuildContext context, {
+  String? subtitle,
+}) {
   final l10n = context.l10n;
   return TabibuBottomSheet.show<DocumentSource>(
     context,
     title: l10n.documentSheetTitle,
-    subtitle: l10n.documentSheetSubtitle,
+    subtitle: subtitle ?? l10n.documentSheetSubtitle,
     cancelLabel: l10n.commonCancel,
     builder: (context) => Column(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: .min,
       children: [
         OptionCard(
           icon: Assets.icons.photoIcon,
