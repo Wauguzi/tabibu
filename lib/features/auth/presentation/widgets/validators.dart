@@ -15,10 +15,6 @@ String? normalizeKePhone(String raw) {
   return '+254$digits';
 }
 
-/// Enough structure for the account call; Firebase is the real judge.
-bool isValidEmail(String value) =>
-    RegExp(r'^[^@\s]+@[^@\s]+\.[^@\s]+$').hasMatch(value.trim());
-
 /// The meter's three rules, mirrored so Continue enables exactly when the
 /// meter fills.
 bool isPasswordStrong(String password) =>

@@ -23,16 +23,6 @@ void main() {
     });
   });
 
-  group('isValidEmail', () {
-    test('checks structure only', () {
-      expect(isValidEmail('a@b.co'), isTrue);
-      expect(isValidEmail('  a@b.co  '), isTrue);
-      expect(isValidEmail('a@b'), isFalse);
-      expect(isValidEmail('ab.co'), isFalse);
-      expect(isValidEmail(''), isFalse);
-    });
-  });
-
   group('isPasswordStrong', () {
     test('needs length, a number and a symbol', () {
       expect(isPasswordStrong('abcdefg1!'), isTrue);
