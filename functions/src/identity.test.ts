@@ -135,6 +135,12 @@ describe('identity', () => {
       await refusedWith(completePatientSignUpHandler(deps, second, patientInput()), 'patientAlreadyRegistered');
     });
 
+    it('refuses an address nobody has confirmed', async () => {
+      const me = await account(deps, 'amina@example.com', {}, { emailVerified: false });
+      await refusedWith(completePatientSignUpHandler(deps, me, patientInput()), 'emailNotVerified');
+      assert.equal((await deps.db.collection(PATIENTS).doc(me.uid).get()).exists, false);
+    });
+
     it('refuses a caller who already has another role', async () => {
       const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
       await refusedWith(completePatientSignUpHandler(deps, doctor, patientInput()), 'roleAlreadySet');
@@ -238,6 +244,15 @@ describe('identity', () => {
       assert.equal(doc.geohash, facility.geohash);
       assert.equal(doc.reportsSigned, 0);
       assert.equal((await claimsOf(me.uid)).role, undefined);
+    });
+
+    it('refuses an address nobody has confirmed', async () => {
+      const me = await account(deps, 'wanjiru@example.com', {}, { emailVerified: false });
+      await refusedWith(
+        completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid)),
+        'emailNotVerified',
+      );
+      assert.equal((await deps.db.collection(DOCTORS).doc(me.uid).get()).exists, false);
     });
 
     it('refuses a closed or unknown facility', async () => {

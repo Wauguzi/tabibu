@@ -11,6 +11,8 @@ export type VerificationStatus = 'Pending' | 'Verified' | 'Rejected';
 export interface Caller {
   uid: string;
   email: string;
+  /** Firebase sets it once the address is confirmed; Google accounts arrive confirmed. */
+  emailVerified: boolean;
   role: string;
   isAdmin: boolean;
 }
@@ -21,6 +23,7 @@ export function callerOf(request: CallableRequest): Caller | null {
   return {
     uid: request.auth.uid,
     email: typeof token.email === 'string' ? token.email.toLowerCase() : '',
+    emailVerified: token.email_verified === true,
     role: typeof token.role === 'string' ? token.role : '',
     isAdmin: token.admin === true,
   };
@@ -44,6 +47,12 @@ export function refuse(code: FunctionsErrorCode, reason: string): HttpsError {
 export function requireCaller(caller: Caller | null): Caller {
   if (!caller || !caller.uid) throw refuse('unauthenticated', 'unauthenticated');
   if (!caller.email) throw refuse('failed-precondition', 'emailRequired');
+  return caller;
+}
+
+/** Self sign-up only: a profile is never created for an address nobody has confirmed. */
+export function requireVerifiedEmail(caller: Caller): Caller {
+  if (!caller.emailVerified) throw refuse('failed-precondition', 'emailNotVerified');
   return caller;
 }
 

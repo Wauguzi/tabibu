@@ -23,6 +23,7 @@ import {
   optionalEmail,
   refuse,
   requireCaller,
+  requireVerifiedEmail,
   storageUrl,
   timestamp,
 } from './common';
@@ -148,7 +149,7 @@ export async function completePatientSignUpHandler(
   caller: Caller | null,
   data: unknown,
 ): Promise<PatientSignUpResult> {
-  const c = requireCaller(caller);
+  const c = requireVerifiedEmail(requireCaller(caller));
   if (c.role !== '' && c.role !== 'patient') throw refuse('failed-precondition', 'roleAlreadySet');
   const now = (deps.now ?? (() => new Date()))();
   const bio = biodata(input(data), now);
@@ -335,7 +336,7 @@ export async function completePractitionerSignUpHandler(
   caller: Caller | null,
   data: unknown,
 ): Promise<{ status: VerificationStatus }> {
-  const c = requireCaller(caller);
+  const c = requireVerifiedEmail(requireCaller(caller));
   if (c.role !== '') throw refuse('failed-precondition', 'roleAlreadySet');
   const raw = input(data);
   const now = (deps.now ?? (() => new Date()))();
@@ -412,7 +413,7 @@ export async function verifyPractitionerHandler(
   caller: Caller | null,
   data: unknown,
 ): Promise<{ status: VerificationStatus }> {
-  const c = requireCaller(caller);
+  const c = requireVerifiedEmail(requireCaller(caller));
   if (!c.isAdmin) throw refuse('permission-denied', 'adminOnly');
   const raw = input(data);
   const uid = boundedText(raw.uid, 1, 128, 'invalidPractitioner');

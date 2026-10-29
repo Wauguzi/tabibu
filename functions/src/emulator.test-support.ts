@@ -33,12 +33,18 @@ export async function account(
   deps: Deps,
   email: string,
   claims: Record<string, unknown> = {},
+  { emailVerified = true }: { emailVerified?: boolean } = {},
 ): Promise<Caller> {
-  const user = await getAuth().createUser({ email, password: 'test-password-2026' });
+  const user = await getAuth().createUser({
+    email,
+    emailVerified,
+    password: 'test-password-2026',
+  });
   if (Object.keys(claims).length > 0) await deps.auth.setCustomUserClaims(user.uid, claims);
   return {
     uid: user.uid,
     email,
+    emailVerified,
     role: typeof claims.role === 'string' ? claims.role : '',
     isAdmin: claims.admin === true,
   };
