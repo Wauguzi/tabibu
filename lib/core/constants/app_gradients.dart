@@ -5,46 +5,46 @@ import 'package:tabibu/core/constants/app_colors.dart';
 /// bottom; the teal pair runs left to right.
 abstract final class AppGradients {
   static const LinearGradient skyToLavender = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.skyLight, AppColors.lavenderLight],
   );
   static const LinearGradient skyToLavenderDark = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.skyDark, AppColors.lavenderDark],
   );
 
   static const LinearGradient mintToSky = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.mintLight, AppColors.skyLight],
   );
   static const LinearGradient mintToSkyDark = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.mintDark, AppColors.skyDark],
   );
 
   static const LinearGradient lavenderToMint = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.lavenderLight, AppColors.mintLight],
   );
   static const LinearGradient lavenderToMintDark = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.lavenderDark, AppColors.mintDark],
   );
 
   static const LinearGradient butterWash = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.butterLight, AppColors.surfaceLight],
   );
   static const LinearGradient butterWashDark = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.butterDark, AppColors.surfaceDark],
   );
 
@@ -63,13 +63,46 @@ abstract final class AppGradients {
   );
 
   static const LinearGradient infoWash = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.infoContainerLight, AppColors.surfaceLight],
   );
   static const LinearGradient infoWashDark = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: .topCenter,
+    end: .bottomCenter,
     colors: [AppColors.infoContainerDark, AppColors.surfaceDark],
+  );
+
+  static const LinearGradient skyWash = LinearGradient(
+    begin: .topCenter,
+    end: .bottomCenter,
+    colors: [AppColors.skyLight, AppColors.surfaceLight],
+  );
+  static const LinearGradient skyWashDark = LinearGradient(
+    begin: .topCenter,
+    end: .bottomCenter,
+    colors: [AppColors.skyDark, AppColors.surfaceDark],
+  );
+
+  static const LinearGradient mintWash = LinearGradient(
+    begin: .topCenter,
+    end: .bottomCenter,
+    colors: [AppColors.mintLight, AppColors.surfaceLight],
+  );
+  static const LinearGradient mintWashDark = LinearGradient(
+    begin: .topCenter,
+    end: .bottomCenter,
+    colors: [AppColors.mintDark, AppColors.surfaceDark],
+  );
+
+  static const LinearGradient lavenderWash = LinearGradient(
+    begin: .topCenter,
+    end: .bottomCenter,
+    colors: [AppColors.lavenderLight, AppColors.surfaceLight],
+  );
+  static const LinearGradient lavenderWashDark = LinearGradient(
+    begin: .topCenter,
+    end: .bottomCenter,
+    colors: [AppColors.lavenderDark, AppColors.surfaceDark],
   );
 }
