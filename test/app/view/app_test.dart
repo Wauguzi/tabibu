@@ -41,6 +41,10 @@ void main() {
     auth = _MockAuthHelper();
     hive = _MockHiveHelper();
     updates = _MockUpdates();
+    // Remote Config unset: the update screen shows its ARB copy.
+    when(
+      () => updates.remoteText(any(), any()),
+    ).thenAnswer((i) => i.positionalArguments[1] as String);
     final notifications = _MockNotifications();
     final analytics = _MockAnalytics();
     final theme = _MockThemeHelper();
