@@ -1,6 +1,8 @@
 // cspell:ignore aspi Glycocylated Carboxyhemoglobin Carbonmonoxide Carboxyhaemoglobin
 // cspell:ignore fluorescenceleishmaniasis microscopyleishmaniasis Lipoarabino mannan
 // cspell:ignore lipoarabinomannan TIBC Bence NAATs
+// ignore_for_file: lines_longer_than_80_chars
+
 import '../facilities/facility_sanitizer.dart' show extractJsonValues;
 import 'lab_test_prices.dart';
 
