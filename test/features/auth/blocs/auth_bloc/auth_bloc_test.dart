@@ -431,4 +431,94 @@ void main() {
       () => auth.changeLanguage(AppLanguage.sw, session: _patient),
     ).called(1),
   );
+
+  group('email verification', () {
+    setUp(
+      () => when(() => analytics.logEmailVerified()).thenAnswer((_) async {}),
+    );
+
+    const unverified = SignUpIncompleteSession(email: 'a@example.com');
+    const verified = SignUpIncompleteSession(
+      email: 'a@example.com',
+      emailVerified: true,
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a confirmed address resolves the next session',
+      setUp: () => when(
+        () => auth.checkEmailVerified(),
+      ).thenAnswer((_) async => verified),
+      build: build,
+      seed: () => const CreateAccountSuccess(session: unverified),
+      act: (bloc) => bloc.add(const EmailVerificationCheckRequested()),
+      expect: () => [
+        const EmailVerificationCheckInProgress(session: unverified),
+        const EmailVerificationCheckSuccess(
+          session: verified,
+          isVerified: true,
+        ),
+      ],
+      verify: (_) => verify(() => analytics.logEmailVerified()).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'not yet confirmed is a success that says so, not an error',
+      setUp: () => when(
+        () => auth.checkEmailVerified(),
+      ).thenAnswer((_) async => unverified),
+      build: build,
+      seed: () => const CreateAccountSuccess(session: unverified),
+      act: (bloc) => bloc.add(const EmailVerificationCheckRequested()),
+      expect: () => [
+        const EmailVerificationCheckInProgress(session: unverified),
+        const EmailVerificationCheckSuccess(
+          session: unverified,
+          isVerified: false,
+        ),
+      ],
+      verify: (_) => verifyNever(() => analytics.logEmailVerified()),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'offline, the check fails fast',
+      setUp: () => when(() => internet.check()).thenAnswer((_) async => false),
+      build: build,
+      seed: () => const CreateAccountSuccess(session: unverified),
+      act: (bloc) => bloc.add(const EmailVerificationCheckRequested()),
+      expect: () => [
+        const EmailVerificationCheckInProgress(session: unverified),
+        const EmailVerificationCheckFailure(
+          session: unverified,
+          error: AppError.noInternet,
+        ),
+      ],
+      verify: (_) => verifyNever(() => auth.checkEmailVerified()),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a resend reports success, and a refusal as a typed failure',
+      setUp: () {
+        var calls = 0;
+        when(() => auth.resendVerificationEmail()).thenAnswer((_) async {
+          if (calls++ > 0) throw AppError.tooManyRequests;
+        });
+      },
+      build: build,
+      seed: () => const CreateAccountSuccess(session: unverified),
+      act: (bloc) async {
+        bloc.add(const VerificationEmailResendRequested());
+        await Future<void>.delayed(Duration.zero);
+        bloc.add(const VerificationEmailResendRequested());
+      },
+      expect: () => [
+        const VerificationEmailResendInProgress(session: unverified),
+        const VerificationEmailResendSuccess(session: unverified),
+        const VerificationEmailResendInProgress(session: unverified),
+        const VerificationEmailResendFailure(
+          session: unverified,
+          error: AppError.tooManyRequests,
+        ),
+      ],
+    );
+  });
 }

@@ -10,6 +10,9 @@ enum Landing {
   onboarding,
   signIn,
 
+  /// Signed in, but the email address is not confirmed yet.
+  verifyEmail,
+
   /// Signed in with no role and no profile: back to the role choice (C1).
   finishSignUp,
 
@@ -33,7 +36,8 @@ Landing resolveLanding({
   if (updateRequired) return Landing.update;
   return switch (session) {
     SignedOutSession() => isOnboarded ? Landing.signIn : Landing.onboarding,
-    SignUpIncompleteSession() => Landing.finishSignUp,
+    SignUpIncompleteSession(:final emailVerified) =>
+      emailVerified ? Landing.finishSignUp : Landing.verifyEmail,
     ClinicRecordExistsSession() => Landing.clinicRecord,
     PendingVerificationSession() => Landing.pending,
     PatientSession() => Landing.patientHome,

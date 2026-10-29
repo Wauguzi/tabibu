@@ -472,7 +472,8 @@ for the session, awaits the force-update check, reads whether onboarding was
 seen, and hands all three to `resolveLanding`, a pure function. Its order:
 an outdated build goes to the update screen and nothing else is checked;
 signed out goes to onboarding the first time and sign-in after; a signed-in
-account with no profile goes back to the role choice; then the clinic-record
+account with no profile goes to email verification while its address is
+unconfirmed (CRQ-0032), then back to the role choice; then the clinic-record
 notice, the pending screen, or the role's home.
 
 **The guard** (`guardLocation`, also pure) runs on every navigation and
@@ -793,6 +794,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-29 | §8: email verification in the landing order (CRQ-0032). | Theo |
 | 2026-10-28 | §5 rule 8: `BlocsHelper` in bootstrap; §8 rewritten as built: decision route, `resolveLanding`, the role-claim guard, the sign-up draft, theme and language; §9 push taps and resume; §10 force-update rule (CRQ-0027). | Theo |
 | 2026-10-28 | §6.1: `specialties` (one to five from the role's list) replaces `specialization`; one or two `licenseUrls` up to 10 MB; profile picture required; `isAvailable` set at sign-up (CRQ-0026). | Theo |
 | 2026-10-27 | §13: four workflows, including the labeler and the draft release (CRQ-0025). | Theo |

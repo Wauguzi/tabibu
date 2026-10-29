@@ -42,6 +42,9 @@ class AnalyticsService {
     ),
   );
 
+  Future<void> logEmailVerified() =>
+      _guard(() => _analytics.logEvent(name: 'email_verified'));
+
   Future<void> logPasswordResetRequested() =>
       _guard(() => _analytics.logEvent(name: 'password_reset_requested'));
 

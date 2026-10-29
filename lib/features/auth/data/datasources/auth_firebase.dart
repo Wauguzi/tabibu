@@ -130,6 +130,26 @@ class AuthFirebase {
     }
   }
 
+  /// Reloads the user, then refreshes the ID token, so its `email_verified`
+  /// claim (which the sign-up callables check) matches the account.
+  Future<bool> reloadEmailVerified() =>
+      _guard('Checking verification', () async {
+        final user = _auth.currentUser;
+        if (user == null) throw AppError.unauthenticated;
+        await user.reload();
+        final current = _auth.currentUser;
+        final verified = current?.emailVerified ?? false;
+        if (verified) await current?.getIdToken(true);
+        return verified;
+      });
+
+  Future<void> sendEmailVerification() =>
+      _guard('Sending verification', () async {
+        final user = _auth.currentUser;
+        if (user == null) throw AppError.unauthenticated;
+        await user.sendEmailVerification();
+      });
+
   Future<void> sendPasswordReset({required String email}) => _guard(
     'Password reset',
     () => _auth.sendPasswordResetEmail(email: email.trim()),

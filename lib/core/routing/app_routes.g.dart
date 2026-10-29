@@ -17,6 +17,7 @@ List<RouteBase> get $appRoutes => [
   $signUpRoleRoute,
   $patientAllSetRoute,
   $clinicRecordRoute,
+  $verifyEmailRoute,
   $pendingVerificationRoute,
   $verifiedRoute,
   $patientHomeRoute,
@@ -519,6 +520,33 @@ mixin $ClinicRecordRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/account/clinic-record');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $verifyEmailRoute => GoRouteData.$route(
+  path: '/account/verify-email',
+  hasOverriddenOnExit: false,
+  factory: $VerifyEmailRoute._fromState,
+);
+
+mixin $VerifyEmailRoute on GoRouteData {
+  static VerifyEmailRoute _fromState(GoRouterState state) =>
+      const VerifyEmailRoute();
+
+  @override
+  String get location => GoRouteData.$location('/account/verify-email');
 
   @override
   void go(BuildContext context) => context.go(location);

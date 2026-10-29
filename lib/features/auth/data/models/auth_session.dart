@@ -16,14 +16,20 @@ final class SignedOutSession extends AuthSession {
   const SignedOutSession();
 }
 
-/// Signed in, with no role and no profile: sign-up is not finished.
+/// Signed in, with no role and no profile: sign-up is not finished. An
+/// address not yet confirmed must be verified before any profile step; a
+/// Google account arrives confirmed.
 final class SignUpIncompleteSession extends AuthSession {
-  const SignUpIncompleteSession({required this.email});
+  const SignUpIncompleteSession({
+    required this.email,
+    this.emailVerified = false,
+  });
 
   final String email;
+  final bool emailVerified;
 
   @override
-  List<Object?> get props => [email];
+  List<Object?> get props => [email, emailVerified];
 }
 
 /// Signed up as a patient, but a clinic record already holds this phone and

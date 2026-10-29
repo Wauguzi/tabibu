@@ -122,3 +122,42 @@ final class LanguageChangeSuccess extends AuthState {
 final class LanguageChangeFailure extends AuthOperationFailure {
   const LanguageChangeFailure({required super.session, required super.error});
 }
+
+final class EmailVerificationCheckInProgress extends AuthState {
+  const EmailVerificationCheckInProgress({required super.session});
+}
+
+/// [session] is resolved again: once verified, it says where to go next.
+final class EmailVerificationCheckSuccess extends AuthState {
+  const EmailVerificationCheckSuccess({
+    required super.session,
+    required this.isVerified,
+  });
+
+  final bool isVerified;
+
+  @override
+  List<Object?> get props => [session, isVerified];
+}
+
+final class EmailVerificationCheckFailure extends AuthOperationFailure {
+  const EmailVerificationCheckFailure({
+    required super.session,
+    required super.error,
+  });
+}
+
+final class VerificationEmailResendInProgress extends AuthState {
+  const VerificationEmailResendInProgress({required super.session});
+}
+
+final class VerificationEmailResendSuccess extends AuthState {
+  const VerificationEmailResendSuccess({required super.session});
+}
+
+final class VerificationEmailResendFailure extends AuthOperationFailure {
+  const VerificationEmailResendFailure({
+    required super.session,
+    required super.error,
+  });
+}

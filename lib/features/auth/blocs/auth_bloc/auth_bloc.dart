@@ -55,6 +55,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       transformer: droppable(),
     );
     on<SignOutRequested>(_onSignOutRequested, transformer: droppable());
+    // A repeated tap, or a resume while a check runs, must not check twice.
+    on<EmailVerificationCheckRequested>(
+      _onEmailVerificationCheckRequested,
+      transformer: droppable(),
+    );
+    // One email per tap; the screen's cooldown limits taps.
+    on<VerificationEmailResendRequested>(
+      _onVerificationEmailResendRequested,
+      transformer: droppable(),
+    );
     // Tapping through the languages: only the last choice matters.
     on<LanguageChangeRequested>(
       _onLanguageChangeRequested,
@@ -237,6 +247,53 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(const SignOutSuccess());
     } on Object catch (e) {
       emit(SignOutFailure(session: state.session, error: _appErrorOf(e)));
+    }
+  }
+
+  Future<void> _onEmailVerificationCheckRequested(
+    EmailVerificationCheckRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(EmailVerificationCheckInProgress(session: state.session));
+    try {
+      await _requireInternet();
+      final session = await _auth.checkEmailVerified();
+      final isVerified = switch (session) {
+        SignUpIncompleteSession(:final emailVerified) => emailVerified,
+        SignedOutSession() => false,
+        // A profile exists, so the address was confirmed before it.
+        _ => true,
+      };
+      if (isVerified) unawaited(_analytics.logEmailVerified());
+      emit(
+        EmailVerificationCheckSuccess(session: session, isVerified: isVerified),
+      );
+    } on Object catch (e) {
+      emit(
+        EmailVerificationCheckFailure(
+          session: state.session,
+          error: _appErrorOf(e),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onVerificationEmailResendRequested(
+    VerificationEmailResendRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(VerificationEmailResendInProgress(session: state.session));
+    try {
+      await _requireInternet();
+      await _auth.resendVerificationEmail();
+      emit(VerificationEmailResendSuccess(session: state.session));
+    } on Object catch (e) {
+      emit(
+        VerificationEmailResendFailure(
+          session: state.session,
+          error: _appErrorOf(e),
+        ),
+      );
     }
   }
 

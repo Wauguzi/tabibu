@@ -94,3 +94,13 @@ final class LanguageChangeRequested extends AuthEvent {
   @override
   List<Object?> get props => [language];
 }
+
+/// "I've verified" on the verification screen, and the silent check when the
+/// app resumes from the mail app.
+final class EmailVerificationCheckRequested extends AuthEvent {
+  const EmailVerificationCheckRequested();
+}
+
+final class VerificationEmailResendRequested extends AuthEvent {
+  const VerificationEmailResendRequested();
+}

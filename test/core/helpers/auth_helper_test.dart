@@ -82,6 +82,7 @@ void main() {
 
     when(() => user.uid).thenReturn('u1');
     when(() => user.email).thenReturn('amina@example.com');
+    when(() => user.emailVerified).thenReturn(false);
     when(() => remote.currentUser).thenReturn(user);
     when(() => cache.scopeTo(any())).thenAnswer((_) async {});
     when(
@@ -213,6 +214,17 @@ void main() {
       expect(
         await helper.resolveSession(),
         const SignUpIncompleteSession(email: 'amina@example.com'),
+      );
+    });
+
+    test('the session carries whether the address is confirmed', () async {
+      when(() => user.emailVerified).thenReturn(true);
+      expect(
+        await helper.resolveSession(),
+        const SignUpIncompleteSession(
+          email: 'amina@example.com',
+          emailVerified: true,
+        ),
       );
     });
 
@@ -563,6 +575,66 @@ void main() {
       ).thenThrow(AppError.fileTooLarge);
 
       expect(await helper.addPatientPicture(session, _photo), same(session));
+    });
+  });
+
+  group('email', () {
+    test('a malformed address never reaches Firebase', () async {
+      await expectLater(
+        helper.signInWithEmail(email: 'amina@', password: 'x'),
+        throwsA(AppError.invalidEmail),
+      );
+      await expectLater(
+        helper.createAccount(email: 'a b@c.com', password: 'x'),
+        throwsA(AppError.invalidEmail),
+      );
+      await expectLater(
+        helper.sendPasswordReset(email: 'a@b'),
+        throwsA(AppError.invalidEmail),
+      );
+      verifyNever(
+        () => remote.signInWithEmail(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      );
+      verifyNever(
+        () => remote.createAccount(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      );
+      verifyNever(() => remote.sendPasswordReset(email: any(named: 'email')));
+    });
+
+    test(
+      '"I have verified" reloads, then resolves the session again',
+      () async {
+        when(() => remote.reloadEmailVerified()).thenAnswer((_) async {
+          when(() => user.emailVerified).thenReturn(true);
+          return true;
+        });
+
+        final session = await helper.checkEmailVerified();
+
+        expect(
+          session,
+          const SignUpIncompleteSession(
+            email: 'amina@example.com',
+            emailVerified: true,
+          ),
+        );
+        verifyInOrder([
+          () => remote.reloadEmailVerified(),
+          () => remote.roles(forceRefresh: any(named: 'forceRefresh')),
+        ]);
+      },
+    );
+
+    test('resend asks Firebase for another link', () async {
+      when(() => remote.sendEmailVerification()).thenAnswer((_) async {});
+      await helper.resendVerificationEmail();
+      verify(() => remote.sendEmailVerification()).called(1);
     });
   });
 }

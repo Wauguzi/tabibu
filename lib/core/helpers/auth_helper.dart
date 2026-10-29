@@ -4,6 +4,7 @@ import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
 import 'package:tabibu/core/services/notification_service.dart';
+import 'package:tabibu/core/utils/email_address.dart';
 import 'package:tabibu/features/auth/data/datasources/auth_firebase.dart';
 import 'package:tabibu/features/auth/data/datasources/profile_storage.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
@@ -48,6 +49,7 @@ class AuthHelper {
     required String email,
     required String password,
   }) async {
+    _requireEmail(email);
     await _remote.signInWithEmail(email: email, password: password);
     return await resolveSession();
   }
@@ -62,12 +64,30 @@ class AuthHelper {
     required String email,
     required String password,
   }) async {
+    _requireEmail(email);
     await _remote.createAccount(email: email, password: password);
     return await resolveSession();
   }
 
-  Future<void> sendPasswordReset({required String email}) =>
-      _remote.sendPasswordReset(email: email);
+  Future<void> sendPasswordReset({required String email}) async {
+    _requireEmail(email);
+    await _remote.sendPasswordReset(email: email);
+  }
+
+  /// "I've verified": reloads the account, then resolves where it now
+  /// belongs. Still unverified, the session says so and nothing else moves.
+  Future<AuthSession> checkEmailVerified() async {
+    await _remote.reloadEmailVerified();
+    return await resolveSession();
+  }
+
+  Future<void> resendVerificationEmail() => _remote.sendEmailVerification();
+
+  /// The same check the screens make, so a malformed address never costs a
+  /// round trip, whichever screen sent it.
+  static void _requireEmail(String email) {
+    if (!isValidEmail(email)) throw AppError.invalidEmail;
+  }
 
   Future<AuthSession> completePatientSignUp(
     PatientSignUpRequest request,
@@ -257,7 +277,10 @@ class AuthHelper {
       // Linked or registered since this token was issued.
       return await resolveSession(forceRefresh: true);
     }
-    return SignUpIncompleteSession(email: user.email ?? '');
+    return SignUpIncompleteSession(
+      email: user.email ?? '',
+      emailVerified: user.emailVerified,
+    );
   }
 
   Future<RoleHelper> _rolesOrNone({required bool forceRefresh}) async {

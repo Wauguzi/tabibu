@@ -38,6 +38,7 @@ patient reads, or the alert path.
 | [CRQ-0029](./CRQ-0029-modal-token-pair.md) | Keep the Modal token pair in the Keychain and run the Modal CLI through make | 2026-10-28 | Implemented — token stored, workspace confirmed |
 | [CRQ-0030](./CRQ-0030-design-tokens-and-shared-widgets.md) | Design tokens from the design system, the shared widget library and its assets; AI draft and signed told apart by structure | 2026-10-28 | Implemented |
 | [CRQ-0031](./CRQ-0031-file-picker-service.md) | Pick the sign-up photo and licence files as bytes, with the size limits checked on the device | 2026-10-28 | Implemented |
+| [CRQ-0032](./CRQ-0032-email-verification.md) | Email addresses are validated before any call and confirmed before any profile is created | 2026-10-29 | Implemented — screen in brief 05a |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

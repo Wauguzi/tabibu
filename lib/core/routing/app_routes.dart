@@ -36,6 +36,7 @@ GoRouteData routeForLanding(Landing landing) => switch (landing) {
   Landing.update => const UpdateRoute(),
   Landing.onboarding => const LanguageRoute(),
   Landing.signIn => const SignInRoute(),
+  Landing.verifyEmail => const VerifyEmailRoute(),
   Landing.finishSignUp => const SignUpRoleRoute(),
   Landing.clinicRecord => const ClinicRecordRoute(),
   Landing.pending => const PendingVerificationRoute(),
@@ -255,6 +256,17 @@ class ClinicRecordRoute extends GoRouteData with $ClinicRecordRoute {
 }
 
 /// E5, and the rejected state.
+/// Between the account step and the next profile step: the address must be
+/// confirmed before any profile is created (the callables refuse otherwise).
+@TypedGoRoute<VerifyEmailRoute>(path: '${RoutePaths.account}/verify-email')
+class VerifyEmailRoute extends GoRouteData with $VerifyEmailRoute {
+  const VerifyEmailRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const RoutePlaceholder(name: 'Verify your email');
+}
+
 @TypedGoRoute<PendingVerificationRoute>(path: '${RoutePaths.account}/pending')
 class PendingVerificationRoute extends GoRouteData
     with $PendingVerificationRoute {

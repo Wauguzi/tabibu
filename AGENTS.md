@@ -42,6 +42,9 @@ anything in an area:
   (`app_sw.arb`, which replaces the template's `app_es.arb`).
 - Comments are lean: say why, never what. Records in `docs/crq/` carry the detail.
 - Tests mirror `lib/` under `test/`, with `bloc_test` and `mocktail`.
+- Use Dart's dot shorthands wherever the type is known from context: `mainAxisAlignment: .center`,
+  `fit: .contain`, `variant: .aiDraft`, `return .patient;` in a switch on an enum. Spell the type
+  out only where it is not inferable. No lint enforces this yet; review does.
 
 ## Before handing work back
 

@@ -19,7 +19,11 @@ final _pathologist = PractitionerSession(
 );
 final _pending = PendingVerificationSession(doctor: DoctorModel.empty());
 const _signedOut = SignedOutSession();
-const _incomplete = SignUpIncompleteSession(email: 'a@example.com');
+const _incomplete = SignUpIncompleteSession(
+  email: 'a@example.com',
+  emailVerified: true,
+);
+const _unverified = SignUpIncompleteSession(email: 'a@example.com');
 
 void main() {
   group('resolveLanding', () {
@@ -45,6 +49,7 @@ void main() {
     });
 
     test('each session lands where it belongs', () {
+      expect(land(_unverified), Landing.verifyEmail);
       expect(land(_incomplete), Landing.finishSignUp);
       expect(land(const ClinicRecordExistsSession()), Landing.clinicRecord);
       expect(land(_pending), Landing.pending);
@@ -93,6 +98,11 @@ void main() {
       }
       expect(guard('/account/pending', _signedOut), startsWith('/decision'));
       expect(guard('/account/pending', _pending), isNull);
+      expect(
+        guard('/account/verify-email', _signedOut),
+        startsWith('/decision'),
+      );
+      expect(guard('/account/verify-email', _unverified), isNull);
     });
 
     test('public screens are open to everyone', () {

@@ -245,6 +245,7 @@ enum AppError implements Exception {
   // and the functions' invalidEmail key.
   unauthenticated,
   emailRequired,
+  emailNotVerified,
   invalidName,
   invalidSex,
   invalidDateOfBirth,
@@ -288,6 +289,7 @@ enum AppError implements Exception {
     final reason = switch (e.message) {
       'unauthenticated' => AppError.unauthenticated,
       'emailRequired' => AppError.emailRequired,
+      'emailNotVerified' => AppError.emailNotVerified,
       'invalidName' => AppError.invalidName,
       'invalidSex' => AppError.invalidSex,
       'invalidDateOfBirth' => AppError.invalidDateOfBirth,
@@ -377,6 +379,7 @@ enum AppError implements Exception {
     .userNotRegistered => l10n.errorUserNotRegistered,
     .unauthenticated => l10n.errorUnauthenticated,
     .emailRequired => l10n.errorEmailRequired,
+    .emailNotVerified => l10n.errorEmailNotVerified,
     .invalidName => l10n.errorInvalidName,
     .invalidSex => l10n.errorInvalidSex,
     .invalidDateOfBirth => l10n.errorInvalidDateOfBirth,
