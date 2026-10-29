@@ -170,10 +170,6 @@ class $AssetsIconsGen {
   SvgGenImage get passwordVisibleIcon =>
       const SvgGenImage('assets/icons/password_visible_icon.svg');
 
-  /// File path: assets/icons/patient_signed_up.svg
-  SvgGenImage get patientSignedUp =>
-      const SvgGenImage('assets/icons/patient_signed_up.svg');
-
   /// File path: assets/icons/person_icon.svg
   SvgGenImage get personIcon =>
       const SvgGenImage('assets/icons/person_icon.svg');
@@ -248,7 +244,6 @@ class $AssetsIconsGen {
     passwordHiddenIcon,
     passwordIcon,
     passwordVisibleIcon,
-    patientSignedUp,
     personIcon,
     phoneIcon,
     photoIcon,

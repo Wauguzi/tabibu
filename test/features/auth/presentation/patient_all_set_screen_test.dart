@@ -1,5 +1,6 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -65,6 +66,23 @@ void main() {
       await tester.pumpApp(screen(), themeMode: ThemeMode.dark);
       await tester.pumpAndSettle();
       expect(find.text('Karibu, Amina!'), findsOneWidget);
+    });
+
+    testWidgets('builds the illustration from widgets, not an image', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      // The badge's check glyph is the only SVG left on the screen.
+      expect(
+        find.byWidgetPredicate(
+          (w) =>
+              w is SvgPicture &&
+              w.bytesLoader.toString().contains('patient_signed_up'),
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('lays out at 2.0x text without overflow', (tester) async {
