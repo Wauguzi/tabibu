@@ -22,7 +22,7 @@ import 'package:tabibu/l10n/l10n.dart';
 
 /// Every role's last tab: who is signed in, their settings, and sign-out.
 /// The rows open screens built later; until then only Sign out acts, and
-/// the switches hold their value on this screen only.
+/// the switches are disabled until a bloc saves their values.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.role, super.key});
 
@@ -34,9 +34,6 @@ class ProfileScreen extends StatefulWidget {
 
 class _ProfileScreenState extends State<ProfileScreen> {
   final Future<PackageInfo> _packageInfo = PackageInfo.fromPlatform();
-  bool _biometrics = false;
-  bool? _healthNotices;
-  bool? _acceptCases;
 
   String _languageName(AppLocalizations l10n) =>
       Localizations.localeOf(context).languageCode == 'sw'
@@ -93,11 +90,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       icon: Assets.icons.notificationBellIcon,
       title: l10n.profileNotifications,
     );
+    // Not yet available: no bloc saves it, so the switch stays off.
     final biometrics = SettingsSwitchRow(
       icon: Assets.icons.fingerprintIcon,
       title: l10n.profileBiometrics,
-      value: _biometrics,
-      onChanged: (value) => setState(() => _biometrics = value),
+      value: false,
+      onChanged: null,
     );
 
     final body = switch (authState.session) {
@@ -206,7 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
   }) {
     final specialties = [
       for (final value in doctor.specialties)
-        Specialty.fromValue(value)?.value ?? value,
+        Specialty.fromValue(value)?.description(l10n) ?? value,
     ];
     final role = doctor.isPathologist
         ? l10n.profilePathologist
@@ -239,11 +237,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
             supporting: doctor.facilityName,
           ),
           if (doctor.isPathologist)
+            // Not yet available: no bloc saves it, so the value is shown.
             SettingsSwitchRow(
               icon: Assets.icons.testTubeIcon,
               title: l10n.profileAcceptCases,
-              value: _acceptCases ?? doctor.isAvailable,
-              onChanged: (value) => setState(() => _acceptCases = value),
+              value: doctor.isAvailable,
+              onChanged: null,
             )
           else
             SettingsRow(
@@ -266,12 +265,13 @@ class _ProfileScreenState extends State<ProfileScreen> {
     ];
   }
 
+  // Not yet available: no bloc saves it, so the value is shown.
   Widget _healthNoticesRow(AppLocalizations l10n, bool initial) =>
       SettingsSwitchRow(
         icon: Assets.icons.infoIcon,
         title: l10n.profileHealthNotices,
-        value: _healthNotices ?? initial,
-        onChanged: (value) => setState(() => _healthNotices = value),
+        value: initial,
+        onChanged: null,
       );
 }
 

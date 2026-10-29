@@ -1,9 +1,5 @@
 {
     "@@locale": "en",
-    "appTitle": "Tabibu",
-    "@appTitle": {
-        "description": "The app name, shown on the placeholder home screen"
-    },
     "errorNoInternet": "No internet access.",
     "@errorNoInternet": {
         "description": "Shown when an action needs the internet and there is none"
@@ -808,10 +804,6 @@
     "@roleVerifyNotice": {
         "description": "C1 verification notice"
     },
-    "commonClose": "Close",
-    "@commonClose": {
-        "description": "Bottom-sheet close action"
-    },
     "commonCancel": "Cancel",
     "@commonCancel": {
         "description": "Bottom-sheet cancel action"
@@ -1212,6 +1204,15 @@
     "@areasHelper": {
         "description": "F2 areas helper"
     },
+    "removeArea": "Remove {area}",
+    "@removeArea": {
+        "description": "F2 area chip's remove button",
+        "placeholders": {
+            "area": {
+                "type": "String"
+            }
+        }
+    },
     "facilityTitle": "Where do you practise?",
     "@facilityTitle": {
         "description": "E3 title"
@@ -1223,6 +1224,15 @@
     "facilitySearchHint": "Search facilities",
     "@facilitySearchHint": {
         "description": "E3 search"
+    },
+    "facilityMfl": "MFL {mfl}",
+    "@facilityMfl": {
+        "description": "E3/F3 facility row: the MFL code",
+        "placeholders": {
+            "mfl": {
+                "type": "String"
+            }
+        }
     },
     "filterAll": "All",
     "@filterAll": {
@@ -1424,6 +1434,18 @@
     "@pendingToday": {
         "description": "Submission timestamp",
         "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "pendingDated": "{date}, {time}",
+    "@pendingDated": {
+        "description": "Dated submission timestamp",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
             "time": {
                 "type": "String"
             }

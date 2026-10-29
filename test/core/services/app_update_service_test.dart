@@ -57,4 +57,14 @@ void main() {
     remote(force: false, url: 'not a url');
     expect(service('1.0.0').storeUrl(isIos: true), isNull);
   });
+
+  test('the update copy comes from Remote Config, or the fallback', () {
+    when(() => config.getString('update_title')).thenReturn(' Update now ');
+    when(() => config.getString('update_message')).thenReturn('');
+    expect(service('1.0.0').remoteText('update_title', 'ARB'), 'Update now');
+    expect(service('1.0.0').remoteText('update_message', 'ARB'), 'ARB');
+
+    when(() => config.getString('update_title')).thenThrow(StateError('x'));
+    expect(service('1.0.0').remoteText('update_title', 'ARB'), 'ARB');
+  });
 }

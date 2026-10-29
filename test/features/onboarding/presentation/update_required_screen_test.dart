@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
@@ -19,6 +20,10 @@ void main() {
       when(
         () => updateService.storeUrl(isIos: any(named: 'isIos')),
       ).thenReturn(Uri.parse('https://example.com/app'));
+      // Remote Config unset: the screen shows its ARB copy.
+      when(
+        () => updateService.remoteText(any(), any()),
+      ).thenAnswer((i) => i.positionalArguments[1] as String);
       getIt.registerSingleton<AppUpdateService>(updateService);
     });
 
@@ -49,6 +54,17 @@ void main() {
       expect(find.text('Tafadhali sasisha Tabibu'), findsOneWidget);
     });
 
+    testWidgets('a Remote Config title replaces the ARB one', (tester) async {
+      when(
+        () => updateService.remoteText('update_title', any()),
+      ).thenReturn('A new Tabibu is out');
+
+      await tester.pumpApp(const UpdateRequiredScreen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('A new Tabibu is out'), findsOneWidget);
+    });
+
     testWidgets('falls back to ARB without Remote Config', (tester) async {
       await tester.pumpApp(const UpdateRequiredScreen());
       await tester.pumpAndSettle();
@@ -70,6 +86,20 @@ void main() {
       await tester.pumpApp(const UpdateRequiredScreen());
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('asks the service for the iOS store on iOS', (tester) async {
+      // Reset before the test ends: the binding verifies foundation
+      // debug variables are unset.
+      debugDefaultTargetPlatformOverride = TargetPlatform.iOS;
+      try {
+        await tester.pumpApp(const UpdateRequiredScreen());
+        await tester.pumpAndSettle();
+
+        verify(() => updateService.storeUrl(isIos: true)).called(1);
+      } finally {
+        debugDefaultTargetPlatformOverride = null;
+      }
     });
 
     testWidgets('hides the button without a store URL', (tester) async {

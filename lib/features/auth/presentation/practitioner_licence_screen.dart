@@ -262,7 +262,7 @@ class _AreasField extends StatelessWidget {
                 for (final specialty in selected)
                   _AreaChip(
                     label: specialty.description(l10n),
-                    removeLabel: l10n.commonDismiss,
+                    removeLabel: l10n.removeArea(specialty.description(l10n)),
                     onRemoved: () => onRemoved(specialty),
                   ),
               ],

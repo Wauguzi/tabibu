@@ -7,14 +7,15 @@ import 'package:tabibu/l10n/l10n.dart';
 String? submittedStamp(String createdAt, AppLocalizations l10n) {
   final parsed = DateTime.tryParse(createdAt)?.toLocal();
   if (parsed == null) return null;
-  final time = DateFormat('HH:mm').format(parsed);
+  final locale = l10n.localeName;
+  final time = DateFormat('HH:mm', locale).format(parsed);
   final now = DateTime.now();
   if (parsed.year == now.year &&
       parsed.month == now.month &&
       parsed.day == now.day) {
     return l10n.pendingToday(time);
   }
-  return '${DateFormat('d MMM y').format(parsed)}, $time';
+  return l10n.pendingDated(DateFormat('d MMM y', locale).format(parsed), time);
 }
 
 /// "histopathology and cytology", lowercased into the sentence; capitalised

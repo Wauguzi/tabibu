@@ -1,7 +1,6 @@
 import 'dart:async';
-import 'dart:io';
 
-import 'package:firebase_remote_config/firebase_remote_config.dart';
+import 'package:flutter/foundation.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
@@ -13,22 +12,16 @@ import 'package:url_launcher/url_launcher.dart';
 
 /// The forced-update blocker: no back, no dismiss. Title and message come
 /// from Remote Config when set, otherwise from ARB. The store button hides
-/// when no store URL is configured.
+/// when no store URL is configured, and on the web, where there is no store.
 class UpdateRequiredScreen extends StatelessWidget {
   const UpdateRequiredScreen({super.key});
 
-  String _remoteString(String key, String fallback) {
-    try {
-      final value = FirebaseRemoteConfig.instance.getString(key);
-      return value.isEmpty ? fallback : value;
-    } on Object catch (_) {
-      return fallback;
-    }
-  }
-
   Future<void> _openStore(BuildContext context) async {
     final l10n = context.l10n;
-    final url = getIt<AppUpdateService>().storeUrl(isIos: Platform.isIOS);
+    // defaultTargetPlatform, not Platform: dart:io throws on the web.
+    final url = getIt<AppUpdateService>().storeUrl(
+      isIos: defaultTargetPlatform == .iOS,
+    );
     if (url == null) return;
     try {
       final opened = await launchUrl(url, mode: LaunchMode.externalApplication);
@@ -56,9 +49,12 @@ class UpdateRequiredScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
-    final title = _remoteString('update_title', l10n.updateTitle);
-    final message = _remoteString('update_message', l10n.updateMessage);
-    final storeUrl = getIt<AppUpdateService>().storeUrl(isIos: Platform.isIOS);
+    final updates = getIt<AppUpdateService>();
+    final title = updates.remoteText('update_title', l10n.updateTitle);
+    final message = updates.remoteText('update_message', l10n.updateMessage);
+    final storeUrl = kIsWeb
+        ? null
+        : updates.storeUrl(isIos: defaultTargetPlatform == .iOS);
 
     return PopScope(
       canPop: false,

@@ -108,7 +108,22 @@ void main() {
       expect(find.text('Health notices for my area'), findsNothing);
     });
 
-    testWidgets('a switch row toggles', (tester) async {
+    testWidgets('areas read in Kiswahili', (tester) async {
+      tester.platformDispatcher.localesTestValue = [const Locale('sw')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      tallView(tester);
+      await tester.pumpRoleApp(
+        RoleSessions.pathologist,
+        '/pathologist/profile',
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Histopatholojia'), findsOneWidget);
+      expect(find.text('Saitolojia'), findsOneWidget);
+    });
+
+    testWidgets('a switch row is not yet available', (tester) async {
       tallView(tester);
       await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
       await tester.pumpAndSettle();
@@ -124,11 +139,12 @@ void main() {
         ),
       );
       expect(biometrics().value, isFalse);
+      expect(biometrics().onChanged, isNull);
 
       await tester.tap(find.text('Biometrics'));
       await tester.pumpAndSettle();
 
-      expect(biometrics().value, isTrue);
+      expect(biometrics().value, isFalse);
     });
 
     testWidgets('Sign out asks first, then signs out', (tester) async {

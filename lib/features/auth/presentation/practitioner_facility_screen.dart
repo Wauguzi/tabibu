@@ -305,7 +305,8 @@ class _PractitionerFacilityScreenState
                         ? '$ownership · ${facility.kephLevel} · '
                               '${facility.subCounty}'
                         : '${facility.kephLevel} · ${facility.ward}, '
-                              '${facility.subCounty} · MFL ${facility.mflCode}';
+                              '${facility.subCounty} · '
+                              '${l10n.facilityMfl(facility.mflCode)}';
                     final card = OptionCard(
                       icon: isPathologist
                           ? Assets.icons.testTubeIcon

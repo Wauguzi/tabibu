@@ -41,6 +41,17 @@ class AppUpdateService {
   }
 
   /// The store page for this platform, or null when not configured.
+  /// The update screen's copy from Remote Config, or [fallback] (the ARB
+  /// string) when it is unset or cannot be read.
+  String remoteText(String key, String fallback) {
+    try {
+      final value = _config.getString(key).trim();
+      return value.isEmpty ? fallback : value;
+    } on Object catch (_) {
+      return fallback;
+    }
+  }
+
   Uri? storeUrl({required bool isIos}) {
     final raw = _config
         .getString(isIos ? 'store_url_ios' : 'store_url_android')
