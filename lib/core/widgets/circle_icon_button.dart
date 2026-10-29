@@ -55,9 +55,9 @@ class CircleIconButton extends StatelessWidget {
           shape: const CircleBorder(),
           elevation: filled ? 0 : 2,
           shadowColor: AppShadows.raisedColor,
-          child: InkWell(
+          child: GestureDetector(
             onTap: onTap,
-            customBorder: const CircleBorder(),
+            behavior: .opaque,
             child: Center(
               child: AssetIcon(
                 icon,

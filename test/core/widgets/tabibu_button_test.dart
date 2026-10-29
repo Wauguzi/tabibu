@@ -134,5 +134,28 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('dims while pressed, and not once disabled mid-press', (
+      tester,
+    ) async {
+      double opacity() =>
+          tester.widget<AnimatedOpacity>(find.byType(AnimatedOpacity)).opacity;
+
+      await tester.pumpApp(TabibuButton.primary(label: 'Go', onTap: () {}));
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Go')),
+      );
+      await tester.pump();
+      expect(opacity(), 0.6);
+
+      await tester.pumpApp(
+        const TabibuButton.primary(label: 'Go', onTap: null),
+      );
+      expect(opacity(), 1);
+
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(opacity(), 1);
+    });
   });
 }

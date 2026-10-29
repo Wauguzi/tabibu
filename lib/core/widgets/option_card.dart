@@ -56,43 +56,48 @@ class OptionCard extends StatelessWidget {
         selected: selected,
         enabled: onTap != null,
         inMutuallyExclusiveGroup: !markLeading,
-        child: Material(
-          color: selected ? selectedFill : scheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          elevation: 2,
-          shadowColor: AppShadows.cardColor,
-          child: InkWell(
-            onTap: onTap,
+        onTap: onTap,
+        // The InkWell's focus, kept: it merges into the card's node.
+        child: Focus(
+          canRequestFocus: onTap != null,
+          child: Material(
+            color: selected ? selectedFill : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.card),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 88),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  children: [
-                    if (markLeading) ...[
-                      mark,
-                      const SizedBox(width: AppSpacing.sm),
-                    ] else if (icon != null) ...[
-                      IconTile(icon: icon!, tone: tone),
-                      const SizedBox(width: AppSpacing.sm),
-                    ],
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(title, style: textTheme.titleMedium),
-                          if (supporting != null)
-                            Text(supporting, style: textTheme.bodyMedium),
-                        ],
+            elevation: 2,
+            shadowColor: AppShadows.cardColor,
+            child: GestureDetector(
+              onTap: onTap,
+              behavior: .opaque,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 88),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      if (markLeading) ...[
+                        mark,
+                        const SizedBox(width: AppSpacing.sm),
+                      ] else if (icon != null) ...[
+                        IconTile(icon: icon!, tone: tone),
+                        const SizedBox(width: AppSpacing.sm),
+                      ],
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(title, style: textTheme.titleMedium),
+                            if (supporting != null)
+                              Text(supporting, style: textTheme.bodyMedium),
+                          ],
+                        ),
                       ),
-                    ),
-                    if (!markLeading) ...[
-                      const SizedBox(width: AppSpacing.sm),
-                      trailing ?? mark,
+                      if (!markLeading) ...[
+                        const SizedBox(width: AppSpacing.sm),
+                        trailing ?? mark,
+                      ],
                     ],
-                  ],
+                  ),
                 ),
               ),
             ),

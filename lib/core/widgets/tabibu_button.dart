@@ -9,7 +9,7 @@ import 'package:tabibu/core/constants/app_status_colors.dart';
 /// The app's button in its four variants: the ink primary, the soft
 /// secondary, the white outline and the text-only ghost. At most one primary
 /// per screen. Grows with the text size instead of clipping.
-class TabibuButton extends StatelessWidget {
+class TabibuButton extends StatefulWidget {
   const TabibuButton.primary({
     required this.label,
     required this.onTap,
@@ -64,89 +64,122 @@ class TabibuButton extends StatelessWidget {
   bool get _enabled => onTap != null && !isLoading;
 
   @override
+  State<TabibuButton> createState() => _TabibuButtonState();
+}
+
+class _TabibuButtonState extends State<TabibuButton> {
+  bool _pressed = false;
+
+  void _setPressed(bool pressed) {
+    if (_pressed != pressed) setState(() => _pressed = pressed);
+  }
+
+  // Disabled mid-press (Continue turning to loading), the release never
+  // arrives; the press ends with the button's enabled state.
+  @override
+  void didUpdateWidget(TabibuButton oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (!widget._enabled) _pressed = false;
+  }
+
+  @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final textTheme = Theme.of(context).textTheme;
+    final label = widget.label;
+    final icon = widget.icon;
+    final isLoading = widget.isLoading;
+    final minHeight = widget.minHeight;
+    final foregroundColor = widget.foregroundColor;
+    final variant = widget._variant;
+    final enabled = widget._enabled;
 
-    final background = switch (_variant) {
+    final background = switch (variant) {
       _ButtonVariant.primary =>
-        _enabled ? status.ink : scheme.surfaceContainerHigh,
+        enabled ? status.ink : scheme.surfaceContainerHigh,
       _ButtonVariant.secondary => scheme.surfaceContainerHigh,
       _ButtonVariant.outline => scheme.surfaceContainerLowest,
       _ButtonVariant.ghost => Colors.transparent,
     };
     final foreground =
         foregroundColor ??
-        switch (_variant) {
+        switch (variant) {
           _ButtonVariant.primary =>
-            _enabled
+            enabled
                 ? (scheme.brightness == Brightness.dark
                       ? AppColors.inkLight
                       : Colors.white)
                 : scheme.onSurfaceVariant,
           _ButtonVariant.secondary =>
-            _enabled ? scheme.onSurface : scheme.onSurfaceVariant,
+            enabled ? scheme.onSurface : scheme.onSurfaceVariant,
           _ButtonVariant.outline =>
-            _enabled ? scheme.onSurface : scheme.onSurfaceVariant,
+            enabled ? scheme.onSurface : scheme.onSurfaceVariant,
           _ButtonVariant.ghost => scheme.onSurface,
         };
 
-    final onTap = _enabled ? this.onTap : null;
+    final onTap = enabled ? widget.onTap : null;
     return Semantics(
       label: label,
       button: true,
-      enabled: _enabled,
+      enabled: enabled,
       onTap: onTap,
       excludeSemantics: true,
       child: Opacity(
-        opacity: _variant == _ButtonVariant.ghost && !_enabled ? 0.5 : 1,
+        opacity: variant == _ButtonVariant.ghost && !enabled ? 0.5 : 1,
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: minHeight),
           child: Material(
             color: background,
             borderRadius: BorderRadius.circular(AppRadii.pill),
-            elevation: _variant == _ButtonVariant.outline ? 2 : 0,
+            elevation: variant == _ButtonVariant.outline ? 2 : 0,
             shadowColor: AppShadows.raisedColor,
-            child: InkWell(
+            child: GestureDetector(
               onTap: onTap,
-              borderRadius: BorderRadius.circular(AppRadii.pill),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.xlg,
-                  vertical: AppSpacing.sm,
-                ),
-                child: Center(
-                  child: isLoading
-                      ? SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: SpinKitCircle(color: foreground, size: 24),
-                        )
-                      : Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (icon != null) ...[
-                              IconTheme(
-                                data: IconThemeData(
-                                  color: foreground,
-                                  size: 22,
+              onTapDown: onTap == null ? null : (_) => _setPressed(true),
+              onTapUp: onTap == null ? null : (_) => _setPressed(false),
+              onTapCancel: () => _setPressed(false),
+              behavior: .opaque,
+              child: AnimatedOpacity(
+                duration: const Duration(milliseconds: 100),
+                opacity: _pressed && enabled ? 0.6 : 1,
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.xlg,
+                    vertical: AppSpacing.sm,
+                  ),
+                  child: Center(
+                    child: isLoading
+                        ? SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: SpinKitCircle(color: foreground, size: 24),
+                          )
+                        : Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              if (icon != null) ...[
+                                IconTheme(
+                                  data: IconThemeData(
+                                    color: foreground,
+                                    size: 22,
+                                  ),
+                                  child: icon,
                                 ),
-                                child: icon!,
+                                const SizedBox(width: AppSpacing.xs),
+                              ],
+                              Flexible(
+                                child: Text(
+                                  label,
+                                  style: textTheme.labelLarge?.copyWith(
+                                    color: foreground,
+                                  ),
+                                  textAlign: TextAlign.center,
+                                ),
                               ),
-                              const SizedBox(width: AppSpacing.xs),
                             ],
-                            Flexible(
-                              child: Text(
-                                label,
-                                style: textTheme.labelLarge?.copyWith(
-                                  color: foreground,
-                                ),
-                                textAlign: TextAlign.center,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                  ),
                 ),
               ),
             ),

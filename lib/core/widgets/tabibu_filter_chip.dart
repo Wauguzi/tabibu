@@ -31,28 +31,33 @@ class TabibuFilterChip extends StatelessWidget {
         button: true,
         selected: selected,
         enabled: onTap != null,
-        child: Material(
-          color: selected ? status.ink : scheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-          elevation: selected ? 0 : 2,
-          shadowColor: AppShadows.cardColor,
-          child: InkWell(
-            onTap: onTap,
+        onTap: onTap,
+        // The InkWell's focus, kept: it merges into the chip's node.
+        child: Focus(
+          canRequestFocus: onTap != null,
+          child: Material(
+            color: selected ? status.ink : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.pill),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 48),
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.xs,
-                ),
-                child: Center(
-                  child: Text(
-                    label,
-                    style: textTheme.titleMedium?.copyWith(
-                      color: selected
-                          ? (isDark ? AppColors.inkLight : Colors.white)
-                          : scheme.onSurface,
+            elevation: selected ? 0 : 2,
+            shadowColor: AppShadows.cardColor,
+            child: GestureDetector(
+              onTap: onTap,
+              behavior: .opaque,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 48),
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.md,
+                    vertical: AppSpacing.xs,
+                  ),
+                  child: Center(
+                    child: Text(
+                      label,
+                      style: textTheme.titleMedium?.copyWith(
+                        color: selected
+                            ? (isDark ? AppColors.inkLight : Colors.white)
+                            : scheme.onSurface,
+                      ),
                     ),
                   ),
                 ),

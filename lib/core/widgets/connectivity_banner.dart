@@ -122,9 +122,9 @@ class _RetryPill extends StatelessWidget {
       child: Material(
         color: scheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppRadii.pill),
-        child: InkWell(
+        child: GestureDetector(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(AppRadii.pill),
+          behavior: .opaque,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
             child: Padding(

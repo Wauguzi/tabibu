@@ -37,38 +37,43 @@ class SettingToggleCard extends StatelessWidget {
       child: Semantics(
         toggled: value,
         enabled: onChanged != null,
-        child: Material(
-          color: scheme.surfaceContainerLowest,
-          borderRadius: BorderRadius.circular(AppRadii.card),
-          elevation: 2,
-          shadowColor: AppShadows.cardColor,
-          child: InkWell(
-            onTap: onChanged == null ? null : toggle,
+        onTap: onChanged == null ? null : toggle,
+        // The InkWell's focus, kept: it merges into the row's node.
+        child: Focus(
+          canRequestFocus: onChanged != null,
+          child: Material(
+            color: scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.card),
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(minHeight: 88),
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.md),
-                child: Row(
-                  children: [
-                    IconTile(icon: icon, tone: tone),
-                    const SizedBox(width: AppSpacing.sm),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        mainAxisSize: MainAxisSize.min,
-                        children: [
-                          Text(title, style: textTheme.titleMedium),
-                          if (supporting != null)
-                            Text(supporting, style: textTheme.bodyMedium),
-                        ],
+            elevation: 2,
+            shadowColor: AppShadows.cardColor,
+            child: GestureDetector(
+              onTap: onChanged == null ? null : toggle,
+              behavior: .opaque,
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minHeight: 88),
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.md),
+                  child: Row(
+                    children: [
+                      IconTile(icon: icon, tone: tone),
+                      const SizedBox(width: AppSpacing.sm),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(title, style: textTheme.titleMedium),
+                            if (supporting != null)
+                              Text(supporting, style: textTheme.bodyMedium),
+                          ],
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: AppSpacing.sm),
-                    ExcludeSemantics(
-                      child: Switch(value: value, onChanged: onChanged),
-                    ),
-                  ],
+                      const SizedBox(width: AppSpacing.sm),
+                      ExcludeSemantics(
+                        child: Switch(value: value, onChanged: onChanged),
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

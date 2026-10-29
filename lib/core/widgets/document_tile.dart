@@ -66,9 +66,9 @@ class DocumentTile extends StatelessWidget {
               child: Material(
                 color: scheme.surfaceContainerHigh,
                 shape: const CircleBorder(),
-                child: InkWell(
+                child: GestureDetector(
                   onTap: onDelete,
-                  customBorder: const CircleBorder(),
+                  behavior: .opaque,
                   child: Center(
                     child: AssetIcon(
                       Assets.icons.deleteIcon,
