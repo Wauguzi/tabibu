@@ -99,7 +99,13 @@ export function oneOf<T extends string>(raw: unknown, allowed: readonly T[], rea
   return raw as T;
 }
 
-/** A calendar date, `YYYY-MM-DD`, not in the future and at most 130 years ago. */
+/** Nairobi is UTC+3 all year: there is no daylight saving to follow. */
+const NAIROBI_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+/**
+ * A calendar date, `YYYY-MM-DD`, not in the future and at most 130 years ago, both by Nairobi's
+ * date: a baby born just after midnight there is still on yesterday's date in UTC for three hours.
+ */
 export function dateOfBirth(raw: unknown, now: Date): string {
   if (typeof raw !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(raw)) {
     throw refuse('invalid-argument', 'invalidDateOfBirth');
@@ -108,9 +114,9 @@ export function dateOfBirth(raw: unknown, now: Date): string {
   if (Number.isNaN(date.getTime()) || date.toISOString().slice(0, 10) !== raw) {
     throw refuse('invalid-argument', 'invalidDateOfBirth');
   }
-  const oldest = new Date(now);
-  oldest.setUTCFullYear(now.getUTCFullYear() - 130);
-  if (date > now || date < oldest) throw refuse('invalid-argument', 'invalidDateOfBirth');
+  const today = new Date(now.getTime() + NAIROBI_OFFSET_MS).toISOString().slice(0, 10);
+  const oldest = `${Number(today.slice(0, 4)) - 130}${today.slice(4)}`;
+  if (raw > today || raw < oldest) throw refuse('invalid-argument', 'invalidDateOfBirth');
   return raw;
 }
 

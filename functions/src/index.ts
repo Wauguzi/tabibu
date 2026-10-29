@@ -47,6 +47,7 @@ export const linkPatientAccount = onCall((request) =>
   linkPatientAccountHandler(deps(), callerOf(request), request.data),
 );
 
-export const syncPractitioner = onDocumentWritten('doctors/{uid}', async (event) => {
-  await syncPractitionerHandler(getFirestore(), event.params.uid, event.data?.after.data());
+// Retried on failure: the handler reads the stored profile, so running it twice is safe.
+export const syncPractitioner = onDocumentWritten({ document: 'doctors/{uid}', retry: true }, async (event) => {
+  await syncPractitionerHandler(getFirestore(), event.params.uid);
 });

@@ -55,17 +55,32 @@ function config() {
   return { live, password, email };
 }
 
+/**
+ * The seeded account for [email]. An account the seed did not create is refused, never adopted:
+ * anyone can sign up with a seeded address first, and the seed then grants roles and admin.
+ */
 async function user(email: string, password: string, displayName: string): Promise<string> {
   const auth = getAuth();
+  let existing: { uid: string; customClaims?: Record<string, unknown> } | undefined;
   try {
-    return (await auth.getUserByEmail(email)).uid;
+    existing = await auth.getUserByEmail(email);
   } catch {
-    return (await auth.createUser({ email, password, displayName, emailVerified: true })).uid;
+    existing = undefined;
   }
+  if (existing) {
+    if (existing.customClaims?.seeded !== true) {
+      throw new Error(`${email} exists but was not created by the seed; refusing to adopt it.`);
+    }
+    return existing.uid;
+  }
+  const { uid } = await auth.createUser({ email, password, displayName, emailVerified: true });
+  await auth.setCustomUserClaims(uid, { seeded: true });
+  return uid;
 }
 
+// The seed creates its accounts confirmed, as the sign-up callables require.
 function caller(uid: string, email: string, role = '', isAdmin = false): Caller {
-  return { uid, email, role, isAdmin };
+  return { uid, email, emailVerified: true, role, isAdmin };
 }
 
 /** A placeholder license, stored where the rules expect one, with its download URL. */
@@ -114,8 +129,7 @@ async function practitioner(
   });
   await verifyPractitionerHandler(deps, admin, { uid, decision: 'Verified' });
   // The trigger does this when deployed; the seed may run without the functions emulator.
-  const doctor = (await deps.db.collection('doctors').doc(uid).get()).data();
-  await syncPractitionerHandler(deps.db, uid, doctor);
+  await syncPractitionerHandler(deps.db, uid);
   return uid;
 }
 

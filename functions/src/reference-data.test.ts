@@ -69,6 +69,13 @@ describe('input checks', () => {
     assert.throws(() => dateOfBirth('1890-01-01', now));
     assert.throws(() => dateOfBirth('27/10/1990', now));
   });
+
+  it("takes today's date in Nairobi, three hours ahead of UTC", () => {
+    // 22:30 UTC on the 29th is 01:30 on the 30th in Nairobi.
+    const now = new Date('2026-10-29T22:30:00Z');
+    assert.equal(dateOfBirth('2026-10-30', now), '2026-10-30');
+    assert.throws(() => dateOfBirth('2026-10-31', now));
+  });
 });
 
 describe('specialties', () => {

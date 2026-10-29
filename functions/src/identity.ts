@@ -464,35 +464,36 @@ const PUBLIC_FIELDS = [
 
 /**
  * Keeps `practitioners/{uid}` the public projection of a verified `doctors/{uid}`, and absent
- * otherwise. Facility fields come from the server's list, not from the document.
+ * otherwise. Facility fields come from the server's list, not from the document. Triggers arrive
+ * late and out of order, so the profile is read as it stands now rather than taken from the
+ * event: a stale "Verified" never republishes a practitioner since rejected (T-14).
  */
-export async function syncPractitionerHandler(
-  db: Firestore,
-  uid: string,
-  after: DocumentData | undefined,
-): Promise<'written' | 'removed'> {
+export async function syncPractitionerHandler(db: Firestore, uid: string): Promise<'written' | 'removed'> {
   const ref = db.collection(PRACTITIONERS).doc(uid);
-  if (!after || after.verificationStatus !== 'Verified') {
-    await ref.delete();
-    return 'removed';
-  }
-  const facility = facilityById(String(after.facilityId ?? ''));
-  const entry: DocumentData = {};
-  // A profile written before a field existed has no value for it; Firestore refuses undefined.
-  for (const key of PUBLIC_FIELDS) entry[key] = after[key] ?? (key === 'specialties' ? [] : '');
-  Object.assign(entry, {
-    facilityId: facility?.facilityId ?? '',
-    facilityMflCode: facility?.mflCode ?? '',
-    facilityName: facility?.name ?? '',
-    county: facility?.county ?? '',
-    subCounty: facility?.subCounty ?? '',
-    geohash: facility?.geohash ?? '',
-    isAvailable: after.isAvailable === true,
-    appointmentsHandled: after.appointmentsHandled ?? 0,
-    ordersCreated: after.ordersCreated ?? 0,
-    reportsSigned: after.reportsSigned ?? 0,
-    lastUpdatedAt: after.lastUpdatedAt ?? '',
+  return db.runTransaction(async (tx) => {
+    const after = (await tx.get(db.collection(DOCTORS).doc(uid))).data();
+    if (!after || after.verificationStatus !== 'Verified') {
+      tx.delete(ref);
+      return 'removed' as const;
+    }
+    const facility = facilityById(String(after.facilityId ?? ''));
+    const entry: DocumentData = {};
+    // A profile written before a field existed has no value for it; Firestore refuses undefined.
+    for (const key of PUBLIC_FIELDS) entry[key] = after[key] ?? (key === 'specialties' ? [] : '');
+    Object.assign(entry, {
+      facilityId: facility?.facilityId ?? '',
+      facilityMflCode: facility?.mflCode ?? '',
+      facilityName: facility?.name ?? '',
+      county: facility?.county ?? '',
+      subCounty: facility?.subCounty ?? '',
+      geohash: facility?.geohash ?? '',
+      isAvailable: after.isAvailable === true,
+      appointmentsHandled: after.appointmentsHandled ?? 0,
+      ordersCreated: after.ordersCreated ?? 0,
+      reportsSigned: after.reportsSigned ?? 0,
+      lastUpdatedAt: after.lastUpdatedAt ?? '',
+    });
+    tx.set(ref, entry);
+    return 'written' as const;
   });
-  await ref.set(entry);
-  return 'written';
 }

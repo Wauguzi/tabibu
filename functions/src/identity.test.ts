@@ -452,11 +452,11 @@ describe('identity', () => {
       await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid));
       const doctor = (await deps.db.collection(DOCTORS).doc(me.uid).get()).data()!;
 
-      assert.equal(await syncPractitionerHandler(deps.db, me.uid, doctor), 'removed');
-      assert.equal(
-        await syncPractitionerHandler(deps.db, me.uid, { ...doctor, verificationStatus: 'Verified' }),
-        'written',
-      );
+      const profile = deps.db.collection(DOCTORS).doc(me.uid);
+      assert.equal(doctor.verificationStatus, 'Pending');
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid), 'removed');
+      await profile.update({ verificationStatus: 'Verified' });
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid), 'written');
       const entry = (await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).data()!;
       for (const hidden of ['email', 'phoneNumber', 'kmpdcNumber', 'licenseUrls', 'fcmTokens']) {
         assert.equal(hidden in entry, false, hidden);
@@ -466,7 +466,22 @@ describe('identity', () => {
       assert.deepEqual(entry.specialties, ['Histopathology', 'Cytology']);
       assert.equal('licenseUrls' in entry, false);
 
-      assert.equal(await syncPractitionerHandler(deps.db, me.uid, undefined), 'removed');
+      await profile.delete();
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid), 'removed');
+      assert.equal((await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).exists, false);
+    });
+
+    it('a late Verified event never republishes a practitioner since rejected', async () => {
+      const me = await account(deps, 'wanjiru@example.com');
+      await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid));
+      const profile = deps.db.collection(DOCTORS).doc(me.uid);
+      await profile.update({ verificationStatus: 'Verified' });
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid), 'written');
+
+      // Rejected, then the earlier Verified event is delivered last.
+      await profile.update({ verificationStatus: 'Rejected' });
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid), 'removed');
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid), 'removed');
       assert.equal((await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).exists, false);
     });
   });
