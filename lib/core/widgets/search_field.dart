@@ -29,11 +29,15 @@ class SearchField extends StatefulWidget {
 class _SearchFieldState extends State<SearchField> {
   TextEditingController? _ownedController;
 
+  // Focus colours the icons and the cursor like the focused border.
+  late final FocusNode _focus = FocusNode()..addListener(() => setState(() {}));
+
   TextEditingController get _controller =>
       widget.controller ?? (_ownedController ??= TextEditingController());
 
   @override
   void dispose() {
+    _focus.dispose();
     _ownedController?.dispose();
     super.dispose();
   }
@@ -43,9 +47,14 @@ class _SearchFieldState extends State<SearchField> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final radius = BorderRadius.circular(AppRadii.field);
+    final iconColor = _focus.hasFocus
+        ? scheme.primary
+        : scheme.onSurfaceVariant;
 
     return TextField(
       controller: _controller,
+      focusNode: _focus,
+      cursorColor: scheme.primary,
       textInputAction: TextInputAction.search,
       onChanged: (value) {
         setState(() {});
@@ -69,7 +78,7 @@ class _SearchFieldState extends State<SearchField> {
           child: AssetIcon(
             Assets.icons.searchRoundedIcon,
             size: 22,
-            color: scheme.onSurfaceVariant,
+            color: iconColor,
           ),
         ),
         prefixIconConstraints: const BoxConstraints(minWidth: 54),
@@ -100,7 +109,7 @@ class _SearchFieldState extends State<SearchField> {
                       child: AssetIcon(
                         Assets.icons.cancelIcon,
                         size: 22,
-                        color: scheme.onSurfaceVariant,
+                        color: iconColor,
                       ),
                     ),
                   ),

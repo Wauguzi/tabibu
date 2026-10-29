@@ -28,7 +28,9 @@ class AssetIcon extends StatelessWidget {
   Widget build(BuildContext context) {
     final tint = preserveColors
         ? null
-        : (color ?? Theme.of(context).colorScheme.onSurface);
+        : (color ??
+              FieldIconTint.maybeOf(context) ??
+              Theme.of(context).colorScheme.onSurface);
     return SizedBox(
       width: size,
       height: size,
@@ -40,4 +42,19 @@ class AssetIcon extends StatelessWidget {
       ),
     );
   }
+}
+
+/// The colour a field gives the icons inside it: muted at rest, its focused
+/// border's colour while focused. An [AssetIcon] with no colour of its own
+/// takes it, so a caller's leading or trailing icon follows the field.
+class FieldIconTint extends InheritedWidget {
+  const FieldIconTint({required this.color, required super.child, super.key});
+
+  final Color color;
+
+  static Color? maybeOf(BuildContext context) =>
+      context.dependOnInheritedWidgetOfExactType<FieldIconTint>()?.color;
+
+  @override
+  bool updateShouldNotify(FieldIconTint oldWidget) => color != oldWidget.color;
 }

@@ -129,5 +129,68 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    group('focus colour', () {
+      Widget field({String? errorText, bool readOnly = false}) =>
+          TabibuTextField(
+            label: 'Email',
+            // As FieldIcon: a merged image node trips the merge assert.
+            leading: ExcludeSemantics(
+              child: AssetIcon(Assets.icons.emailIcon, size: 22),
+            ),
+            errorText: errorText,
+            readOnly: readOnly,
+          );
+
+      Color tint(WidgetTester tester) =>
+          tester.widget<FieldIconTint>(find.byType(FieldIconTint)).color;
+
+      testWidgets('the icon and cursor take the focused border colour', (
+        tester,
+      ) async {
+        await tester.pumpApp(field());
+        final scheme = Theme.of(
+          tester.element(find.byType(TextField)),
+        ).colorScheme;
+        expect(tint(tester), scheme.onSurface);
+
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+
+        expect(tint(tester), scheme.primary);
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).cursorColor,
+          scheme.primary,
+        );
+      });
+
+      testWidgets('with an error, they take the error colour', (tester) async {
+        await tester.pumpApp(field(errorText: 'Bad email'));
+        final scheme = Theme.of(
+          tester.element(find.byType(TextField)),
+        ).colorScheme;
+
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+
+        expect(tint(tester), scheme.error);
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).cursorColor,
+          scheme.error,
+        );
+      });
+
+      testWidgets('a read-only field keeps its icon at rest', (tester) async {
+        await tester.pumpApp(field(readOnly: true));
+        final scheme = Theme.of(
+          tester.element(find.byType(TextField)),
+        ).colorScheme;
+
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+
+        expect(tint(tester), scheme.onSurface);
+      });
+    });
   });
 }

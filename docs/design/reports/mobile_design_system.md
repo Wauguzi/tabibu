@@ -156,7 +156,8 @@ Sources of truth: `lib/core/constants/app_styles.dart`
 Card padding is 18, deliberately off the spacing scale. Cards use one
 subtle shadow. The sheet removed strokes from cards, fields, pills and
 buttons: resting fields are borderless white, and only focus (teal) and
-error (red) draw a border. Clinical content (reports, the viewer) sits on
+error (red) draw a border. A focused field's icons and cursor take its border's
+colour, teal or red; at rest the icons keep their usual shade. Clinical content (reports, the viewer) sits on
 flat surfaces, so nothing decorative competes with the image.
 
 ### 2.5 Iconography

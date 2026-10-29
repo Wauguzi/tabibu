@@ -71,5 +71,25 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('focus colours the icons and the cursor', (tester) async {
+      await tester.pumpApp(
+        const SearchField(hint: 'Search areas', clearLabel: 'Clear search'),
+      );
+      final scheme = Theme.of(
+        tester.element(find.byType(TextField)),
+      ).colorScheme;
+      AssetIcon search() => tester.widget<AssetIcon>(find.byType(AssetIcon));
+      expect(search().color, scheme.onSurfaceVariant);
+
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+
+      expect(search().color, scheme.primary);
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).cursorColor,
+        scheme.primary,
+      );
+    });
   });
 }
