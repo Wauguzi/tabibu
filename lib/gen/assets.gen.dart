@@ -47,11 +47,23 @@ class $AssetsDataGen {
   /// File path: assets/data/facilities_nairobi.json
   String get facilitiesNairobi => 'assets/data/facilities_nairobi.json';
 
+  /// File path: assets/data/lab_test_types.json
+  String get labTestTypes => 'assets/data/lab_test_types.json';
+
+  /// File path: assets/data/lab_tests.json
+  String get labTests => 'assets/data/lab_tests.json';
+
   /// File path: assets/data/sub_counties_nairobi.json
   String get subCountiesNairobi => 'assets/data/sub_counties_nairobi.json';
 
   /// List of all assets
-  List<String> get values => [counties, facilitiesNairobi, subCountiesNairobi];
+  List<String> get values => [
+    counties,
+    facilitiesNairobi,
+    labTestTypes,
+    labTests,
+    subCountiesNairobi,
+  ];
 }
 
 class $AssetsIconsGen {

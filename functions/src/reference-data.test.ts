@@ -10,10 +10,16 @@ import { DATA_DIR, countyById, facilityById, nairobiSubCountyById } from './refe
 
 describe('reference data', () => {
   it('is byte-identical to the app assets', () => {
-    for (const file of ['facilities_nairobi.json', 'sub_counties_nairobi.json', 'counties.json']) {
+    for (const [file, target] of [
+      ['facilities_nairobi.json', 'facilities'],
+      ['sub_counties_nairobi.json', 'facilities'],
+      ['counties.json', 'facilities'],
+      ['lab_test_types.json', 'lab-tests'],
+      ['lab_tests.json', 'lab-tests'],
+    ]) {
       const server = readFileSync(join(DATA_DIR, file));
       const app = readFileSync(join(DATA_DIR, '..', '..', 'assets', 'data', file));
-      assert.ok(server.equals(app), `${file} differs; run make facilities`);
+      assert.ok(server.equals(app), `${file} differs; run make ${target}`);
     }
   });
 

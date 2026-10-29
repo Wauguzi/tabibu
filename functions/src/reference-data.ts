@@ -1,7 +1,8 @@
 /**
  * The facility, county and sub-county lists the app ships (architecture §6.2). `functions/data/`
- * is a byte-identical copy of `assets/data/`, written by `make facilities` and checked by
- * `reference-data.test.ts`, so the server never trusts a facility or location a client sends.
+ * is a byte-identical copy of `assets/data/`, written by `make facilities` and `make lab-tests`
+ * and checked by `reference-data.test.ts`, so the server never trusts a facility or location a
+ * client sends.
  */
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';

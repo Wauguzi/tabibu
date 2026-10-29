@@ -39,6 +39,7 @@ patient reads, or the alert path.
 | [CRQ-0030](./CRQ-0030-design-tokens-and-shared-widgets.md) | Design tokens from the design system, the shared widget library and its assets; AI draft and signed told apart by structure | 2026-10-28 | Implemented |
 | [CRQ-0031](./CRQ-0031-file-picker-service.md) | Pick the sign-up photo and licence files as bytes, with the size limits checked on the device | 2026-10-28 | Implemented |
 | [CRQ-0032](./CRQ-0032-email-verification.md) | Email addresses are validated before any call and confirmed before any profile is created | 2026-10-29 | Implemented — screen in brief 05a |
+| [CRQ-0033](./CRQ-0033-lab-test-catalogue.md) | Lab test catalogue: the Ministry of Health's 11 test types and 247 lab tests as app assets, each with a price in Kenya shillings | 2026-10-29 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

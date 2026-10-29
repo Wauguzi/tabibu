@@ -415,15 +415,18 @@ document only the patient and their care team can read.
 
 ### 6.2 Reference data shipped with the app
 
-The pilot is Nairobi. Three JSON assets, produced by
-`scripts/facilities/` (`make facilities`) from the Ministry of Health's
-exports, are read from the bundle and never written:
+The pilot is Nairobi. Five JSON assets, produced from the Ministry of
+Health's exports by `scripts/facilities/` (`make facilities`) and
+`scripts/lab_tests/` (`make lab-tests`), are read from the bundle and never
+written:
 
 | Asset | Holds |
 |---|---|
 | `assets/data/facilities_nairobi.json` | All 1,447 facilities: `facilityId` (the Ministry's id), `mflCode`, `name`, `kephLevel`, `facilityType`, `owner`, `wardId`, `ward`, `subCountyId`, `subCounty`, `countyId`, `county`, `latitude`, `longitude`, `geohash` (9), `isLocationApproximate`, `isLab`, `operationStatus`, `isOperational` |
 | `assets/data/counties.json` | All 47 counties, with their official codes (Nairobi is 47) |
 | `assets/data/sub_counties_nairobi.json` | Nairobi's 17 sub-counties, each with its id, its centre and its 9-character geohash |
+| `assets/data/lab_test_types.json` | The 11 test types a doctor orders from: `testTypeId`, `name`, `testCount` |
+| `assets/data/lab_tests.json` | All 247 lab tests, by type then name: `labTestId`, `testTypeId`, `testTypeName`, `name`, `isActive`, `testPriceKes`, `isPriceEstimate`, `tatCollectionToDelivery`, `tatDeliveryToResults`, `totalTurnaroundTime` |
 
 What the script does to the export, and why:
 
@@ -447,9 +450,27 @@ What the script does to the export, and why:
   Repeated rows from overlapping batches are kept once, so the script is
   safe to run again.
 
-`functions/` holds a byte-identical copy, so the server checks a facility
-against its own list rather than trusting a client; a test compares the
-two. A patient outside Nairobi can still sign up: they see a pilot notice,
+What `make lab-tests` does (CRQ-0033):
+
+- **Each test carries its type's id and name**, so the order screen filters
+  one list by type without a join.
+- **Every test has a price** in whole shillings, and `isPriceEstimate: true`:
+  a Nairobi private-laboratory benchmark, anchored on published prices
+  (CRQ-0033 §1.2), not a lab's tariff.
+- Data-entry rows, one repeated test and an empty type are dropped by name;
+  names broken across lines in the source are mended, and the few a rule
+  cannot mend are corrected from a listed table. The always-null
+  `external_sys_id` and the `description` (equal to the name in every row)
+  are not shipped.
+- **Turnaround times are shipped as given**, in the export's unit, which it
+  does not state; the stages must add up to the total.
+- A test with no price, an unusable turnaround time, a listed drop, correction or price that matches no
+  row, a repeated id or name, or a description that says more than its name
+  stops the run.
+
+`functions/` holds byte-identical copies, so the server checks a facility,
+and will price an order, against its own lists rather than trusting a
+client; a test compares them. A patient outside Nairobi can still sign up: they see a pilot notice,
 and the directory lists every practitioner rather than the nearest.
 
 ## 7. Dependency injection
@@ -794,6 +815,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-29 | §6.2: the lab test catalogue, with benchmark prices (CRQ-0033). | Theo |
 | 2026-10-29 | §8: email verification in the landing order (CRQ-0032). | Theo |
 | 2026-10-28 | §5 rule 8: `BlocsHelper` in bootstrap; §8 rewritten as built: decision route, `resolveLanding`, the role-claim guard, the sign-up draft, theme and language; §9 push taps and resume; §10 force-update rule (CRQ-0027). | Theo |
 | 2026-10-28 | §6.1: `specialties` (one to five from the role's list) replaces `specialization`; one or two `licenseUrls` up to 10 MB; profile picture required; `isAvailable` set at sign-up (CRQ-0026). | Theo |
