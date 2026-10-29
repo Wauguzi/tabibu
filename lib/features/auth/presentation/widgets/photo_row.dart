@@ -22,6 +22,7 @@ class PhotoRow extends StatelessWidget {
     required this.picture,
     required this.onPicked,
     this.required = false,
+    this.errorText,
     super.key,
   });
 
@@ -32,6 +33,7 @@ class PhotoRow extends StatelessWidget {
   final UploadFile? picture;
   final ValueChanged<UploadFile> onPicked;
   final bool required;
+  final String? errorText;
 
   Future<void> _pick(BuildContext context, bool fromCamera) async {
     try {
@@ -101,88 +103,103 @@ class PhotoRow extends StatelessWidget {
     final picture = this.picture;
 
     final nameless = picture == null && name.trim().isEmpty;
+    final errorText = this.errorText;
 
-    return Row(
+    return Column(
+      mainAxisSize: .min,
+      crossAxisAlignment: .start,
       children: [
-        if (nameless)
-          Container(
-            width: 56,
-            height: 56,
-            alignment: .center,
-            decoration: BoxDecoration(
-              shape: .circle,
-              color: scheme.surfaceContainerHigh,
-            ),
-            child: ExcludeSemantics(
-              child: AssetIcon(
-                Assets.icons.personIcon,
-                size: 22,
-                scaleUp: false,
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
-          )
-        else if (picture == null)
-          Avatar(name: name, radius: 28)
-        else
-          Avatar(name: name, image: MemoryImage(picture.bytes), radius: 28),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text.rich(
-                TextSpan(
-                  text: title,
-                  style: textTheme.titleMedium,
-                  children: [
-                    if (required)
-                      TextSpan(
-                        text: ' *',
-                        style: TextStyle(color: scheme.error),
-                      ),
-                  ],
+        Row(
+          children: [
+            if (nameless)
+              Container(
+                width: 56,
+                height: 56,
+                alignment: .center,
+                decoration: BoxDecoration(
+                  shape: .circle,
+                  color: scheme.surfaceContainerHigh,
                 ),
-              ),
-              Text(
-                body,
-                style: textTheme.bodyMedium?.copyWith(
-                  color: scheme.onSurfaceVariant,
+                child: ExcludeSemantics(
+                  child: AssetIcon(
+                    Assets.icons.personIcon,
+                    size: 22,
+                    scaleUp: false,
+                    color: scheme.onSurfaceVariant,
+                  ),
                 ),
-              ),
-            ],
-          ),
-        ),
-        const SizedBox(width: AppSpacing.sm),
-        Semantics(
-          button: true,
-          onTap: () => _sheet(context),
-          child: Material(
-            color: scheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(AppRadii.pill),
-            child: GestureDetector(
-              onTap: () => _sheet(context),
-              behavior: .opaque,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.sm,
-                  vertical: AppSpacing.xs,
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    AssetIcon(Assets.icons.photoIcon, size: 20),
-                    const SizedBox(width: AppSpacing.xxs),
-                    Text(
-                      picture == null ? l10n.photoAdd : l10n.photoChange,
-                      style: textTheme.titleSmall,
+              )
+            else if (picture == null)
+              Avatar(name: name, radius: 28)
+            else
+              Avatar(name: name, image: MemoryImage(picture.bytes), radius: 28),
+            const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text.rich(
+                    TextSpan(
+                      text: title,
+                      style: textTheme.titleMedium,
+                      children: [
+                        if (required)
+                          TextSpan(
+                            text: ' *',
+                            style: TextStyle(color: scheme.error),
+                          ),
+                      ],
                     ),
-                  ],
+                  ),
+                  Text(
+                    body,
+                    style: textTheme.bodyMedium?.copyWith(
+                      color: scheme.onSurfaceVariant,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(width: AppSpacing.sm),
+            Semantics(
+              button: true,
+              onTap: () => _sheet(context),
+              child: Material(
+                color: scheme.surfaceContainerLowest,
+                borderRadius: BorderRadius.circular(AppRadii.pill),
+                child: GestureDetector(
+                  onTap: () => _sheet(context),
+                  behavior: .opaque,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.sm,
+                      vertical: AppSpacing.xs,
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        AssetIcon(Assets.icons.photoIcon, size: 20),
+                        const SizedBox(width: AppSpacing.xxs),
+                        Text(
+                          picture == null ? l10n.photoAdd : l10n.photoChange,
+                          style: textTheme.titleSmall,
+                        ),
+                      ],
+                    ),
+                  ),
                 ),
               ),
             ),
-          ),
+          ],
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            errorText,
+            style: textTheme.bodySmall?.copyWith(color: scheme.error),
+            maxLines: 3,
+          ),
+        ],
       ],
     );
   }

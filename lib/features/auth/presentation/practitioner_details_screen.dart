@@ -16,6 +16,7 @@ import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
 import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
+import 'package:tabibu/features/auth/presentation/widgets/field_errors.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/photo_row.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
@@ -56,7 +57,9 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     _emailController = TextEditingController(
       text: session is SignUpIncompleteSession ? session.email : draft.email,
     );
-    _phoneController = TextEditingController(text: draft.phoneNumber);
+    _phoneController = TextEditingController(
+      text: formatKePhone(draft.phoneNumber, withPrefix: true),
+    );
     _passwordController = TextEditingController();
     _title = draft.title;
     _picture = draft.picture;
@@ -76,7 +79,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     final name =
         '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
             .trim();
-    return name.isEmpty ? '?' : name;
+    return name;
   }
 
   // An unconfirmed address is confirmed before E2; the server refuses a
@@ -105,7 +108,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     if (picked == null) return;
     setState(() {
       _title = picked;
-      _localError = null;
+      _localError = errorAfterChange(_localError, .title);
     });
   }
 
@@ -164,16 +167,21 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     final isPathologist = role == Role.pathologist;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      // From the listener, not the builder: a stale failure must not
+      // reappear when the screen is revisited.
       listener: (context, state) {
         if (state is CreateAccountSuccess) _forward();
+        if (state is CreateAccountFailure) {
+          setState(() => _localError = state.error);
+        }
       },
       builder: (context, state) {
         final busy = state is CreateAccountInProgress;
-        final failure = state is CreateAccountFailure
-            ? state.error
-            : _localError;
+        final failure = _localError;
         final signedIn = state.session is! SignedOutSession;
         final strongEnough = isPasswordStrong(_passwordController.text);
+        final firstEmpty = _firstNameController.text.trim().isEmpty;
+        final lastEmpty = _lastNameController.text.trim().isEmpty;
 
         return DraftPopScope(
           fill: _fill,
@@ -185,7 +193,9 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
             onBack: busy ? null : () => Navigator.of(context).pop(),
             title: l10n.practitionerDetailsTitle,
             subtitle: l10n.practitionerDetailsSubtitle,
-            error: failure,
+            error: failure != null && fieldFor(failure) == null
+                ? failure
+                : null,
             role: role,
             footer: TabibuButton.primary(
               label: l10n.commonContinue,
@@ -205,9 +215,12 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                         : l10n.practitionerPhotoDoctorBody,
                     picture: _picture,
                     required: true,
+                    errorText: failure == .invalidPicture
+                        ? fieldErrorText(failure!, l10n)
+                        : null,
                     onPicked: (file) => setState(() {
                       _picture = file;
-                      _localError = null;
+                      _localError = errorAfterChange(_localError, .picture);
                     }),
                   ),
                   const SizedBox(height: AppSpacing.md),
@@ -225,6 +238,9 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                                 required: true,
                                 hint: l10n.titleSheetTitle,
                                 value: _title?.value,
+                                errorText: failure == .invalidTitle
+                                    ? fieldErrorText(failure!, l10n)
+                                    : null,
                                 onTap: _pickTitle,
                               ),
                             ),
@@ -235,11 +251,18 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                                 label: l10n.firstNameLabel,
                                 controller: _firstNameController,
                                 leading: FieldIcon(Assets.icons.personIcon),
+                                errorText: failure == .invalidName && firstEmpty
+                                    ? fieldErrorText(failure!, l10n)
+                                    : null,
                                 required: true,
                                 textInputAction: TextInputAction.next,
                                 autofillHints: const [AutofillHints.givenName],
-                                onChanged: (_) =>
-                                    setState(() => _localError = null),
+                                onChanged: (_) => setState(
+                                  () => _localError = errorAfterChange(
+                                    _localError,
+                                    .name,
+                                  ),
+                                ),
                               ),
                             ),
                           ],
@@ -249,10 +272,21 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                           label: l10n.lastNameLabel,
                           controller: _lastNameController,
                           leading: FieldIcon(Assets.icons.personIcon),
+                          errorText:
+                              failure == .invalidName &&
+                                  !firstEmpty &&
+                                  lastEmpty
+                              ? fieldErrorText(failure!, l10n)
+                              : null,
                           required: true,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.familyName],
-                          onChanged: (_) => setState(() => _localError = null),
+                          onChanged: (_) => setState(
+                            () => _localError = errorAfterChange(
+                              _localError,
+                              .name,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         TabibuTextField(
@@ -260,14 +294,20 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                           hint: l10n.workEmailHint,
                           controller: _emailController,
                           leading: FieldIcon(Assets.icons.emailIcon),
-                          errorText: _localError == AppError.invalidEmail
-                              ? _localError!.description(l10n)
+                          errorText:
+                              failure != null && fieldFor(failure) == .email
+                              ? fieldErrorText(failure, l10n)
                               : null,
                           required: true,
                           keyboardType: TextInputType.emailAddress,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.email],
-                          onChanged: (_) => setState(() => _localError = null),
+                          onChanged: (_) => setState(
+                            () => _localError = errorAfterChange(
+                              _localError,
+                              .email,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         TabibuTextField(
@@ -275,14 +315,22 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                           hint: l10n.practitionerPhoneHint,
                           controller: _phoneController,
                           leading: FieldIcon(Assets.icons.phoneIcon),
-                          errorText: _localError == AppError.invalidPhone
-                              ? _localError!.description(l10n)
+                          errorText: failure == .invalidPhone
+                              ? fieldErrorText(failure!, l10n)
                               : null,
                           required: true,
                           keyboardType: TextInputType.phone,
                           textInputAction: TextInputAction.next,
                           autofillHints: const [AutofillHints.telephoneNumber],
-                          onChanged: (_) => setState(() => _localError = null),
+                          inputFormatters: const [
+                            KePhoneFormatter(withPrefix: true),
+                          ],
+                          onChanged: (_) => setState(
+                            () => _localError = errorAfterChange(
+                              _localError,
+                              .phone,
+                            ),
+                          ),
                         ),
                         const SizedBox(height: AppSpacing.md),
                         PasswordField(
@@ -290,10 +338,18 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                           showLabel: l10n.passwordShow,
                           hideLabel: l10n.passwordHide,
                           controller: _passwordController,
+                          errorText: failure == .weakPassword
+                              ? fieldErrorText(failure!, l10n)
+                              : null,
                           required: true,
                           textInputAction: TextInputAction.done,
                           autofillHints: const [AutofillHints.newPassword],
-                          onChanged: (_) => setState(() {}),
+                          onChanged: (_) => setState(
+                            () => _localError = errorAfterChange(
+                              _localError,
+                              .password,
+                            ),
+                          ),
                           onSubmitted: (_) {
                             if (signedIn || strongEnough) _submit();
                           },

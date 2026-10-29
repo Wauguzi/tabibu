@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/file_picker_service.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
@@ -82,6 +83,26 @@ void main() {
       return (captured.last as SignUpDraftUpdated).draft;
     }
 
+    Finder errorNotice() => find.byWidgetPredicate(
+      (w) => w is NoticeCard && w.variant == NoticeVariant.error,
+    );
+
+    Future<void> pickTitle(WidgetTester tester) async {
+      await tester.tap(find.text('Choose your title'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Dr.').last);
+      await tester.pumpAndSettle();
+    }
+
+    Future<void> fillNames(WidgetTester tester) async {
+      await tester.enterText(find.byType(TextField).at(0), 'Wanjiru');
+      await tester.enterText(find.byType(TextField).at(1), 'Kamau');
+    }
+
+    Future<void> fillPassword(WidgetTester tester) async {
+      await tester.enterText(find.byType(TextField).at(4), 'Strong1!');
+    }
+
     Future<void> fillAll(WidgetTester tester) async {
       await tester.tap(find.text('Choose your title'));
       await tester.pumpAndSettle();
@@ -118,16 +139,121 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('an empty title shows its message', (tester) async {
+    testWidgets('an empty title shows its message under the picker', (
+      tester,
+    ) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField).at(4), 'Strong1!');
+      await fillPassword(tester);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Select a valid title.'), findsOneWidget);
+      // The hint and the error share the text; the notice stays away.
+      expect(find.text('Choose your title'), findsNWidgets(2));
+      expect(errorNotice(), findsNothing);
+    });
+
+    testWidgets('no name or photo shows no question mark', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('?'), findsNothing);
+    });
+
+    testWidgets('the phone formats with +254 as typed', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).at(3), '722118450');
+      await tester.pumpAndSettle();
+
+      expect(find.text('+254 722 118 450'), findsOneWidget);
+    });
+
+    testWidgets('an empty name shows its message under the first field', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await pickTitle(tester);
+      await fillPassword(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Enter your name'), findsOneWidget);
+      expect(errorNotice(), findsNothing);
+    });
+
+    testWidgets('a bad email shows its message under the email field', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await pickTitle(tester);
+      await fillNames(tester);
+      await tester.enterText(find.byType(TextField).at(2), 'not-an-email');
+      await fillPassword(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text("That doesn't look like an email address"),
+        findsOneWidget,
+      );
+      expect(errorNotice(), findsNothing);
+    });
+
+    testWidgets('a bad phone shows its message under the phone field', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await pickTitle(tester);
+      await fillNames(tester);
+      await tester.enterText(
+        find.byType(TextField).at(2),
+        'w.kamau@akuh.example',
+      );
+      await tester.enterText(find.byType(TextField).at(3), '123');
+      await fillPassword(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Enter a Kenyan mobile number, like 712 345 678'),
+        findsOneWidget,
+      );
+      expect(errorNotice(), findsNothing);
+    });
+
+    testWidgets('no photo shows its message under the photo row', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await pickTitle(tester);
+      await fillNames(tester);
+      await tester.enterText(
+        find.byType(TextField).at(2),
+        'w.kamau@akuh.example',
+      );
+      await tester.enterText(find.byType(TextField).at(3), '722118450');
+      await fillPassword(tester);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Add a photo of yourself'), findsOneWidget);
+      expect(errorNotice(), findsNothing);
     });
 
     testWidgets('complete details create the account', (tester) async {
@@ -225,7 +351,9 @@ void main() {
       expect(find.text('E2 stub'), findsOneWidget);
     });
 
-    testWidgets('a failure shows its message', (tester) async {
+    testWidgets('emailAlreadyInUse shows under the email field', (
+      tester,
+    ) async {
       whenListen(
         authBloc,
         Stream.fromIterable([
@@ -240,11 +368,50 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text(
-          'An account already exists with this email. Sign in instead.',
-        ),
+        find.text('An account already uses this email. Sign in instead.'),
         findsOneWidget,
       );
+      expect(errorNotice(), findsNothing);
+    });
+
+    testWidgets('a weak password refusal shows under the password field', (
+      tester,
+    ) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const CreateAccountFailure(
+            session: SignedOutSession(),
+            error: AppError.weakPassword,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Use at least 8 characters, a number and a symbol'),
+        findsOneWidget,
+      );
+      expect(errorNotice(), findsNothing);
+    });
+
+    testWidgets("the pathologist's photo line names the attaching doctors", (
+      tester,
+    ) async {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Doctors see this when they attach you.'),
+        findsOneWidget,
+      );
+      expect(find.text('Patients see this on your profile.'), findsNothing);
     });
 
     testWidgets('success goes to E2', (tester) async {

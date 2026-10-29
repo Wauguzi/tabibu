@@ -70,6 +70,47 @@ void main() {
         const TextSelection.collapsed(offset: '712 345 678'.length),
       );
     });
+
+    test('leads with +254 once a digit is typed', () {
+      expect(formatKePhone('', withPrefix: true), '');
+      expect(formatKePhone('7', withPrefix: true), '+254 7');
+      expect(formatKePhone('722118450', withPrefix: true), '+254 722 118 450');
+      expect(formatKePhone('0712345678', withPrefix: true), '+254 712 345 678');
+      expect(
+        formatKePhone('+254712345678', withPrefix: true),
+        '+254 712 345 678',
+      );
+    });
+
+    test('the formatter passes the prefix through', () {
+      const prefixed = KePhoneFormatter(withPrefix: true);
+      final value = prefixed.formatEditUpdate(
+        TextEditingValue.empty,
+        const TextEditingValue(text: '722118450'),
+      );
+      expect(value.text, '+254 722 118 450');
+    });
+
+    test('the prefixed formatter groups digit by digit, as typed', () {
+      const prefixed = KePhoneFormatter(withPrefix: true);
+      var value = TextEditingValue.empty;
+      for (final digit in '722118450'.split('')) {
+        value = prefixed.formatEditUpdate(
+          value,
+          TextEditingValue(text: value.text + digit),
+        );
+      }
+      expect(value.text, '+254 722 118 450');
+    });
+
+    test('deleting the last digit leaves the field empty', () {
+      const prefixed = KePhoneFormatter(withPrefix: true);
+      final value = prefixed.formatEditUpdate(
+        const TextEditingValue(text: '+254 7'),
+        const TextEditingValue(text: '+254 '),
+      );
+      expect(value.text, '');
+    });
   });
 
   group('isPasswordStrong', () {
