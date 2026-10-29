@@ -22,10 +22,16 @@ import 'package:tabibu/firebase_options.dart';
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();
 
+  /// State types only: a state's contents can hold a patient's name, date
+  /// of birth or more, and never belong in a log.
   @override
   void onChange(BlocBase<dynamic> bloc, Change<dynamic> change) {
     super.onChange(bloc, change);
-    log('onChange(${bloc.runtimeType}, $change)');
+    if (!kDebugMode) return;
+    log(
+      'onChange(${bloc.runtimeType}: ${change.currentState.runtimeType} '
+      '→ ${change.nextState.runtimeType})',
+    );
   }
 
   @override

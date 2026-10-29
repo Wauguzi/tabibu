@@ -249,11 +249,7 @@ class RaspService {
   bool _admitsNotice(SecurityThreatEvent event) {
     if (event.level == SecurityThreatLevel.critical && _isProd) return false;
     // A permitted capture must not put a security notice into the recording.
-    if (_screenCaptureAllowed &&
-        (event.threatName == Threat.screenshot.name ||
-            event.threatName == Threat.screenRecording.name)) {
-      return false;
-    }
+    if (_isPermittedCapture(event)) return false;
     return _noticeGate.admit(noticeKeyFor(event));
   }
 
@@ -436,11 +432,19 @@ class RaspService {
     );
   }
 
+  /// Capture outside production is allowed, so it is expected, not a threat.
+  bool _isPermittedCapture(SecurityThreatEvent event) =>
+      _screenCaptureAllowed &&
+      (event.threatName == Threat.screenshot.name ||
+          event.threatName == Threat.screenRecording.name);
+
   void _log(SecurityThreatEvent event) {
     log(
       '[RaspService] ${event.threatName} (${event.level.name}): '
       '${event.message}',
     );
+    // Logged, but not reported as an error: it is what the demo build allows.
+    if (_isPermittedCapture(event)) return;
     try {
       unawaited(
         FirebaseCrashlytics.instance.recordError(
