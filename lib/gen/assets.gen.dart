@@ -72,6 +72,10 @@ class $AssetsIconsGen {
   /// File path: assets/icons/add_icon.svg
   SvgGenImage get addIcon => const SvgGenImage('assets/icons/add_icon.svg');
 
+  /// File path: assets/icons/appointments_icon.svg
+  SvgGenImage get appointmentsIcon =>
+      const SvgGenImage('assets/icons/appointments_icon.svg');
+
   /// File path: assets/icons/back_icon.svg
   SvgGenImage get backIcon => const SvgGenImage('assets/icons/back_icon.svg');
 
@@ -91,9 +95,16 @@ class $AssetsIconsGen {
   SvgGenImage get checkUnselectedIcon =>
       const SvgGenImage('assets/icons/check_unselected_icon.svg');
 
+  /// File path: assets/icons/clinic_hours_icon.svg
+  SvgGenImage get clinicHoursIcon =>
+      const SvgGenImage('assets/icons/clinic_hours_icon.svg');
+
   /// File path: assets/icons/delete_icon.svg
   SvgGenImage get deleteIcon =>
       const SvgGenImage('assets/icons/delete_icon.svg');
+
+  /// File path: assets/icons/desk_icon.svg
+  SvgGenImage get deskIcon => const SvgGenImage('assets/icons/desk_icon.svg');
 
   /// File path: assets/icons/document_icon.svg
   SvgGenImage get documentIcon =>
@@ -127,6 +138,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/heart_icon.svg
   SvgGenImage get heartIcon => const SvgGenImage('assets/icons/heart_icon.svg');
 
+  /// File path: assets/icons/home_icon.svg
+  SvgGenImage get homeIcon => const SvgGenImage('assets/icons/home_icon.svg');
+
   /// File path: assets/icons/identity_icon.svg
   SvgGenImage get identityIcon =>
       const SvgGenImage('assets/icons/identity_icon.svg');
@@ -153,6 +167,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/logo_transparent_white.svg
   SvgGenImage get logoTransparentWhite =>
       const SvgGenImage('assets/icons/logo_transparent_white.svg');
+
+  /// File path: assets/icons/mdt_icon.svg
+  SvgGenImage get mdtIcon => const SvgGenImage('assets/icons/mdt_icon.svg');
 
   /// File path: assets/icons/notification_bell_icon.svg
   SvgGenImage get notificationBellIcon =>
@@ -184,6 +201,10 @@ class $AssetsIconsGen {
   SvgGenImage get practitionerVerifiedIcon =>
       const SvgGenImage('assets/icons/practitioner_verified_icon.svg');
 
+  /// File path: assets/icons/results_icon.svg
+  SvgGenImage get resultsIcon =>
+      const SvgGenImage('assets/icons/results_icon.svg');
+
   /// File path: assets/icons/search_rounded_icon.svg
   SvgGenImage get searchRoundedIcon =>
       const SvgGenImage('assets/icons/search_rounded_icon.svg');
@@ -191,6 +212,14 @@ class $AssetsIconsGen {
   /// File path: assets/icons/shield_icon.svg
   SvgGenImage get shieldIcon =>
       const SvgGenImage('assets/icons/shield_icon.svg');
+
+  /// File path: assets/icons/sign_out_icon.svg
+  SvgGenImage get signOutIcon =>
+      const SvgGenImage('assets/icons/sign_out_icon.svg');
+
+  /// File path: assets/icons/signed_icon.svg
+  SvgGenImage get signedIcon =>
+      const SvgGenImage('assets/icons/signed_icon.svg');
 
   /// File path: assets/icons/stethoscope_icon.svg
   SvgGenImage get stethoscopeIcon =>
@@ -203,6 +232,9 @@ class $AssetsIconsGen {
   /// File path: assets/icons/test_tube_icon.svg
   SvgGenImage get testTubeIcon =>
       const SvgGenImage('assets/icons/test_tube_icon.svg');
+
+  /// File path: assets/icons/theme_icon.svg
+  SvgGenImage get themeIcon => const SvgGenImage('assets/icons/theme_icon.svg');
 
   /// File path: assets/icons/tick_icon.svg
   SvgGenImage get tickIcon => const SvgGenImage('assets/icons/tick_icon.svg');
@@ -218,12 +250,15 @@ class $AssetsIconsGen {
   /// List of all assets
   List<dynamic> get values => [
     addIcon,
+    appointmentsIcon,
     backIcon,
     calendarIcon,
     cancelIcon,
     checkSelectedIcon,
     checkUnselectedIcon,
+    clinicHoursIcon,
     deleteIcon,
+    deskIcon,
     documentIcon,
     dropDownIcon,
     editIcon,
@@ -233,6 +268,7 @@ class $AssetsIconsGen {
     forwardIcon,
     google,
     heartIcon,
+    homeIcon,
     identityIcon,
     inProgressIcon,
     infoIcon,
@@ -240,6 +276,7 @@ class $AssetsIconsGen {
     locationIcon,
     logoTransparentPrimary,
     logoTransparentWhite,
+    mdtIcon,
     notificationBellIcon,
     passwordHiddenIcon,
     passwordIcon,
@@ -248,11 +285,15 @@ class $AssetsIconsGen {
     phoneIcon,
     photoIcon,
     practitionerVerifiedIcon,
+    resultsIcon,
     searchRoundedIcon,
     shieldIcon,
+    signOutIcon,
+    signedIcon,
     stethoscopeIcon,
     tabibuLogo,
     testTubeIcon,
+    themeIcon,
     tickIcon,
     uploadIcon,
     verificationBadge,

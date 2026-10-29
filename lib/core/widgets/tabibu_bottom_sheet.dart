@@ -7,7 +7,8 @@ import 'package:tabibu/core/widgets/tabibu_button.dart';
 /// A bottom sheet on a native Cupertino sheet route: the theme's lowest
 /// surface, top-rounded, with the route's drag handle, a title, subtitle and
 /// content, as designed (no close control). Dragging down, tapping above it,
-/// back and the screen reader's escape gesture dismiss it.
+/// back and the screen reader's escape gesture dismiss it. A [leading] icon,
+/// as on a confirmation, centres the header under it.
 class TabibuBottomSheet extends StatelessWidget {
   const TabibuBottomSheet({
     required this.title,
@@ -15,11 +16,13 @@ class TabibuBottomSheet extends StatelessWidget {
     required this.scrollController,
     this.subtitle,
     this.cancelLabel,
+    this.leading,
     super.key,
   });
 
   final String title;
   final String? subtitle;
+  final Widget? leading;
   final Widget child;
   final String? cancelLabel;
 
@@ -32,6 +35,7 @@ class TabibuBottomSheet extends StatelessWidget {
     required Widget Function(BuildContext context) builder,
     String? subtitle,
     String? cancelLabel,
+    Widget? leading,
   }) {
     return Navigator.of(context, rootNavigator: true).push<T>(
       CupertinoSheetRoute<T>(
@@ -40,6 +44,7 @@ class TabibuBottomSheet extends StatelessWidget {
           title: title,
           subtitle: subtitle,
           cancelLabel: cancelLabel,
+          leading: leading,
           scrollController: sc,
           child: builder(context),
         ),
@@ -53,6 +58,8 @@ class TabibuBottomSheet extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final subtitle = this.subtitle;
     final cancelLabel = this.cancelLabel;
+    final leading = this.leading;
+    final align = leading == null ? TextAlign.start : TextAlign.center;
 
     return ClipRRect(
       borderRadius: const BorderRadius.vertical(
@@ -76,10 +83,14 @@ class TabibuBottomSheet extends StatelessWidget {
               mainAxisSize: .min,
               crossAxisAlignment: .stretch,
               children: [
-                Text(title, style: textTheme.titleLarge),
+                if (leading != null) ...[
+                  Center(child: leading),
+                  const SizedBox(height: AppSpacing.md),
+                ],
+                Text(title, style: textTheme.titleLarge, textAlign: align),
                 if (subtitle != null) ...[
                   const SizedBox(height: AppSpacing.xxs),
-                  Text(subtitle, style: textTheme.bodyMedium),
+                  Text(subtitle, style: textTheme.bodyMedium, textAlign: align),
                 ],
                 const SizedBox(height: AppSpacing.md),
                 child,

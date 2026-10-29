@@ -14,6 +14,7 @@ void main() {
       ThemeMode themeMode = ThemeMode.light,
       String? subtitle,
       String? cancelLabel,
+      Widget? leading,
       Widget Function(BuildContext context)? builder,
     }) async {
       final results = <String?>[];
@@ -27,6 +28,7 @@ void main() {
                   title: 'Sheet title',
                   subtitle: subtitle,
                   cancelLabel: cancelLabel,
+                  leading: leading,
                   builder: builder ?? (_) => const Text('Sheet body'),
                 ).then(results.add),
                 child: const Text('Open'),
@@ -52,6 +54,24 @@ void main() {
         expect(find.byType(CircleIconButton), findsNothing);
       },
     );
+
+    testWidgets('a leading icon centres the header under it', (tester) async {
+      await openSheet(
+        tester,
+        subtitle: 'Sheet subtitle',
+        leading: const SizedBox(key: Key('leading'), width: 56, height: 56),
+      );
+
+      expect(find.byKey(const Key('leading')), findsOneWidget);
+      expect(
+        tester.widget<Text>(find.text('Sheet title')).textAlign,
+        TextAlign.center,
+      );
+      expect(
+        tester.widget<Text>(find.text('Sheet subtitle')).textAlign,
+        TextAlign.center,
+      );
+    });
 
     testWidgets('dismisses on a drag down', (tester) async {
       final results = await openSheet(tester);

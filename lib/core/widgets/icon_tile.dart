@@ -6,8 +6,19 @@ import 'package:tabibu/gen/assets.gen.dart';
 
 /// Icon tile tones. Each resolves to a pastel container with a deep icon,
 /// matched to the card family it labels. White suits tinted cards; glass
-/// suits teal and ink surfaces.
-enum IconTone { sky, mint, lavender, butter, peach, white, glass }
+/// suits teal and ink surfaces. Neutral labels settings rows; danger labels
+/// sign-out and deletion.
+enum IconTone {
+  sky,
+  mint,
+  lavender,
+  butter,
+  peach,
+  white,
+  glass,
+  neutral,
+  danger,
+}
 
 /// Icon tile sizes: S for dense rows, M by default, L for onboarding and
 /// big options.
@@ -64,6 +75,8 @@ class IconTile extends StatelessWidget {
         Colors.white.withValues(alpha: 0.16),
         Colors.white,
       ),
+      (IconTone.neutral, _) => (scheme.surfaceContainerLow, scheme.onSurface),
+      (IconTone.danger, _) => (status.errorContainer, scheme.error),
     };
 
     return Container(

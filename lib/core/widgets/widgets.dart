@@ -4,6 +4,7 @@ export 'circle_icon_button.dart';
 export 'connectivity_banner.dart';
 export 'dashed_border.dart';
 export 'document_tile.dart';
+export 'floating_tab_bar.dart';
 export 'glass_container.dart';
 export 'icon_tile.dart';
 export 'logo_cells.dart';
