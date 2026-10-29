@@ -266,6 +266,50 @@ void main() {
       expect(find.byType(NoticeCard), findsNothing);
     });
 
+    testWidgets('once the account exists, D2 is read-only and moves on', (
+      tester,
+    ) async {
+      when(() => authBloc.state).thenReturn(
+        const SignInSuccess(
+          session: SignUpIncompleteSession(
+            email: 'a@b.co',
+            emailVerified: true,
+          ),
+        ),
+      );
+      final router = GoRouter(
+        initialLocation: '/sign-up/patient/account',
+        routes: [
+          GoRoute(
+            path: '/sign-up/patient/account',
+            builder: (_, _) => screen(),
+          ),
+          GoRoute(
+            path: '/sign-up/patient/phone',
+            builder: (_, _) => const Text('D3 stub'),
+          ),
+        ],
+      );
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      expect(find.text('a@b.co'), findsOneWidget);
+      expect(tester.widget<TextField>(find.byType(TextField)).readOnly, isTrue);
+      expect(find.byType(PasswordField), findsNothing);
+      expect(
+        find.text(
+          'Your account is set up with this email. Continue to the next step.',
+        ),
+        findsOneWidget,
+      );
+
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('D3 stub'), findsOneWidget);
+      verifyNever(() => authBloc.add(any()));
+    });
+
     testWidgets('success goes to D3', (tester) async {
       whenListen(
         authBloc,

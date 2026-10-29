@@ -38,8 +38,11 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
   @override
   void initState() {
     super.initState();
+    final session = context.read<AuthBloc>().state.session;
     _emailController = TextEditingController(
-      text: context.read<SignUpBloc>().state.draft.email,
+      text: session is SignUpIncompleteSession
+          ? session.email
+          : context.read<SignUpBloc>().state.draft.email,
     );
   }
 
@@ -92,7 +95,13 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
       // From the listener, not the builder: a stale failure must not
       // reappear when the screen is revisited.
       listener: (context, state) {
-        if (state is CreateAccountSuccess) _next(state.session);
+        if (state is CreateAccountSuccess) {
+          final session = state.session;
+          if (session is SignUpIncompleteSession) {
+            _emailController.text = session.email;
+          }
+          _next(session);
+        }
         if (state is CreateAccountFailure) {
           setState(() => _localError = state.error);
         }
@@ -134,6 +143,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
                         Focus(
                           onFocusChange: (hasFocus) {
                             if (!hasFocus &&
+                                !signedIn &&
                                 _emailController.text.trim().isNotEmpty &&
                                 !isValidEmail(_emailController.text)) {
                               setState(() => _localError = .invalidEmail);
@@ -149,6 +159,9 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
                                 ? fieldErrorText(failure, l10n)
                                 : null,
                             required: true,
+                            // The account exists: Continue moves on, so an
+                            // edit here would change nothing.
+                            readOnly: signedIn,
                             keyboardType: TextInputType.emailAddress,
                             textInputAction: TextInputAction.next,
                             autofillHints: const [AutofillHints.email],
@@ -160,43 +173,53 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
                             ),
                           ),
                         ),
-                        const SizedBox(height: AppSpacing.md),
-                        PasswordField(
-                          label: l10n.passwordLabel,
-                          showLabel: l10n.passwordShow,
-                          hideLabel: l10n.passwordHide,
-                          controller: _passwordController,
-                          errorText:
-                              failure != null && fieldFor(failure) == .password
-                              ? fieldErrorText(failure, l10n)
-                              : null,
-                          required: true,
-                          textInputAction: TextInputAction.done,
-                          autofillHints: const [AutofillHints.newPassword],
-                          onChanged: (_) => setState(
-                            () => _localError = errorAfterChange(
-                              _localError,
-                              .password,
+                        if (!signedIn) ...[
+                          const SizedBox(height: AppSpacing.md),
+                          PasswordField(
+                            label: l10n.passwordLabel,
+                            showLabel: l10n.passwordShow,
+                            hideLabel: l10n.passwordHide,
+                            controller: _passwordController,
+                            errorText:
+                                failure != null &&
+                                    fieldFor(failure) == .password
+                                ? fieldErrorText(failure, l10n)
+                                : null,
+                            required: true,
+                            textInputAction: TextInputAction.done,
+                            autofillHints: const [AutofillHints.newPassword],
+                            onChanged: (_) => setState(
+                              () => _localError = errorAfterChange(
+                                _localError,
+                                .password,
+                              ),
                             ),
+                            onSubmitted: (_) {
+                              if (strongEnough) _submit(false);
+                            },
                           ),
-                          onSubmitted: (_) {
-                            if (signedIn || strongEnough) _submit(signedIn);
-                          },
-                        ),
+                        ],
                       ],
                     ),
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  PasswordStrengthMeter(
-                    password: _passwordController.text,
-                    strengthWord: passwordStrengthWord(
-                      _passwordController.text,
-                      l10n,
+                  if (signedIn)
+                    NoticeCard(
+                      variant: .info,
+                      icon: Assets.icons.infoIcon,
+                      body: l10n.patientAccountCreatedNotice,
+                    )
+                  else
+                    PasswordStrengthMeter(
+                      password: _passwordController.text,
+                      strengthWord: passwordStrengthWord(
+                        _passwordController.text,
+                        l10n,
+                      ),
+                      lengthLabel: l10n.passwordRuleLength,
+                      numberLabel: l10n.passwordRuleNumber,
+                      symbolLabel: l10n.passwordRuleSymbol,
                     ),
-                    lengthLabel: l10n.passwordRuleLength,
-                    numberLabel: l10n.passwordRuleNumber,
-                    symbolLabel: l10n.passwordRuleSymbol,
-                  ),
                 ],
               ),
             ),

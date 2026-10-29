@@ -21,6 +21,7 @@ class TabibuTextField extends StatefulWidget {
     this.maxLines = 1,
     this.maxLength,
     this.inputFormatters,
+    this.readOnly = false,
     this.onChanged,
     this.onSubmitted,
     this.obscureText = false,
@@ -42,6 +43,10 @@ class TabibuTextField extends StatefulWidget {
   final int maxLines;
   final int? maxLength;
   final List<TextInputFormatter>? inputFormatters;
+
+  /// Shows a value that can no longer change, muted, as an email once its
+  /// account exists.
+  final bool readOnly;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final bool obscureText;
@@ -85,9 +90,12 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
       obscureText: widget.obscureText,
       autofillHints: widget.autofillHints,
       inputFormatters: widget.inputFormatters,
+      readOnly: widget.readOnly,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
-      style: textTheme.bodyLarge,
+      style: widget.readOnly
+          ? textTheme.bodyLarge?.copyWith(color: scheme.onSurfaceVariant)
+          : textTheme.bodyLarge,
       decoration: InputDecoration(
         hintText: widget.hint,
         hintStyle: textTheme.bodyLarge?.copyWith(
@@ -98,7 +106,9 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
         errorMaxLines: 3,
         counterText: '',
         filled: true,
-        fillColor: scheme.surfaceContainerLowest,
+        fillColor: widget.readOnly
+            ? scheme.surfaceContainerLow
+            : scheme.surfaceContainerLowest,
         contentPadding: EdgeInsets.fromLTRB(
           AppSpacing.md,
           AppSpacing.md,

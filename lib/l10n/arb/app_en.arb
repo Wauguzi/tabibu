@@ -1859,5 +1859,9 @@
     "signOutPractitionerBody": "Your cases and reports stay safe. Sign back in any time with your email or Google.",
     "@signOutPractitionerBody": {
         "description": "Sign-out sheet body for doctors and pathologists"
+    },
+    "patientAccountCreatedNotice": "Your account is set up with this email. Continue to the next step.",
+    "@patientAccountCreatedNotice": {
+        "description": "D2 once the account exists: why the email cannot change"
     }
 }

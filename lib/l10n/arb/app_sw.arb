@@ -424,5 +424,6 @@
     "profileVersion": "v{version}",
     "signOutTitle": "Uondoke kwenye Tabibu?",
     "signOutPatientBody": "Miadi na majibu yako yatabaki salama. Ingia tena wakati wowote kwa barua pepe au Google.",
-    "signOutPractitionerBody": "Kesi na ripoti zako zitabaki salama. Ingia tena wakati wowote kwa barua pepe au Google."
+    "signOutPractitionerBody": "Kesi na ripoti zako zitabaki salama. Ingia tena wakati wowote kwa barua pepe au Google.",
+    "patientAccountCreatedNotice": "Akaunti yako imeundwa kwa barua pepe hii. Endelea na hatua inayofuata."
 }
