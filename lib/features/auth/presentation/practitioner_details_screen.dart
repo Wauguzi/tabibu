@@ -13,7 +13,9 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/photo_row.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
@@ -52,7 +54,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     _lastNameController = TextEditingController(text: draft.lastName);
     final session = context.read<AuthBloc>().state.session;
     _emailController = TextEditingController(
-      text: session is SignUpIncompleteSession ? session.email : '',
+      text: session is SignUpIncompleteSession ? session.email : draft.email,
     );
     _phoneController = TextEditingController(text: draft.phoneNumber);
     _passwordController = TextEditingController();
@@ -107,6 +109,16 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     });
   }
 
+  SignUpDraft _fill(SignUpDraft draft) => draft.copyWith(
+    title: _title,
+    firstName: _firstNameController.text.trim(),
+    lastName: _lastNameController.text.trim(),
+    email: _emailController.text.trim(),
+    phoneNumber:
+        normalizeKePhone(_phoneController.text) ?? _phoneController.text.trim(),
+    picture: _picture,
+  );
+
   void _submit() {
     final session = context.read<AuthBloc>().state.session;
     final accountExists = session is! SignedOutSession;
@@ -130,13 +142,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     setState(() => _localError = error);
     if (error != null) return;
 
-    final draft = context.read<SignUpBloc>().state.draft.copyWith(
-      title: _title,
-      firstName: _firstNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      phoneNumber: phone!,
-      picture: _picture,
-    );
+    final draft = _fill(context.read<SignUpBloc>().state.draft);
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
 
     if (!accountExists) {
@@ -169,141 +175,145 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
         final signedIn = state.session is! SignedOutSession;
         final strongEnough = isPasswordStrong(_passwordController.text);
 
-        return StepScaffold(
-          step: 1,
-          total: 4,
-          backLabel: l10n.commonBack,
-          onBack: busy ? null : () => Navigator.of(context).pop(),
-          title: l10n.practitionerDetailsTitle,
-          subtitle: l10n.practitionerDetailsSubtitle,
-          error: failure,
-          role: role,
-          footer: TabibuButton.primary(
-            label: l10n.commonContinue,
-            isLoading: busy,
-            // An Edit return passes through: the password is never stored,
-            // so the empty field must not block saving the edits.
-            onTap: busy || (!signedIn && !strongEnough) ? null : _submit,
-          ),
-          child: AutofillGroup(
-            child: Column(
-              children: [
-                PhotoRow(
-                  name: _avatarName,
-                  title: l10n.photoTitle,
-                  body: isPathologist
-                      ? l10n.practitionerPhotoPathologistBody
-                      : l10n.practitionerPhotoDoctorBody,
-                  picture: _picture,
-                  required: true,
-                  onPicked: (file) => setState(() {
-                    _picture = file;
-                    _localError = null;
-                  }),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                IgnorePointer(
-                  ignoring: busy,
-                  child: Column(
-                    children: [
-                      Row(
-                        crossAxisAlignment: .start,
-                        children: [
-                          Expanded(
-                            flex: 2,
-                            child: PickerField(
-                              label: l10n.titleLabel,
-                              required: true,
-                              hint: l10n.titleSheetTitle,
-                              value: _title?.value,
-                              onTap: _pickTitle,
-                            ),
-                          ),
-                          const SizedBox(width: AppSpacing.sm),
-                          Expanded(
-                            flex: 3,
-                            child: TabibuTextField(
-                              label: l10n.firstNameLabel,
-                              controller: _firstNameController,
-                              leading: FieldIcon(Assets.icons.personIcon),
-                              required: true,
-                              textInputAction: TextInputAction.next,
-                              autofillHints: const [AutofillHints.givenName],
-                              onChanged: (_) =>
-                                  setState(() => _localError = null),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.lastNameLabel,
-                        controller: _lastNameController,
-                        leading: FieldIcon(Assets.icons.personIcon),
-                        required: true,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.familyName],
-                        onChanged: (_) => setState(() => _localError = null),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.workEmailLabel,
-                        hint: l10n.workEmailHint,
-                        controller: _emailController,
-                        leading: FieldIcon(Assets.icons.emailIcon),
-                        errorText: _localError == AppError.invalidEmail
-                            ? _localError!.description(l10n)
-                            : null,
-                        required: true,
-                        keyboardType: TextInputType.emailAddress,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.email],
-                        onChanged: (_) => setState(() => _localError = null),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.phoneLabel,
-                        hint: l10n.practitionerPhoneHint,
-                        controller: _phoneController,
-                        leading: FieldIcon(Assets.icons.phoneIcon),
-                        errorText: _localError == AppError.invalidPhone
-                            ? _localError!.description(l10n)
-                            : null,
-                        required: true,
-                        keyboardType: TextInputType.phone,
-                        textInputAction: TextInputAction.next,
-                        autofillHints: const [AutofillHints.telephoneNumber],
-                        onChanged: (_) => setState(() => _localError = null),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      PasswordField(
-                        label: l10n.passwordLabel,
-                        showLabel: l10n.passwordShow,
-                        hideLabel: l10n.passwordHide,
-                        controller: _passwordController,
-                        required: true,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.newPassword],
-                        onChanged: (_) => setState(() {}),
-                        onSubmitted: (_) {
-                          if (signedIn || strongEnough) _submit();
-                        },
-                      ),
-                    ],
+        return DraftPopScope(
+          fill: _fill,
+          canPop: !busy,
+          child: StepScaffold(
+            step: 1,
+            total: 4,
+            backLabel: l10n.commonBack,
+            onBack: busy ? null : () => Navigator.of(context).pop(),
+            title: l10n.practitionerDetailsTitle,
+            subtitle: l10n.practitionerDetailsSubtitle,
+            error: failure,
+            role: role,
+            footer: TabibuButton.primary(
+              label: l10n.commonContinue,
+              isLoading: busy,
+              // An Edit return passes through: the password is never stored,
+              // so the empty field must not block saving the edits.
+              onTap: busy || (!signedIn && !strongEnough) ? null : _submit,
+            ),
+            child: AutofillGroup(
+              child: Column(
+                children: [
+                  PhotoRow(
+                    name: _avatarName,
+                    title: l10n.photoTitle,
+                    body: isPathologist
+                        ? l10n.practitionerPhotoPathologistBody
+                        : l10n.practitionerPhotoDoctorBody,
+                    picture: _picture,
+                    required: true,
+                    onPicked: (file) => setState(() {
+                      _picture = file;
+                      _localError = null;
+                    }),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                PasswordStrengthMeter(
-                  password: _passwordController.text,
-                  strengthWord: passwordStrengthWord(
-                    _passwordController.text,
-                    l10n,
+                  const SizedBox(height: AppSpacing.md),
+                  IgnorePointer(
+                    ignoring: busy,
+                    child: Column(
+                      children: [
+                        Row(
+                          crossAxisAlignment: .start,
+                          children: [
+                            Expanded(
+                              flex: 2,
+                              child: PickerField(
+                                label: l10n.titleLabel,
+                                required: true,
+                                hint: l10n.titleSheetTitle,
+                                value: _title?.value,
+                                onTap: _pickTitle,
+                              ),
+                            ),
+                            const SizedBox(width: AppSpacing.sm),
+                            Expanded(
+                              flex: 3,
+                              child: TabibuTextField(
+                                label: l10n.firstNameLabel,
+                                controller: _firstNameController,
+                                leading: FieldIcon(Assets.icons.personIcon),
+                                required: true,
+                                textInputAction: TextInputAction.next,
+                                autofillHints: const [AutofillHints.givenName],
+                                onChanged: (_) =>
+                                    setState(() => _localError = null),
+                              ),
+                            ),
+                          ],
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.lastNameLabel,
+                          controller: _lastNameController,
+                          leading: FieldIcon(Assets.icons.personIcon),
+                          required: true,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.familyName],
+                          onChanged: (_) => setState(() => _localError = null),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.workEmailLabel,
+                          hint: l10n.workEmailHint,
+                          controller: _emailController,
+                          leading: FieldIcon(Assets.icons.emailIcon),
+                          errorText: _localError == AppError.invalidEmail
+                              ? _localError!.description(l10n)
+                              : null,
+                          required: true,
+                          keyboardType: TextInputType.emailAddress,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.email],
+                          onChanged: (_) => setState(() => _localError = null),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.phoneLabel,
+                          hint: l10n.practitionerPhoneHint,
+                          controller: _phoneController,
+                          leading: FieldIcon(Assets.icons.phoneIcon),
+                          errorText: _localError == AppError.invalidPhone
+                              ? _localError!.description(l10n)
+                              : null,
+                          required: true,
+                          keyboardType: TextInputType.phone,
+                          textInputAction: TextInputAction.next,
+                          autofillHints: const [AutofillHints.telephoneNumber],
+                          onChanged: (_) => setState(() => _localError = null),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        PasswordField(
+                          label: l10n.passwordLabel,
+                          showLabel: l10n.passwordShow,
+                          hideLabel: l10n.passwordHide,
+                          controller: _passwordController,
+                          required: true,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.newPassword],
+                          onChanged: (_) => setState(() {}),
+                          onSubmitted: (_) {
+                            if (signedIn || strongEnough) _submit();
+                          },
+                        ),
+                      ],
+                    ),
                   ),
-                  lengthLabel: l10n.passwordRuleLength,
-                  numberLabel: l10n.passwordRuleNumber,
-                  symbolLabel: l10n.passwordRuleSymbol,
-                ),
-              ],
+                  const SizedBox(height: AppSpacing.md),
+                  PasswordStrengthMeter(
+                    password: _passwordController.text,
+                    strengthWord: passwordStrengthWord(
+                      _passwordController.text,
+                      l10n,
+                    ),
+                    lengthLabel: l10n.passwordRuleLength,
+                    numberLabel: l10n.passwordRuleNumber,
+                    symbolLabel: l10n.passwordRuleSymbol,
+                  ),
+                ],
+              ),
             ),
           ),
         );

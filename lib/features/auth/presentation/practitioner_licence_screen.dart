@@ -12,8 +12,10 @@ import 'package:tabibu/core/services/file_picker_service.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
+import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
 import 'package:tabibu/features/auth/presentation/widgets/document_sheet.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
 import 'package:tabibu/features/auth/presentation/widgets/specialty_sheet.dart';
@@ -100,6 +102,12 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
     }
   }
 
+  SignUpDraft _fill(SignUpDraft draft) => draft.copyWith(
+    kmpdcNumber: _kmpdcController.text.trim(),
+    specialties: _specialties,
+    licenses: _licenses,
+  );
+
   void _continue() {
     final allowed = Specialty.forRole(isPathologist: _isPathologist);
     final AppError? error;
@@ -117,11 +125,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
     setState(() => _error = error);
     if (error != null) return;
 
-    final draft = context.read<SignUpBloc>().state.draft.copyWith(
-      kmpdcNumber: _kmpdcController.text.trim(),
-      specialties: _specialties,
-      licenses: _licenses,
-    );
+    final draft = _fill(context.read<SignUpBloc>().state.draft);
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
     unawaited(const PractitionerFacilityRoute().push<void>(context));
   }
@@ -132,75 +136,80 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
     final role = context.watch<SignUpBloc>().state.draft.role;
     final isPathologist = role == Role.pathologist;
 
-    return StepScaffold(
-      step: 2,
-      total: 4,
-      backLabel: l10n.commonBack,
-      onBack: () => Navigator.of(context).pop(),
-      title: isPathologist ? l10n.areasTitle : l10n.licenceTitle,
-      subtitle: isPathologist ? l10n.areasSubtitle : l10n.licenceDoctorSubtitle,
-      error: _error,
-      role: role,
-      footer: TabibuButton.primary(
-        label: l10n.commonContinue,
-        onTap: _continue,
-      ),
-      child: Column(
-        crossAxisAlignment: .start,
-        children: [
-          TabibuTextField(
-            label: l10n.kmpdcLabel,
-            hint: l10n.kmpdcHint,
-            controller: _kmpdcController,
-            leading: FieldIcon(Assets.icons.identityIcon),
-            helperText: isPathologist ? null : l10n.kmpdcHelper,
-            required: true,
-            textInputAction: TextInputAction.done,
-            onChanged: (_) => setState(() => _error = null),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          if (isPathologist)
-            _AreasField(
-              selected: _specialties,
-              onTap: _pickSpecialties,
-              onRemoved: (specialty) => setState(() {
-                _specialties = _specialties
-                    .where((s) => s != specialty)
-                    .toList();
+    return DraftPopScope(
+      fill: _fill,
+      child: StepScaffold(
+        step: 2,
+        total: 4,
+        backLabel: l10n.commonBack,
+        onBack: () => Navigator.of(context).pop(),
+        title: isPathologist ? l10n.areasTitle : l10n.licenceTitle,
+        subtitle: isPathologist
+            ? l10n.areasSubtitle
+            : l10n.licenceDoctorSubtitle,
+        error: _error,
+        role: role,
+        footer: TabibuButton.primary(
+          label: l10n.commonContinue,
+          onTap: _continue,
+        ),
+        child: Column(
+          crossAxisAlignment: .start,
+          children: [
+            TabibuTextField(
+              label: l10n.kmpdcLabel,
+              hint: l10n.kmpdcHint,
+              controller: _kmpdcController,
+              leading: FieldIcon(Assets.icons.identityIcon),
+              helperText: isPathologist ? null : l10n.kmpdcHelper,
+              required: true,
+              textInputAction: TextInputAction.done,
+              onChanged: (_) => setState(() => _error = null),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            if (isPathologist)
+              _AreasField(
+                selected: _specialties,
+                onTap: _pickSpecialties,
+                onRemoved: (specialty) => setState(() {
+                  _specialties = _specialties
+                      .where((s) => s != specialty)
+                      .toList();
+                  _error = null;
+                }),
+              )
+            else
+              PickerField(
+                label: l10n.specialtyLabel,
+                required: true,
+                hint: l10n.specialtyPlaceholder,
+                value: _specialties.isEmpty
+                    ? null
+                    : _specialties.map((s) => s.description(l10n)).join(' · '),
+                leading: Assets.icons.stethoscopeIcon,
+                onTap: _pickSpecialties,
+              ),
+            if (isPathologist) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                l10n.areasHelper,
+                style: Theme.of(context).textTheme.bodySmall,
+              ),
+            ],
+            const SizedBox(height: AppSpacing.md),
+            _DocumentsSection(
+              body: isPathologist
+                  ? l10n.licenceDocsPathologistBody
+                  : l10n.licenceDocsDoctorBody,
+              licenses: _licenses,
+              onAdd: _licenses.length >= 2 ? null : _addDocument,
+              onDelete: (file) => setState(() {
+                _licenses = _licenses.where((f) => f != file).toList();
                 _error = null;
               }),
-            )
-          else
-            PickerField(
-              label: l10n.specialtyLabel,
-              required: true,
-              hint: l10n.specialtyPlaceholder,
-              value: _specialties.isEmpty
-                  ? null
-                  : _specialties.map((s) => s.description(l10n)).join(' · '),
-              leading: Assets.icons.stethoscopeIcon,
-              onTap: _pickSpecialties,
-            ),
-          if (isPathologist) ...[
-            const SizedBox(height: AppSpacing.xs),
-            Text(
-              l10n.areasHelper,
-              style: Theme.of(context).textTheme.bodySmall,
             ),
           ],
-          const SizedBox(height: AppSpacing.md),
-          _DocumentsSection(
-            body: isPathologist
-                ? l10n.licenceDocsPathologistBody
-                : l10n.licenceDocsDoctorBody,
-            licenses: _licenses,
-            onAdd: _licenses.length >= 2 ? null : _addDocument,
-            onDelete: (file) => setState(() {
-              _licenses = _licenses.where((f) => f != file).toList();
-              _error = null;
-            }),
-          ),
-        ],
+        ),
       ),
     );
   }

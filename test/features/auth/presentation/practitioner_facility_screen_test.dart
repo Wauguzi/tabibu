@@ -105,6 +105,27 @@ void main() {
       child: const PractitionerFacilityScreen(),
     );
 
+    Future<void> pumpUnderStub(WidgetTester tester, Widget step) async {
+      final router = GoRouter(
+        initialLocation: '/previous/step',
+        routes: [
+          GoRoute(
+            path: '/previous',
+            builder: (_, _) => const Text('Previous step'),
+            routes: [GoRoute(path: 'step', builder: (_, _) => step)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+    }
+
+    SignUpDraft committedDraft(MockSignUpBloc bloc) {
+      final captured = verify(() => bloc.add(captureAny())).captured;
+      return (captured.last as SignUpDraftUpdated).draft;
+    }
+
     testWidgets('renders in light and dark', (tester) async {
       await tester.pumpApp(screen(), themeMode: ThemeMode.light);
       await tester.pumpAndSettle();
@@ -238,6 +259,18 @@ void main() {
 
       expect(find.text('Which lab do you report from?'), findsOneWidget);
       expect(find.text('Accepting new cases'), findsOneWidget);
+    });
+
+    testWidgets('back keeps the facility in the draft', (tester) async {
+      await pumpUnderStub(tester, screen());
+      await tester.tap(find.text('Aga Khan University Hospital'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Previous step'), findsOneWidget);
+      expect(committedDraft(signUpBloc).facilityId, 'h1');
     });
   });
 }

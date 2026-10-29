@@ -11,6 +11,7 @@ import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
@@ -101,104 +102,108 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
           final failure = authState is SignUpFailure ? authState.error : _error;
           final facility = _facility;
 
-          return StepScaffold(
-            step: 4,
-            total: 4,
-            backLabel: l10n.commonBack,
-            onBack: busy ? null : () => Navigator.of(context).pop(),
-            title: l10n.reviewTitle,
-            error: failure,
-            role: role,
-            footer: TabibuButton.primary(
-              label: l10n.reviewSubmit,
-              isLoading: busy,
-              onTap: busy || !_terms ? null : () => _submit(draft),
-            ),
-            child: Column(
-              children: [
-                SummaryCard(
-                  title: l10n.reviewYouTitle,
-                  rows: [
-                    (
-                      l10n.reviewNameRow,
-                      [draft.title?.value, draft.firstName, draft.lastName]
-                          .whereType<String>()
-                          .where((part) => part.isNotEmpty)
-                          .join(' '),
-                    ),
-                    if (email.isNotEmpty) (l10n.reviewEmailRow, email),
-                    (l10n.reviewPhoneRow, draft.phoneNumber),
-                  ],
-                  editLabel: l10n.reviewEdit,
-                  onEdit: busy ? null : () => _edit(1),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SummaryCard(
-                  title: isPathologist
-                      ? l10n.reviewLicenceAreasTitle
-                      : l10n.reviewLicenceTitle,
-                  rows: [
-                    (l10n.reviewKmpdcRow, draft.kmpdcNumber),
-                    if (isPathologist)
+          return DraftPopScope(
+            fill: (draft) => draft.copyWith(termsAccepted: _terms),
+            canPop: !busy,
+            child: StepScaffold(
+              step: 4,
+              total: 4,
+              backLabel: l10n.commonBack,
+              onBack: busy ? null : () => Navigator.of(context).pop(),
+              title: l10n.reviewTitle,
+              error: failure,
+              role: role,
+              footer: TabibuButton.primary(
+                label: l10n.reviewSubmit,
+                isLoading: busy,
+                onTap: busy || !_terms ? null : () => _submit(draft),
+              ),
+              child: Column(
+                children: [
+                  SummaryCard(
+                    title: l10n.reviewYouTitle,
+                    rows: [
                       (
-                        l10n.reviewAreasRow,
-                        draft.specialties
-                            .map((s) => s.description(l10n))
-                            .join(', '),
-                      )
-                    else
-                      (
-                        l10n.specialtyLabel,
-                        draft.specialties
-                            .map((s) => s.description(l10n))
-                            .join(' · '),
+                        l10n.reviewNameRow,
+                        [draft.title?.value, draft.firstName, draft.lastName]
+                            .whereType<String>()
+                            .where((part) => part.isNotEmpty)
+                            .join(' '),
                       ),
-                    (
-                      l10n.reviewDocumentsRow,
-                      l10n.documentsCount(draft.licenses.length),
-                    ),
-                  ],
-                  editLabel: l10n.reviewEdit,
-                  onEdit: busy ? null : () => _edit(2),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                SummaryCard(
-                  title: isPathologist
-                      ? l10n.reviewLabTitle
-                      : l10n.reviewFacilityTitle,
-                  rows: [
-                    (
-                      isPathologist
-                          ? l10n.reviewLabTitle
-                          : l10n.reviewFacilityTitle,
-                      facility?.name ?? draft.facilityId,
-                    ),
-                    if (!isPathologist && facility != null)
+                      if (email.isNotEmpty) (l10n.reviewEmailRow, email),
+                      (l10n.reviewPhoneRow, draft.phoneNumber),
+                    ],
+                    editLabel: l10n.reviewEdit,
+                    onEdit: busy ? null : () => _edit(1),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  SummaryCard(
+                    title: isPathologist
+                        ? l10n.reviewLicenceAreasTitle
+                        : l10n.reviewLicenceTitle,
+                    rows: [
+                      (l10n.reviewKmpdcRow, draft.kmpdcNumber),
+                      if (isPathologist)
+                        (
+                          l10n.reviewAreasRow,
+                          draft.specialties
+                              .map((s) => s.description(l10n))
+                              .join(', '),
+                        )
+                      else
+                        (
+                          l10n.specialtyLabel,
+                          draft.specialties
+                              .map((s) => s.description(l10n))
+                              .join(' · '),
+                        ),
                       (
-                        l10n.reviewAreaRow,
-                        '${facility.ward}, ${facility.subCounty}',
+                        l10n.reviewDocumentsRow,
+                        l10n.documentsCount(draft.licenses.length),
                       ),
-                    (
-                      l10n.reviewAvailabilityRow,
-                      draft.isAvailable
-                          ? (isPathologist
-                                ? l10n.availabilityPathologistTitle
-                                : l10n.availabilityDoctorTitle)
-                          : (isPathologist
-                                ? l10n.availabilityOffPathologist
-                                : l10n.availabilityOffDoctor),
-                    ),
-                  ],
-                  editLabel: l10n.reviewEdit,
-                  onEdit: busy ? null : () => _edit(3),
-                ),
-                const SizedBox(height: AppSpacing.sm),
-                _TermsBox(
-                  label: l10n.reviewTerms,
-                  value: _terms,
-                  onChanged: busy ? null : _toggleTerms,
-                ),
-              ],
+                    ],
+                    editLabel: l10n.reviewEdit,
+                    onEdit: busy ? null : () => _edit(2),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  SummaryCard(
+                    title: isPathologist
+                        ? l10n.reviewLabTitle
+                        : l10n.reviewFacilityTitle,
+                    rows: [
+                      (
+                        isPathologist
+                            ? l10n.reviewLabTitle
+                            : l10n.reviewFacilityTitle,
+                        facility?.name ?? draft.facilityId,
+                      ),
+                      if (!isPathologist && facility != null)
+                        (
+                          l10n.reviewAreaRow,
+                          '${facility.ward}, ${facility.subCounty}',
+                        ),
+                      (
+                        l10n.reviewAvailabilityRow,
+                        draft.isAvailable
+                            ? (isPathologist
+                                  ? l10n.availabilityPathologistTitle
+                                  : l10n.availabilityDoctorTitle)
+                            : (isPathologist
+                                  ? l10n.availabilityOffPathologist
+                                  : l10n.availabilityOffDoctor),
+                      ),
+                    ],
+                    editLabel: l10n.reviewEdit,
+                    onEdit: busy ? null : () => _edit(3),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  _TermsBox(
+                    label: l10n.reviewTerms,
+                    value: _terms,
+                    onChanged: busy ? null : _toggleTerms,
+                  ),
+                ],
+              ),
             ),
           );
         },

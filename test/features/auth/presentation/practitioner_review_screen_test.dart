@@ -262,5 +262,33 @@ void main() {
       expect(find.text('Histopathology, Cytology'), findsOneWidget);
       expect(find.text('Area'), findsNothing);
     });
+
+    testWidgets('system back waits while the sign-up is sent', (tester) async {
+      when(() => authBloc.state).thenReturn(
+        const SignUpInProgress(
+          session: SignUpIncompleteSession(email: 'w.kamau@akuh.example'),
+        ),
+      );
+      final router = GoRouter(
+        initialLocation: '/previous/step',
+        routes: [
+          GoRoute(
+            path: '/previous',
+            builder: (_, _) => const Text('Previous step'),
+            routes: [GoRoute(path: 'step', builder: (_, _) => screen())],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      // The spinner never settles.
+      await tester.pumpRouterApp(router);
+      await tester.pump();
+
+      await tester.binding.handlePopRoute();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(find.text('Check and submit'), findsOneWidget);
+      expect(find.text('Previous step'), findsNothing);
+    });
   });
 }

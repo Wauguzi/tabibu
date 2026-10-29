@@ -54,6 +54,27 @@ void main() {
       child: const PractitionerLicenceScreen(),
     );
 
+    Future<void> pumpUnderStub(WidgetTester tester, Widget step) async {
+      final router = GoRouter(
+        initialLocation: '/previous/step',
+        routes: [
+          GoRoute(
+            path: '/previous',
+            builder: (_, _) => const Text('Previous step'),
+            routes: [GoRoute(path: 'step', builder: (_, _) => step)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+    }
+
+    SignUpDraft committedDraft(MockSignUpBloc bloc) {
+      final captured = verify(() => bloc.add(captureAny())).captured;
+      return (captured.last as SignUpDraftUpdated).draft;
+    }
+
     Future<void> fillDoctor(WidgetTester tester) async {
       await tester.enterText(find.byType(TextField), 'A 12345');
       await tester.pumpAndSettle();
@@ -206,6 +227,18 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Histopathology'), findsOneWidget);
+    });
+
+    testWidgets('back keeps the KMPDC number in the draft', (tester) async {
+      await pumpUnderStub(tester, screen());
+      await tester.enterText(find.byType(TextField), 'A 12345');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Previous step'), findsOneWidget);
+      expect(committedDraft(signUpBloc).kmpdcNumber, 'A 12345');
     });
   });
 }

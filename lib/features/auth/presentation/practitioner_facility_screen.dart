@@ -9,6 +9,8 @@ import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
+import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
@@ -78,17 +80,19 @@ class _PractitionerFacilityScreenState
     }
   }
 
+  SignUpDraft _fill(SignUpDraft draft) => draft.copyWith(
+    facilityId: _facilityId,
+    bio: _bioController.text.trim(),
+    isAvailable: _isAvailable,
+  );
+
   void _continue() {
     if (_facilityId.isEmpty) {
       setState(() => _error = AppError.invalidFacility);
       return;
     }
     setState(() => _error = null);
-    final draft = context.read<SignUpBloc>().state.draft.copyWith(
-      facilityId: _facilityId,
-      bio: _bioController.text.trim(),
-      isAvailable: _isAvailable,
-    );
+    final draft = _fill(context.read<SignUpBloc>().state.draft);
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
     unawaited(const PractitionerReviewRoute().push<void>(context));
   }
@@ -114,140 +118,145 @@ class _PractitionerFacilityScreenState
 
     return BlocListener<FacilitiesBloc, FacilitiesState>(
       listener: (context, state) => _onSearch(state),
-      child: StepScaffold(
-        step: 3,
-        total: 4,
-        backLabel: l10n.commonBack,
-        onBack: () => Navigator.of(context).pop(),
-        title: isPathologist ? l10n.labTitle : l10n.facilityTitle,
-        subtitle: isPathologist
-            ? l10n.labSubtitle
-            : l10n.facilityDoctorSubtitle,
-        error: _error,
-        role: role,
-        footer: TabibuButton.primary(
-          label: l10n.commonContinue,
-          onTap: _continue,
-        ),
-        child: Column(
-          crossAxisAlignment: .start,
-          children: [
-            SearchField(
-              hint: isPathologist
-                  ? l10n.labSearchHint
-                  : l10n.facilitySearchHint,
-              clearLabel: MaterialLocalizations.of(context).deleteButtonTooltip,
-              onChanged: (query) {
-                setState(() => _error = null);
-                context.read<FacilitiesBloc>().add(
-                  FacilitiesSearchRequested(query),
-                );
-              },
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            SingleChildScrollView(
-              scrollDirection: .horizontal,
-              child: Row(
-                children: [
-                  TabibuFilterChip(
-                    label: l10n.filterAll,
-                    selected: filter == null,
-                    onTap: () => setState(() => _filter = null),
-                  ),
-                  for (final value in _filters) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    TabibuFilterChip(
-                      label: value,
-                      selected: filter == value,
-                      onTap: () => setState(() => _filter = value),
-                    ),
-                  ],
-                ],
-              ),
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            if (visible == null && _error == null)
-              Center(
-                child: SpinKitCircle(
-                  color: Theme.of(context).colorScheme.primary,
-                  size: 30,
-                ),
-              )
-            else if (visible == null)
-              const SizedBox.shrink()
-            else if (visible.isEmpty)
-              _EmptyResults()
-            else
-              ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: visible.length,
-                itemBuilder: (context, index) {
-                  final facility = visible[index];
-                  final card = OptionCard(
-                    icon: isPathologist
-                        ? Assets.icons.testTubeIcon
-                        : Assets.icons.facilityIcon,
-                    tone: isPathologist ? .lavender : .mint,
-                    title: facility.name,
-                    supporting:
-                        '${facility.kephLevel} · ${facility.ward}, '
-                        '${facility.subCounty} · MFL ${facility.mflCode}',
-                    selected: _facilityId == facility.facilityId,
-                    onTap: facility.isOperational
-                        ? () => setState(() {
-                            _facilityId = facility.facilityId;
-                            _error = null;
-                          })
-                        : null,
-                  );
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                    child: facility.isOperational
-                        ? card
-                        : Opacity(opacity: 0.5, child: card),
+      child: DraftPopScope(
+        fill: _fill,
+        child: StepScaffold(
+          step: 3,
+          total: 4,
+          backLabel: l10n.commonBack,
+          onBack: () => Navigator.of(context).pop(),
+          title: isPathologist ? l10n.labTitle : l10n.facilityTitle,
+          subtitle: isPathologist
+              ? l10n.labSubtitle
+              : l10n.facilityDoctorSubtitle,
+          error: _error,
+          role: role,
+          footer: TabibuButton.primary(
+            label: l10n.commonContinue,
+            onTap: _continue,
+          ),
+          child: Column(
+            crossAxisAlignment: .start,
+            children: [
+              SearchField(
+                hint: isPathologist
+                    ? l10n.labSearchHint
+                    : l10n.facilitySearchHint,
+                clearLabel: MaterialLocalizations.of(
+                  context,
+                ).deleteButtonTooltip,
+                onChanged: (query) {
+                  setState(() => _error = null);
+                  context.read<FacilitiesBloc>().add(
+                    FacilitiesSearchRequested(query),
                   );
                 },
               ),
-            const SizedBox(height: AppSpacing.sm),
-            NoticeCard(
-              variant: NoticeVariant.info,
-              icon: Assets.icons.infoIcon,
-              body: l10n.facilityPilotNotice,
-            ),
-            if (isPathologist) ...[
+              const SizedBox(height: AppSpacing.sm),
+              SingleChildScrollView(
+                scrollDirection: .horizontal,
+                child: Row(
+                  children: [
+                    TabibuFilterChip(
+                      label: l10n.filterAll,
+                      selected: filter == null,
+                      onTap: () => setState(() => _filter = null),
+                    ),
+                    for (final value in _filters) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      TabibuFilterChip(
+                        label: value,
+                        selected: filter == value,
+                        onTap: () => setState(() => _filter = value),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              if (visible == null && _error == null)
+                Center(
+                  child: SpinKitCircle(
+                    color: Theme.of(context).colorScheme.primary,
+                    size: 30,
+                  ),
+                )
+              else if (visible == null)
+                const SizedBox.shrink()
+              else if (visible.isEmpty)
+                _EmptyResults()
+              else
+                ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: visible.length,
+                  itemBuilder: (context, index) {
+                    final facility = visible[index];
+                    final card = OptionCard(
+                      icon: isPathologist
+                          ? Assets.icons.testTubeIcon
+                          : Assets.icons.facilityIcon,
+                      tone: isPathologist ? .lavender : .mint,
+                      title: facility.name,
+                      supporting:
+                          '${facility.kephLevel} · ${facility.ward}, '
+                          '${facility.subCounty} · MFL ${facility.mflCode}',
+                      selected: _facilityId == facility.facilityId,
+                      onTap: facility.isOperational
+                          ? () => setState(() {
+                              _facilityId = facility.facilityId;
+                              _error = null;
+                            })
+                          : null,
+                    );
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                      child: facility.isOperational
+                          ? card
+                          : Opacity(opacity: 0.5, child: card),
+                    );
+                  },
+                ),
               const SizedBox(height: AppSpacing.sm),
               NoticeCard(
                 variant: NoticeVariant.info,
                 icon: Assets.icons.infoIcon,
-                body: l10n.multiLabNotice,
+                body: l10n.facilityPilotNotice,
+              ),
+              if (isPathologist) ...[
+                const SizedBox(height: AppSpacing.sm),
+                NoticeCard(
+                  variant: NoticeVariant.info,
+                  icon: Assets.icons.infoIcon,
+                  body: l10n.multiLabNotice,
+                ),
+              ],
+              const SizedBox(height: AppSpacing.lg),
+              Text(l10n.profileSectionTitle, style: textTheme.titleLarge),
+              const SizedBox(height: AppSpacing.sm),
+              TabibuTextField(
+                label: l10n.bioLabel,
+                hint: l10n.bioHint,
+                controller: _bioController,
+                maxLines: 4,
+                maxLength: 300,
+                textInputAction: TextInputAction.done,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              SettingToggleCard(
+                icon: Assets.icons.calendarIcon,
+                tone: .mint,
+                title: isPathologist
+                    ? l10n.availabilityPathologistTitle
+                    : l10n.availabilityDoctorTitle,
+                supporting: isPathologist
+                    ? l10n.availabilityPathologistBody
+                    : l10n.availabilityDoctorBody,
+                value: _isAvailable,
+                onChanged: (value) => setState(() => _isAvailable = value),
               ),
             ],
-            const SizedBox(height: AppSpacing.lg),
-            Text(l10n.profileSectionTitle, style: textTheme.titleLarge),
-            const SizedBox(height: AppSpacing.sm),
-            TabibuTextField(
-              label: l10n.bioLabel,
-              hint: l10n.bioHint,
-              controller: _bioController,
-              maxLines: 4,
-              maxLength: 300,
-              textInputAction: TextInputAction.done,
-            ),
-            const SizedBox(height: AppSpacing.md),
-            SettingToggleCard(
-              icon: Assets.icons.calendarIcon,
-              tone: .mint,
-              title: isPathologist
-                  ? l10n.availabilityPathologistTitle
-                  : l10n.availabilityDoctorTitle,
-              supporting: isPathologist
-                  ? l10n.availabilityPathologistBody
-                  : l10n.availabilityDoctorBody,
-              value: _isAvailable,
-              onChanged: (value) => setState(() => _isAvailable = value),
-            ),
-          ],
+          ),
         ),
       ),
     );

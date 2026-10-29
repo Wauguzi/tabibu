@@ -61,6 +61,27 @@ void main() {
       child: const PractitionerDetailsScreen(),
     );
 
+    Future<void> pumpUnderStub(WidgetTester tester, Widget step) async {
+      final router = GoRouter(
+        initialLocation: '/previous/step',
+        routes: [
+          GoRoute(
+            path: '/previous',
+            builder: (_, _) => const Text('Previous step'),
+            routes: [GoRoute(path: 'step', builder: (_, _) => step)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+    }
+
+    SignUpDraft committedDraft(MockSignUpBloc bloc) {
+      final captured = verify(() => bloc.add(captureAny())).captured;
+      return (captured.last as SignUpDraftUpdated).draft;
+    }
+
     Future<void> fillAll(WidgetTester tester) async {
       await tester.tap(find.text('Choose your title'));
       await tester.pumpAndSettle();
@@ -285,6 +306,42 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('verify stub'), findsOneWidget);
+    });
+
+    testWidgets('back keeps what was entered in the draft', (tester) async {
+      await pumpUnderStub(tester, screen());
+      await tester.enterText(find.byType(TextField).at(0), 'Wanjiru');
+      await tester.enterText(find.byType(TextField).at(1), 'Kamau');
+      await tester.enterText(
+        find.byType(TextField).at(2),
+        'w.kamau@akuh.example',
+      );
+      await tester.enterText(find.byType(TextField).at(3), '0722118450');
+      await tester.enterText(find.byType(TextField).at(4), 'Strong1!');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Previous step'), findsOneWidget);
+      final draft = committedDraft(signUpBloc);
+      expect(draft.firstName, 'Wanjiru');
+      expect(draft.lastName, 'Kamau');
+      expect(draft.email, 'w.kamau@akuh.example');
+      expect(draft.phoneNumber, '+254722118450');
+    });
+
+    testWidgets('a fresh E1 shows the email from the draft', (tester) async {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(
+          draft: SignUpDraft(role: Role.doctor, email: 'w.kamau@akuh.example'),
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('w.kamau@akuh.example'), findsOneWidget);
     });
   });
 }
