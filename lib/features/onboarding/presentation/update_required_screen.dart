@@ -68,24 +68,24 @@ class UpdateRequiredScreen extends StatelessWidget {
                   constraints: BoxConstraints(minHeight: constraints.maxHeight),
                   child: IntrinsicHeight(
                     child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
+                      mainAxisAlignment: .center,
                       children: [
                         IconTile(
                           icon: Assets.icons.shieldIcon,
-                          tone: IconTone.sky,
-                          size: IconTileSize.l,
+                          tone: .sky,
+                          size: .l,
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         Text(
                           title,
                           style: textTheme.displaySmall,
-                          textAlign: TextAlign.center,
+                          textAlign: .center,
                         ),
                         const SizedBox(height: AppSpacing.xs),
                         Text(
                           message,
                           style: textTheme.bodyLarge,
-                          textAlign: TextAlign.center,
+                          textAlign: .center,
                         ),
                         const SizedBox(height: AppSpacing.lg),
                         if (storeUrl != null)

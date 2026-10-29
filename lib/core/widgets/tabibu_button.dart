@@ -97,26 +97,23 @@ class _TabibuButtonState extends State<TabibuButton> {
     final enabled = widget._enabled;
 
     final background = switch (variant) {
-      _ButtonVariant.primary =>
-        enabled ? status.ink : scheme.surfaceContainerHigh,
-      _ButtonVariant.secondary => scheme.surfaceContainerHigh,
-      _ButtonVariant.outline => scheme.surfaceContainerLowest,
-      _ButtonVariant.ghost => Colors.transparent,
+      .primary => enabled ? status.ink : scheme.surfaceContainerHigh,
+      .secondary => scheme.surfaceContainerHigh,
+      .outline => scheme.surfaceContainerLowest,
+      .ghost => Colors.transparent,
     };
     final foreground =
         foregroundColor ??
         switch (variant) {
-          _ButtonVariant.primary =>
+          .primary =>
             enabled
-                ? (scheme.brightness == Brightness.dark
+                ? (scheme.brightness == .dark
                       ? AppColors.inkLight
                       : Colors.white)
                 : scheme.onSurfaceVariant,
-          _ButtonVariant.secondary =>
-            enabled ? scheme.onSurface : scheme.onSurfaceVariant,
-          _ButtonVariant.outline =>
-            enabled ? scheme.onSurface : scheme.onSurfaceVariant,
-          _ButtonVariant.ghost => scheme.onSurface,
+          .secondary => enabled ? scheme.onSurface : scheme.onSurfaceVariant,
+          .outline => enabled ? scheme.onSurface : scheme.onSurfaceVariant,
+          .ghost => scheme.onSurface,
         };
 
     final onTap = enabled ? widget.onTap : null;
@@ -170,7 +167,7 @@ class _TabibuButtonState extends State<TabibuButton> {
                               child: SpinKitCircle(color: foreground, size: 24),
                             )
                           : Row(
-                              mainAxisSize: MainAxisSize.min,
+                              mainAxisSize: .min,
                               children: [
                                 if (icon != null) ...[
                                   IconTheme(
@@ -188,7 +185,7 @@ class _TabibuButtonState extends State<TabibuButton> {
                                     style: textTheme.labelLarge?.copyWith(
                                       color: foreground,
                                     ),
-                                    textAlign: TextAlign.center,
+                                    textAlign: .center,
                                   ),
                                 ),
                               ],

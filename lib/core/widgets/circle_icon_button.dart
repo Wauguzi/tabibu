@@ -31,7 +31,7 @@ class CircleIconButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final status = Theme.of(context).extension<AppStatusColors>()!;
-    final isDark = scheme.brightness == Brightness.dark;
+    final isDark = scheme.brightness == .dark;
     final background = filled
         ? status.ink
         : onCard

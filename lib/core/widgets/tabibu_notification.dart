@@ -61,7 +61,7 @@ class _NotificationBodyState extends State<_NotificationBody> {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == .dark;
     return SafeArea(
       child: Align(
         alignment: Alignment.topCenter,
@@ -90,7 +90,7 @@ class _NotificationBodyState extends State<_NotificationBody> {
                   child: Text(
                     widget.message,
                     style: textTheme.titleSmall?.copyWith(color: Colors.white),
-                    textAlign: TextAlign.center,
+                    textAlign: .center,
                   ),
                 ),
               ),

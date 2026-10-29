@@ -37,16 +37,16 @@ part 'app_routes.g.dart';
 /// The route for each [Landing], shared by the decision route and every
 /// screen that finishes a sign-in or sign-up step.
 GoRouteData routeForLanding(Landing landing) => switch (landing) {
-  Landing.update => const UpdateRoute(),
-  Landing.onboarding => const LanguageRoute(),
-  Landing.signIn => const SignInRoute(),
-  Landing.verifyEmail => const VerifyEmailRoute(),
-  Landing.finishSignUp => const SignUpRoleRoute(),
-  Landing.clinicRecord => const ClinicRecordRoute(),
-  Landing.pending => const PendingVerificationRoute(),
-  Landing.patientHome => const PatientHomeRoute(),
-  Landing.doctorHome => const DoctorHomeRoute(),
-  Landing.pathologistHome => const PathologistHomeRoute(),
+  .update => const UpdateRoute(),
+  .onboarding => const LanguageRoute(),
+  .signIn => const SignInRoute(),
+  .verifyEmail => const VerifyEmailRoute(),
+  .finishSignUp => const SignUpRoleRoute(),
+  .clinicRecord => const ClinicRecordRoute(),
+  .pending => const PendingVerificationRoute(),
+  .patientHome => const PatientHomeRoute(),
+  .doctorHome => const DoctorHomeRoute(),
+  .pathologistHome => const PathologistHomeRoute(),
 };
 
 /// Sends a person who has just signed in or signed up where [session]

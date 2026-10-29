@@ -55,7 +55,7 @@ class _SearchFieldState extends State<SearchField> {
       controller: _controller,
       focusNode: _focus,
       cursorColor: scheme.primary,
-      textInputAction: TextInputAction.search,
+      textInputAction: .search,
       onChanged: (value) {
         setState(() {});
         widget.onChanged?.call(value);

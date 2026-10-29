@@ -214,7 +214,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         session = await _auth.addPatientPicture(session, picture);
       }
       _afterSignIn(session);
-      unawaited(_analytics.logCompleteSignUp(Role.patient));
+      unawaited(_analytics.logCompleteSignUp(.patient));
       if (session is PatientSession) {
         unawaited(_notices.notifyPatientRegistered());
       }

@@ -40,18 +40,18 @@ class DocumentTile extends StatelessWidget {
       ),
       child: Row(
         children: [
-          IconTile(icon: Assets.icons.documentIcon, tone: IconTone.mint),
+          IconTile(icon: Assets.icons.documentIcon, tone: .mint),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: .start,
+              mainAxisSize: .min,
               children: [
                 Text(
                   fileName,
                   style: textTheme.titleSmall,
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: .ellipsis,
                 ),
                 Text(meta, style: textTheme.bodySmall),
               ],

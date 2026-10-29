@@ -163,8 +163,8 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
     );
 
     final column = Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: .start,
+      mainAxisSize: .min,
       children: [
         Text.rich(
           TextSpan(
@@ -206,9 +206,7 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
     return Padding(
       padding: const EdgeInsets.only(right: AppSpacing.xs),
       child: Column(
-        mainAxisAlignment: trailing == null
-            ? MainAxisAlignment.end
-            : MainAxisAlignment.spaceBetween,
+        mainAxisAlignment: trailing == null ? .end : .spaceBetween,
         children: [
           if (trailing != null) _tinted(trailing, iconColor),
           ExcludeSemantics(

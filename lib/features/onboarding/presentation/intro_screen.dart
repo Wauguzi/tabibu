@@ -52,7 +52,7 @@ class _IntroScreenState extends State<IntroScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == .dark;
     final isLast = _index == 2;
     final wash = switch (_index) {
       0 => isDark ? AppGradients.skyWashDark : AppGradients.skyWash,
@@ -63,8 +63,8 @@ class _IntroScreenState extends State<IntroScreen> {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? .dark : .light,
+        statusBarIconBrightness: isDark ? .light : .dark,
       ),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),

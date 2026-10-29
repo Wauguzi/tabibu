@@ -13,7 +13,7 @@ class PatternCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == .dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(AppRadii.hero),
       child: Stack(

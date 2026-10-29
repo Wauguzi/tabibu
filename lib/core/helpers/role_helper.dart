@@ -36,9 +36,9 @@ class RoleHelper extends Equatable {
   final bool isAlertApprover;
 
   bool get hasRole => role != null;
-  bool get isPatient => role == Role.patient;
-  bool get isDoctor => role == Role.doctor;
-  bool get isPathologist => role == Role.pathologist;
+  bool get isPatient => role == .patient;
+  bool get isDoctor => role == .doctor;
+  bool get isPathologist => role == .pathologist;
   bool get isPractitioner => isDoctor || isPathologist;
 
   bool get canAddPatients => isDoctor;

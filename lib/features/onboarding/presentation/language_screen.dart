@@ -22,7 +22,7 @@ class LanguageScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == .dark;
     final current = AppLanguage.fromValue(
       Localizations.localeOf(context).languageCode,
     );
@@ -30,8 +30,8 @@ class LanguageScreen extends StatelessWidget {
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? .dark : .light,
+        statusBarIconBrightness: isDark ? .light : .dark,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -80,11 +80,9 @@ class LanguageScreen extends StatelessWidget {
                               tone: .sky,
                               title: l10n.languageEn,
                               supporting: l10n.languageEnglishSupporting,
-                              selected: current == AppLanguage.en,
+                              selected: current == .en,
                               onTap: () => context.read<AuthBloc>().add(
-                                const LanguageChangeRequested(
-                                  language: AppLanguage.en,
-                                ),
+                                const LanguageChangeRequested(language: .en),
                               ),
                             ),
                             const SizedBox(height: AppSpacing.sm),
@@ -92,11 +90,9 @@ class LanguageScreen extends StatelessWidget {
                               icon: Assets.icons.languageIcon,
                               title: l10n.languageSw,
                               supporting: l10n.languageSwahiliSupporting,
-                              selected: current == AppLanguage.sw,
+                              selected: current == .sw,
                               onTap: () => context.read<AuthBloc>().add(
-                                const LanguageChangeRequested(
-                                  language: AppLanguage.sw,
-                                ),
+                                const LanguageChangeRequested(language: .sw),
                               ),
                             ),
                             const Spacer(),

@@ -17,7 +17,7 @@ class OptionCard extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.icon,
-    this.tone = IconTone.mint,
+    this.tone = .mint,
     this.supporting,
     this.markLeading = false,
     this.trailing,
@@ -41,7 +41,7 @@ class OptionCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isDark = scheme.brightness == Brightness.dark;
+    final isDark = scheme.brightness == .dark;
     final selectedFill = isDark ? AppColors.mintDark : AppColors.mintLight;
 
     final supporting = this.supporting;
@@ -93,8 +93,8 @@ class OptionCard extends StatelessWidget {
                       ],
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: .start,
+                          mainAxisSize: .min,
                           children: [
                             Text(title, style: textTheme.titleMedium),
                             if (supporting != null)

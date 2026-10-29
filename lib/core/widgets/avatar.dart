@@ -49,13 +49,13 @@ class Avatar extends StatelessWidget {
       child: image == null
           ? initials
           : Stack(
-              fit: StackFit.expand,
+              fit: .expand,
               alignment: Alignment.center,
               children: [
                 Center(child: initials),
                 Image(
                   image: image,
-                  fit: BoxFit.cover,
+                  fit: .cover,
                   errorBuilder: (_, _, _) => const SizedBox.shrink(),
                 ),
               ],

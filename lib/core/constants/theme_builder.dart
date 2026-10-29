@@ -7,7 +7,7 @@ import 'package:tabibu/gen/fonts.gen.dart';
 /// Material 3 theme for [brightness], seeded from that theme's primary and
 /// then overridden role by role from the sheet.
 ThemeData buildTheme(Brightness brightness) {
-  final isDark = brightness == Brightness.dark;
+  final isDark = brightness == .dark;
 
   final colorScheme =
       ColorScheme.fromSeed(
@@ -217,7 +217,7 @@ TextTheme _textTheme(ColorScheme scheme) {
 }
 
 SwitchThemeData _switchTheme(ColorScheme scheme) {
-  final selectedThumb = scheme.brightness == Brightness.dark
+  final selectedThumb = scheme.brightness == .dark
       ? AppColors.inkLight
       : Colors.white;
   return SwitchThemeData(

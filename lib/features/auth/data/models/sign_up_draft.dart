@@ -40,10 +40,10 @@ abstract class SignUpDraft with _$SignUpDraft {
 
   const SignUpDraft._();
 
-  bool get isPractitioner => role == Role.doctor || role == Role.pathologist;
+  bool get isPractitioner => role == .doctor || role == .pathologist;
 
   PatientSignUpRequest toPatientRequest() {
-    if (role != Role.patient) throw AppError.invalidRole;
+    if (role != .patient) throw AppError.invalidRole;
     _requireNames();
     final sex = this.sex;
     if (sex == null) throw AppError.invalidSex;
@@ -71,7 +71,7 @@ abstract class SignUpDraft with _$SignUpDraft {
     if (title == null) throw AppError.invalidTitle;
     _requireNames();
     _requirePhone();
-    final allowed = Specialty.forRole(isPathologist: role == Role.pathologist);
+    final allowed = Specialty.forRole(isPathologist: role == .pathologist);
     if (specialties.isEmpty ||
         specialties.length > Specialty.maxSelected ||
         !specialties.every(allowed.contains)) {
@@ -94,7 +94,7 @@ abstract class SignUpDraft with _$SignUpDraft {
       firstName: firstName.trim(),
       lastName: lastName.trim(),
       phoneNumber: phoneNumber.trim(),
-      isPathologist: role == Role.pathologist,
+      isPathologist: role == .pathologist,
       specialties: specialties,
       bio: bio.trim(),
       kmpdcNumber: kmpdcNumber.trim().toUpperCase(),

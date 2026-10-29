@@ -73,7 +73,7 @@ class PickerField extends StatelessWidget {
                     color: value == null ? scheme.onSurfaceVariant : null,
                   ),
                   maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                  overflow: .ellipsis,
                 ),
           ),
           AssetIcon(
@@ -87,8 +87,8 @@ class PickerField extends StatelessWidget {
     );
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: .start,
+      mainAxisSize: .min,
       children: [
         Text.rich(
           TextSpan(

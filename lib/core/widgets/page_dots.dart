@@ -14,7 +14,7 @@ class PageDots extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     return Row(
-      mainAxisSize: MainAxisSize.min,
+      mainAxisSize: .min,
       children: [
         for (var i = 0; i < count; i++) ...[
           AnimatedContainer(

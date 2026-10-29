@@ -24,7 +24,7 @@ class RoleScreen extends StatefulWidget {
 }
 
 class _RoleScreenState extends State<RoleScreen> {
-  Role _role = Role.patient;
+  Role _role = .patient;
 
   void _continue() {
     // Backed into from a step with the role unchanged: pushing on without a
@@ -38,9 +38,9 @@ class _RoleScreenState extends State<RoleScreen> {
       );
     }
     switch (_role) {
-      case Role.patient:
+      case .patient:
         unawaited(const PatientNameRoute().push<void>(context));
-      case Role.doctor || Role.pathologist:
+      case .doctor || .pathologist:
         unawaited(const PractitionerDetailsRoute().push<void>(context));
     }
   }
@@ -49,13 +49,13 @@ class _RoleScreenState extends State<RoleScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == .dark;
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
         statusBarColor: Colors.transparent,
-        statusBarBrightness: isDark ? Brightness.dark : Brightness.light,
-        statusBarIconBrightness: isDark ? Brightness.light : Brightness.dark,
+        statusBarBrightness: isDark ? .dark : .light,
+        statusBarIconBrightness: isDark ? .light : .dark,
       ),
       child: DecoratedBox(
         decoration: BoxDecoration(
@@ -93,16 +93,16 @@ class _RoleScreenState extends State<RoleScreen> {
                             tone: .sky,
                             title: l10n.roleCardPatientTitle,
                             supporting: l10n.roleCardPatientBody,
-                            selected: _role == Role.patient,
-                            onTap: () => setState(() => _role = Role.patient),
+                            selected: _role == .patient,
+                            onTap: () => setState(() => _role = .patient),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           OptionCard(
                             icon: Assets.icons.stethoscopeIcon,
                             title: l10n.roleCardDoctorTitle,
                             supporting: l10n.roleCardDoctorBody,
-                            selected: _role == Role.doctor,
-                            onTap: () => setState(() => _role = Role.doctor),
+                            selected: _role == .doctor,
+                            onTap: () => setState(() => _role = .doctor),
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           OptionCard(
@@ -110,13 +110,12 @@ class _RoleScreenState extends State<RoleScreen> {
                             tone: .lavender,
                             title: l10n.roleCardPathologistTitle,
                             supporting: l10n.roleCardPathologistBody,
-                            selected: _role == Role.pathologist,
-                            onTap: () =>
-                                setState(() => _role = Role.pathologist),
+                            selected: _role == .pathologist,
+                            onTap: () => setState(() => _role = .pathologist),
                           ),
                           const SizedBox(height: AppSpacing.md),
                           NoticeCard(
-                            variant: NoticeVariant.info,
+                            variant: .info,
                             icon: Assets.icons.shieldIcon,
                             body: l10n.roleVerifyNotice,
                           ),

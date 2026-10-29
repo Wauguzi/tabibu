@@ -59,8 +59,8 @@ class SettingToggleCard extends StatelessWidget {
                       const SizedBox(width: AppSpacing.sm),
                       Expanded(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: .start,
+                          mainAxisSize: .min,
                           children: [
                             Text(title, style: textTheme.titleMedium),
                             if (supporting != null)

@@ -23,9 +23,7 @@ class NoticeCard extends StatelessWidget {
     this.action,
     super.key,
   }) : assert(
-         icon == null ||
-             (variant != NoticeVariant.aiDraft &&
-                 variant != NoticeVariant.signed),
+         icon == null || (variant != .aiDraft && variant != .signed),
          'Draft and signed notices carry their own icons.',
        );
 
@@ -42,32 +40,24 @@ class NoticeCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final (background, foreground) = switch (variant) {
-      NoticeVariant.info => (status.infoContainer, status.infoText),
-      NoticeVariant.attention => (
-        status.attentionContainer,
-        status.attentionText,
-      ),
-      NoticeVariant.neutral => (status.neutralContainer, status.neutralText),
-      NoticeVariant.aiDraft => (status.aiDraftContainer, status.aiDraft),
-      NoticeVariant.signed => (status.signedContainer, status.signed),
-      NoticeVariant.private => (
-        status.lowConfidenceContainer,
-        status.lowConfidenceText,
-      ),
-      NoticeVariant.error => (status.errorContainer, scheme.error),
+      .info => (status.infoContainer, status.infoText),
+      .attention => (status.attentionContainer, status.attentionText),
+      .neutral => (status.neutralContainer, status.neutralText),
+      .aiDraft => (status.aiDraftContainer, status.aiDraft),
+      .signed => (status.signedContainer, status.signed),
+      .private => (status.lowConfidenceContainer, status.lowConfidenceText),
+      .error => (status.errorContainer, scheme.error),
     };
 
     final icon = this.icon;
     assert(
-      icon != null ||
-          variant == NoticeVariant.aiDraft ||
-          variant == NoticeVariant.signed,
+      icon != null || variant == .aiDraft || variant == .signed,
       'Every other notice names its icon.',
     );
     // Never throw in build: a missing icon in release falls back to info.
     final effectiveIcon = switch (variant) {
-      NoticeVariant.aiDraft => Assets.icons.inProgressIcon,
-      NoticeVariant.signed => Assets.icons.verificationBadge,
+      .aiDraft => Assets.icons.inProgressIcon,
+      .signed => Assets.icons.verificationBadge,
       _ => icon ?? Assets.icons.infoIcon,
     };
 
@@ -80,14 +70,14 @@ class NoticeCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.notice),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           AssetIcon(effectiveIcon, size: 22, color: foreground),
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: .start,
+              mainAxisSize: .min,
               children: [
                 if (title != null)
                   Text(
@@ -109,7 +99,7 @@ class NoticeCard extends StatelessWidget {
       ),
     );
 
-    if (variant != NoticeVariant.aiDraft) return card;
+    if (variant != .aiDraft) return card;
     return DashedBorder(
       color: status.draftBorder,
       radius: AppRadii.notice,

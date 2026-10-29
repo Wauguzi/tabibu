@@ -39,7 +39,7 @@ class SummaryCard extends StatelessWidget {
         boxShadow: AppShadows.card(),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: .min,
         children: [
           Row(
             children: [
@@ -50,7 +50,7 @@ class SummaryCard extends StatelessWidget {
                 child: ConstrainedBox(
                   constraints: const BoxConstraints(minHeight: 48),
                   child: Row(
-                    mainAxisSize: MainAxisSize.min,
+                    mainAxisSize: .min,
                     children: [
                       AssetIcon(
                         Assets.icons.editIcon,
@@ -75,7 +75,7 @@ class SummaryCard extends StatelessWidget {
             Padding(
               padding: const EdgeInsets.only(bottom: AppSpacing.xs),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: .start,
                 children: [
                   SizedBox(
                     width: 120,

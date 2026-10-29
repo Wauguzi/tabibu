@@ -61,7 +61,7 @@ class StepScaffold extends StatelessWidget {
               Expanded(
                 child: SingleChildScrollView(
                   child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: .start,
                     children: [
                       Text(title, style: textTheme.headlineMedium),
                       if (subtitle != null) ...[
@@ -71,7 +71,7 @@ class StepScaffold extends StatelessWidget {
                       if (error != null) ...[
                         const SizedBox(height: AppSpacing.md),
                         NoticeCard(
-                          variant: NoticeVariant.error,
+                          variant: .error,
                           icon: Assets.icons.cancelIcon,
                           body: error.description(l10n),
                         ),
@@ -91,9 +91,9 @@ class StepScaffold extends StatelessWidget {
     );
 
     return switch (role) {
-      Role.patient => RoleBackground.patient(child: scaffold),
-      Role.doctor => RoleBackground.doctor(child: scaffold),
-      Role.pathologist => RoleBackground.pathologist(child: scaffold),
+      .patient => RoleBackground.patient(child: scaffold),
+      .doctor => RoleBackground.doctor(child: scaffold),
+      .pathologist => RoleBackground.pathologist(child: scaffold),
       null => scaffold,
     };
   }

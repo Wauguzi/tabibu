@@ -54,8 +54,8 @@ class App extends StatefulWidget {
 }
 
 class _AppState extends State<App> with WidgetsBindingObserver {
-  static final ThemeData _light = buildTheme(Brightness.light);
-  static final ThemeData _dark = buildTheme(Brightness.dark);
+  static final ThemeData _light = buildTheme(.light);
+  static final ThemeData _dark = buildTheme(.dark);
 
   late final GoRouter _router = TabibuRouter.create(context.read<AuthBloc>());
 
@@ -83,8 +83,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
 
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == AppLifecycleState.paused) _hasBeenBackgrounded = true;
-    if (state == AppLifecycleState.resumed && _hasBeenBackgrounded) {
+    if (state == .paused) _hasBeenBackgrounded = true;
+    if (state == .resumed && _hasBeenBackgrounded) {
       unawaited(_onResume());
     }
   }
@@ -131,9 +131,9 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           theme: _light,
           darkTheme: _dark,
           themeMode: switch (theme.preference) {
-            ThemePreference.light => ThemeMode.light,
-            ThemePreference.dark => ThemeMode.dark,
-            ThemePreference.system => ThemeMode.system,
+            .light => .light,
+            .dark => .dark,
+            .system => .system,
           },
           locale: _locale,
           localizationsDelegates: tabibuLocalizationsDelegates,

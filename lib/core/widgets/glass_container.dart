@@ -21,7 +21,7 @@ class GlassContainer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final status = Theme.of(context).extension<AppStatusColors>()!;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == .dark;
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
       child: BackdropFilter(

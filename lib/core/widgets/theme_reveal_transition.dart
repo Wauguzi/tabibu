@@ -103,7 +103,7 @@ class _ThemeRevealTransitionState extends State<ThemeRevealTransition>
     final boundary = _boundaryKey.currentContext?.findRenderObject();
     if (boundary is! RenderRepaintBoundary || !boundary.attached) return;
 
-    _center = widget.brightness == Brightness.dark
+    _center = widget.brightness == .dark
         ? Alignment.topLeft
         : Alignment.bottomRight;
 
@@ -141,7 +141,7 @@ class _ThemeRevealTransitionState extends State<ThemeRevealTransition>
     return Stack(
       children: [
         Positioned.fill(
-          child: RawImage(image: snapshot, fit: BoxFit.cover),
+          child: RawImage(image: snapshot, fit: .cover),
         ),
         AnimatedBuilder(
           animation: _reveal,

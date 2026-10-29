@@ -23,7 +23,7 @@ class TabibuFilterChip extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final textTheme = Theme.of(context).textTheme;
-    final isDark = scheme.brightness == Brightness.dark;
+    final isDark = scheme.brightness == .dark;
 
     final onTap = this.onTap;
     return MergeSemantics(

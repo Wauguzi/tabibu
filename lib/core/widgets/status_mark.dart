@@ -82,7 +82,7 @@ class StatusMark extends StatelessWidget {
       child: Container(
         width: diameter,
         height: diameter,
-        decoration: BoxDecoration(color: background, shape: BoxShape.circle),
+        decoration: BoxDecoration(color: background, shape: .circle),
         alignment: Alignment.center,
         child: AssetIcon(glyph, size: 16, color: foreground),
       ),

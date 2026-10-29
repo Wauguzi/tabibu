@@ -42,41 +42,29 @@ class IconTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final status = Theme.of(context).extension<AppStatusColors>()!;
-    final isDark = scheme.brightness == Brightness.dark;
+    final isDark = scheme.brightness == .dark;
 
     final (box, radius, glyph) = switch (size) {
-      IconTileSize.s => (36.0, 12.0, 18.0),
-      IconTileSize.m => (44.0, 14.0, 22.0),
-      IconTileSize.l => (56.0, 18.0, 28.0),
+      .s => (36.0, 12.0, 18.0),
+      .m => (44.0, 14.0, 22.0),
+      .l => (56.0, 18.0, 28.0),
     };
     final (background, foreground) = switch ((tone, isDark)) {
-      (IconTone.sky, false) => (AppColors.skyLight, status.infoDot),
-      (IconTone.sky, true) => (AppColors.skyDark, status.infoDot),
-      (IconTone.mint, false) => (AppColors.mintLight, status.signedDot),
-      (IconTone.mint, true) => (AppColors.mintDark, status.signedDot),
-      (IconTone.lavender, false) => (
-        AppColors.lavenderLight,
-        status.aiDraftDot,
-      ),
-      (IconTone.lavender, true) => (AppColors.lavenderDark, status.aiDraftDot),
-      (IconTone.butter, false) => (AppColors.butterLight, status.attentionDot),
-      (IconTone.butter, true) => (AppColors.butterDark, status.warning),
-      (IconTone.peach, false) => (AppColors.peachLight, status.attentionText),
-      (IconTone.peach, true) => (AppColors.peachDark, status.attentionText),
-      (IconTone.white, false) => (
-        scheme.surfaceContainerLowest,
-        status.primaryText,
-      ),
-      (IconTone.white, true) => (
-        scheme.surfaceContainerHigh,
-        status.primaryText,
-      ),
-      (IconTone.glass, _) => (
-        Colors.white.withValues(alpha: 0.16),
-        Colors.white,
-      ),
-      (IconTone.neutral, _) => (scheme.surfaceContainerLow, scheme.onSurface),
-      (IconTone.danger, _) => (status.errorContainer, scheme.error),
+      (.sky, false) => (AppColors.skyLight, status.infoDot),
+      (.sky, true) => (AppColors.skyDark, status.infoDot),
+      (.mint, false) => (AppColors.mintLight, status.signedDot),
+      (.mint, true) => (AppColors.mintDark, status.signedDot),
+      (.lavender, false) => (AppColors.lavenderLight, status.aiDraftDot),
+      (.lavender, true) => (AppColors.lavenderDark, status.aiDraftDot),
+      (.butter, false) => (AppColors.butterLight, status.attentionDot),
+      (.butter, true) => (AppColors.butterDark, status.warning),
+      (.peach, false) => (AppColors.peachLight, status.attentionText),
+      (.peach, true) => (AppColors.peachDark, status.attentionText),
+      (.white, false) => (scheme.surfaceContainerLowest, status.primaryText),
+      (.white, true) => (scheme.surfaceContainerHigh, status.primaryText),
+      (.glass, _) => (Colors.white.withValues(alpha: 0.16), Colors.white),
+      (.neutral, _) => (scheme.surfaceContainerLow, scheme.onSurface),
+      (.danger, _) => (status.errorContainer, scheme.error),
     };
 
     return Container(

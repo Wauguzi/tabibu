@@ -5,7 +5,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
-import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/utils/email_address.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -63,9 +62,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
     // Replaced, not pushed: back from the next step returns to the step
     // that created the account, never to this screen.
     switch (context.read<SignUpBloc>().state.draft.role) {
-      case Role.patient:
+      case .patient:
         const PatientPhoneRoute().pushReplacement(context);
-      case Role.doctor || Role.pathologist:
+      case .doctor || .pathologist:
         const PractitionerLicenceRoute().pushReplacement(context);
       case null:
         goToSession(context, session);

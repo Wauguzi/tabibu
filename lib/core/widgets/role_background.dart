@@ -18,7 +18,7 @@ class RoleBackground extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = scheme.brightness == Brightness.dark;
+    final isDark = scheme.brightness == .dark;
     final wash = switch (_role) {
       _RoleWash.patient =>
         isDark ? AppGradients.skyToLavenderDark : AppGradients.skyToLavender,

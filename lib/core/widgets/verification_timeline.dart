@@ -64,7 +64,7 @@ class VerificationTimeline extends StatelessWidget {
         boxShadow: AppShadows.card(),
       ),
       child: Column(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: .min,
         children: [
           Row(
             children: [
@@ -125,14 +125,14 @@ class _StepRow extends StatelessWidget {
       ),
     };
     final tone = switch (step.state) {
-      VerificationStepState.done => StatusTone.signed,
-      VerificationStepState.inProgress => StatusTone.attention,
-      VerificationStepState.upNext => StatusTone.neutral,
+      .done => StatusTone.signed,
+      .inProgress => StatusTone.attention,
+      .upNext => StatusTone.neutral,
     };
 
     return IntrinsicHeight(
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           Column(
             children: [
@@ -146,11 +146,11 @@ class _StepRow extends StatelessWidget {
             child: Padding(
               padding: EdgeInsets.only(bottom: isLast ? 0 : AppSpacing.md),
               child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: .start,
+                mainAxisSize: .min,
                 children: [
                   Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
+                    crossAxisAlignment: .start,
                     children: [
                       Expanded(
                         child: Text(step.title, style: textTheme.titleSmall),

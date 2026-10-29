@@ -55,7 +55,7 @@ class _DashedBorderPainter extends CustomPainter {
       );
     final paint = Paint()
       ..color = color
-      ..style = PaintingStyle.stroke
+      ..style = .stroke
       ..strokeWidth = strokeWidth;
     const dashWidth = 6.0;
     const gapWidth = 4.0;

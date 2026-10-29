@@ -25,7 +25,7 @@ Future<DocumentSource?> showDocumentSheet(
       children: [
         OptionCard(
           icon: Assets.icons.photoIcon,
-          tone: IconTone.sky,
+          tone: .sky,
           title: l10n.photoTake,
           supporting: l10n.documentTakePhotoBody,
           selected: false,
@@ -35,7 +35,7 @@ Future<DocumentSource?> showDocumentSheet(
         const SizedBox(height: AppSpacing.sm),
         OptionCard(
           icon: Assets.icons.uploadIcon,
-          tone: IconTone.lavender,
+          tone: .lavender,
           title: l10n.documentUploadFile,
           supporting: l10n.documentUploadFileBody,
           selected: false,

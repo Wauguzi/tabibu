@@ -57,7 +57,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
   }
 
   bool get _isPathologist =>
-      context.read<SignUpBloc>().state.draft.role == Role.pathologist;
+      context.read<SignUpBloc>().state.draft.role == .pathologist;
 
   Future<void> _pickSpecialties() async {
     final l10n = context.l10n;
@@ -148,7 +148,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final role = context.watch<SignUpBloc>().state.draft.role;
-    final isPathologist = role == Role.pathologist;
+    final isPathologist = role == .pathologist;
 
     return DraftPopScope(
       fill: _fill,
