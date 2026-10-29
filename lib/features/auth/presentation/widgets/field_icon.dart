@@ -11,5 +11,5 @@ class FieldIcon extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) =>
-      ExcludeSemantics(child: AssetIcon(icon, size: 22));
+      ExcludeSemantics(child: AssetIcon(icon, size: 22, scaleUp: false));
 }

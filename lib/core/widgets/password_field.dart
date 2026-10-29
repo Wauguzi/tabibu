@@ -50,7 +50,7 @@ class _PasswordFieldState extends State<PasswordField> {
       label: widget.label,
       hint: widget.hint,
       controller: widget.controller,
-      leading: AssetIcon(Assets.icons.passwordIcon, size: 22),
+      leading: AssetIcon(Assets.icons.passwordIcon, size: 22, scaleUp: false),
       trailing: Semantics(
         label: _obscured ? widget.showLabel : widget.hideLabel,
         button: true,

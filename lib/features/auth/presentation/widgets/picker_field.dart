@@ -56,7 +56,12 @@ class PickerField extends StatelessWidget {
       child: Row(
         children: [
           if (leading != null) ...[
-            AssetIcon(leading, size: 22, color: scheme.onSurfaceVariant),
+            AssetIcon(
+              leading,
+              size: 22,
+              color: scheme.onSurfaceVariant,
+              scaleUp: false,
+            ),
             const SizedBox(width: AppSpacing.sm),
           ],
           Expanded(
