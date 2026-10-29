@@ -86,7 +86,8 @@ closed.
 **In scope:** everything in §1.
 
 **Explicitly out of scope:**
-- The Play App Signing hash and the iOS Team ID (§16 item 10).
+- The Play App Signing hash (§16 item 10). The iOS Team ID, out of scope here,
+  was set on 2026-10-29 once the signing team existed.
 - A UI for severe threats on `threatStream`.
 - Calling `bindUser` from the session layer, with the auth bloc.
 

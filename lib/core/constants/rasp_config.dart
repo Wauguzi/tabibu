@@ -4,12 +4,10 @@
 /// team ids ship inside the app. freeRASP compares them with what the
 /// running binary presents, to detect a repackaged copy.
 ///
-/// Before the first store release:
-///  1. Add the **Play App Signing** certificate to [prodSigningCertHashes]
-///     (Play Console > App integrity > App signing key certificate). Play
-///     re-signs every upload, so a Play install presents Google's
-///     certificate, not ours; without it, every Play install terminates.
-///  2. Replace [iosTeamId] with the Apple Developer Team ID.
+/// Before the first Play release, add the **Play App Signing** certificate
+/// to [prodSigningCertHashes] (Play Console > App integrity > App signing
+/// key certificate). Play re-signs every upload, so a Play install presents
+/// Google's certificate, not ours; without it, every Play install terminates.
 ///
 /// A fingerprint converts with:
 /// `echo -n <hex-without-colons> | xxd -r -p | base64`
@@ -33,9 +31,10 @@ abstract final class RaspConfig {
 
   static const List<String> iosBundleIds = ['com.tabibukenya.tabibu'];
 
-  // TODO(theo): the Apple Developer Team ID, once the account exists; the
-  // same team App Check's App Attest provider is registered under.
-  static const String iosTeamId = 'XXXXXXXXXX';
+  /// The Apple Developer team the iOS app is signed with (the project's
+  /// DEVELOPMENT_TEAM), which App Check's App Attest provider uses too. A
+  /// release signed by any other team is treated as repackaged.
+  static const String iosTeamId = 'Z5GNM65VQN';
 
   /// Talsec's security reports and portal access (my.talsec.app).
   static const String watcherMail = 'lilmuyansi@gmail.com';
