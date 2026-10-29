@@ -75,6 +75,7 @@ class PickerField extends StatelessWidget {
             Assets.icons.dropDownIcon,
             size: 22,
             color: scheme.onSurfaceVariant,
+            scaleUp: false,
           ),
         ],
       ),

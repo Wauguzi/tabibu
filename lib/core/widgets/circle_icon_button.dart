@@ -58,7 +58,14 @@ class CircleIconButton extends StatelessWidget {
           child: InkWell(
             onTap: onTap,
             customBorder: const CircleBorder(),
-            child: Center(child: AssetIcon(icon, size: 24, color: foreground)),
+            child: Center(
+              child: AssetIcon(
+                icon,
+                size: 24,
+                color: foreground,
+                scaleUp: false,
+              ),
+            ),
           ),
         ),
       ),
