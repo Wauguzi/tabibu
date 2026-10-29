@@ -79,6 +79,13 @@ void main() {
       }
     });
 
+    test("sub-paths of another role's area go to the decision route", () {
+      expect(guard('/patient/results', _doctor), startsWith('/decision'));
+      expect(guard('/pathologist/signed', _doctor), startsWith('/decision'));
+      expect(guard('/doctor/mdt', _pathologist), startsWith('/decision'));
+      expect(guard('/patient/profile', _pending), startsWith('/decision'));
+    });
+
     test('a prefix that only looks like a role area is not one', () {
       expect(guard('/doctors-directory', _signedOut), isNull);
     });

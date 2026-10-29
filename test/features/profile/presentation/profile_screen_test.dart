@@ -241,10 +241,12 @@ void main() {
       );
     });
 
-    testWidgets('renders in dark mode at 2.0x text', (tester) async {
+    testWidgets('renders in Swahili in dark mode at 2.0x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      tester.platformDispatcher.localesTestValue = [const Locale('sw')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
       await tester.pumpRoleApp(
         RoleSessions.pathologist,
@@ -253,7 +255,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Me'), findsOneWidget);
+      expect(find.text('Mimi'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
   });

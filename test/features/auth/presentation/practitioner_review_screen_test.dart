@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
@@ -135,12 +136,16 @@ void main() {
       expect(find.text('Check and submit'), findsOneWidget);
     });
 
-    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+    testWidgets('lays out in Swahili at 2.0x with an error', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-      await tester.pumpApp(screen());
+      await tester.pumpApp(screen(), locale: const Locale('sw'));
       await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(TabibuButton));
+      await tester.pumpAndSettle();
+
       expect(tester.takeException(), isNull);
     });
 

@@ -50,24 +50,22 @@ void main() {
       expect(find.text('pekee'), findsOneWidget);
     });
 
-    testWidgets('each slide lays out at 2.0x text without overflow', (
-      tester,
-    ) async {
+    testWidgets('each slide lays out in Swahili at 2.0x', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-      await tester.pumpApp(screen());
+      await tester.pumpApp(screen(), locale: const Locale('sw'));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
 
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('Ifuatayo'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('One case.'), findsOneWidget);
+      expect(find.textContaining('Kesi moja.'), findsOneWidget);
       expect(tester.takeException(), isNull);
 
-      await tester.tap(find.text('Next'));
+      await tester.tap(find.text('Ifuatayo'));
       await tester.pumpAndSettle();
-      expect(find.textContaining('Checked by experts'), findsOneWidget);
+      expect(find.textContaining('Imekaguliwa na wataalamu.'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
 

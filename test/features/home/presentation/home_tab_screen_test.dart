@@ -37,9 +37,25 @@ void main() {
       );
     });
 
-    testWidgets('renders in dark mode at 2.0x text', (tester) async {
+    testWidgets('reads the date in Kiswahili', (tester) async {
+      tester.platformDispatcher.localesTestValue = [const Locale('sw')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor');
+      await tester.pumpAndSettle();
+
+      final today = DateFormat('EEE d MMM', 'sw').format(DateTime.now());
+      expect(
+        find.text('$today · Aga Khan University Hospital'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('renders in Swahili in dark mode at 2.0x text', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      tester.platformDispatcher.localesTestValue = [const Locale('sw')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
       await tester.pumpRoleApp(
         RoleSessions.pathologist,

@@ -40,12 +40,16 @@ void main() {
       expect(find.text('Reset your password'), findsOneWidget);
     });
 
-    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+    testWidgets('lays out in Swahili at 2.0x with an error', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-      await tester.pumpApp(screen());
+      await tester.pumpApp(screen(), locale: const Locale('sw'));
       await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(TabibuButton));
+      await tester.pumpAndSettle();
+
       expect(tester.takeException(), isNull);
     });
 

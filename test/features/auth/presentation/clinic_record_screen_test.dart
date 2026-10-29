@@ -41,12 +41,23 @@ void main() {
       expect(find.text('A clinic record already exists'), findsOneWidget);
     });
 
-    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+    testWidgets('lays out in Swahili at 2.0x with an error', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-      await tester.pumpApp(screen());
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const SignOutFailure(
+            session: ClinicRecordExistsSession(),
+            error: AppError.unknown,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen(), locale: const Locale('sw'));
       await tester.pumpAndSettle();
+
       expect(tester.takeException(), isNull);
     });
 

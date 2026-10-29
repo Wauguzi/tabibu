@@ -79,11 +79,14 @@ void main() {
       );
     });
 
-    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+    testWidgets('lays out in Swahili at 2.0x', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-      await tester.pumpApp(const UpdateRequiredScreen());
+      await tester.pumpApp(
+        const UpdateRequiredScreen(),
+        locale: const Locale('sw'),
+      );
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
     });

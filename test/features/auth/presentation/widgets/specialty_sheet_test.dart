@@ -106,5 +106,14 @@ void main() {
       expect(find.text('Tissue, including lymph nodes'), findsOneWidget);
       expect(find.text('Smears, FNA and Pap tests'), findsOneWidget);
     });
+
+    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await openSheet(tester, allowed: Specialty.values);
+
+      expect(tester.takeException(), isNull);
+    });
   });
 }

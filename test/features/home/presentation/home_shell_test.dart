@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 
 import '../../../helpers/helpers.dart';
 
@@ -44,6 +45,16 @@ void main() {
       expect(tabLabels(tester), ['Desk', 'Signed', 'MDT', 'Profile']);
     });
 
+    testWidgets('patients get Kiswahili tabs', (tester) async {
+      tester.platformDispatcher.localesTestValue = [const Locale('sw')];
+      addTearDown(tester.platformDispatcher.clearLocalesTestValue);
+
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient');
+      await tester.pumpAndSettle();
+
+      expect(tabLabels(tester), ['Nyumbani', 'Miadi', 'Majibu', 'Wasifu']);
+    });
+
     testWidgets('a tab opens its screen', (tester) async {
       await tester.pumpRoleApp(RoleSessions.patient, '/patient');
       await tester.pumpAndSettle();
@@ -75,6 +86,56 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Habari, Dr. Odhiambo'), findsOneWidget);
+    });
+
+    testWidgets('a tab keeps its state across a tab change', (tester) async {
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
+      await tester.pumpAndSettle();
+
+      final scrollable = find.byType(Scrollable).first;
+      await tester.fling(scrollable, const Offset(0, -400), 1000);
+      await tester.pumpAndSettle();
+      final offset = tester.state<ScrollableState>(scrollable).position.pixels;
+      expect(offset, greaterThan(0));
+
+      await tester.tap(find.bySemanticsLabel('Home'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.bySemanticsLabel('Profile'));
+      await tester.pumpAndSettle();
+
+      expect(tester.state<ScrollableState>(scrollable).position.pixels, offset);
+    });
+
+    testWidgets('tapping the open tab stays on its first screen', (
+      tester,
+    ) async {
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient/results');
+      await tester.pumpAndSettle();
+      expect(find.text('Your results'), findsOneWidget);
+
+      await tester.tap(find.bySemanticsLabel('Results'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Your results'), findsOneWidget);
+    });
+
+    testWidgets('Sign out is inert while signing out', (tester) async {
+      await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
+        states: [SignOutInProgress(session: RoleSessions.patient)],
+      );
+      await tester.pumpAndSettle();
+
+      await tester.dragUntilVisible(
+        find.text('Sign out'),
+        find.byType(Scrollable).first,
+        const Offset(0, -200),
+      );
+      await tester.tap(find.text('Sign out'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Sign out of Tabibu?'), findsNothing);
     });
   });
 }

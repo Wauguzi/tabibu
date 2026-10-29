@@ -63,12 +63,25 @@ void main() {
       expect(find.text("We're checking your details"), findsOneWidget);
     });
 
-    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+    testWidgets('lays out in Swahili at 2.0x with an error', (tester) async {
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 
-      await tester.pumpApp(screen());
+      final session = PendingVerificationSession(doctor: _doctor());
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          SignOutFailure(session: session, error: AppError.noInternet),
+        ]),
+        initialState: SignInSuccess(session: session),
+      );
+
+      await tester.pumpApp(screen(), locale: const Locale('sw'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+      await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
+
       expect(tester.takeException(), isNull);
     });
 
