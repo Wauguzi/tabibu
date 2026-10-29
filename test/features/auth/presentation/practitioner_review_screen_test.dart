@@ -1,0 +1,255 @@
+import 'dart:typed_data';
+
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_state.dart';
+import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
+import 'package:tabibu/features/auth/data/models/upload_file.dart';
+import 'package:tabibu/features/auth/presentation/practitioner_review_screen.dart';
+import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
+import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
+import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_state.dart';
+import 'package:tabibu/features/facilities/data/models/facility_model.dart';
+import 'package:tabibu/features/profile/data/models/doctor_model.dart';
+
+import '../../../helpers/helpers.dart';
+
+class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
+
+class MockSignUpBloc extends MockBloc<SignUpEvent, SignUpState>
+    implements SignUpBloc {}
+
+class MockFacilitiesBloc extends MockBloc<FacilitiesEvent, FacilitiesState>
+    implements FacilitiesBloc {}
+
+const _facility = FacilityModel(
+  facilityId: 'h1',
+  mflCode: '13013',
+  name: 'Aga Khan University Hospital',
+  kephLevel: 'Level 6',
+  facilityType: 'Hospital',
+  owner: 'Private',
+  wardId: 1,
+  ward: 'Parklands',
+  subCountyId: 2,
+  subCounty: 'Westlands',
+  countyId: 47,
+  county: 'Nairobi',
+  latitude: 0,
+  longitude: 0,
+  geohash: '',
+  isLocationApproximate: false,
+  isLab: false,
+  operationStatus: 'Operational',
+  isOperational: true,
+);
+
+final _draft = SignUpDraft(
+  role: Role.doctor,
+  title: PractitionerTitle.dr,
+  firstName: 'Wanjiru',
+  lastName: 'Kamau',
+  phoneNumber: '+254722118450',
+  specialties: const [Specialty.generalSurgery],
+  kmpdcNumber: 'A 12345',
+  licenses: [
+    UploadFile(
+      bytes: Uint8List.fromList(List.filled(2048, 0)),
+      contentType: 'application/pdf',
+      name: 'licence.pdf',
+    ),
+  ],
+  picture: UploadFile(
+    bytes: Uint8List.fromList(List.filled(128, 0)),
+    contentType: 'image/jpeg',
+    name: 'photo.jpg',
+  ),
+  facilityId: 'h1',
+);
+
+void main() {
+  setUpAll(() {
+    registerFallbackValue(const GoogleSignInRequested());
+    registerFallbackValue(const SignUpDraftUpdated(draft: SignUpDraft()));
+  });
+
+  group('PractitionerReviewScreen', () {
+    late MockAuthBloc authBloc;
+    late MockSignUpBloc signUpBloc;
+    late MockFacilitiesBloc facilitiesBloc;
+
+    setUp(() {
+      authBloc = MockAuthBloc();
+      when(() => authBloc.state).thenReturn(
+        const SignInSuccess(
+          session: SignUpIncompleteSession(email: 'w.kamau@akuh.example'),
+        ),
+      );
+      signUpBloc = MockSignUpBloc();
+      when(() => signUpBloc.state).thenReturn(SignUpState(draft: _draft));
+      facilitiesBloc = MockFacilitiesBloc();
+      whenListen(
+        facilitiesBloc,
+        Stream.fromIterable([const FacilityLoadSuccess(_facility)]),
+        initialState: const FacilitiesInitial(),
+      );
+    });
+
+    Widget screen() => MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: authBloc),
+        BlocProvider<SignUpBloc>.value(value: signUpBloc),
+        BlocProvider<FacilitiesBloc>.value(value: facilitiesBloc),
+      ],
+      child: const PractitionerReviewScreen(),
+    );
+
+    testWidgets('renders in light and dark', (tester) async {
+      await tester.pumpApp(screen(), themeMode: ThemeMode.light);
+      await tester.pumpAndSettle();
+      expect(find.text('Check and submit'), findsOneWidget);
+      expect(find.text('Dr. Wanjiru Kamau'), findsOneWidget);
+      expect(find.text('w.kamau@akuh.example'), findsOneWidget);
+      expect(find.text('Aga Khan University Hospital'), findsOneWidget);
+
+      await tester.pumpApp(screen(), themeMode: ThemeMode.dark);
+      await tester.pumpAndSettle();
+      expect(find.text('Check and submit'), findsOneWidget);
+    });
+
+    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('submit waits for the terms', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Submit for verification'));
+      await tester.pumpAndSettle();
+      verifyNever(() => authBloc.add(any()));
+
+      await tester.ensureVisible(
+        find.text('I confirm these details are mine and correct.'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(
+        find.text('I confirm these details are mine and correct.'),
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Submit for verification'));
+      await tester.pumpAndSettle();
+
+      final submitted =
+          verify(() => authBloc.add(captureAny())).captured.single
+              as PractitionerSignUpRequested;
+      expect(submitted.draft.termsAccepted, isTrue);
+    });
+
+    testWidgets('a failure shows its message', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const SignUpFailure(
+            session: SignUpIncompleteSession(email: 'w.kamau@akuh.example'),
+            error: AppError.unknown,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('success goes to the pending screen', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          SignUpSuccess(
+            session: PendingVerificationSession(doctor: DoctorModel.empty()),
+          ),
+        ]),
+      );
+
+      final router = GoRouter(
+        initialLocation: '/sign-up/practitioner/review',
+        routes: [
+          GoRoute(
+            path: '/sign-up/practitioner/review',
+            builder: (_, _) => screen(),
+          ),
+          GoRoute(
+            path: '/account/pending',
+            builder: (_, _) => const Text('pending stub'),
+          ),
+        ],
+      );
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      expect(find.text('pending stub'), findsOneWidget);
+    });
+
+    testWidgets('edit pushes its step', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/sign-up/practitioner/review',
+        routes: [
+          GoRoute(
+            path: '/sign-up/practitioner/review',
+            builder: (_, _) => screen(),
+          ),
+          GoRoute(
+            path: '/sign-up/practitioner/details',
+            builder: (_, _) => const Text('E1 stub'),
+          ),
+        ],
+      );
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Edit').first);
+      await tester.pumpAndSettle();
+
+      expect(find.text('E1 stub'), findsOneWidget);
+    });
+
+    testWidgets('a pathologist sees lab rows', (tester) async {
+      when(() => signUpBloc.state).thenReturn(
+        SignUpState(
+          draft: _draft.copyWith(
+            role: Role.pathologist,
+            specialties: const [Specialty.histopathology, Specialty.cytology],
+          ),
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Licence and areas'), findsOneWidget);
+      expect(find.text('Histopathology, Cytology'), findsOneWidget);
+      expect(find.text('Area'), findsNothing);
+    });
+  });
+}

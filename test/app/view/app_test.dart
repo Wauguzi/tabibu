@@ -90,7 +90,7 @@ void main() {
 
   testWidgets('a first run goes to the language screen', (tester) async {
     await start(tester);
-    expect(find.text('A2 Language'), findsOneWidget);
+    expect(find.text('Choose your language'), findsOneWidget);
   });
 
   testWidgets('a returning, signed-out person goes to sign-in', (tester) async {
@@ -98,7 +98,7 @@ void main() {
       (_) async => OnboardingHive(isOnboarded: true, languageString: 'en'),
     );
     await start(tester);
-    expect(find.text('B1 Sign in'), findsOneWidget);
+    expect(find.text('Welcome back'), findsOneWidget);
   });
 
   testWidgets('the saved language is the app language', (tester) async {
@@ -106,7 +106,7 @@ void main() {
       (_) async => OnboardingHive(isOnboarded: false, languageString: 'sw'),
     );
     await start(tester);
-    final context = tester.element(find.text('A2 Language'));
+    final context = tester.element(find.text('Chagua lugha yako'));
     expect(Localizations.localeOf(context).languageCode, 'sw');
   });
 
@@ -115,6 +115,6 @@ void main() {
   ) async {
     when(() => updates.isUpdateRequired()).thenAnswer((_) async => true);
     await start(tester);
-    expect(find.text('Update required'), findsOneWidget);
+    expect(find.text('Please update Tabibu'), findsOneWidget);
   });
 }

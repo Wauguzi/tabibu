@@ -3,7 +3,27 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/routing/landing.dart';
 import 'package:tabibu/core/routing/route_placeholder.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/presentation/clinic_record_screen.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
+import 'package:tabibu/features/auth/presentation/patient_account_screen.dart';
+import 'package:tabibu/features/auth/presentation/patient_all_set_screen.dart';
+import 'package:tabibu/features/auth/presentation/patient_area_screen.dart';
+import 'package:tabibu/features/auth/presentation/patient_name_screen.dart';
+import 'package:tabibu/features/auth/presentation/patient_phone_screen.dart';
+import 'package:tabibu/features/auth/presentation/pending_verification_screen.dart';
+import 'package:tabibu/features/auth/presentation/practitioner_details_screen.dart';
+import 'package:tabibu/features/auth/presentation/practitioner_facility_screen.dart';
+import 'package:tabibu/features/auth/presentation/practitioner_licence_screen.dart';
+import 'package:tabibu/features/auth/presentation/practitioner_review_screen.dart';
+import 'package:tabibu/features/auth/presentation/reset_password_screen.dart';
+import 'package:tabibu/features/auth/presentation/reset_password_sent_screen.dart';
+import 'package:tabibu/features/auth/presentation/role_screen.dart';
+import 'package:tabibu/features/auth/presentation/sign_in_screen.dart';
+import 'package:tabibu/features/auth/presentation/verified_screen.dart';
+import 'package:tabibu/features/onboarding/presentation/get_started_screen.dart';
+import 'package:tabibu/features/onboarding/presentation/intro_screen.dart';
+import 'package:tabibu/features/onboarding/presentation/language_screen.dart';
+import 'package:tabibu/features/onboarding/presentation/update_required_screen.dart';
 
 part 'app_routes.g.dart';
 
@@ -48,7 +68,7 @@ class UpdateRoute extends GoRouteData with $UpdateRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'Update required');
+      const UpdateRequiredScreen();
 }
 
 // ── Onboarding (A2 to A6) ──────────────────────────────────────────────────
@@ -59,7 +79,7 @@ class LanguageRoute extends GoRouteData with $LanguageRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'A2 Language');
+      const LanguageScreen();
 }
 
 /// A3 to A5, one paged screen.
@@ -69,7 +89,7 @@ class IntroRoute extends GoRouteData with $IntroRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'A3–A5 Intro');
+      const IntroScreen();
 }
 
 @TypedGoRoute<GetStartedRoute>(path: '/get-started')
@@ -78,7 +98,7 @@ class GetStartedRoute extends GoRouteData with $GetStartedRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'A6 Get started');
+      const GetStartedScreen();
 }
 
 // ── Sign-in (B) ────────────────────────────────────────────────────────────
@@ -90,7 +110,7 @@ class SignInRoute extends GoRouteData with $SignInRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'B1 Sign in');
+      const SignInScreen();
 }
 
 @TypedGoRoute<ResetPasswordRoute>(
@@ -102,7 +122,7 @@ class ResetPasswordRoute extends GoRouteData with $ResetPasswordRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'Reset password');
+      const ResetPasswordScreen();
 }
 
 class ResetPasswordSentRoute extends GoRouteData with $ResetPasswordSentRoute {
@@ -110,7 +130,7 @@ class ResetPasswordSentRoute extends GoRouteData with $ResetPasswordSentRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'B5 Check your email');
+      const ResetPasswordSentScreen();
 }
 
 // ── Sign-up (C, D, E, F) ───────────────────────────────────────────────────
@@ -135,8 +155,7 @@ class SignUpRoleRoute extends GoRouteData with $SignUpRoleRoute {
   const SignUpRoleRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'C1 Choose your role');
+  Widget build(BuildContext context, GoRouterState state) => const RoleScreen();
 }
 
 class PatientNameRoute extends GoRouteData with $PatientNameRoute {
@@ -144,7 +163,7 @@ class PatientNameRoute extends GoRouteData with $PatientNameRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'D1 Name');
+      const PatientNameScreen();
 }
 
 /// Creates the Auth account.
@@ -153,7 +172,7 @@ class PatientAccountRoute extends GoRouteData with $PatientAccountRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'D2 Email and password');
+      const PatientAccountScreen();
 }
 
 class PatientPhoneRoute extends GoRouteData with $PatientPhoneRoute {
@@ -161,7 +180,7 @@ class PatientPhoneRoute extends GoRouteData with $PatientPhoneRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'D3 Phone');
+      const PatientPhoneScreen();
 }
 
 /// Submits the patient sign-up.
@@ -170,7 +189,7 @@ class PatientAreaRoute extends GoRouteData with $PatientAreaRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'D4 Your area');
+      const PatientAreaScreen();
 }
 
 /// E1 and F1; creates the Auth account, or skips that when one is signed in.
@@ -180,7 +199,7 @@ class PractitionerDetailsRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'E1/F1 Your details');
+      const PractitionerDetailsScreen();
 }
 
 class PractitionerLicenceRoute extends GoRouteData
@@ -189,7 +208,7 @@ class PractitionerLicenceRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'E2/F2 Licence');
+      const PractitionerLicenceScreen();
 }
 
 class PractitionerFacilityRoute extends GoRouteData
@@ -198,7 +217,7 @@ class PractitionerFacilityRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'E3/F3 Facility');
+      const PractitionerFacilityScreen();
 }
 
 /// Uploads the files and submits.
@@ -208,7 +227,7 @@ class PractitionerReviewRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'E4/F4 Review');
+      const PractitionerReviewScreen();
 }
 
 // ── Account states after sign-up ───────────────────────────────────────────
@@ -221,7 +240,7 @@ class PatientAllSetRoute extends GoRouteData with $PatientAllSetRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'D5 All set');
+      const PatientAllSetScreen();
 }
 
 /// A clinic already holds this phone and birth date; the doctor links the
@@ -232,7 +251,7 @@ class ClinicRecordRoute extends GoRouteData with $ClinicRecordRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'Clinic record exists');
+      const ClinicRecordScreen();
 }
 
 /// E5, and the rejected state.
@@ -243,7 +262,7 @@ class PendingVerificationRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'E5 Verification pending');
+      const PendingVerificationScreen();
 }
 
 /// E6 and F5, shown once after verification.
@@ -253,7 +272,7 @@ class VerifiedRoute extends GoRouteData with $VerifiedRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'E6/F5 Verified');
+      const VerifiedScreen();
 }
 
 // ── Role homes ─────────────────────────────────────────────────────────────

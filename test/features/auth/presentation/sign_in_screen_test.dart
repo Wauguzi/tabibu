@@ -1,0 +1,190 @@
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:material_ui/material_ui.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/helpers/role_helper.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
+import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/presentation/sign_in_screen.dart';
+import 'package:tabibu/features/patients/data/models/patient_model.dart';
+
+import '../../../helpers/helpers.dart';
+
+class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
+
+void main() {
+  setUpAll(() {
+    registerFallbackValue(const GoogleSignInRequested());
+  });
+
+  group('SignInScreen', () {
+    late MockAuthBloc authBloc;
+
+    setUp(() {
+      authBloc = MockAuthBloc();
+      when(() => authBloc.state).thenReturn(const AuthInitial());
+    });
+
+    Widget screen() => BlocProvider<AuthBloc>.value(
+      value: authBloc,
+      child: const SignInScreen(),
+    );
+
+    testWidgets('renders in light and dark', (tester) async {
+      await tester.pumpApp(screen(), themeMode: ThemeMode.light);
+      await tester.pumpAndSettle();
+      expect(find.text('Welcome back'), findsOneWidget);
+
+      await tester.pumpApp(screen(), themeMode: ThemeMode.dark);
+      await tester.pumpAndSettle();
+      expect(find.text('Welcome back'), findsOneWidget);
+    });
+
+    testWidgets('lays out at 2.0x text without overflow', (tester) async {
+      tester.platformDispatcher.textScaleFactorTestValue = 2.0;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('signing in sends the event', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TabibuTextField).first, 'a@b.co');
+      await tester.enterText(find.byType(TabibuTextField).last, 'secret1!');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sign in'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => authBloc.add(
+          const SignInRequested(email: 'a@b.co', password: 'secret1!'),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('Google sends its event', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Sign in with Google'));
+      await tester.pumpAndSettle();
+
+      verify(() => authBloc.add(const GoogleSignInRequested())).called(1);
+    });
+
+    testWidgets('a bad email shows its message', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.enterText(
+        find.byType(TabibuTextField).first,
+        'not-an-email',
+      );
+      await tester.enterText(find.byType(TabibuTextField).last, 'secret1!');
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Sign in'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('The email address is not valid.'), findsOneWidget);
+      verifyNever(() => authBloc.add(any()));
+    });
+
+    testWidgets('a failure shows its message (B2)', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const SignInFailure(
+            session: SignedOutSession(),
+            error: AppError.wrongPassword,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      // The notice and the password field carry the same message.
+      expect(
+        find.text('Incorrect password. Please try again.'),
+        findsNWidgets(2),
+      );
+    });
+
+    testWidgets('a cancelled Google dialog shows nothing', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const SignInCancelled(session: SignedOutSession()),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NoticeCard), findsNothing);
+    });
+
+    testWidgets('success leaves through the session', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          SignInSuccess(
+            session: PatientSession(
+              patient: PatientModel.empty().copyWith(firstName: 'Amina'),
+              roles: const RoleHelper(
+                role: Role.patient,
+                isAdmin: false,
+                isAlertApprover: false,
+              ),
+            ),
+          ),
+        ]),
+      );
+
+      final router = GoRouter(
+        initialLocation: '/sign-in',
+        routes: [
+          GoRoute(path: '/sign-in', builder: (_, _) => screen()),
+          GoRoute(
+            path: '/patient',
+            builder: (_, _) => const Text('patient stub'),
+          ),
+        ],
+      );
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      expect(find.text('patient stub'), findsOneWidget);
+    });
+
+    testWidgets('forgot password goes to reset', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/sign-in',
+        routes: [
+          GoRoute(path: '/sign-in', builder: (_, _) => screen()),
+          GoRoute(
+            path: '/reset-password',
+            builder: (_, _) => const Text('reset stub'),
+          ),
+        ],
+      );
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Forgot password?'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('reset stub'), findsOneWidget);
+    });
+  });
+}
