@@ -31,6 +31,10 @@ test('refuses a pubspec that was not bumped past the latest release', () => {
   );
 });
 
+test('refuses a two-digit minor, which would let the build number fall', () => {
+  assert.throws(() => pubspecVersion(pubspec('1.10.00+11000')), /minor must be 0 to 9/);
+});
+
 test('refuses a build that is not the version without its dots', () => {
   assert.throws(() => pubspecVersion(pubspec('1.0.02+1003')), /build must be/);
 });

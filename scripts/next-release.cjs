@@ -41,6 +41,11 @@ function pubspecVersion(pubspec) {
     throw new Error(`pubspec version ${line[1]} is not \`a.b.cd+build\` (patch padded to two digits).`);
   }
   const [, major, minor, patch, build] = match;
+  // The build is the version without its dots, which only grows while the minor is one digit:
+  // 1.10.00 would be 11000 and 2.0.00 then 2000, and Android refuses a smaller versionCode.
+  if (+minor > 9) {
+    throw new Error(`pubspec version ${line[1]}: the minor must be 0 to 9; bump the major instead.`);
+  }
   if (build !== `${+major}${+minor}${patch}`) {
     throw new Error(
       `pubspec version ${line[1]}: the build must be the version without its dots, ` +

@@ -11,6 +11,8 @@ icons:
 
 splash:
 		dart run flutter_native_splash:create
+		# The generator locks the web page's zoom; pinch zoom is an accessibility need (WCAG 1.4.4).
+		sed -i '' 's/, maximum-scale=1.0, user-scalable=no//' web/index.html
 
 gen:
 		dart run build_runner build --delete-conflicting-outputs
@@ -41,7 +43,7 @@ bloc-lint:
 
 spell:
 		npx --yes cspell@8 --no-progress \
-		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/*" "ai_service/*" .gitignore .gitleaks.toml \
+		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/**/*" "ai_service/*" .gitignore .gitleaks.toml \
 		    Makefile Gemfile pubspec.yaml "lib/**/*.dart" "test/**/*.dart" \
 		    firebase.json firestore.rules storage.rules "functions/src/*.ts" "test/firestore_rules/*.js"
 

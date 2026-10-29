@@ -20,6 +20,9 @@
           - "lib/core/helpers/auth_helper.dart"
           - "lib/core/helpers/role_helper.dart"
           - "lib/core/helpers/facilities_helper.dart"
+          - "lib/core/routing/**"
+          - "lib/features/home/**"
+          - "lib/features/onboarding/**"
           - "assets/data/**"
 
 "area/cases":
@@ -94,3 +97,7 @@
       - any-glob-to-any-file:
           - "docs/**"
           - "README.md"
+          - "AGENTS.md"
+          - "CONTRIBUTING.md"
+          - "CODE_OF_CONDUCT.md"
+          - "SECURITY.md"

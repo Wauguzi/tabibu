@@ -13,6 +13,37 @@ permissions:
   contents: read
 
 jobs:
+  # The functions' lint, build and full type-check, the seed included. Their emulator tests
+  # need Java and firebase-tools, so they stay local (make functions-test, make rules-test).
+  functions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: functions
+    steps:
+      - name: 📥 Checkout repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: 🟢 Set up Node
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 22
+
+      - name: 📦 Install dependencies
+        run: npm ci
+
+      - name: 🔬 Lint
+        run: npm run lint
+
+      - name: 🏗️ Build
+        run: npm run build
+
+      - name: 🧾 Type-check everything, tests and seed included
+        run: npx tsc --noEmit -p tsconfig.json
+
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 45
@@ -46,7 +77,9 @@ jobs:
       - name: 🐦 Set up Flutter
         uses: subosito/flutter-action@1a449444c387b1966244ae4d4f8c696479add0b2 # v2.23.0
         with:
-          flutter-version: "3.x"
+          # The version the branch was verified on; a newer 3.x released on the day must not
+          # fail a pull request for reasons unrelated to it.
+          flutter-version: "3.47.8"
           cache: true
 
       - name: 🔍 Flutter version
