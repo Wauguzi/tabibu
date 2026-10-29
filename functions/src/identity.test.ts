@@ -193,6 +193,25 @@ describe('identity', () => {
     });
   });
 
+  describe('completePatientSignUp after a link', () => {
+    it('a linked account gets its linked record, and no second one', async () => {
+      const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+      const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+      const patient = await account(deps, 'amina@example.com');
+      await linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' });
+      const signedIn = { ...patient, role: 'patient' };
+
+      const result = await completePatientSignUpHandler(deps, signedIn, {
+        ...patientInput(),
+        phoneNumber: '0799000111',
+        dateOfBirth: '1991-01-01',
+      });
+      assert.deepEqual(result, { status: 'registered', patientId });
+      const own = await deps.db.collection(PATIENTS).where('uid', '==', patient.uid).get();
+      assert.equal(own.size, 1);
+    });
+  });
+
   describe('linkPatientAccount', () => {
     it("attaches a role-less account to the doctor's record", async () => {
       const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
@@ -216,6 +235,31 @@ describe('identity', () => {
         linkPatientAccountHandler(deps, stranger, { patientId, email: 'amina@example.com' }),
         'invalidPatient',
       );
+    });
+
+    it('refuses an account whose address nobody confirmed (T-15)', async () => {
+      const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+      const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+      const squatter = await account(deps, 'amina@example.com', {}, { emailVerified: false });
+      await refusedWith(
+        linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' }),
+        'emailNotVerified',
+      );
+      const doc = (await deps.db.collection(PATIENTS).doc(patientId).get()).data()!;
+      assert.equal(doc.isRegistered, false);
+      assert.equal((await claimsOf(squatter.uid)).role, undefined);
+    });
+
+    it('a retry after the role failed to set finishes the link', async () => {
+      const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+      const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+      const patient = await account(deps, 'amina@example.com');
+      // The record was linked, then setting the role failed.
+      await deps.db.collection(PATIENTS).doc(patientId).update({ uid: patient.uid, isRegistered: true });
+
+      const result = await linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' });
+      assert.deepEqual(result, { status: 'linked', patientId });
+      assert.equal((await claimsOf(patient.uid)).role, 'patient');
     });
 
     it('refuses an account that already has a role', async () => {

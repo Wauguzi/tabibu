@@ -159,6 +159,10 @@ export async function completePatientSignUpHandler(
   const result = await db.runTransaction(async (tx): Promise<PatientSignUpResult> => {
     // A retry after the claim failed to set finds its own record and finishes the job.
     if ((await tx.get(ref)).exists) return { status: 'registered', patientId: c.uid };
+    // A record a doctor linked to this account has its own id: it is theirs already, and a
+    // second record under the same uid would make their own record ambiguous.
+    const linked = await tx.get(db.collection(PATIENTS).where('uid', '==', c.uid).limit(1));
+    if (!linked.empty) return { status: 'registered', patientId: linked.docs[0].id };
     if ((await tx.get(db.collection(DOCTORS).doc(c.uid))).exists) {
       throw refuse('failed-precondition', 'roleAlreadySet');
     }
@@ -235,12 +239,15 @@ export async function linkPatientAccountHandler(
   const email = optionalEmail(raw.email);
   if (!email) throw refuse('invalid-argument', 'invalidEmail');
 
-  let account: { uid: string; customClaims?: Record<string, unknown> };
+  let account: { uid: string; emailVerified?: boolean; customClaims?: Record<string, unknown> };
   try {
     account = await deps.auth.getUserByEmail(email);
   } catch {
     throw refuse('not-found', 'accountNotFound');
   }
+  // Anyone can open an account under a patient's address; only one whose owner confirmed it
+  // may take their record (T-15).
+  if (account.emailVerified !== true) throw refuse('failed-precondition', 'emailNotVerified');
   if (typeof account.customClaims?.role === 'string') {
     throw refuse('failed-precondition', 'accountAlreadyHasRole');
   }
@@ -253,7 +260,11 @@ export async function linkPatientAccountHandler(
     if (!record.exists || !(record.get('doctorUids') as string[]).includes(c.uid)) {
       throw refuse('not-found', 'invalidPatient');
     }
-    if (record.get('isRegistered') === true) throw refuse('failed-precondition', 'alreadyLinked');
+    if (record.get('isRegistered') === true) {
+      // Linked to this same account before the role could be set: finish it below.
+      if (record.get('uid') === account.uid) return;
+      throw refuse('failed-precondition', 'alreadyLinked');
+    }
     const [ownRecord, linked, doctor] = await Promise.all([
       tx.get(db.collection(PATIENTS).doc(account.uid)),
       tx.get(db.collection(PATIENTS).where('uid', '==', account.uid).limit(1)),

@@ -33,7 +33,9 @@ export function callerOf(request: CallableRequest): Caller | null {
 export interface AuthLike {
   setCustomUserClaims(uid: string, claims: Record<string, unknown> | null): Promise<void>;
   getUser(uid: string): Promise<{ uid: string; email?: string; customClaims?: Record<string, unknown> }>;
-  getUserByEmail(email: string): Promise<{ uid: string; email?: string; customClaims?: Record<string, unknown> }>;
+  getUserByEmail(
+    email: string,
+  ): Promise<{ uid: string; email?: string; emailVerified?: boolean; customClaims?: Record<string, unknown> }>;
 }
 
 /**
