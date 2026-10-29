@@ -1,4 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
@@ -8,7 +9,6 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -81,6 +81,9 @@ class _SignInScreenState extends State<SignInScreen> {
         final emailError = failure == AppError.userNotFound
             ? failure?.description(l10n)
             : null;
+        // Navigator's, not go_router's: identical under the app router, and
+        // it doesn't throw where there is no router at all.
+        final canPop = Navigator.of(context).canPop();
 
         return Scaffold(
           body: SafeArea(
@@ -88,22 +91,21 @@ class _SignInScreenState extends State<SignInScreen> {
               padding: const EdgeInsets.all(AppSpacing.screenMargin),
               child: Column(
                 children: [
-                  Align(
-                    alignment: Alignment.centerLeft,
-                    child: CircleIconButton(
-                      icon: Assets.icons.backIcon,
-                      semanticLabel: l10n.commonBack,
-                      onTap: busy
-                          ? null
-                          : () => stepBack(context, const GetStartedRoute()),
+                  if (canPop)
+                    Align(
+                      alignment: .centerLeft,
+                      child: CircleIconButton(
+                        icon: Assets.icons.backIcon,
+                        semanticLabel: l10n.commonBack,
+                        onTap: busy ? null : () => context.pop(),
+                      ),
                     ),
-                  ),
                   const SizedBox(height: AppSpacing.md),
                   Expanded(
                     child: SingleChildScrollView(
                       child: AutofillGroup(
                         child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+                          crossAxisAlignment: .start,
                           children: [
                             Text(
                               l10n.signInTitle,
@@ -126,7 +128,7 @@ class _SignInScreenState extends State<SignInScreen> {
                             IgnorePointer(
                               ignoring: busy,
                               child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
+                                crossAxisAlignment: .start,
                                 children: [
                                   TabibuTextField(
                                     label: l10n.signInEmailLabel,
@@ -163,7 +165,7 @@ class _SignInScreenState extends State<SignInScreen> {
                               ),
                             ),
                             Align(
-                              alignment: Alignment.centerRight,
+                              alignment: .centerRight,
                               child: TabibuButton.ghost(
                                 label: l10n.signInForgot,
                                 foregroundColor: Theme.of(
@@ -198,8 +200,8 @@ class _SignInScreenState extends State<SignInScreen> {
                             ),
                             const SizedBox(height: AppSpacing.md),
                             Wrap(
-                              alignment: WrapAlignment.center,
-                              crossAxisAlignment: WrapCrossAlignment.center,
+                              alignment: .center,
+                              crossAxisAlignment: .center,
                               children: [
                                 Text(
                                   l10n.signInNewTo,
@@ -212,8 +214,8 @@ class _SignInScreenState extends State<SignInScreen> {
                                   ).colorScheme.primary,
                                   onTap: busy
                                       ? null
-                                      : () =>
-                                            const SignUpRoleRoute().go(context),
+                                      : () => const SignUpRoleRoute()
+                                            .push<void>(context),
                                 ),
                               ],
                             ),

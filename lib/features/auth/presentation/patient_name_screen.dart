@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
@@ -15,7 +17,6 @@ import 'package:tabibu/features/auth/data/models/upload_file.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/photo_row.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -110,9 +111,9 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
 
     final session = context.read<AuthBloc>().state.session;
     if (session is SignUpIncompleteSession) {
-      const PatientPhoneRoute().go(context);
+      unawaited(const PatientPhoneRoute().push<void>(context));
     } else {
-      const PatientAccountRoute().go(context);
+      unawaited(const PatientAccountRoute().push<void>(context));
     }
   }
 
@@ -125,7 +126,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
       step: 1,
       total: 4,
       backLabel: l10n.commonBack,
-      onBack: () => stepBack(context, const SignUpRoleRoute()),
+      onBack: () => Navigator.of(context).pop(),
       title: l10n.patientNameTitle,
       subtitle: l10n.patientNameSubtitle,
       error: _error,
@@ -135,7 +136,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
         onTap: _continue,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           PhotoRow(
             name: _avatarName,
@@ -228,8 +229,8 @@ class _SexPicker extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: .start,
+      mainAxisSize: .min,
       children: [
         Text.rich(
           TextSpan(
@@ -298,7 +299,7 @@ class _SexCard extends StatelessWidget {
                 vertical: AppSpacing.sm + 4,
               ),
               child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
+                mainAxisAlignment: .center,
                 children: [
                   ExcludeSemantics(
                     child: AssetIcon(

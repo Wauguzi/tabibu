@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
@@ -15,7 +17,6 @@ import 'package:tabibu/features/auth/presentation/widgets/document_sheet.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
 import 'package:tabibu/features/auth/presentation/widgets/specialty_sheet.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -122,11 +123,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
       licenses: _licenses,
     );
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
-    if (shouldPopAfterCommit(context)) {
-      Navigator.of(context).pop();
-    } else {
-      const PractitionerFacilityRoute().go(context);
-    }
+    unawaited(const PractitionerFacilityRoute().push<void>(context));
   }
 
   @override
@@ -139,7 +136,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
       step: 2,
       total: 4,
       backLabel: l10n.commonBack,
-      onBack: () => stepBack(context, const PractitionerDetailsRoute()),
+      onBack: () => Navigator.of(context).pop(),
       title: isPathologist ? l10n.areasTitle : l10n.licenceTitle,
       subtitle: isPathologist ? l10n.areasSubtitle : l10n.licenceDoctorSubtitle,
       error: _error,
@@ -149,7 +146,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
         onTap: _continue,
       ),
       child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           TabibuTextField(
             label: l10n.kmpdcLabel,
@@ -277,7 +274,7 @@ class _AreaChip extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
       child: Row(
-        mainAxisSize: MainAxisSize.min,
+        mainAxisSize: .min,
         children: [
           Flexible(child: Text(label, style: textTheme.titleSmall)),
           const SizedBox(width: AppSpacing.xxs),
@@ -325,8 +322,8 @@ class _DocumentsSection extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: .start,
+      mainAxisSize: .min,
       children: [
         Text.rich(
           TextSpan(
@@ -366,7 +363,7 @@ class _DocumentsSection extends StatelessWidget {
               child: Padding(
                 padding: const EdgeInsets.all(AppSpacing.md),
                 child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
+                  mainAxisAlignment: .center,
                   children: [
                     AssetIcon(Assets.icons.addIcon, size: 20),
                     const SizedBox(width: AppSpacing.xs),

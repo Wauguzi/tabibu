@@ -11,7 +11,6 @@ import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
@@ -20,8 +19,8 @@ import 'package:tabibu/features/facilities/data/models/facility_model.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// E4 and F4. The draft read back as summary cards with Edit links, the
-/// terms box, and Submit. Edit pushes the step, so its back lands here
-/// again with the draft intact.
+/// terms box, and Submit. Edit pops back to its step; the draft is in the
+/// bloc, so the steps after it reopen filled in.
 class PractitionerReviewScreen extends StatefulWidget {
   const PractitionerReviewScreen({super.key});
 
@@ -43,6 +42,14 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
     context.read<FacilitiesBloc>().add(
       FacilitiesFacilityRequested(draft.facilityId),
     );
+  }
+
+  // Steps 1 to 3 sit below this one on the stack, in order.
+  void _edit(int step) {
+    final navigator = Navigator.of(context);
+    for (var i = step; i < 4 && navigator.canPop(); i++) {
+      navigator.pop();
+    }
   }
 
   void _toggleTerms(bool value) {
@@ -98,9 +105,7 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
             step: 4,
             total: 4,
             backLabel: l10n.commonBack,
-            onBack: busy
-                ? null
-                : () => stepBack(context, const PractitionerFacilityRoute()),
+            onBack: busy ? null : () => Navigator.of(context).pop(),
             title: l10n.reviewTitle,
             error: failure,
             role: role,
@@ -125,11 +130,7 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
                     (l10n.reviewPhoneRow, draft.phoneNumber),
                   ],
                   editLabel: l10n.reviewEdit,
-                  onEdit: busy
-                      ? null
-                      : () => const PractitionerDetailsRoute().push<void>(
-                          context,
-                        ),
+                  onEdit: busy ? null : () => _edit(1),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 SummaryCard(
@@ -158,11 +159,7 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
                     ),
                   ],
                   editLabel: l10n.reviewEdit,
-                  onEdit: busy
-                      ? null
-                      : () => const PractitionerLicenceRoute().push<void>(
-                          context,
-                        ),
+                  onEdit: busy ? null : () => _edit(2),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 SummaryCard(
@@ -193,11 +190,7 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
                     ),
                   ],
                   editLabel: l10n.reviewEdit,
-                  onEdit: busy
-                      ? null
-                      : () => const PractitionerFacilityRoute().push<void>(
-                          context,
-                        ),
+                  onEdit: busy ? null : () => _edit(3),
                 ),
                 const SizedBox(height: AppSpacing.sm),
                 _TermsBox(
@@ -242,7 +235,7 @@ class _TermsBox extends StatelessWidget {
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
+                crossAxisAlignment: .start,
                 children: [
                   Checkbox(
                     value: value,

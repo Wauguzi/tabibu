@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -6,7 +8,6 @@ import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -51,7 +52,7 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
       phoneNumber: normalized,
     );
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
-    const PatientAreaRoute().go(context);
+    unawaited(const PatientAreaRoute().push<void>(context));
   }
 
   @override
@@ -63,7 +64,7 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
       step: 3,
       total: 4,
       backLabel: l10n.commonBack,
-      onBack: () => stepBack(context, const PatientAccountRoute()),
+      onBack: () => Navigator.of(context).pop(),
       title: l10n.patientPhoneTitle,
       subtitle: l10n.patientPhoneSubtitle,
       error: _error,

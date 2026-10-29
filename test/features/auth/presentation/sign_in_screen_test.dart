@@ -10,13 +10,20 @@ import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/presentation/role_screen.dart';
 import 'package:tabibu/features/auth/presentation/sign_in_screen.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 
 import '../../../helpers/helpers.dart';
 
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
+
+class MockSignUpBloc extends MockBloc<SignUpEvent, SignUpState>
+    implements SignUpBloc {}
 
 void main() {
   setUpAll(() {
@@ -185,6 +192,76 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('reset stub'), findsOneWidget);
+    });
+
+    testWidgets('the back button shows only when it can pop', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/get-started',
+        routes: [
+          GoRoute(
+            path: '/get-started',
+            builder: (context, _) => TextButton(
+              onPressed: () => context.push('/sign-in'),
+              child: const Text('to sign-in'),
+            ),
+          ),
+          GoRoute(path: '/sign-in', builder: (_, _) => screen()),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('to sign-in'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CircleIconButton), findsOneWidget);
+
+      await tester.tap(find.byType(CircleIconButton));
+      await tester.pumpAndSettle();
+      expect(find.text('to sign-in'), findsOneWidget);
+    });
+
+    testWidgets('there is no back button at the root', (tester) async {
+      final router = GoRouter(
+        initialLocation: '/sign-in',
+        routes: [GoRoute(path: '/sign-in', builder: (_, _) => screen())],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      expect(find.byType(CircleIconButton), findsNothing);
+    });
+
+    testWidgets('Create an account pushes C1, back returns', (tester) async {
+      final signUpBloc = MockSignUpBloc();
+      when(() => signUpBloc.state).thenReturn(const SignUpState());
+      final router = GoRouter(
+        initialLocation: '/sign-in',
+        routes: [
+          GoRoute(path: '/sign-in', builder: (_, _) => screen()),
+          GoRoute(
+            path: '/sign-up',
+            builder: (_, _) => BlocProvider<SignUpBloc>.value(
+              value: signUpBloc,
+              child: const RoleScreen(),
+            ),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Create an account'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Create an account'));
+      await tester.pumpAndSettle();
+      expect(find.text("I'm joining Tabibu as…"), findsOneWidget);
+
+      await tester.tap(find.byType(CircleIconButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Welcome back'), findsOneWidget);
     });
   });
 }

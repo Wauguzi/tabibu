@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:material_ui/material_ui.dart';
@@ -14,7 +16,6 @@ import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
 import 'package:tabibu/features/auth/presentation/widgets/single_select_sheet.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
@@ -138,6 +139,7 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
         listener: (context, state) {
           if (state is SignUpSuccess) {
             if (state.session is PatientSession) {
+              // Replaces the stack: there is no back into a submitted form.
               const PatientAllSetRoute().go(context);
             } else {
               goToSession(context, state.session);
@@ -153,9 +155,7 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
             step: 4,
             total: 4,
             backLabel: l10n.commonBack,
-            onBack: busy
-                ? null
-                : () => stepBack(context, const PatientPhoneRoute()),
+            onBack: busy ? null : () => Navigator.of(context).pop(),
             title: l10n.patientAreaTitle,
             subtitle: l10n.patientAreaSubtitle,
             error: failure,
@@ -166,7 +166,7 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
               onTap: busy ? null : () => _finish(draft),
             ),
             child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+              crossAxisAlignment: .start,
               children: [
                 PickerField(
                   label: l10n.countyLabel,
@@ -244,8 +244,8 @@ class _SubCountyPickerState extends State<_SubCountyPicker> {
     ];
 
     return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: .start,
+      mainAxisSize: .min,
       children: [
         Text(l10n.subCountyLabel, style: textTheme.titleMedium),
         const SizedBox(height: AppSpacing.xs),
@@ -258,7 +258,7 @@ class _SubCountyPickerState extends State<_SubCountyPicker> {
         for (final sub in matches) ...[
           OptionCard(
             icon: Assets.icons.locationIcon,
-            tone: IconTone.sky,
+            tone: .sky,
             title: sub.name,
             supporting: l10n.countyNoun(widget.countyName),
             selected: widget.selectedId == sub.id,

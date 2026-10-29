@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:material_ui/material_ui.dart';
@@ -7,7 +9,6 @@ import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
@@ -89,11 +90,7 @@ class _PractitionerFacilityScreenState
       isAvailable: _isAvailable,
     );
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
-    if (shouldPopAfterCommit(context)) {
-      Navigator.of(context).pop();
-    } else {
-      const PractitionerReviewRoute().go(context);
-    }
+    unawaited(const PractitionerReviewRoute().push<void>(context));
   }
 
   @override
@@ -121,7 +118,7 @@ class _PractitionerFacilityScreenState
         step: 3,
         total: 4,
         backLabel: l10n.commonBack,
-        onBack: () => stepBack(context, const PractitionerLicenceRoute()),
+        onBack: () => Navigator.of(context).pop(),
         title: isPathologist ? l10n.labTitle : l10n.facilityTitle,
         subtitle: isPathologist
             ? l10n.labSubtitle
@@ -133,7 +130,7 @@ class _PractitionerFacilityScreenState
           onTap: _continue,
         ),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: .start,
           children: [
             SearchField(
               hint: isPathologist
@@ -149,7 +146,7 @@ class _PractitionerFacilityScreenState
             ),
             const SizedBox(height: AppSpacing.sm),
             SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
+              scrollDirection: .horizontal,
               child: Row(
                 children: [
                   TabibuFilterChip(
@@ -191,7 +188,7 @@ class _PractitionerFacilityScreenState
                     icon: isPathologist
                         ? Assets.icons.testTubeIcon
                         : Assets.icons.facilityIcon,
-                    tone: isPathologist ? IconTone.lavender : IconTone.mint,
+                    tone: isPathologist ? .lavender : .mint,
                     title: facility.name,
                     supporting:
                         '${facility.kephLevel} · ${facility.ward}, '
@@ -240,7 +237,7 @@ class _PractitionerFacilityScreenState
             const SizedBox(height: AppSpacing.md),
             SettingToggleCard(
               icon: Assets.icons.calendarIcon,
-              tone: IconTone.mint,
+              tone: .mint,
               title: isPathologist
                   ? l10n.availabilityPathologistTitle
                   : l10n.availabilityDoctorTitle,
@@ -270,7 +267,7 @@ class _EmptyResults extends StatelessWidget {
         children: [
           IconTile(
             icon: Assets.icons.searchRoundedIcon,
-            tone: IconTone.sky,
+            tone: .sky,
             size: IconTileSize.l,
           ),
           const SizedBox(height: AppSpacing.sm),

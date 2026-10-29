@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -15,7 +17,6 @@ import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/photo_row.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
 import 'package:tabibu/features/auth/presentation/widgets/single_select_sheet.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -76,11 +77,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
   }
 
   void _forward() {
-    if (shouldPopAfterCommit(context)) {
-      Navigator.of(context).pop();
-    } else {
-      const PractitionerLicenceRoute().go(context);
-    }
+    unawaited(const PractitionerLicenceRoute().push<void>(context));
   }
 
   Future<void> _pickTitle() async {
@@ -167,9 +164,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
           step: 1,
           total: 4,
           backLabel: l10n.commonBack,
-          onBack: busy
-              ? null
-              : () => stepBack(context, const SignUpRoleRoute()),
+          onBack: busy ? null : () => Navigator.of(context).pop(),
           title: l10n.practitionerDetailsTitle,
           subtitle: l10n.practitionerDetailsSubtitle,
           error: failure,
@@ -203,7 +198,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                   child: Column(
                     children: [
                       Row(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                        crossAxisAlignment: .start,
                         children: [
                           Expanded(
                             flex: 2,

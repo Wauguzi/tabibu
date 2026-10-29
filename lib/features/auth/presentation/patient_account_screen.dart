@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -9,7 +11,6 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
-import 'package:tabibu/features/auth/presentation/widgets/step_nav.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -39,7 +40,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
   void _submit(bool signedIn) {
     // Backed into from D3: the account already exists.
     if (signedIn) {
-      const PatientPhoneRoute().go(context);
+      unawaited(const PatientPhoneRoute().push<void>(context));
       return;
     }
     if (!isValidEmail(_emailController.text)) {
@@ -62,7 +63,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
     return BlocConsumer<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is CreateAccountSuccess) {
-          const PatientPhoneRoute().go(context);
+          unawaited(const PatientPhoneRoute().push<void>(context));
         }
       },
       builder: (context, state) {
@@ -77,9 +78,7 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
           step: 2,
           total: 4,
           backLabel: l10n.commonBack,
-          onBack: busy
-              ? null
-              : () => stepBack(context, const PatientNameRoute()),
+          onBack: busy ? null : () => Navigator.of(context).pop(),
           title: l10n.patientAccountTitle,
           subtitle: l10n.patientAccountSubtitle,
           error: failure,

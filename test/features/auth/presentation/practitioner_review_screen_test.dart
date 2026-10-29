@@ -211,27 +211,38 @@ void main() {
       expect(find.text('pending stub'), findsOneWidget);
     });
 
-    testWidgets('edit pushes its step', (tester) async {
+    testWidgets('edit pops back to its step', (tester) async {
       final router = GoRouter(
-        initialLocation: '/sign-up/practitioner/review',
+        initialLocation: '/e1',
         routes: [
-          GoRoute(
-            path: '/sign-up/practitioner/review',
-            builder: (_, _) => screen(),
-          ),
-          GoRoute(
-            path: '/sign-up/practitioner/details',
-            builder: (_, _) => const Text('E1 stub'),
-          ),
+          for (final (path, next) in [
+            ('/e1', '/e2'),
+            ('/e2', '/e3'),
+            ('/e3', '/review'),
+          ])
+            GoRoute(
+              path: path,
+              builder: (context, _) => TextButton(
+                onPressed: () => context.push(next),
+                child: Text('$path stub'),
+              ),
+            ),
+          GoRoute(path: '/review', builder: (_, _) => screen()),
         ],
       );
+      addTearDown(router.dispose);
       await tester.pumpRouterApp(router);
       await tester.pumpAndSettle();
+      for (final path in ['/e1', '/e2', '/e3']) {
+        await tester.tap(find.text('$path stub'));
+        await tester.pumpAndSettle();
+      }
 
       await tester.tap(find.text('Edit').first);
       await tester.pumpAndSettle();
 
-      expect(find.text('E1 stub'), findsOneWidget);
+      expect(find.text('/e1 stub'), findsOneWidget);
+      expect(router.canPop(), isFalse);
     });
 
     testWidgets('a pathologist sees lab rows', (tester) async {
