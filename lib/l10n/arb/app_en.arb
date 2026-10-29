@@ -1496,6 +1496,14 @@
     "@pendingCheckAgain": {
         "description": "E5 check again"
     },
+    "pendingExplore": "Explore Tabibu",
+    "@pendingExplore": {
+        "description": "E5 explore"
+    },
+    "pendingContactSupport": "Contact support",
+    "@pendingContactSupport": {
+        "description": "E5 contact support"
+    },
     "chipDone": "Done",
     "@chipDone": {
         "description": "Timeline chip: done"
@@ -1567,6 +1575,10 @@
     "verifiedDoctorButton": "Go to my day",
     "@verifiedDoctorButton": {
         "description": "E6 action"
+    },
+    "verifiedFinishProfile": "Finish my profile",
+    "@verifiedFinishProfile": {
+        "description": "E6 finish profile"
     },
     "verifiedPathologistButton": "Go to my desk",
     "@verifiedPathologistButton": {

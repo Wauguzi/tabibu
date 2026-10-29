@@ -17,10 +17,10 @@ import '../../../helpers/helpers.dart';
 
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
-DoctorModel _doctor({bool isPathologist = false}) =>
+DoctorModel _doctor({bool isPathologist = false, String lastName = 'Kamau'}) =>
     DoctorModel.empty().copyWith(
       title: 'Dr.',
-      lastName: 'Kamau',
+      lastName: lastName,
       isPathologist: isPathologist,
       specialties: ['Histopathology', 'Cytology'],
       kmpdcNumber: 'A 12345',
@@ -28,15 +28,17 @@ DoctorModel _doctor({bool isPathologist = false}) =>
       createdAt: '',
     );
 
-PractitionerSession _session({bool isPathologist = false}) =>
-    PractitionerSession(
-      doctor: _doctor(isPathologist: isPathologist),
-      roles: RoleHelper(
-        role: isPathologist ? Role.pathologist : Role.doctor,
-        isAdmin: false,
-        isAlertApprover: false,
-      ),
-    );
+PractitionerSession _session({
+  bool isPathologist = false,
+  String lastName = 'Kamau',
+}) => PractitionerSession(
+  doctor: _doctor(isPathologist: isPathologist, lastName: lastName),
+  roles: RoleHelper(
+    role: isPathologist ? Role.pathologist : Role.doctor,
+    isAdmin: false,
+    isAlertApprover: false,
+  ),
+);
 
 void main() {
   group('VerifiedScreen', () {
@@ -74,6 +76,18 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('the title uses the last name', (tester) async {
+      when(
+        () => authBloc.state,
+      ).thenReturn(SessionLoadSuccess(session: _session(lastName: 'Otieno')));
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text("You're verified, Dr. Otieno"), findsOneWidget);
+      expect(find.text('Finish my profile'), findsOneWidget);
+    });
+
     testWidgets('a doctor goes to their day', (tester) async {
       final router = GoRouter(
         initialLocation: '/account/verified',
@@ -92,6 +106,24 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('doctor stub'), findsOneWidget);
+    });
+
+    testWidgets('a pathologist sees the F5 copy', (tester) async {
+      when(
+        () => authBloc.state,
+      ).thenReturn(SessionLoadSuccess(session: _session(isPathologist: true)));
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Your desk is open. Cases from Nairobi doctors in your areas '
+          'start arriving now.',
+        ),
+        findsOneWidget,
+      );
+      expect(find.text('Go to my desk'), findsOneWidget);
     });
 
     testWidgets('a pathologist goes to their desk', (tester) async {

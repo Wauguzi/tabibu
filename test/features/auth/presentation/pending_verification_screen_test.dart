@@ -20,11 +20,12 @@ class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 DoctorModel _doctor({
   bool isPathologist = false,
   String verificationStatus = 'Pending',
+  List<String> specialties = const ['Histopathology', 'Cytology'],
 }) => DoctorModel.empty().copyWith(
   firstName: 'Wanjiru',
   lastName: 'Kamau',
   isPathologist: isPathologist,
-  specialties: ['Histopathology', 'Cytology'],
+  specialties: specialties,
   kmpdcNumber: 'A 12345',
   verificationStatus: verificationStatus,
   facilityName: 'Aga Khan University Hospital',
@@ -68,6 +69,30 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('the timeline chips read Done, In progress, Up next', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Done'), findsOneWidget);
+      expect(find.text('In progress'), findsOneWidget);
+      expect(find.text('Up next'), findsNWidgets(2));
+    });
+
+    testWidgets('every button is present, in order', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final tops = [
+        'Check again',
+        'Explore Tabibu',
+        'Contact support',
+        'Sign out',
+      ].map((label) => tester.getTopLeft(find.text(label)).dy).toList();
+      expect(tops, orderedEquals([...tops]..sort()));
     });
 
     testWidgets('check again refreshes the session', (tester) async {
@@ -157,6 +182,51 @@ void main() {
       expect(
         find.text(
           'Cases in histopathology and cytology start reaching your desk.',
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('one area reads as a single-item sentence', (tester) async {
+      when(() => authBloc.state).thenReturn(
+        SignInSuccess(
+          session: PendingVerificationSession(
+            doctor: _doctor(
+              isPathologist: true,
+              specialties: const ['Histopathology'],
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Cases in histopathology start reaching your desk.'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('three areas join with commas and and', (tester) async {
+      when(() => authBloc.state).thenReturn(
+        SignInSuccess(
+          session: PendingVerificationSession(
+            doctor: _doctor(
+              isPathologist: true,
+              specialties: const ['Histopathology', 'Cytology', 'Haematology'],
+            ),
+          ),
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text(
+          'Cases in histopathology, cytology and haematology start '
+          'reaching your desk.',
         ),
         findsOneWidget,
       );

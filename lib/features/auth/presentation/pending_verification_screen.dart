@@ -109,6 +109,20 @@ class PendingVerificationScreen extends StatelessWidget {
                             const SessionRequested(forceRefresh: true),
                           ),
                   ),
+                  // The reviewer wires these; the order matches the design,
+                  // with check-again and sign-out around it.
+                  const SizedBox(height: AppSpacing.sm),
+                  TabibuButton.secondary(
+                    label: l10n.pendingExplore,
+                    onTap: () {},
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TabibuButton.ghost(
+                    label: l10n.pendingContactSupport,
+                    onTap: () {},
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  TabibuButton.ghost(label: l10n.profileSignOut, onTap: () {}),
                 ],
               ),
             ),

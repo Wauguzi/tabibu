@@ -77,6 +77,12 @@ class VerifiedScreen extends StatelessWidget {
                     : l10n.verifiedDoctorButton,
                 onTap: () => goToSession(context, session),
               ),
+              // The reviewer wires this.
+              const SizedBox(height: AppSpacing.sm),
+              TabibuButton.ghost(
+                label: l10n.verifiedFinishProfile,
+                onTap: () {},
+              ),
             ],
           ),
         ),
