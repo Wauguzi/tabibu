@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/file_picker_service.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
@@ -85,20 +86,26 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('empty names show their message', (tester) async {
+    testWidgets('an empty first name shows the message under it, once', (
+      tester,
+    ) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      expect(
-        find.text('The name is not valid. Check it and try again.'),
-        findsWidgets,
-      );
+      expect(find.text('Enter your name'), findsOneWidget);
+      expect(find.byType(NoticeCard), findsNothing);
+
+      await tester.enterText(find.byType(TextField).at(0), 'Amina');
+      await tester.pumpAndSettle();
+      expect(find.text('Enter your name'), findsNothing);
     });
 
-    testWidgets('a missing sex shows its message', (tester) async {
+    testWidgets('a missing sex shows its message under the cards', (
+      tester,
+    ) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
       await fillNames(tester);
@@ -106,10 +113,26 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      expect(find.text('The sex selected is not valid.'), findsOneWidget);
+      expect(find.text('Choose one'), findsOneWidget);
+      expect(find.byType(NoticeCard), findsNothing);
     });
 
-    testWidgets('a missing birth date shows its message', (tester) async {
+    testWidgets('typing a name keeps the sex message', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await fillNames(tester);
+      await tester.tap(find.text('Continue'));
+      await tester.pumpAndSettle();
+
+      await tester.enterText(find.byType(TextField).at(0), 'Aminah');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Choose one'), findsOneWidget);
+    });
+
+    testWidgets('a missing birth date shows its message under the picker', (
+      tester,
+    ) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
       await fillNames(tester);
@@ -121,7 +144,8 @@ void main() {
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
-      expect(find.text('The date of birth is not valid.'), findsOneWidget);
+      expect(find.text('Enter your date of birth'), findsOneWidget);
+      expect(find.byType(NoticeCard), findsNothing);
     });
 
     testWidgets('complete details go to D2', (tester) async {

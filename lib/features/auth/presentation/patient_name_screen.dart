@@ -14,6 +14,7 @@ import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
+import 'package:tabibu/features/auth/presentation/widgets/field_errors.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/photo_row.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
@@ -77,7 +78,12 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
       firstDate: DateTime(now.year - 120),
       lastDate: now,
     );
-    if (picked != null) setState(() => _birthDate = picked);
+    if (picked != null) {
+      setState(() {
+        _birthDate = picked;
+        _error = errorAfterChange(_error, .dateOfBirth);
+      });
+    }
   }
 
   void _continue() {
@@ -121,6 +127,9 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final birthDate = _birthDate;
+    final error = _error;
+    final firstEmpty = _firstNameController.text.trim().isEmpty;
+    final lastEmpty = _lastNameController.text.trim().isEmpty;
 
     return StepScaffold(
       step: 1,
@@ -129,7 +138,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
       onBack: () => Navigator.of(context).pop(),
       title: l10n.patientNameTitle,
       subtitle: l10n.patientNameSubtitle,
-      error: _error,
+      error: error != null && fieldFor(error) == null ? error : null,
       role: Role.patient,
       footer: TabibuButton.primary(
         label: l10n.commonContinue,
@@ -150,15 +159,14 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
             label: l10n.firstNameLabel,
             controller: _firstNameController,
             leading: FieldIcon(Assets.icons.personIcon),
-            errorText:
-                _error == AppError.invalidName &&
-                    _firstNameController.text.trim().isEmpty
-                ? _error!.description(l10n)
+            errorText: _error == .invalidName && firstEmpty
+                ? fieldErrorText(_error!, l10n)
                 : null,
             required: true,
             textInputAction: TextInputAction.next,
             autofillHints: const [AutofillHints.givenName],
-            onChanged: (_) => setState(() => _error = null),
+            onChanged: (_) =>
+                setState(() => _error = errorAfterChange(_error, .name)),
           ),
           const SizedBox(height: AppSpacing.md),
           TabibuTextField(
@@ -173,23 +181,25 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
             label: l10n.lastNameLabel,
             controller: _lastNameController,
             leading: FieldIcon(Assets.icons.personIcon),
-            errorText:
-                _error == AppError.invalidName &&
-                    _lastNameController.text.trim().isEmpty
-                ? _error!.description(l10n)
+            errorText: _error == .invalidName && !firstEmpty && lastEmpty
+                ? fieldErrorText(_error!, l10n)
                 : null,
             required: true,
             textInputAction: TextInputAction.done,
             autofillHints: const [AutofillHints.familyName],
-            onChanged: (_) => setState(() => _error = null),
+            onChanged: (_) =>
+                setState(() => _error = errorAfterChange(_error, .name)),
           ),
           const SizedBox(height: AppSpacing.md),
           _SexPicker(
             label: l10n.sexLabel,
             value: _sex,
+            errorText: _error == .invalidSex
+                ? fieldErrorText(_error!, l10n)
+                : null,
             onChanged: (sex) => setState(() {
               _sex = sex;
-              _error = null;
+              _error = errorAfterChange(_error, .sex);
             }),
           ),
           const SizedBox(height: AppSpacing.md),
@@ -204,6 +214,9 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
                     Localizations.localeOf(context).languageCode,
                   ).format(birthDate),
             leading: Assets.icons.calendarIcon,
+            errorText: _error == .invalidDateOfBirth
+                ? fieldErrorText(_error!, l10n)
+                : null,
             onTap: _pickBirthDate,
           ),
         ],
@@ -218,16 +231,19 @@ class _SexPicker extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.errorText,
   });
 
   final String label;
   final Sex? value;
   final ValueChanged<Sex> onChanged;
+  final String? errorText;
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
+    final errorText = this.errorText;
     return Column(
       crossAxisAlignment: .start,
       mainAxisSize: .min,
@@ -259,6 +275,14 @@ class _SexPicker extends StatelessWidget {
             ],
           ],
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            errorText,
+            style: textTheme.bodySmall?.copyWith(color: scheme.error),
+            maxLines: 3,
+          ),
+        ],
       ],
     );
   }
