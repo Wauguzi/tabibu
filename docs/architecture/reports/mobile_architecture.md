@@ -518,9 +518,14 @@ for it), so going back keeps what was entered. `AuthBloc` submits it. The
 draft is cleared after sign-up or sign-out, so photos and licence scans
 leave memory.
 
-**Role shells.** Each role home becomes its own `StatefulShellRoute` when
-its tabs are designed; until then it is a single guarded route. Routes whose
-screen is not built yet render `RoutePlaceholder`.
+**Role shells.** Each role home is a `StatefulShellRoute` of four tabs
+under its home path (`/patient`, `/doctor`, `/pathologist`), so the guard's
+role check covers every tab. Patients have Home, Appointments, Results and
+Profile; doctors Today, Cases, MDT and Profile; pathologists Desk, Signed,
+MDT and Profile. `HomeShell` draws the floating menu over the tabs, keeps
+each tab's state while another shows, and sends back from another tab to
+the first before it leaves the app. Profile signs out through `AuthBloc`
+after a confirmation sheet; the guard then moves the person to sign-in.
 
 Page transitions use `CupertinoPageTransitionsBuilder` on every platform.
 

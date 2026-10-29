@@ -1619,5 +1619,245 @@
     "verifyEmailBackToSignIn": "Back to sign in",
     "@verifyEmailBackToSignIn": {
         "description": "Verify-email: sign out and return to sign-in"
+    },
+    "tabHome": "Home",
+    "@tabHome": {
+        "description": "Patient tab: home"
+    },
+    "tabAppointments": "Appointments",
+    "@tabAppointments": {
+        "description": "Patient tab: appointments"
+    },
+    "tabResults": "Results",
+    "@tabResults": {
+        "description": "Patient tab: results"
+    },
+    "tabToday": "Today",
+    "@tabToday": {
+        "description": "Doctor tab: today"
+    },
+    "tabCases": "Cases",
+    "@tabCases": {
+        "description": "Doctor tab: cases"
+    },
+    "tabDesk": "Desk",
+    "@tabDesk": {
+        "description": "Pathologist tab: the case desk"
+    },
+    "tabSigned": "Signed",
+    "@tabSigned": {
+        "description": "Pathologist tab: signed reports"
+    },
+    "tabMdt": "MDT",
+    "@tabMdt": {
+        "description": "Doctor and pathologist tab: multidisciplinary team consults"
+    },
+    "tabProfile": "Profile",
+    "@tabProfile": {
+        "description": "Every role's profile tab"
+    },
+    "homeGreeting": "Habari, {name}",
+    "@homeGreeting": {
+        "description": "Home header greeting; name is a first name, or a title and last name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "homeSubtitlePatient": "{place} · {date}",
+    "@homeSubtitlePatient": {
+        "description": "Patient home header: the area, then today's date",
+        "placeholders": {
+            "place": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "homeSubtitlePractitioner": "{date} · {place}",
+    "@homeSubtitlePractitioner": {
+        "description": "Practitioner home header: today's date, then the facility",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "place": {
+                "type": "String"
+            }
+        }
+    },
+    "appointmentsTitle": "Your appointments",
+    "@appointmentsTitle": {
+        "description": "Patient appointments tab title"
+    },
+    "resultsTitle": "Your results",
+    "@resultsTitle": {
+        "description": "Patient results tab title"
+    },
+    "casesTitle": "Cases",
+    "@casesTitle": {
+        "description": "Doctor cases tab title"
+    },
+    "mdtTitle": "MDT consults",
+    "@mdtTitle": {
+        "description": "MDT tab title"
+    },
+    "signedTitle": "Signed",
+    "@signedTitle": {
+        "description": "Pathologist signed-reports tab title"
+    },
+    "profileTitlePatient": "Your profile",
+    "@profileTitlePatient": {
+        "description": "Patient profile tab title"
+    },
+    "profileTitleDoctor": "My profile",
+    "@profileTitleDoctor": {
+        "description": "Doctor profile tab title"
+    },
+    "profileTitlePathologist": "Me",
+    "@profileTitlePathologist": {
+        "description": "Pathologist profile tab title"
+    },
+    "profileEdit": "Edit profile",
+    "@profileEdit": {
+        "description": "Profile card: edit button label"
+    },
+    "profileRoleAtFacility": "{role} · {facility}",
+    "@profileRoleAtFacility": {
+        "description": "Practitioner card: specialty or role, then the facility",
+        "placeholders": {
+            "role": {
+                "type": "String"
+            },
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "profilePathologist": "Pathologist",
+    "@profilePathologist": {
+        "description": "Practitioner card: the pathologist role"
+    },
+    "profileKmpdcVerified": "KMPDC verified · {number}",
+    "@profileKmpdcVerified": {
+        "description": "Practitioner card: verified badge with the KMPDC number",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "profileAlertApprover": "You can approve area alerts for {county}.",
+    "@profileAlertApprover": {
+        "description": "Doctor profile: notice for alert approvers",
+        "placeholders": {
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "profileAreas": "Areas you report on",
+    "@profileAreas": {
+        "description": "Pathologist profile: areas heading"
+    },
+    "profileSectionPreferences": "Preferences",
+    "@profileSectionPreferences": {
+        "description": "Patient profile section"
+    },
+    "profileSectionPractice": "Practice and preferences",
+    "@profileSectionPractice": {
+        "description": "Practitioner profile section"
+    },
+    "profileSectionAlerts": "Alerts and security",
+    "@profileSectionAlerts": {
+        "description": "Profile section"
+    },
+    "profileSectionHelp": "Help and account",
+    "@profileSectionHelp": {
+        "description": "Profile section"
+    },
+    "profileLanguage": "Language",
+    "@profileLanguage": {
+        "description": "Profile row"
+    },
+    "profileMyArea": "My area",
+    "@profileMyArea": {
+        "description": "Patient profile row"
+    },
+    "profileTheme": "Theme",
+    "@profileTheme": {
+        "description": "Profile row"
+    },
+    "profileThemeSupporting": "Light, dark or device theme",
+    "@profileThemeSupporting": {
+        "description": "Profile row: theme supporting text"
+    },
+    "profileFacility": "Facility",
+    "@profileFacility": {
+        "description": "Doctor profile row"
+    },
+    "profileLab": "Lab",
+    "@profileLab": {
+        "description": "Pathologist profile row"
+    },
+    "profileClinicHours": "Clinic hours",
+    "@profileClinicHours": {
+        "description": "Doctor profile row"
+    },
+    "profileAcceptCases": "Accept new cases",
+    "@profileAcceptCases": {
+        "description": "Pathologist profile toggle"
+    },
+    "profileNotifications": "Notifications",
+    "@profileNotifications": {
+        "description": "Profile row; also the home header bell"
+    },
+    "profileBiometrics": "Biometrics",
+    "@profileBiometrics": {
+        "description": "Profile toggle: sign in with face or fingerprint"
+    },
+    "profileHealthNotices": "Health notices for my area",
+    "@profileHealthNotices": {
+        "description": "Profile toggle"
+    },
+    "profilePrivacy": "Privacy and data",
+    "@profilePrivacy": {
+        "description": "Profile row"
+    },
+    "profileHelp": "Help and support",
+    "@profileHelp": {
+        "description": "Profile row"
+    },
+    "profileSignOut": "Sign out",
+    "@profileSignOut": {
+        "description": "Profile row and the sign-out sheet's button"
+    },
+    "profileDeleteAccount": "Delete account",
+    "@profileDeleteAccount": {
+        "description": "Profile row"
+    },
+    "profileVersion": "v{version}",
+    "@profileVersion": {
+        "description": "Profile: the app version",
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
+    "signOutTitle": "Sign out of Tabibu?",
+    "@signOutTitle": {
+        "description": "Sign-out sheet title"
+    },
+    "signOutPatientBody": "Your appointments and results stay safe. Sign back in any time with your email or Google.",
+    "@signOutPatientBody": {
+        "description": "Sign-out sheet body for patients"
+    },
+    "signOutPractitionerBody": "Your cases and reports stay safe. Sign back in any time with your email or Google.",
+    "@signOutPractitionerBody": {
+        "description": "Sign-out sheet body for doctors and pathologists"
     }
 }

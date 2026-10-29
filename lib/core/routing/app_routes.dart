@@ -1,7 +1,6 @@
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/routing/landing.dart';
-import 'package:tabibu/core/routing/route_placeholder.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/presentation/clinic_record_screen.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
@@ -21,15 +20,19 @@ import 'package:tabibu/features/auth/presentation/role_screen.dart';
 import 'package:tabibu/features/auth/presentation/sign_in_screen.dart';
 import 'package:tabibu/features/auth/presentation/verified_screen.dart';
 import 'package:tabibu/features/auth/presentation/verify_email_screen.dart';
+import 'package:tabibu/features/home/presentation/home_shell.dart';
+import 'package:tabibu/features/home/presentation/home_tab_screen.dart';
+import 'package:tabibu/features/home/presentation/title_tab_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/get_started_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/intro_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/language_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/update_required_screen.dart';
+import 'package:tabibu/features/profile/presentation/profile_screen.dart';
+import 'package:tabibu/l10n/l10n.dart';
 
 part 'app_routes.g.dart';
 
-// Screen ids follow the designs (A1 to F5). A route whose screen is not
-// built yet renders a RoutePlaceholder.
+// Screen ids follow the designs (A1 to F5).
 
 /// The route for each [Landing], shared by the decision route and every
 /// screen that finishes a sign-in or sign-up step.
@@ -289,32 +292,219 @@ class VerifiedRoute extends GoRouteData with $VerifiedRoute {
 }
 
 // ── Role homes ─────────────────────────────────────────────────────────────
-// Guarded by role claim. Each becomes its role's StatefulShellRoute when its
-// tabs are designed (architecture §8).
+// Guarded by role claim. Each role is a StatefulShellRoute of four tabs under
+// its home path (architecture §8); a tab keeps its state while another shows.
 
-@TypedGoRoute<PatientHomeRoute>(path: RoutePaths.patient)
+/// The branch data every role tab shares; a branch carries nothing of its own.
+class RoleTabBranch extends StatefulShellBranchData {
+  const RoleTabBranch();
+}
+
+@TypedStatefulShellRoute<PatientShellRoute>(
+  branches: [
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [TypedGoRoute<PatientHomeRoute>(path: RoutePaths.patient)],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<PatientAppointmentsRoute>(
+          path: '${RoutePaths.patient}/appointments',
+        ),
+      ],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<PatientResultsRoute>(
+          path: '${RoutePaths.patient}/results',
+        ),
+      ],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<PatientProfileRoute>(
+          path: '${RoutePaths.patient}/profile',
+        ),
+      ],
+    ),
+  ],
+)
+class PatientShellRoute extends StatefulShellRouteData {
+  const PatientShellRoute();
+
+  @override
+  Widget builder(
+    BuildContext context,
+    GoRouterState state,
+    StatefulNavigationShell navigationShell,
+  ) => HomeShell(role: .patient, navigationShell: navigationShell);
+}
+
 class PatientHomeRoute extends GoRouteData with $PatientHomeRoute {
   const PatientHomeRoute();
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'Patient home');
+      const HomeTabScreen(role: .patient);
 }
 
-@TypedGoRoute<DoctorHomeRoute>(path: RoutePaths.doctor)
+class PatientAppointmentsRoute extends GoRouteData
+    with $PatientAppointmentsRoute {
+  const PatientAppointmentsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TitleTabScreen(role: .patient, title: context.l10n.appointmentsTitle);
+}
+
+class PatientResultsRoute extends GoRouteData with $PatientResultsRoute {
+  const PatientResultsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TitleTabScreen(role: .patient, title: context.l10n.resultsTitle);
+}
+
+class PatientProfileRoute extends GoRouteData with $PatientProfileRoute {
+  const PatientProfileRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ProfileScreen(role: .patient);
+}
+
+@TypedStatefulShellRoute<DoctorShellRoute>(
+  branches: [
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [TypedGoRoute<DoctorHomeRoute>(path: RoutePaths.doctor)],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<DoctorCasesRoute>(path: '${RoutePaths.doctor}/cases'),
+      ],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [TypedGoRoute<DoctorMdtRoute>(path: '${RoutePaths.doctor}/mdt')],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<DoctorProfileRoute>(path: '${RoutePaths.doctor}/profile'),
+      ],
+    ),
+  ],
+)
+class DoctorShellRoute extends StatefulShellRouteData {
+  const DoctorShellRoute();
+
+  @override
+  Widget builder(
+    BuildContext context,
+    GoRouterState state,
+    StatefulNavigationShell navigationShell,
+  ) => HomeShell(role: .doctor, navigationShell: navigationShell);
+}
+
 class DoctorHomeRoute extends GoRouteData with $DoctorHomeRoute {
   const DoctorHomeRoute();
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'Doctor home');
+      const HomeTabScreen(role: .doctor);
 }
 
-@TypedGoRoute<PathologistHomeRoute>(path: RoutePaths.pathologist)
+class DoctorCasesRoute extends GoRouteData with $DoctorCasesRoute {
+  const DoctorCasesRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TitleTabScreen(role: .doctor, title: context.l10n.casesTitle);
+}
+
+class DoctorMdtRoute extends GoRouteData with $DoctorMdtRoute {
+  const DoctorMdtRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TitleTabScreen(role: .doctor, title: context.l10n.mdtTitle);
+}
+
+class DoctorProfileRoute extends GoRouteData with $DoctorProfileRoute {
+  const DoctorProfileRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ProfileScreen(role: .doctor);
+}
+
+@TypedStatefulShellRoute<PathologistShellRoute>(
+  branches: [
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<PathologistHomeRoute>(path: RoutePaths.pathologist),
+      ],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<PathologistSignedRoute>(
+          path: '${RoutePaths.pathologist}/signed',
+        ),
+      ],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<PathologistMdtRoute>(
+          path: '${RoutePaths.pathologist}/mdt',
+        ),
+      ],
+    ),
+    TypedStatefulShellBranch<RoleTabBranch>(
+      routes: [
+        TypedGoRoute<PathologistProfileRoute>(
+          path: '${RoutePaths.pathologist}/profile',
+        ),
+      ],
+    ),
+  ],
+)
+class PathologistShellRoute extends StatefulShellRouteData {
+  const PathologistShellRoute();
+
+  @override
+  Widget builder(
+    BuildContext context,
+    GoRouterState state,
+    StatefulNavigationShell navigationShell,
+  ) => HomeShell(role: .pathologist, navigationShell: navigationShell);
+}
+
 class PathologistHomeRoute extends GoRouteData with $PathologistHomeRoute {
   const PathologistHomeRoute();
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const RoutePlaceholder(name: 'Pathologist home');
+      const HomeTabScreen(role: .pathologist);
+}
+
+class PathologistSignedRoute extends GoRouteData with $PathologistSignedRoute {
+  const PathologistSignedRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TitleTabScreen(role: .pathologist, title: context.l10n.signedTitle);
+}
+
+class PathologistMdtRoute extends GoRouteData with $PathologistMdtRoute {
+  const PathologistMdtRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TitleTabScreen(role: .pathologist, title: context.l10n.mdtTitle);
+}
+
+class PathologistProfileRoute extends GoRouteData
+    with $PathologistProfileRoute {
+  const PathologistProfileRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ProfileScreen(role: .pathologist);
 }
