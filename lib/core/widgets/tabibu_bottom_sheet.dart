@@ -73,8 +73,7 @@ class TabibuBottomSheet extends StatelessWidget {
             controller: scrollController,
             padding: EdgeInsets.fromLTRB(
               AppSpacing.screenMargin,
-              // The native handle floats over this space; the old custom
-              // handle block cleared the same 32.
+              // The native handle floats over this space.
               AppSpacing.xxlg,
               AppSpacing.screenMargin,
               AppSpacing.screenMargin + MediaQuery.viewInsetsOf(context).bottom,

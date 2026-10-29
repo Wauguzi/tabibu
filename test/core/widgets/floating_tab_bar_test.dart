@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -70,6 +71,35 @@ void main() {
       await tester.tap(find.text('Home'));
 
       expect(taps, [2, 0]);
+    });
+
+    testWidgets('activates with Enter and Space from the keyboard', (
+      tester,
+    ) async {
+      final taps = <int>[];
+      await tester.pumpApp(
+        Align(
+          alignment: .bottomCenter,
+          child: FloatingTabBar(
+            tabs: [FloatingTab(icon: Assets.icons.homeIcon, label: 'Home')],
+            currentIndex: 0,
+            onSelected: taps.add,
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(taps, isEmpty);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(taps, [0]);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      expect(taps, [0, 0]);
     });
 
     testWidgets('renders in dark mode', (tester) async {

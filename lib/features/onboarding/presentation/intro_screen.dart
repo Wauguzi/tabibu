@@ -129,7 +129,6 @@ class _IntroScreenState extends State<IntroScreen> {
                       const SizedBox(height: AppSpacing.xs),
                       TabibuButton.ghost(
                         label: isLast ? l10n.commonBack : l10n.commonSkip,
-                        foregroundColor: Theme.of(context).colorScheme.primary,
                         onTap: busy
                             ? null
                             : () {

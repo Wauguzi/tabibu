@@ -208,28 +208,43 @@ class _PhotoRowState extends State<PhotoRow> {
             Semantics(
               button: true,
               onTap: _sheet,
-              child: Material(
-                color: scheme.surfaceContainerLowest,
-                borderRadius: BorderRadius.circular(AppRadii.pill),
-                child: GestureDetector(
-                  onTap: _sheet,
-                  behavior: .opaque,
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.sm,
-                      vertical: AppSpacing.xs,
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        AssetIcon(Assets.icons.photoIcon, size: 20),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Text(
-                          picture == null ? l10n.photoAdd : l10n.photoChange,
-                          style: textTheme.titleSmall,
+              child: GestureDetector(
+                onTap: _sheet,
+                behavior: .opaque,
+                // The 48 dp floor wraps the hit area; the drawn pill keeps
+                // its size, centered in the row's height.
+                child: ConstrainedBox(
+                  constraints: const BoxConstraints(
+                    minWidth: 48,
+                    minHeight: 48,
+                  ),
+                  child: Column(
+                    mainAxisAlignment: .center,
+                    children: [
+                      Material(
+                        color: scheme.surfaceContainerLowest,
+                        borderRadius: BorderRadius.circular(AppRadii.pill),
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: AppSpacing.sm,
+                            vertical: AppSpacing.xs,
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              AssetIcon(Assets.icons.photoIcon, size: 20),
+                              const SizedBox(width: AppSpacing.xxs),
+                              Text(
+                                picture == null
+                                    ? l10n.photoAdd
+                                    : l10n.photoChange,
+                                style: textTheme.titleSmall,
+                              ),
+                            ],
+                          ),
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),

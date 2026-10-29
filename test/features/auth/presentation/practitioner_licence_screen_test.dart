@@ -7,6 +7,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
+import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/file_picker_service.dart';
@@ -303,6 +305,28 @@ void main() {
       expect(find.text('Histopathology'), findsNothing);
     });
 
+    testWidgets('the area remove button meets the tap target floor', (
+      tester,
+    ) async {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Choose your areas'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Histopathology'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done · 1 selected'));
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Histopathology'));
+      await tester.pumpAndSettle();
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    });
+
     testWidgets('the sheet allows all five areas', (tester) async {
       when(() => signUpBloc.state).thenReturn(
         const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
@@ -337,6 +361,43 @@ void main() {
       ]) {
         expect(find.text(area), findsOneWidget);
       }
+    });
+
+    testWidgets('areas and the add button fill with theme roles', (
+      tester,
+    ) async {
+      when(() => signUpBloc.state).thenReturn(
+        const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final addButtons = tester
+          .widgetList<Material>(find.byType(Material))
+          .where(
+            (m) =>
+                m.borderRadius == BorderRadius.circular(AppRadii.card) &&
+                m.color == AppColors.mintLight,
+          );
+      expect(addButtons, hasLength(1));
+
+      await tester.tap(find.text('Choose your areas'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Histopathology'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Done · 1 selected'));
+      await tester.pumpAndSettle();
+
+      final chips = tester.widgetList<Container>(find.byType(Container)).where((
+        c,
+      ) {
+        final decoration = c.decoration;
+        return decoration is BoxDecoration &&
+            decoration.borderRadius == BorderRadius.circular(AppRadii.pill) &&
+            decoration.color == AppColors.lavenderLight;
+      });
+      expect(chips, hasLength(1));
     });
 
     testWidgets("the document sheet shows the pathologist's subtitle", (

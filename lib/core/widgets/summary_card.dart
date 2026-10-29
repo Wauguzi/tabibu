@@ -27,10 +27,14 @@ class SummaryCard extends StatelessWidget {
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final textTheme = Theme.of(context).textTheme;
 
+    final isDark = scheme.brightness == .dark;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLowest,
+        // Raised in dark by a lighter tone, not a light shadow.
+        color: isDark
+            ? scheme.surfaceContainerHigh
+            : scheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppRadii.card),
         boxShadow: AppShadows.card(),
       ),

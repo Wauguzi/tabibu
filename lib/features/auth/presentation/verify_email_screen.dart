@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
@@ -133,7 +134,9 @@ class _VerifyEmailScreenState extends State<VerifyEmailScreen> {
                               height: 120,
                               decoration: BoxDecoration(
                                 color: scheme.surfaceContainerLowest,
-                                borderRadius: BorderRadius.circular(28),
+                                borderRadius: BorderRadius.circular(
+                                  AppRadii.tile,
+                                ),
                                 boxShadow: AppShadows.card(),
                               ),
                               child: Center(
@@ -226,17 +229,29 @@ class _ResendLink extends StatelessWidget {
       child: GestureDetector(
         behavior: .opaque,
         onTap: onTap,
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
-          child: Opacity(
-            opacity: enabled ? 1 : 0.6,
-            child: Text(
-              label,
-              style: style?.copyWith(
-                decoration: enabled ? .underline : null,
-                color: DefaultTextStyle.of(context).style.color,
+        // The 48 dp floor wraps the hit area; the drawn link keeps its
+        // size, centered in the taller row.
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(minHeight: 48),
+          child: Row(
+            mainAxisSize: .min,
+            children: [
+              Flexible(
+                child: Padding(
+                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+                  child: Opacity(
+                    opacity: enabled ? 1 : 0.6,
+                    child: Text(
+                      label,
+                      style: style?.copyWith(
+                        decoration: enabled ? .underline : null,
+                        color: DefaultTextStyle.of(context).style.color,
+                      ),
+                    ),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

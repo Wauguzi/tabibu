@@ -125,5 +125,32 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('raises by tone in dark mode', (tester) async {
+      await tester.pumpApp(
+        VerificationTimeline(
+          title: 'Your verification',
+          progressLabel: 'Step 2 of 4',
+          steps: [_steps[0]],
+        ),
+        themeMode: ThemeMode.dark,
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(VerificationTimeline));
+      final scheme = Theme.of(context).colorScheme;
+      final card = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(VerificationTimeline),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(
+        (card.decoration! as BoxDecoration).color,
+        scheme.surfaceContainerHigh,
+      );
+    });
   });
 }

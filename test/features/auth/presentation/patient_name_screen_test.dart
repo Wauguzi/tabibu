@@ -9,6 +9,8 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
+import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
@@ -304,6 +306,31 @@ void main() {
                 rect.bottom >= female.center.dy,
           );
       expect(between, hasLength(1));
+    });
+
+    testWidgets('a selected sex card fills with the brand mint', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      List<Material> selectedCards() => tester
+          .widgetList<Material>(find.byType(Material))
+          .where(
+            (m) =>
+                m.borderRadius == BorderRadius.circular(AppRadii.card) &&
+                m.color == AppColors.mintLight,
+          )
+          .toList();
+
+      expect(selectedCards(), isEmpty);
+
+      await tester.ensureVisible(find.text('Female'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Female'));
+      await tester.pumpAndSettle();
+
+      expect(selectedCards(), hasLength(1));
     });
 
     testWidgets('opening the picker commits the date it opens on', (

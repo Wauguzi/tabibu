@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
@@ -58,28 +59,56 @@ void main() {
       );
     });
 
-    testWidgets('meets the 48dp default and the 36dp compact', (tester) async {
+    testWidgets('meets the 48dp floor', (tester) async {
       await tester.pumpApp(
-        Row(
-          children: [
-            CircleIconButton(
-              icon: Assets.icons.backIcon,
-              onTap: () {},
-              semanticLabel: 'Back',
-            ),
-            CircleIconButton(
-              icon: Assets.icons.backIcon,
-              onTap: () {},
-              semanticLabel: 'Back',
-              diameter: 36,
-            ),
-          ],
+        CircleIconButton(
+          icon: Assets.icons.backIcon,
+          onTap: () {},
+          semanticLabel: 'Back',
         ),
       );
+      await tester.pumpAndSettle();
 
-      final buttons = find.byType(CircleIconButton);
-      expect(tester.getSize(buttons.at(0)), const Size(48, 48));
-      expect(tester.getSize(buttons.at(1)), const Size(36, 36));
+      expect(tester.getSize(find.byType(CircleIconButton)), const Size(48, 48));
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    });
+
+    testWidgets('activates with Enter and Space from the keyboard', (
+      tester,
+    ) async {
+      var taps = 0;
+      await tester.pumpApp(
+        CircleIconButton(
+          icon: Assets.icons.backIcon,
+          onTap: () => taps++,
+          semanticLabel: 'Back',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(taps, 0);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(taps, 1);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      expect(taps, 2);
+    });
+
+    test('a smaller diameter fails', () {
+      expect(
+        () => CircleIconButton(
+          icon: Assets.icons.backIcon,
+          onTap: () {},
+          semanticLabel: 'Back',
+          diameter: 47,
+        ),
+        throwsAssertionError,
+      );
     });
 
     testWidgets('sinks onto cards and fills for the primary', (tester) async {

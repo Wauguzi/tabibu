@@ -75,5 +75,33 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('raises by tone in dark mode', (tester) async {
+      await tester.pumpApp(
+        SummaryCard(
+          title: 'You',
+          rows: const [('Name', 'Dr. Wanjiru Kamau')],
+          editLabel: 'Edit',
+          onEdit: () {},
+        ),
+        themeMode: ThemeMode.dark,
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(SummaryCard));
+      final scheme = Theme.of(context).colorScheme;
+      final card = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(SummaryCard),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(
+        (card.decoration! as BoxDecoration).color,
+        scheme.surfaceContainerHigh,
+      );
+    });
   });
 }

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
@@ -15,6 +16,7 @@ class SettingsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final isDark = scheme.brightness == .dark;
     return Column(
       crossAxisAlignment: .stretch,
       children: [
@@ -30,7 +32,10 @@ class SettingsGroup extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         DecoratedBox(
           decoration: BoxDecoration(
-            color: scheme.surfaceContainerLowest,
+            // Raised in dark by a lighter tone, not a light shadow.
+            color: isDark
+                ? scheme.surfaceContainerHigh
+                : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.card),
             boxShadow: AppShadows.card(),
           ),
@@ -78,20 +83,33 @@ class SettingsRow extends StatelessWidget {
       button: true,
       enabled: onTap != null,
       onTap: onTap,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: .opaque,
-        child: _RowLayout(
-          icon: icon,
-          tone: destructive ? .danger : .neutral,
-          title: title,
-          titleColor: destructive ? scheme.error : null,
-          supporting: supporting,
-          trailing: AssetIcon(
-            Assets.icons.forwardIcon,
-            size: 18,
-            scaleUp: false,
-            color: scheme.onSurfaceVariant,
+      // Tab focus with Enter and Space on the same tap.
+      child: FocusableActionDetector(
+        enabled: onTap != null,
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) => onTap?.call(),
+          ),
+        },
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: .opaque,
+          child: _RowLayout(
+            icon: icon,
+            tone: destructive ? .danger : .neutral,
+            title: title,
+            titleColor: destructive ? scheme.error : null,
+            supporting: supporting,
+            trailing: AssetIcon(
+              Assets.icons.forwardIcon,
+              size: 18,
+              scaleUp: false,
+              color: scheme.onSurfaceVariant,
+            ),
           ),
         ),
       ),
@@ -123,19 +141,32 @@ class SettingsSwitchRow extends StatelessWidget {
         toggled: value,
         enabled: onChanged != null,
         onTap: onChanged == null ? null : toggle,
-        child: GestureDetector(
-          onTap: onChanged == null ? null : toggle,
-          behavior: .opaque,
-          child: _RowLayout(
-            icon: icon,
-            tone: .neutral,
-            title: title,
-            trailing: ExcludeSemantics(
-              // The row is the target, so the switch keeps its drawn size.
-              child: Switch(
-                value: value,
-                onChanged: onChanged,
-                materialTapTargetSize: .shrinkWrap,
+        // Tab focus with Enter and Space on the same tap.
+        child: FocusableActionDetector(
+          enabled: onChanged != null,
+          shortcuts: const {
+            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+          },
+          actions: {
+            ActivateIntent: CallbackAction<ActivateIntent>(
+              onInvoke: (_) => toggle(),
+            ),
+          },
+          child: GestureDetector(
+            onTap: onChanged == null ? null : toggle,
+            behavior: .opaque,
+            child: _RowLayout(
+              icon: icon,
+              tone: .neutral,
+              title: title,
+              trailing: ExcludeSemantics(
+                // The row is the target, so the switch keeps its drawn size.
+                child: Switch(
+                  value: value,
+                  onChanged: onChanged,
+                  materialTapTargetSize: .shrinkWrap,
+                ),
               ),
             ),
           ),

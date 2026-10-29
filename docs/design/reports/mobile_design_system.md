@@ -141,9 +141,9 @@ padding 18 is one (§2.4).
 
 ### 2.4 Elevation, radius, shadow
 
-Sources of truth: `lib/core/constants/app_styles.dart`
-(`cardShadow({isDark})`, `cardRadius`, `cardPadding`, `sheetRadius`) and
-`app_radii.dart`:
+Sources of truth: `lib/core/constants/app_radii.dart` for radii,
+`AppShadows` in `app_shadows.dart` for shadows (`AppStyles` keeps
+`cardPadding` and the `numericLarge` text style):
 
 | Token | Value |
 |---|---|

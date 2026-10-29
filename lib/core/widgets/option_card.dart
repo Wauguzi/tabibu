@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
@@ -57,9 +58,18 @@ class OptionCard extends StatelessWidget {
         enabled: onTap != null,
         inMutuallyExclusiveGroup: !markLeading,
         onTap: onTap,
-        // The InkWell's focus, kept: it merges into the card's node.
-        child: Focus(
-          canRequestFocus: onTap != null,
+        // Tab focus with Enter and Space on the same tap.
+        child: FocusableActionDetector(
+          enabled: onTap != null,
+          shortcuts: const {
+            SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+            SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+          },
+          actions: {
+            ActivateIntent: CallbackAction<ActivateIntent>(
+              onInvoke: (_) => onTap?.call(),
+            ),
+          },
           child: Material(
             color: selected ? selectedFill : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.card),

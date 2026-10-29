@@ -92,6 +92,13 @@ void main() {
       expect(personIcon(), findsNothing);
     });
 
+    testWidgets('the pill meets the tap target floor', (tester) async {
+      await tester.pumpApp(row(name: 'Amina'));
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    });
+
     testWidgets('a pending pick reports reading with avatar progress', (
       tester,
     ) async {

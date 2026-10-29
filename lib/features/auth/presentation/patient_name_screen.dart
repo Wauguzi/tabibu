@@ -99,8 +99,8 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
         decoration: BoxDecoration(
           color: surface,
           borderRadius: const BorderRadius.only(
-            topLeft: Radius.circular(30),
-            topRight: Radius.circular(30),
+            topLeft: Radius.circular(AppRadii.tile),
+            topRight: Radius.circular(AppRadii.tile),
           ),
         ),
         child: SafeArea(
@@ -357,12 +357,13 @@ class _SexCard extends StatelessWidget {
         button: true,
         selected: selected,
         onTap: onTap,
-        // The InkWell's focus, kept: it merges into the card's node.
+        // Focusable, so a keyboard reaches it; it merges into the card's node.
         child: Focus(
           canRequestFocus: true,
           child: Material(
+            // Selection is the brand mint, as in OptionCard (design system §6).
             color: selected
-                ? (scheme.brightness == Brightness.dark
+                ? (scheme.brightness == .dark
                       ? AppColors.mintDark
                       : AppColors.mintLight)
                 : scheme.surfaceContainerLowest,

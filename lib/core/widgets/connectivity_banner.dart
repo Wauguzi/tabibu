@@ -126,7 +126,7 @@ class _RetryPill extends StatelessWidget {
           onTap: onTap,
           behavior: .opaque,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 44, minWidth: 44),
+            constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
               child: Center(

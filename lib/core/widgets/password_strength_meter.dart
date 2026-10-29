@@ -42,10 +42,14 @@ class PasswordStrengthMeter extends StatelessWidget {
     final complete = filled == 4;
     final barColor = complete ? status.signedDot : scheme.primary;
 
+    final isDark = scheme.brightness == .dark;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLowest,
+        // Raised in dark by a lighter tone, not a light shadow.
+        color: isDark
+            ? scheme.surfaceContainerHigh
+            : scheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppRadii.card),
         boxShadow: AppShadows.card(),
       ),

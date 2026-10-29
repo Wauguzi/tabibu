@@ -38,7 +38,7 @@ class SettingToggleCard extends StatelessWidget {
         toggled: value,
         enabled: onChanged != null,
         onTap: onChanged == null ? null : toggle,
-        // The InkWell's focus, kept: it merges into the row's node.
+        // The focus merges into the row's node.
         child: Focus(
           canRequestFocus: onChanged != null,
           child: Material(

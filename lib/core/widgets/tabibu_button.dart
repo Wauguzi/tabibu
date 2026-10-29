@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
@@ -134,51 +135,65 @@ class _TabibuButtonState extends State<TabibuButton> {
             borderRadius: BorderRadius.circular(AppRadii.pill),
             elevation: variant == _ButtonVariant.outline ? 2 : 0,
             shadowColor: AppShadows.raisedColor,
-            child: GestureDetector(
-              onTap: onTap,
-              onTapDown: onTap == null ? null : (_) => _setPressed(true),
-              onTapUp: onTap == null ? null : (_) => _setPressed(false),
-              onTapCancel: () => _setPressed(false),
-              behavior: .opaque,
-              child: AnimatedOpacity(
-                duration: const Duration(milliseconds: 100),
-                opacity: _pressed && enabled ? 0.6 : 1,
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.xlg,
-                    vertical: AppSpacing.sm,
-                  ),
-                  child: Center(
-                    child: isLoading
-                        ? SizedBox(
-                            width: 24,
-                            height: 24,
-                            child: SpinKitCircle(color: foreground, size: 24),
-                          )
-                        : Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              if (icon != null) ...[
-                                IconTheme(
-                                  data: IconThemeData(
-                                    color: foreground,
-                                    size: 22,
+            // Tab focus with Enter and Space on the same tap; taps give
+            // no ripple anywhere.
+            child: FocusableActionDetector(
+              enabled: enabled,
+              shortcuts: const {
+                SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+                SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+              },
+              actions: {
+                ActivateIntent: CallbackAction<ActivateIntent>(
+                  onInvoke: (_) => onTap?.call(),
+                ),
+              },
+              child: GestureDetector(
+                onTap: onTap,
+                onTapDown: onTap == null ? null : (_) => _setPressed(true),
+                onTapUp: onTap == null ? null : (_) => _setPressed(false),
+                onTapCancel: () => _setPressed(false),
+                behavior: .opaque,
+                child: AnimatedOpacity(
+                  duration: const Duration(milliseconds: 100),
+                  opacity: _pressed && enabled ? 0.6 : 1,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: AppSpacing.xlg,
+                      vertical: AppSpacing.sm,
+                    ),
+                    child: Center(
+                      child: isLoading
+                          ? SizedBox(
+                              width: 24,
+                              height: 24,
+                              child: SpinKitCircle(color: foreground, size: 24),
+                            )
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                if (icon != null) ...[
+                                  IconTheme(
+                                    data: IconThemeData(
+                                      color: foreground,
+                                      size: 22,
+                                    ),
+                                    child: icon,
                                   ),
-                                  child: icon,
+                                  const SizedBox(width: AppSpacing.xs),
+                                ],
+                                Flexible(
+                                  child: Text(
+                                    label,
+                                    style: textTheme.labelLarge?.copyWith(
+                                      color: foreground,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
                                 ),
-                                const SizedBox(width: AppSpacing.xs),
                               ],
-                              Flexible(
-                                child: Text(
-                                  label,
-                                  style: textTheme.labelLarge?.copyWith(
-                                    color: foreground,
-                                  ),
-                                  textAlign: TextAlign.center,
-                                ),
-                              ),
-                            ],
-                          ),
+                            ),
+                    ),
                   ),
                 ),
               ),

@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
@@ -17,7 +18,7 @@ class CircleIconButton extends StatelessWidget {
     this.onCard = false,
     this.diameter = 48,
     super.key,
-  }) : assert(diameter >= 36, 'Compact actions stay usable.');
+  }) : assert(diameter >= 48, 'Tap targets are at least 48 dp.');
 
   final SvgGenImage icon;
   final VoidCallback? onTap;
@@ -55,15 +56,28 @@ class CircleIconButton extends StatelessWidget {
           shape: const CircleBorder(),
           elevation: filled ? 0 : 2,
           shadowColor: AppShadows.raisedColor,
-          child: GestureDetector(
-            onTap: onTap,
-            behavior: .opaque,
-            child: Center(
-              child: AssetIcon(
-                icon,
-                size: 24,
-                color: foreground,
-                scaleUp: false,
+          // Tab focus with Enter and Space on the same tap.
+          child: FocusableActionDetector(
+            enabled: onTap != null,
+            shortcuts: const {
+              SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+              SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+            },
+            actions: {
+              ActivateIntent: CallbackAction<ActivateIntent>(
+                onInvoke: (_) => onTap?.call(),
+              ),
+            },
+            child: GestureDetector(
+              onTap: onTap,
+              behavior: .opaque,
+              child: Center(
+                child: AssetIcon(
+                  icon,
+                  size: 24,
+                  color: foreground,
+                  scaleUp: false,
+                ),
               ),
             ),
           ),

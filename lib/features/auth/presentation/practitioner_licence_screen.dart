@@ -286,7 +286,6 @@ class _AreaChip extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final isDark = scheme.brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.only(
         left: AppSpacing.sm,
@@ -295,7 +294,9 @@ class _AreaChip extends StatelessWidget {
         right: AppSpacing.xxs,
       ),
       decoration: BoxDecoration(
-        color: isDark ? AppColors.lavenderDark : AppColors.lavenderLight,
+        color: scheme.brightness == .dark
+            ? AppColors.lavenderDark
+            : AppColors.lavenderLight,
         borderRadius: BorderRadius.circular(AppRadii.pill),
       ),
       child: Row(
@@ -310,12 +311,22 @@ class _AreaChip extends StatelessWidget {
             child: GestureDetector(
               onTap: onRemoved,
               behavior: HitTestBehavior.opaque,
-              child: Padding(
-                padding: const EdgeInsets.all(AppSpacing.xxs),
-                child: AssetIcon(
-                  Assets.icons.cancelIcon,
-                  size: 18,
-                  color: scheme.onSurfaceVariant,
+              // The 48 dp floor wraps the hit area; the drawn cross keeps
+              // its size, centered in the chip's height.
+              child: ConstrainedBox(
+                constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                child: Column(
+                  mainAxisAlignment: .center,
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.all(AppSpacing.xxs),
+                      child: AssetIcon(
+                        Assets.icons.cancelIcon,
+                        size: 18,
+                        color: scheme.onSurfaceVariant,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -381,7 +392,7 @@ class _DocumentsSection extends StatelessWidget {
             button: true,
             onTap: onAdd,
             child: Material(
-              color: scheme.brightness == Brightness.dark
+              color: scheme.brightness == .dark
                   ? AppColors.mintDark
                   : AppColors.mintLight,
               borderRadius: BorderRadius.circular(AppRadii.card),

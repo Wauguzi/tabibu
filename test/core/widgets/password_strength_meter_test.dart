@@ -45,5 +45,25 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('raises by tone in dark mode', (tester) async {
+      await tester.pumpApp(_meter, themeMode: ThemeMode.dark);
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(PasswordStrengthMeter));
+      final scheme = Theme.of(context).colorScheme;
+      final card = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(PasswordStrengthMeter),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(
+        (card.decoration! as BoxDecoration).color,
+        scheme.surfaceContainerHigh,
+      );
+    });
   });
 }

@@ -251,7 +251,7 @@ class _TermsBox extends StatelessWidget {
         checked: value,
         enabled: onChanged != null,
         onTap: onChanged == null ? null : () => onChanged(!value),
-        // The InkWell's focus, kept: it merges into the row's node.
+        // Focusable, so a keyboard reaches it; it merges into the row's node.
         child: Focus(
           canRequestFocus: onChanged != null,
           child: Material(

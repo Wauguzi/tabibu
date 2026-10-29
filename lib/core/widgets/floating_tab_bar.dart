@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
@@ -95,43 +96,55 @@ class _TabItem extends StatelessWidget {
       label: tab.label,
       excludeSemantics: true,
       onTap: onTap,
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: .opaque,
-        child: AnimatedSize(
-          duration: const Duration(milliseconds: 250),
-          curve: Curves.easeOutCubic,
-          child: Container(
-            height: 52,
-            constraints: const BoxConstraints(minWidth: 56),
-            padding: EdgeInsets.symmetric(
-              horizontal: selected ? AppSpacing.md : 0,
-            ),
-            decoration: selected
-                ? BoxDecoration(
-                    color: status.ink,
-                    borderRadius: BorderRadius.circular(AppRadii.pill),
-                  )
-                : null,
-            child: Row(
-              mainAxisSize: .min,
-              mainAxisAlignment: .center,
-              children: [
-                AssetIcon(tab.icon, size: 22, color: color),
-                if (selected) ...[
-                  const SizedBox(width: AppSpacing.xs),
-                  Flexible(
-                    child: Text(
-                      tab.label,
-                      style: Theme.of(
-                        context,
-                      ).textTheme.titleSmall?.copyWith(color: color),
-                      maxLines: 1,
-                      overflow: .ellipsis,
+      // Tab focus with Enter and Space on the same tap.
+      child: FocusableActionDetector(
+        shortcuts: const {
+          SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
+          SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
+        },
+        actions: {
+          ActivateIntent: CallbackAction<ActivateIntent>(
+            onInvoke: (_) => onTap(),
+          ),
+        },
+        child: GestureDetector(
+          onTap: onTap,
+          behavior: .opaque,
+          child: AnimatedSize(
+            duration: const Duration(milliseconds: 250),
+            curve: Curves.easeOutCubic,
+            child: Container(
+              height: 52,
+              constraints: const BoxConstraints(minWidth: 56),
+              padding: EdgeInsets.symmetric(
+                horizontal: selected ? AppSpacing.md : 0,
+              ),
+              decoration: selected
+                  ? BoxDecoration(
+                      color: status.ink,
+                      borderRadius: BorderRadius.circular(AppRadii.pill),
+                    )
+                  : null,
+              child: Row(
+                mainAxisSize: .min,
+                mainAxisAlignment: .center,
+                children: [
+                  AssetIcon(tab.icon, size: 22, color: color),
+                  if (selected) ...[
+                    const SizedBox(width: AppSpacing.xs),
+                    Flexible(
+                      child: Text(
+                        tab.label,
+                        style: Theme.of(
+                          context,
+                        ).textTheme.titleSmall?.copyWith(color: color),
+                        maxLines: 1,
+                        overflow: .ellipsis,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
-              ],
+              ),
             ),
           ),
         ),

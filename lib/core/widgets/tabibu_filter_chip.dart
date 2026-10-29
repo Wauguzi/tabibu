@@ -32,7 +32,7 @@ class TabibuFilterChip extends StatelessWidget {
         selected: selected,
         enabled: onTap != null,
         onTap: onTap,
-        // The InkWell's focus, kept: it merges into the chip's node.
+        // The focus merges into the chip's node.
         child: Focus(
           canRequestFocus: onTap != null,
           child: Material(

@@ -171,6 +171,13 @@ void main() {
       ).called(1);
     });
 
+    testWidgets('the resend link meets the tap target floor', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    });
+
     testWidgets('a resent link starts the cooldown', (tester) async {
       whenListen(
         authBloc,

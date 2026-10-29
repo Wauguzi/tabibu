@@ -71,6 +71,16 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
+    testWidgets('Skip is not teal', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.text('Skip'));
+      final scheme = Theme.of(context).colorScheme;
+      final skip = tester.widget<Text>(find.text('Skip'));
+      expect(skip.style?.color, scheme.onSurface);
+    });
+
     testWidgets('Next advances and Back returns', (tester) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();

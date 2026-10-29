@@ -200,6 +200,31 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('the patient card raises by tone in dark mode', (tester) async {
+      tallView(tester);
+      await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
+        themeMode: ThemeMode.dark,
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(PatientIdentityCard));
+      final scheme = Theme.of(context).colorScheme;
+      final card = tester.widget<DecoratedBox>(
+        find
+            .descendant(
+              of: find.byType(PatientIdentityCard),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      expect(
+        (card.decoration as BoxDecoration).color,
+        scheme.surfaceContainerHigh,
+      );
+    });
+
     testWidgets('renders in dark mode at 2.0x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 2.0;

@@ -67,5 +67,33 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('raises by tone in dark mode', (tester) async {
+      await tester.pumpApp(
+        DocumentTile(
+          fileName: 'licence.jpg',
+          meta: '2.1 MB · photo',
+          deleteLabel: 'Delete document',
+          onDelete: () {},
+        ),
+        themeMode: ThemeMode.dark,
+      );
+      await tester.pumpAndSettle();
+
+      final context = tester.element(find.byType(DocumentTile));
+      final scheme = Theme.of(context).colorScheme;
+      final card = tester.widget<Container>(
+        find
+            .descendant(
+              of: find.byType(DocumentTile),
+              matching: find.byType(Container),
+            )
+            .first,
+      );
+      expect(
+        (card.decoration! as BoxDecoration).color,
+        scheme.surfaceContainerHigh,
+      );
+    });
   });
 }

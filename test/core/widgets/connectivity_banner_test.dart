@@ -100,5 +100,20 @@ void main() {
 
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('the retry pill meets the tap target floor', (tester) async {
+      await tester.pumpApp(
+        ConnectivityBanner(
+          state: ConnectivityState.offline,
+          title: 'Offline',
+          body: 'Saved on this phone',
+          retryLabel: 'Retry',
+          onRetry: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    });
   });
 }
