@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -99,8 +104,16 @@ class GetStartedScreen extends StatelessWidget {
                           const SizedBox(height: AppSpacing.md),
                           TabibuButton.primary(
                             label: l10n.getStartedCreateAccount,
-                            onTap: () =>
+                            onTap: () {
+                              // A draft left on a shared phone is not this
+                              // person's.
+                              context.read<SignUpBloc>().add(
+                                const SignUpDraftCleared(),
+                              );
+                              unawaited(
                                 const SignUpRoleRoute().push<void>(context),
+                              );
+                            },
                           ),
                           const SizedBox(height: AppSpacing.sm),
                           TabibuButton.secondary(

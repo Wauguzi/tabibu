@@ -216,6 +216,39 @@ void main() {
       );
     });
 
+    testWidgets('a fresh review shows no stale failure', (tester) async {
+      when(() => authBloc.state).thenReturn(
+        const SignUpFailure(
+          session: SignUpIncompleteSession(email: 'w.kamau@akuh.example'),
+          error: AppError.unknown,
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(
+        find.text('Something went wrong. Please try again.'),
+        findsNothing,
+      );
+    });
+
+    testWidgets('a cached facility shows its name with no new emission', (
+      tester,
+    ) async {
+      whenListen(
+        facilitiesBloc,
+        const Stream<FacilitiesState>.empty(),
+        initialState: const FacilityLoadSuccess(_facility),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('Aga Khan University Hospital'), findsOneWidget);
+      expect(find.text('h1'), findsNothing);
+    });
+
     testWidgets('success goes to the pending screen', (tester) async {
       whenListen(
         authBloc,

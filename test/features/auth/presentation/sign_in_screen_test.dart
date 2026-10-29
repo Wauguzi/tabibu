@@ -32,14 +32,20 @@ void main() {
 
   group('SignInScreen', () {
     late MockAuthBloc authBloc;
+    late MockSignUpBloc signUpBloc;
 
     setUp(() {
       authBloc = MockAuthBloc();
       when(() => authBloc.state).thenReturn(const AuthInitial());
+      signUpBloc = MockSignUpBloc();
+      when(() => signUpBloc.state).thenReturn(const SignUpState());
     });
 
-    Widget screen() => BlocProvider<AuthBloc>.value(
-      value: authBloc,
+    Widget screen() => MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: authBloc),
+        BlocProvider<SignUpBloc>.value(value: signUpBloc),
+      ],
       child: const SignInScreen(),
     );
 
@@ -125,6 +131,30 @@ void main() {
         find.text('Incorrect password. Please try again.'),
         findsNWidgets(2),
       );
+    });
+
+    testWidgets('typing clears a sign-in failure', (tester) async {
+      whenListen(
+        authBloc,
+        Stream.fromIterable([
+          const SignInFailure(
+            session: SignedOutSession(),
+            error: AppError.wrongPassword,
+          ),
+        ]),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      expect(
+        find.text('Incorrect password. Please try again.'),
+        findsNWidgets(2),
+      );
+
+      await tester.enterText(find.byType(TabibuTextField).first, 'a@b.co');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Incorrect password. Please try again.'), findsNothing);
     });
 
     testWidgets('a cancelled Google dialog shows nothing', (tester) async {
@@ -234,8 +264,8 @@ void main() {
     });
 
     testWidgets('Create an account pushes C1, back returns', (tester) async {
-      final signUpBloc = MockSignUpBloc();
-      when(() => signUpBloc.state).thenReturn(const SignUpState());
+      final roleSignUpBloc = MockSignUpBloc();
+      when(() => roleSignUpBloc.state).thenReturn(const SignUpState());
       final router = GoRouter(
         initialLocation: '/sign-in',
         routes: [
@@ -243,7 +273,7 @@ void main() {
           GoRoute(
             path: '/sign-up',
             builder: (_, _) => BlocProvider<SignUpBloc>.value(
-              value: signUpBloc,
+              value: roleSignUpBloc,
               child: const RoleScreen(),
             ),
           ),
@@ -258,6 +288,7 @@ void main() {
       await tester.tap(find.text('Create an account'));
       await tester.pumpAndSettle();
       expect(find.text("I'm joining Tabibu as…"), findsOneWidget);
+      verify(() => signUpBloc.add(const SignUpDraftCleared())).called(1);
 
       await tester.tap(find.byType(CircleIconButton));
       await tester.pumpAndSettle();

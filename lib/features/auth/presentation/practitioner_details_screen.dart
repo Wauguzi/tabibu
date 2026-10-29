@@ -28,7 +28,8 @@ import 'package:tabibu/l10n/l10n.dart';
 
 /// E1 and F1. Title, names, work email, phone, password and the required
 /// photo. The account is created as in D2, skipped when one is already
-/// signed in. Opened from E4's Edit links, Continue pops back to the review.
+/// signed in. Opened from E4's Edit links, the draft reopens filled in;
+/// Continue pushes E2.
 class PractitionerDetailsScreen extends StatefulWidget {
   const PractitionerDetailsScreen({super.key});
 
@@ -46,6 +47,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
   PractitionerTitle? _title;
   UploadFile? _picture;
   AppError? _localError;
+  bool _photoReading = false;
 
   @override
   void initState() {
@@ -105,6 +107,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
       label: (title) => title.value,
       selected: _title,
     );
+    if (!mounted) return;
     if (picked == null) return;
     setState(() {
       _title = picked;
@@ -202,7 +205,9 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
               isLoading: busy,
               // An Edit return passes through: the password is never stored,
               // so the empty field must not block saving the edits.
-              onTap: busy || (!signedIn && !strongEnough) ? null : _submit,
+              onTap: busy || _photoReading || (!signedIn && !strongEnough)
+                  ? null
+                  : _submit,
             ),
             child: AutofillGroup(
               child: Column(
@@ -222,6 +227,8 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
                       _picture = file;
                       _localError = errorAfterChange(_localError, .picture);
                     }),
+                    onReading: (reading) =>
+                        setState(() => _photoReading = reading),
                   ),
                   const SizedBox(height: AppSpacing.md),
                   IgnorePointer(

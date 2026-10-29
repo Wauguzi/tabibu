@@ -13,14 +13,17 @@ import 'package:tabibu/l10n/l10n.dart';
 
 /// D1, E1 and F1's photo row: the avatar, what it is for, and the Add/Change
 /// pill, which opens the camera-or-library sheet. A refused or oversized
-/// pick shows its message; a cancelled one shows nothing.
-class PhotoRow extends StatelessWidget {
+/// pick shows its message; a cancelled one shows nothing. The picked bytes
+/// are read after the sheet closes; [onReading] reports the wait, with
+/// progress on the avatar, so the step holds its Continue meanwhile.
+class PhotoRow extends StatefulWidget {
   const PhotoRow({
     required this.name,
     required this.title,
     required this.body,
     required this.picture,
     required this.onPicked,
+    required this.onReading,
     this.required = false,
     this.errorText,
     super.key,
@@ -32,25 +35,43 @@ class PhotoRow extends StatelessWidget {
   final String body;
   final UploadFile? picture;
   final ValueChanged<UploadFile> onPicked;
+
+  /// True while the picked photo is read, false once it lands or fails.
+  final ValueChanged<bool> onReading;
   final bool required;
   final String? errorText;
 
-  Future<void> _pick(BuildContext context, bool fromCamera) async {
+  @override
+  State<PhotoRow> createState() => _PhotoRowState();
+}
+
+class _PhotoRowState extends State<PhotoRow> {
+  bool _reading = false;
+
+  Future<void> _pick(bool fromCamera) async {
+    setState(() => _reading = true);
+    widget.onReading(true);
     try {
       final file = await getIt<FilePickerService>().pickPhoto(
         fromCamera: fromCamera,
       );
-      if (file != null) onPicked(file);
+      if (!context.mounted) return;
+      if (file != null) widget.onPicked(file);
     } on AppError catch (error) {
       if (!context.mounted) return;
-      _failed(context, error);
+      _failed(error);
     } on Object catch (_) {
       if (!context.mounted) return;
-      _failed(context, AppError.unknown);
+      _failed(AppError.unknown);
+    } finally {
+      if (mounted) {
+        setState(() => _reading = false);
+        widget.onReading(false);
+      }
     }
   }
 
-  void _failed(BuildContext context, AppError error) {
+  void _failed(AppError error) {
     final l10n = context.l10n;
     unawaited(
       showTabibuNotification(
@@ -62,7 +83,9 @@ class PhotoRow extends StatelessWidget {
     );
   }
 
-  Future<void> _sheet(BuildContext context) async {
+  Future<void> _sheet() async {
+    // One pick at a time: a second would race the first to onPicked.
+    if (_reading) return;
     final l10n = context.l10n;
     final fromCamera = await TabibuBottomSheet.show<bool>(
       context,
@@ -92,7 +115,7 @@ class PhotoRow extends StatelessWidget {
       ),
     );
     if (fromCamera == null || !context.mounted) return;
-    await _pick(context, fromCamera);
+    await _pick(fromCamera);
   }
 
   @override
@@ -100,10 +123,39 @@ class PhotoRow extends StatelessWidget {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
     final scheme = Theme.of(context).colorScheme;
-    final picture = this.picture;
+    final picture = widget.picture;
 
-    final nameless = picture == null && name.trim().isEmpty;
-    final errorText = this.errorText;
+    final nameless = picture == null && widget.name.trim().isEmpty;
+    final errorText = widget.errorText;
+
+    final Widget avatar;
+    if (nameless) {
+      avatar = Container(
+        width: 56,
+        height: 56,
+        alignment: .center,
+        decoration: BoxDecoration(
+          shape: .circle,
+          color: scheme.surfaceContainerHigh,
+        ),
+        child: ExcludeSemantics(
+          child: AssetIcon(
+            Assets.icons.personIcon,
+            size: 22,
+            scaleUp: false,
+            color: scheme.onSurfaceVariant,
+          ),
+        ),
+      );
+    } else if (picture == null) {
+      avatar = Avatar(name: widget.name, radius: 28);
+    } else {
+      avatar = Avatar(
+        name: widget.name,
+        image: MemoryImage(picture.bytes),
+        radius: 28,
+      );
+    }
 
     return Column(
       mainAxisSize: .min,
@@ -111,28 +163,20 @@ class PhotoRow extends StatelessWidget {
       children: [
         Row(
           children: [
-            if (nameless)
-              Container(
-                width: 56,
-                height: 56,
+            if (_reading)
+              Stack(
                 alignment: .center,
-                decoration: BoxDecoration(
-                  shape: .circle,
-                  color: scheme.surfaceContainerHigh,
-                ),
-                child: ExcludeSemantics(
-                  child: AssetIcon(
-                    Assets.icons.personIcon,
-                    size: 22,
-                    scaleUp: false,
-                    color: scheme.onSurfaceVariant,
+                children: [
+                  avatar,
+                  SizedBox(
+                    width: 28,
+                    height: 28,
+                    child: CircularProgressIndicator(color: scheme.primary),
                   ),
-                ),
+                ],
               )
-            else if (picture == null)
-              Avatar(name: name, radius: 28)
             else
-              Avatar(name: name, image: MemoryImage(picture.bytes), radius: 28),
+              avatar,
             const SizedBox(width: AppSpacing.sm),
             Expanded(
               child: Column(
@@ -140,10 +184,10 @@ class PhotoRow extends StatelessWidget {
                 children: [
                   Text.rich(
                     TextSpan(
-                      text: title,
+                      text: widget.title,
                       style: textTheme.titleMedium,
                       children: [
-                        if (required)
+                        if (widget.required)
                           TextSpan(
                             text: ' *',
                             style: TextStyle(color: scheme.error),
@@ -152,7 +196,7 @@ class PhotoRow extends StatelessWidget {
                     ),
                   ),
                   Text(
-                    body,
+                    widget.body,
                     style: textTheme.bodyMedium?.copyWith(
                       color: scheme.onSurfaceVariant,
                     ),
@@ -163,12 +207,12 @@ class PhotoRow extends StatelessWidget {
             const SizedBox(width: AppSpacing.sm),
             Semantics(
               button: true,
-              onTap: () => _sheet(context),
+              onTap: _sheet,
               child: Material(
                 color: scheme.surfaceContainerLowest,
                 borderRadius: BorderRadius.circular(AppRadii.pill),
                 child: GestureDetector(
-                  onTap: () => _sheet(context),
+                  onTap: _sheet,
                   behavior: .opaque,
                   child: Padding(
                     padding: const EdgeInsets.symmetric(

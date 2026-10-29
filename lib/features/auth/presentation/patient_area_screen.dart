@@ -46,6 +46,10 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
   int? _subCountyId;
   AppError? _error;
 
+  /// A county or sub-county list failed and is still missing; the notice
+  /// offers its requests again.
+  bool _listsFailed = false;
+
   @override
   void initState() {
     super.initState();
@@ -79,13 +83,41 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
               .map((c) => c.name)
               .firstOrNull;
         }
+        _clearListFailure();
       });
     } else if (state is SubCountiesLoadSuccess) {
-      setState(() => _subCounties = state.subCounties);
+      setState(() {
+        _subCounties = state.subCounties;
+        _clearListFailure();
+      });
     } else if (state is CountiesLoadFailure ||
         state is SubCountiesLoadFailure) {
-      setState(() => _error = AppError.dataNotFound);
+      setState(() {
+        _error = AppError.dataNotFound;
+        _listsFailed = true;
+      });
     }
+  }
+
+  /// A recovered list clears the retry notice once both lists are in.
+  void _clearListFailure() {
+    if (_counties != null && _subCounties != null) {
+      _listsFailed = false;
+      if (_error == AppError.dataNotFound) _error = null;
+    }
+  }
+
+  /// Resends the lists that never arrived.
+  void _retryLists() {
+    final retryCounties = _counties == null;
+    final retrySubCounties = _subCounties == null;
+    setState(() {
+      _listsFailed = false;
+      if (_error == AppError.dataNotFound) _error = null;
+    });
+    final bloc = context.read<FacilitiesBloc>();
+    if (retryCounties) bloc.add(const FacilitiesCountiesRequested());
+    if (retrySubCounties) bloc.add(const FacilitiesSubCountiesRequested());
   }
 
   Future<void> _pickCounty() async {
@@ -100,6 +132,7 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
       label: (county) => county.name,
       selected: counties.where((c) => c.id == _countyId).firstOrNull,
     );
+    if (!mounted) return;
     if (picked == null) return;
     setState(() {
       _countyId = picked.id;
@@ -161,6 +194,7 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
         builder: (context, authState) {
           final busy = authState is SignUpInProgress;
           final failure = _error;
+          final listsFailed = _listsFailed;
           final draft = context.watch<SignUpBloc>().state.draft;
 
           return DraftPopScope(
@@ -173,7 +207,8 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
               onBack: busy ? null : () => Navigator.of(context).pop(),
               title: l10n.patientAreaTitle,
               subtitle: l10n.patientAreaSubtitle,
-              error: failure != null && fieldFor(failure) == null
+              error:
+                  failure != null && fieldFor(failure) == null && !listsFailed
                   ? failure
                   : null,
               role: Role.patient,
@@ -185,6 +220,18 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
               child: Column(
                 crossAxisAlignment: .start,
                 children: [
+                  if (listsFailed) ...[
+                    NoticeCard(
+                      variant: .error,
+                      icon: Assets.icons.cancelIcon,
+                      body: AppError.dataNotFound.description(l10n),
+                      action: _RetryLink(
+                        label: l10n.commonRetry,
+                        onTap: _retryLists,
+                      ),
+                    ),
+                    const SizedBox(height: AppSpacing.md),
+                  ],
                   PickerField(
                     label: l10n.countyLabel,
                     required: true,
@@ -230,6 +277,36 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
             ),
           );
         },
+      ),
+    );
+  }
+}
+
+/// The retry notice's Try again link.
+class _RetryLink extends StatelessWidget {
+  const _RetryLink({required this.label, required this.onTap});
+
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final style = Theme.of(context).textTheme.titleSmall;
+    return Semantics(
+      button: true,
+      child: GestureDetector(
+        behavior: .opaque,
+        onTap: onTap,
+        child: Padding(
+          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),
+          child: Text(
+            label,
+            style: style?.copyWith(
+              decoration: .underline,
+              color: DefaultTextStyle.of(context).style.color,
+            ),
+          ),
+        ),
       ),
     );
   }

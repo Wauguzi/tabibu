@@ -48,6 +48,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
   DateTime? _birthDate;
   UploadFile? _picture;
   AppError? _error;
+  bool _photoReading = false;
 
   @override
   void initState() {
@@ -80,6 +81,13 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
     final now = DateTime.now();
     final brightness = Theme.of(context).brightness;
     final surface = Theme.of(context).colorScheme.surfaceContainerLowest;
+    // The date the sheet opens on is the field's: closing without
+    // scrolling keeps it.
+    final opening = _birthDate ?? DateTime(now.year - 25, now.month, now.day);
+    setState(() {
+      _birthDate = opening;
+      _error = errorAfterChange(_error, .dateOfBirth);
+    });
     await showCupertinoModalPopup<void>(
       context: context,
       builder: (context) => Container(
@@ -101,8 +109,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
             data: CupertinoThemeData(brightness: brightness),
             child: CupertinoDatePicker(
               backgroundColor: Colors.transparent,
-              initialDateTime:
-                  _birthDate ?? DateTime(now.year - 25, now.month, now.day),
+              initialDateTime: opening,
               minimumDate: DateTime(1900),
               maximumDate: now,
               mode: .date,
@@ -181,7 +188,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
         role: Role.patient,
         footer: TabibuButton.primary(
           label: l10n.commonContinue,
-          onTap: _continue,
+          onTap: _photoReading ? null : _continue,
         ),
         child: Column(
           crossAxisAlignment: .start,
@@ -192,6 +199,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
               body: l10n.photoPatientBody,
               picture: _picture,
               onPicked: (file) => setState(() => _picture = file),
+              onReading: (reading) => setState(() => _photoReading = reading),
             ),
             const SizedBox(height: AppSpacing.md),
             TabibuTextField(
@@ -312,7 +320,7 @@ class _SexPicker extends StatelessWidget {
                   onTap: () => onChanged(sex),
                 ),
               ),
-              if (sex != Sex.values.last) const SizedBox(width: AppSpacing.sm),
+              if (sex != .male) const SizedBox(width: AppSpacing.sm),
             ],
           ],
         ),

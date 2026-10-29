@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -262,6 +264,50 @@ void main() {
               as PatientSignUpRequested;
       expect(submitted.draft.countyId, 1);
       expect(submitted.draft.subCountyId, isNull);
+    });
+
+    testWidgets('a failed list retries its request and recovers', (
+      tester,
+    ) async {
+      final facilities = StreamController<FacilitiesState>();
+      addTearDown(facilities.close);
+      whenListen(
+        facilitiesBloc,
+        facilities.stream,
+        initialState: const FacilitiesInitial(),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      facilities.add(const SubCountiesLoadSuccess([_embakasi, _westlands]));
+      await tester.pumpAndSettle();
+      facilities.add(const CountiesLoadFailure(error: AppError.dataNotFound));
+      await tester.pumpAndSettle();
+
+      expect(find.text('The requested data was not found.'), findsOneWidget);
+      expect(find.text('Try again'), findsOneWidget);
+
+      clearInteractions(facilitiesBloc);
+      await tester.tap(find.text('Try again'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => facilitiesBloc.add(const FacilitiesCountiesRequested()),
+      ).called(1);
+      verifyNever(
+        () => facilitiesBloc.add(const FacilitiesSubCountiesRequested()),
+      );
+
+      facilities.add(const CountiesLoadSuccess([_nairobi, _mombasa]));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Try again'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is NoticeCard && w.variant == NoticeVariant.error,
+        ),
+        findsNothing,
+      );
     });
 
     testWidgets('a sign-up failure shows its message', (tester) async {

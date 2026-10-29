@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -5,8 +6,10 @@ import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoDatePicker;
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/file_picker_service.dart';
@@ -279,6 +282,53 @@ void main() {
       expect(femaleX, lessThan(maleX));
     });
 
+    testWidgets('the sex cards do not touch', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      // The gap sits between the two cards' labels, spanning their height.
+      final female = tester.getRect(find.text('Female'));
+      final male = tester.getRect(find.text('Male'));
+      final gaps = find.byWidgetPredicate(
+        (w) => w is SizedBox && w.width == AppSpacing.sm && w.height == null,
+      );
+      final between =
+          [
+            for (final gap in tester.widgetList<SizedBox>(gaps))
+              tester.getRect(find.byWidget(gap)),
+          ].where(
+            (rect) =>
+                rect.left >= female.right &&
+                rect.right <= male.left &&
+                rect.top <= female.center.dy &&
+                rect.bottom >= female.center.dy,
+          );
+      expect(between, hasLength(1));
+    });
+
+    testWidgets('opening the picker commits the date it opens on', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Select date'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Select date'));
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoDatePicker), findsOneWidget);
+
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pumpAndSettle();
+
+      final now = DateTime.now();
+      final expected = DateFormat(
+        'd MMM y',
+        'en',
+      ).format(DateTime(now.year - 25, now.month, now.day));
+      expect(find.text(expected), findsOneWidget);
+    });
+
     testWidgets('a picked photo replaces Add with Change', (tester) async {
       when(
         () => filePicker.pickPhoto(fromCamera: any(named: 'fromCamera')),
@@ -304,6 +354,34 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Change'), findsOneWidget);
+    });
+
+    testWidgets('Continue waits while the photo is read', (tester) async {
+      final pending = Completer<UploadFile?>();
+      when(
+        () => filePicker.pickPhoto(fromCamera: any(named: 'fromCamera')),
+      ).thenAnswer((_) => pending.future);
+
+      TabibuButton continueButton() => tester.widget<TabibuButton>(
+        find.widgetWithText(TabibuButton, 'Continue'),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      expect(continueButton().onTap, isNotNull);
+
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Choose from library'));
+      // The spinner never settles while the read pends.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(continueButton().onTap, isNull);
+
+      pending.complete(null);
+      await tester.pumpAndSettle();
+      expect(continueButton().onTap, isNotNull);
     });
 
     testWidgets('back keeps what was entered in the draft', (tester) async {

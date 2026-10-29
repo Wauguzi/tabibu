@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -9,6 +11,8 @@ import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -60,10 +64,14 @@ class _SignInScreenState extends State<SignInScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      // From the listener, not the builder: a stale failure must not
+      // reappear when the screen is revisited, and typing clears it.
       listener: (context, state) {
         switch (state) {
           case SignInSuccess(:final session):
             goToSession(context, session);
+          case SignInFailure(:final error):
+            setState(() => _localError = error);
           case SignInCancelled():
             break;
           default:
@@ -72,7 +80,7 @@ class _SignInScreenState extends State<SignInScreen> {
       },
       builder: (context, state) {
         final busy = state is SignInInProgress;
-        final failure = state is SignInFailure ? state.error : _localError;
+        final failure = _localError;
         final passwordError =
             failure == AppError.wrongPassword ||
                 failure == AppError.invalidCredential
@@ -214,8 +222,18 @@ class _SignInScreenState extends State<SignInScreen> {
                                   ).colorScheme.primary,
                                   onTap: busy
                                       ? null
-                                      : () => const SignUpRoleRoute()
-                                            .push<void>(context),
+                                      : () {
+                                          // A draft left on a shared phone
+                                          // is not this person's.
+                                          context.read<SignUpBloc>().add(
+                                            const SignUpDraftCleared(),
+                                          );
+                                          unawaited(
+                                            const SignUpRoleRoute().push<void>(
+                                              context,
+                                            ),
+                                          );
+                                        },
                                 ),
                               ],
                             ),

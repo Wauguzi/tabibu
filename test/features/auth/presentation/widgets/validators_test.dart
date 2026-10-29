@@ -111,6 +111,19 @@ void main() {
       );
       expect(value.text, '');
     });
+
+    test('deleting inside the +254 prefix keeps the number', () {
+      const prefixed = KePhoneFormatter(withPrefix: true);
+      final value = prefixed.formatEditUpdate(
+        const TextEditingValue(text: '+254 712 345 678'),
+        const TextEditingValue(text: '+25 712 345 678'),
+      );
+      expect(value.text, '+254 712 345 678');
+      expect(
+        formatKePhone('+5 712 345 678', withPrefix: true),
+        '+254 712 345 678',
+      );
+    });
   });
 
   group('isPasswordStrong', () {

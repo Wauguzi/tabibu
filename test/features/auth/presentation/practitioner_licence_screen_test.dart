@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -9,7 +10,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/file_picker_service.dart';
-import 'package:tabibu/core/widgets/asset_icon.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_state.dart';
@@ -194,6 +195,38 @@ void main() {
       expect(updated.draft.specialties, [Specialty.generalSurgery]);
       expect(updated.draft.licenses.map((f) => f.name), ['licence.pdf']);
       expect(find.text('E3 stub'), findsOneWidget);
+    });
+
+    testWidgets('Continue and Add wait while a licence is read', (
+      tester,
+    ) async {
+      final pending = Completer<UploadFile?>();
+      when(() => filePicker.pickLicence()).thenAnswer((_) => pending.future);
+
+      TabibuButton continueButton() => tester.widget<TabibuButton>(
+        find.widgetWithText(TabibuButton, 'Continue'),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      expect(continueButton().onTap, isNotNull);
+
+      await tester.ensureVisible(find.text('Add another document'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add another document'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Upload a file'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(continueButton().onTap, isNull);
+      expect(find.text('Add another document'), findsNothing);
+
+      pending.complete(_licence('licence.pdf'));
+      await tester.pumpAndSettle();
+
+      expect(continueButton().onTap, isNotNull);
+      expect(find.text('licence.pdf'), findsOneWidget);
     });
 
     testWidgets('two files hide the add button', (tester) async {

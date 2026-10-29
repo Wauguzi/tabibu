@@ -95,6 +95,20 @@ void main() {
       );
     });
 
+    testWidgets('a reopened screen shows no stale failure', (tester) async {
+      when(() => authBloc.state).thenReturn(
+        const PasswordResetFailure(
+          session: SignedOutSession(),
+          error: AppError.tooManyRequests,
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(NoticeCard), findsNothing);
+    });
+
     testWidgets('success goes to B5', (tester) async {
       whenListen(
         authBloc,

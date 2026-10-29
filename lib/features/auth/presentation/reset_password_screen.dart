@@ -52,16 +52,19 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
     final textTheme = Theme.of(context).textTheme;
 
     return BlocConsumer<AuthBloc, AuthState>(
+      // From the listener, not the builder: a stale failure must not
+      // reappear when the screen is revisited, and typing clears it.
       listener: (context, state) {
         if (state is PasswordResetSuccess) {
           unawaited(const ResetPasswordSentRoute().push<void>(context));
         }
+        if (state is PasswordResetFailure) {
+          setState(() => _localError = state.error);
+        }
       },
       builder: (context, state) {
         final busy = state is PasswordResetInProgress;
-        final failure = state is PasswordResetFailure
-            ? state.error
-            : _localError;
+        final failure = _localError;
 
         return Scaffold(
           body: SafeArea(

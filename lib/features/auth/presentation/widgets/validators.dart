@@ -22,10 +22,12 @@ String? normalizeKePhone(String raw) {
 /// E.164 through [normalizeKePhone].
 String formatKePhone(String value, {bool withPrefix = false}) {
   // The field's own "+254 " comes back with every edit; only the digits
-  // after it are the number.
+  // after it are the number. With a prefix, a partly deleted one strips
+  // the same way, so the number survives.
+  final prefix = withPrefix ? r'^\+?2?5?4?\s?' : r'^\+254';
   var digits = value
       .trim()
-      .replaceFirst(RegExp(r'^\+254'), '')
+      .replaceFirst(RegExp(prefix), '')
       .replaceAll(RegExp(r'\D'), '');
   if (digits.length > 9 && digits.startsWith('254')) {
     digits = digits.substring(3);

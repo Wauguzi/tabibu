@@ -41,6 +41,13 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
     super.initState();
     final draft = context.read<SignUpBloc>().state.draft;
     _terms = draft.termsAccepted;
+    // A return trip: the bloc already holds this facility, so no new state
+    // arrives and the name reads from what is cached.
+    final cached = context.read<FacilitiesBloc>().state;
+    if (cached is FacilityLoadSuccess &&
+        cached.facility?.facilityId == draft.facilityId) {
+      _facility = cached.facility;
+    }
     context.read<FacilitiesBloc>().add(
       FacilitiesFacilityRequested(draft.facilityId),
     );
@@ -93,14 +100,19 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
         }
       },
       child: BlocConsumer<AuthBloc, AuthState>(
+        // From the listener, not the builder: a stale failure must not
+        // reappear when the screen is revisited.
         listener: (context, state) {
           if (state is SignUpSuccess) {
             goToSession(context, state.session);
           }
+          if (state is SignUpFailure) {
+            setState(() => _error = state.error);
+          }
         },
         builder: (context, authState) {
           final busy = authState is SignUpInProgress;
-          final failure = authState is SignUpFailure ? authState.error : _error;
+          final failure = _error;
           final facility = _facility;
 
           return DraftPopScope(

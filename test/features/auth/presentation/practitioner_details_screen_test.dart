@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
@@ -519,6 +520,38 @@ void main() {
       expect(draft.lastName, 'Kamau');
       expect(draft.email, 'w.kamau@akuh.example');
       expect(draft.phoneNumber, '+254722118450');
+    });
+
+    testWidgets('Continue waits while the photo is read', (tester) async {
+      final pending = Completer<UploadFile?>();
+      when(
+        () => filePicker.pickPhoto(fromCamera: any(named: 'fromCamera')),
+      ).thenAnswer((_) => pending.future);
+
+      TabibuButton continueButton() => tester.widget<TabibuButton>(
+        find.widgetWithText(TabibuButton, 'Continue'),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      await fillPassword(tester);
+      await tester.pumpAndSettle();
+      expect(continueButton().onTap, isNotNull);
+
+      await tester.ensureVisible(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Add'));
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Choose from library'));
+      // The spinner never settles while the read pends.
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      expect(continueButton().onTap, isNull);
+
+      pending.complete(null);
+      await tester.pumpAndSettle();
+      expect(continueButton().onTap, isNotNull);
     });
 
     testWidgets('a fresh E1 shows the email from the draft', (tester) async {

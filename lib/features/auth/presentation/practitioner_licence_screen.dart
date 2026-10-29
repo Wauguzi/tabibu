@@ -39,6 +39,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
   List<Specialty> _specialties = [];
   List<UploadFile> _licenses = [];
   AppError? _error;
+  bool _readingLicence = false;
 
   @override
   void initState() {
@@ -74,6 +75,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
       initial: _specialties,
       allowed: Specialty.forRole(isPathologist: isPathologist),
     );
+    if (!mounted) return;
     if (picked == null) return;
     setState(() {
       _specialties = picked;
@@ -90,21 +92,27 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
           : l10n.documentSheetSubtitle,
     );
     if (source == null || !mounted) return;
+    setState(() => _readingLicence = true);
     try {
       final file = source == DocumentSource.camera
           // A photographed page is a photo; the service downsizes it well
           // under the licence limit.
           ? await getIt<FilePickerService>().pickPhoto(fromCamera: true)
           : await getIt<FilePickerService>().pickLicence();
+      if (!mounted) return;
       if (file == null) return;
       setState(() {
         _licenses = [..._licenses, file];
         _error = null;
       });
     } on AppError catch (error) {
+      if (!mounted) return;
       setState(() => _error = error);
     } on Object catch (_) {
+      if (!mounted) return;
       setState(() => _error = AppError.unknown);
+    } finally {
+      if (mounted) setState(() => _readingLicence = false);
     }
   }
 
@@ -157,7 +165,7 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
         role: role,
         footer: TabibuButton.primary(
           label: l10n.commonContinue,
-          onTap: _continue,
+          onTap: _readingLicence ? null : _continue,
         ),
         child: Column(
           crossAxisAlignment: .start,
@@ -208,7 +216,9 @@ class _PractitionerLicenceScreenState extends State<PractitionerLicenceScreen> {
                   ? l10n.licenceDocsPathologistBody
                   : l10n.licenceDocsDoctorBody,
               licenses: _licenses,
-              onAdd: _licenses.length >= 2 ? null : _addDocument,
+              onAdd: _readingLicence || _licenses.length >= 2
+                  ? null
+                  : _addDocument,
               onDelete: (file) => setState(() {
                 _licenses = _licenses.where((f) => f != file).toList();
                 _error = null;

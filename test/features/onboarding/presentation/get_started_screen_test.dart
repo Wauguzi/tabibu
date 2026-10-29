@@ -1,9 +1,18 @@
+import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_state.dart';
 import 'package:tabibu/features/onboarding/presentation/get_started_screen.dart';
 
 import '../../../helpers/helpers.dart';
+
+class MockSignUpBloc extends MockBloc<SignUpEvent, SignUpState>
+    implements SignUpBloc {}
 
 void main() {
   group('GetStartedScreen', () {
@@ -39,12 +48,17 @@ void main() {
     });
 
     testWidgets('Create an account pushes C1', (tester) async {
+      final signUpBloc = MockSignUpBloc();
+      when(() => signUpBloc.state).thenReturn(const SignUpState());
       final router = GoRouter(
         initialLocation: '/get-started',
         routes: [
           GoRoute(
             path: '/get-started',
-            builder: (_, _) => const GetStartedScreen(),
+            builder: (_, _) => BlocProvider<SignUpBloc>.value(
+              value: signUpBloc,
+              child: const GetStartedScreen(),
+            ),
           ),
           GoRoute(path: '/sign-up', builder: (_, _) => const Text('role stub')),
         ],
@@ -58,6 +72,7 @@ void main() {
       await tester.tap(find.text('Create an account'));
       await tester.pumpAndSettle();
       expect(find.text('role stub'), findsOneWidget);
+      verify(() => signUpBloc.add(const SignUpDraftCleared())).called(1);
     });
 
     testWidgets('Sign in pushes B1', (tester) async {
