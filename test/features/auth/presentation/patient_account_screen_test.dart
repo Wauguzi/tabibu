@@ -36,16 +36,45 @@ void main() {
 
   group('PatientAccountScreen', () {
     late MockAuthBloc authBloc;
+    late MockSignUpBloc draftBloc;
 
     setUp(() {
       authBloc = MockAuthBloc();
       when(() => authBloc.state).thenReturn(const AuthInitial());
+      draftBloc = MockSignUpBloc();
+      when(
+        () => draftBloc.state,
+      ).thenReturn(const SignUpState(draft: SignUpDraft(role: Role.patient)));
     });
 
-    Widget screen() => BlocProvider<AuthBloc>.value(
-      value: authBloc,
+    Widget screen() => MultiBlocProvider(
+      providers: [
+        BlocProvider<AuthBloc>.value(value: authBloc),
+        BlocProvider<SignUpBloc>.value(value: draftBloc),
+      ],
       child: const PatientAccountScreen(),
     );
+
+    Future<void> pumpUnderStub(WidgetTester tester, Widget step) async {
+      final router = GoRouter(
+        initialLocation: '/previous/step',
+        routes: [
+          GoRoute(
+            path: '/previous',
+            builder: (_, _) => const Text('Previous step'),
+            routes: [GoRoute(path: 'step', builder: (_, _) => step)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+    }
+
+    SignUpDraft committedDraft(MockSignUpBloc bloc) {
+      final captured = verify(() => bloc.add(captureAny())).captured;
+      return (captured.last as SignUpDraftUpdated).draft;
+    }
 
     testWidgets('renders in light and dark', (tester) async {
       await tester.pumpApp(screen(), themeMode: ThemeMode.light);
@@ -355,6 +384,32 @@ void main() {
               as SignUpDraftUpdated;
       expect(captured.draft.firstName, 'Amina');
       expect(captured.draft.lastName, 'Wambui');
+    });
+
+    testWidgets('back keeps the email in the draft', (tester) async {
+      await pumpUnderStub(tester, screen());
+      await tester.enterText(find.byType(TextField).at(0), ' a@b.co ');
+      await tester.enterText(find.byType(TextField).at(1), 'Str0ng!pass');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Previous step'), findsOneWidget);
+      expect(committedDraft(draftBloc).email, 'a@b.co');
+    });
+
+    testWidgets('a fresh D2 shows the email from the draft', (tester) async {
+      when(() => draftBloc.state).thenReturn(
+        const SignUpState(
+          draft: SignUpDraft(role: Role.patient, email: 'a@b.co'),
+        ),
+      );
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('a@b.co'), findsOneWidget);
     });
   });
 }

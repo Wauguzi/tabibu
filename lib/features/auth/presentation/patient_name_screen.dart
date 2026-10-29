@@ -13,7 +13,9 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_errors.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/photo_row.dart';
@@ -86,6 +88,22 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
     }
   }
 
+  SignUpDraft _fill(SignUpDraft draft) {
+    final birthDate = _birthDate;
+    return draft.copyWith(
+      firstName: _firstNameController.text.trim(),
+      middleName: _middleNameController.text.trim(),
+      lastName: _lastNameController.text.trim(),
+      sex: _sex,
+      dateOfBirth: birthDate == null
+          ? ''
+          : '${birthDate.year.toString().padLeft(4, '0')}-'
+                '${birthDate.month.toString().padLeft(2, '0')}-'
+                '${birthDate.day.toString().padLeft(2, '0')}',
+      picture: _picture,
+    );
+  }
+
   void _continue() {
     final birthDate = _birthDate;
     final AppError? error;
@@ -102,17 +120,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
     setState(() => _error = error);
     if (error != null) return;
 
-    final draft = context.read<SignUpBloc>().state.draft.copyWith(
-      firstName: _firstNameController.text.trim(),
-      middleName: _middleNameController.text.trim(),
-      lastName: _lastNameController.text.trim(),
-      sex: _sex,
-      dateOfBirth:
-          '${birthDate!.year.toString().padLeft(4, '0')}-'
-          '${birthDate.month.toString().padLeft(2, '0')}-'
-          '${birthDate.day.toString().padLeft(2, '0')}',
-      picture: _picture,
-    );
+    final draft = _fill(context.read<SignUpBloc>().state.draft);
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
 
     final session = context.read<AuthBloc>().state.session;
@@ -131,95 +139,98 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
     final firstEmpty = _firstNameController.text.trim().isEmpty;
     final lastEmpty = _lastNameController.text.trim().isEmpty;
 
-    return StepScaffold(
-      step: 1,
-      total: 4,
-      backLabel: l10n.commonBack,
-      onBack: () => Navigator.of(context).pop(),
-      title: l10n.patientNameTitle,
-      subtitle: l10n.patientNameSubtitle,
-      error: error != null && fieldFor(error) == null ? error : null,
-      role: Role.patient,
-      footer: TabibuButton.primary(
-        label: l10n.commonContinue,
-        onTap: _continue,
-      ),
-      child: Column(
-        crossAxisAlignment: .start,
-        children: [
-          PhotoRow(
-            name: _avatarName,
-            title: l10n.photoTitle,
-            body: l10n.photoPatientBody,
-            picture: _picture,
-            onPicked: (file) => setState(() => _picture = file),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TabibuTextField(
-            label: l10n.firstNameLabel,
-            controller: _firstNameController,
-            leading: FieldIcon(Assets.icons.personIcon),
-            errorText: _error == .invalidName && firstEmpty
-                ? fieldErrorText(_error!, l10n)
-                : null,
-            required: true,
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.givenName],
-            onChanged: (_) =>
-                setState(() => _error = errorAfterChange(_error, .name)),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TabibuTextField(
-            label: l10n.middleNameLabel,
-            controller: _middleNameController,
-            leading: FieldIcon(Assets.icons.personIcon),
-            textInputAction: TextInputAction.next,
-            autofillHints: const [AutofillHints.middleName],
-          ),
-          const SizedBox(height: AppSpacing.md),
-          TabibuTextField(
-            label: l10n.lastNameLabel,
-            controller: _lastNameController,
-            leading: FieldIcon(Assets.icons.personIcon),
-            errorText: _error == .invalidName && !firstEmpty && lastEmpty
-                ? fieldErrorText(_error!, l10n)
-                : null,
-            required: true,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.familyName],
-            onChanged: (_) =>
-                setState(() => _error = errorAfterChange(_error, .name)),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          _SexPicker(
-            label: l10n.sexLabel,
-            value: _sex,
-            errorText: _error == .invalidSex
-                ? fieldErrorText(_error!, l10n)
-                : null,
-            onChanged: (sex) => setState(() {
-              _sex = sex;
-              _error = errorAfterChange(_error, .sex);
-            }),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          PickerField(
-            label: l10n.dobLabel,
-            required: true,
-            hint: l10n.dobHint,
-            value: birthDate == null
-                ? null
-                : DateFormat(
-                    'd MMM y',
-                    Localizations.localeOf(context).languageCode,
-                  ).format(birthDate),
-            leading: Assets.icons.calendarIcon,
-            errorText: _error == .invalidDateOfBirth
-                ? fieldErrorText(_error!, l10n)
-                : null,
-            onTap: _pickBirthDate,
-          ),
-        ],
+    return DraftPopScope(
+      fill: _fill,
+      child: StepScaffold(
+        step: 1,
+        total: 4,
+        backLabel: l10n.commonBack,
+        onBack: () => Navigator.of(context).pop(),
+        title: l10n.patientNameTitle,
+        subtitle: l10n.patientNameSubtitle,
+        error: error != null && fieldFor(error) == null ? error : null,
+        role: Role.patient,
+        footer: TabibuButton.primary(
+          label: l10n.commonContinue,
+          onTap: _continue,
+        ),
+        child: Column(
+          crossAxisAlignment: .start,
+          children: [
+            PhotoRow(
+              name: _avatarName,
+              title: l10n.photoTitle,
+              body: l10n.photoPatientBody,
+              picture: _picture,
+              onPicked: (file) => setState(() => _picture = file),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TabibuTextField(
+              label: l10n.firstNameLabel,
+              controller: _firstNameController,
+              leading: FieldIcon(Assets.icons.personIcon),
+              errorText: _error == .invalidName && firstEmpty
+                  ? fieldErrorText(_error!, l10n)
+                  : null,
+              required: true,
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.givenName],
+              onChanged: (_) =>
+                  setState(() => _error = errorAfterChange(_error, .name)),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TabibuTextField(
+              label: l10n.middleNameLabel,
+              controller: _middleNameController,
+              leading: FieldIcon(Assets.icons.personIcon),
+              textInputAction: TextInputAction.next,
+              autofillHints: const [AutofillHints.middleName],
+            ),
+            const SizedBox(height: AppSpacing.md),
+            TabibuTextField(
+              label: l10n.lastNameLabel,
+              controller: _lastNameController,
+              leading: FieldIcon(Assets.icons.personIcon),
+              errorText: _error == .invalidName && !firstEmpty && lastEmpty
+                  ? fieldErrorText(_error!, l10n)
+                  : null,
+              required: true,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.familyName],
+              onChanged: (_) =>
+                  setState(() => _error = errorAfterChange(_error, .name)),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            _SexPicker(
+              label: l10n.sexLabel,
+              value: _sex,
+              errorText: _error == .invalidSex
+                  ? fieldErrorText(_error!, l10n)
+                  : null,
+              onChanged: (sex) => setState(() {
+                _sex = sex;
+                _error = errorAfterChange(_error, .sex);
+              }),
+            ),
+            const SizedBox(height: AppSpacing.md),
+            PickerField(
+              label: l10n.dobLabel,
+              required: true,
+              hint: l10n.dobHint,
+              value: birthDate == null
+                  ? null
+                  : DateFormat(
+                      'd MMM y',
+                      Localizations.localeOf(context).languageCode,
+                    ).format(birthDate),
+              leading: Assets.icons.calendarIcon,
+              errorText: _error == .invalidDateOfBirth
+                  ? fieldErrorText(_error!, l10n)
+                  : null,
+              onTap: _pickBirthDate,
+            ),
+          ],
+        ),
       ),
     );
   }

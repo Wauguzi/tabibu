@@ -61,6 +61,27 @@ void main() {
       child: const PatientNameScreen(),
     );
 
+    Future<void> pumpUnderStub(WidgetTester tester, Widget step) async {
+      final router = GoRouter(
+        initialLocation: '/previous/step',
+        routes: [
+          GoRoute(
+            path: '/previous',
+            builder: (_, _) => const Text('Previous step'),
+            routes: [GoRoute(path: 'step', builder: (_, _) => step)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+    }
+
+    SignUpDraft committedDraft(MockSignUpBloc bloc) {
+      final captured = verify(() => bloc.add(captureAny())).captured;
+      return (captured.last as SignUpDraftUpdated).draft;
+    }
+
     Future<void> fillNames(WidgetTester tester) async {
       await tester.enterText(find.byType(TextField).at(0), 'Amina');
       await tester.enterText(find.byType(TextField).at(2), 'Wambui');
@@ -260,6 +281,20 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Change'), findsOneWidget);
+    });
+
+    testWidgets('back keeps what was entered in the draft', (tester) async {
+      await pumpUnderStub(tester, screen());
+      await fillNames(tester);
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Previous step'), findsOneWidget);
+      final draft = committedDraft(signUpBloc);
+      expect(draft.firstName, 'Amina');
+      expect(draft.lastName, 'Wambui');
+      expect(draft.dateOfBirth, isEmpty);
     });
   });
 }

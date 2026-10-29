@@ -14,6 +14,7 @@ import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/picker_field.dart';
 import 'package:tabibu/features/auth/presentation/widgets/single_select_sheet.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
@@ -107,6 +108,9 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
     });
   }
 
+  SignUpDraft _fill(SignUpDraft draft) =>
+      draft.copyWith(countyId: _countyId, subCountyId: _subCountyId);
+
   void _finish(SignUpDraft draft) {
     final countyId = _countyId;
     if (countyId == null) {
@@ -150,58 +154,62 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
           final failure = authState is SignUpFailure ? authState.error : _error;
           final draft = context.watch<SignUpBloc>().state.draft;
 
-          return StepScaffold(
-            step: 4,
-            total: 4,
-            backLabel: l10n.commonBack,
-            onBack: busy ? null : () => Navigator.of(context).pop(),
-            title: l10n.patientAreaTitle,
-            subtitle: l10n.patientAreaSubtitle,
-            error: failure,
-            role: Role.patient,
-            footer: TabibuButton.primary(
-              label: l10n.patientFinish,
-              isLoading: busy,
-              onTap: busy ? null : () => _finish(draft),
-            ),
-            child: Column(
-              crossAxisAlignment: .start,
-              children: [
-                PickerField(
-                  label: l10n.countyLabel,
-                  required: true,
-                  hint: l10n.countyHint,
-                  value: _countyName,
-                  leading: Assets.icons.locationIcon,
-                  onTap: _counties == null ? null : _pickCounty,
-                ),
-                if (_countyId != null) ...[
-                  const SizedBox(height: AppSpacing.md),
-                  if (_nairobiChosen)
-                    _SubCountyPicker(
-                      countyName: _countyName ?? '',
-                      subCounties: _subCounties!,
-                      selectedId: _subCountyId,
-                      onSelected: (id) => setState(() {
-                        _subCountyId = id;
-                        _error = null;
-                      }),
-                    )
-                  else if (_subCounties == null && failure == null)
-                    Center(
-                      child: SpinKitCircle(
-                        color: Theme.of(context).colorScheme.primary,
-                        size: 30,
+          return DraftPopScope(
+            fill: _fill,
+            canPop: !busy,
+            child: StepScaffold(
+              step: 4,
+              total: 4,
+              backLabel: l10n.commonBack,
+              onBack: busy ? null : () => Navigator.of(context).pop(),
+              title: l10n.patientAreaTitle,
+              subtitle: l10n.patientAreaSubtitle,
+              error: failure,
+              role: Role.patient,
+              footer: TabibuButton.primary(
+                label: l10n.patientFinish,
+                isLoading: busy,
+                onTap: busy ? null : () => _finish(draft),
+              ),
+              child: Column(
+                crossAxisAlignment: .start,
+                children: [
+                  PickerField(
+                    label: l10n.countyLabel,
+                    required: true,
+                    hint: l10n.countyHint,
+                    value: _countyName,
+                    leading: Assets.icons.locationIcon,
+                    onTap: _counties == null ? null : _pickCounty,
+                  ),
+                  if (_countyId != null) ...[
+                    const SizedBox(height: AppSpacing.md),
+                    if (_nairobiChosen)
+                      _SubCountyPicker(
+                        countyName: _countyName ?? '',
+                        subCounties: _subCounties!,
+                        selectedId: _subCountyId,
+                        onSelected: (id) => setState(() {
+                          _subCountyId = id;
+                          _error = null;
+                        }),
+                      )
+                    else if (_subCounties == null && failure == null)
+                      Center(
+                        child: SpinKitCircle(
+                          color: Theme.of(context).colorScheme.primary,
+                          size: 30,
+                        ),
                       ),
-                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.md),
+                  NoticeCard(
+                    variant: NoticeVariant.info,
+                    icon: Assets.icons.shieldIcon,
+                    body: l10n.areaPrivacyNotice,
+                  ),
                 ],
-                const SizedBox(height: AppSpacing.md),
-                NoticeCard(
-                  variant: NoticeVariant.info,
-                  icon: Assets.icons.shieldIcon,
-                  body: l10n.areaPrivacyNotice,
-                ),
-              ],
+              ),
             ),
           );
         },

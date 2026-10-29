@@ -14,7 +14,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$SignUpDraft {
 
- Role? get role; String get firstName; String get middleName; String get lastName; Sex? get sex;/// `YYYY-MM-DD`.
+ Role? get role; String get email; String get firstName; String get middleName; String get lastName; Sex? get sex;/// `YYYY-MM-DD`.
  String get dateOfBirth; String get phoneNumber; int? get countyId; int? get subCountyId; AppLanguage get language; PractitionerTitle? get title; List<Specialty> get specialties; String get bio; String get kmpdcNumber; List<UploadFile> get licenses; UploadFile? get picture; String get facilityId; bool get isAvailable; bool get termsAccepted;
 /// Create a copy of SignUpDraft
 /// with the given fields replaced by the non-null parameter values.
@@ -26,16 +26,16 @@ $SignUpDraftCopyWith<SignUpDraft> get copyWith => _$SignUpDraftCopyWithImpl<Sign
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is SignUpDraft&&(identical(other.role, role) || other.role == role)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countyId, countyId) || other.countyId == countyId)&&(identical(other.subCountyId, subCountyId) || other.subCountyId == subCountyId)&&(identical(other.language, language) || other.language == language)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.specialties, specialties)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.kmpdcNumber, kmpdcNumber) || other.kmpdcNumber == kmpdcNumber)&&const DeepCollectionEquality().equals(other.licenses, licenses)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.facilityId, facilityId) || other.facilityId == facilityId)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.termsAccepted, termsAccepted) || other.termsAccepted == termsAccepted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is SignUpDraft&&(identical(other.role, role) || other.role == role)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countyId, countyId) || other.countyId == countyId)&&(identical(other.subCountyId, subCountyId) || other.subCountyId == subCountyId)&&(identical(other.language, language) || other.language == language)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.specialties, specialties)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.kmpdcNumber, kmpdcNumber) || other.kmpdcNumber == kmpdcNumber)&&const DeepCollectionEquality().equals(other.licenses, licenses)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.facilityId, facilityId) || other.facilityId == facilityId)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.termsAccepted, termsAccepted) || other.termsAccepted == termsAccepted));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,role,firstName,middleName,lastName,sex,dateOfBirth,phoneNumber,countyId,subCountyId,language,title,const DeepCollectionEquality().hash(specialties),bio,kmpdcNumber,const DeepCollectionEquality().hash(licenses),picture,facilityId,isAvailable,termsAccepted]);
+int get hashCode => Object.hashAll([runtimeType,role,email,firstName,middleName,lastName,sex,dateOfBirth,phoneNumber,countyId,subCountyId,language,title,const DeepCollectionEquality().hash(specialties),bio,kmpdcNumber,const DeepCollectionEquality().hash(licenses),picture,facilityId,isAvailable,termsAccepted]);
 
 @override
 String toString() {
-  return 'SignUpDraft(role: $role, firstName: $firstName, middleName: $middleName, lastName: $lastName, sex: $sex, dateOfBirth: $dateOfBirth, phoneNumber: $phoneNumber, countyId: $countyId, subCountyId: $subCountyId, language: $language, title: $title, specialties: $specialties, bio: $bio, kmpdcNumber: $kmpdcNumber, licenses: $licenses, picture: $picture, facilityId: $facilityId, isAvailable: $isAvailable, termsAccepted: $termsAccepted)';
+  return 'SignUpDraft(role: $role, email: $email, firstName: $firstName, middleName: $middleName, lastName: $lastName, sex: $sex, dateOfBirth: $dateOfBirth, phoneNumber: $phoneNumber, countyId: $countyId, subCountyId: $subCountyId, language: $language, title: $title, specialties: $specialties, bio: $bio, kmpdcNumber: $kmpdcNumber, licenses: $licenses, picture: $picture, facilityId: $facilityId, isAvailable: $isAvailable, termsAccepted: $termsAccepted)';
 }
 
 
@@ -46,7 +46,7 @@ abstract mixin class $SignUpDraftCopyWith<$Res>  {
   factory $SignUpDraftCopyWith(SignUpDraft value, $Res Function(SignUpDraft) _then) = _$SignUpDraftCopyWithImpl;
 @useResult
 $Res call({
- Role? role, String firstName, String middleName, String lastName, Sex? sex, String dateOfBirth, String phoneNumber, int? countyId, int? subCountyId, AppLanguage language, PractitionerTitle? title, List<Specialty> specialties, String bio, String kmpdcNumber, List<UploadFile> licenses, UploadFile? picture, String facilityId, bool isAvailable, bool termsAccepted
+ Role? role, String email, String firstName, String middleName, String lastName, Sex? sex, String dateOfBirth, String phoneNumber, int? countyId, int? subCountyId, AppLanguage language, PractitionerTitle? title, List<Specialty> specialties, String bio, String kmpdcNumber, List<UploadFile> licenses, UploadFile? picture, String facilityId, bool isAvailable, bool termsAccepted
 });
 
 
@@ -63,10 +63,11 @@ class _$SignUpDraftCopyWithImpl<$Res>
 
 /// Create a copy of SignUpDraft
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? role = freezed,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? sex = freezed,Object? dateOfBirth = null,Object? phoneNumber = null,Object? countyId = freezed,Object? subCountyId = freezed,Object? language = null,Object? title = freezed,Object? specialties = null,Object? bio = null,Object? kmpdcNumber = null,Object? licenses = null,Object? picture = freezed,Object? facilityId = null,Object? isAvailable = null,Object? termsAccepted = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? role = freezed,Object? email = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? sex = freezed,Object? dateOfBirth = null,Object? phoneNumber = null,Object? countyId = freezed,Object? subCountyId = freezed,Object? language = null,Object? title = freezed,Object? specialties = null,Object? bio = null,Object? kmpdcNumber = null,Object? licenses = null,Object? picture = freezed,Object? facilityId = null,Object? isAvailable = null,Object? termsAccepted = null,}) {
   return _then(_self.copyWith(
 role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as Role?,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
+as Role?,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String,middleName: null == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
 as String,lastName: null == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String,sex: freezed == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable
@@ -169,10 +170,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Role? role,  String firstName,  String middleName,  String lastName,  Sex? sex,  String dateOfBirth,  String phoneNumber,  int? countyId,  int? subCountyId,  AppLanguage language,  PractitionerTitle? title,  List<Specialty> specialties,  String bio,  String kmpdcNumber,  List<UploadFile> licenses,  UploadFile? picture,  String facilityId,  bool isAvailable,  bool termsAccepted)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( Role? role,  String email,  String firstName,  String middleName,  String lastName,  Sex? sex,  String dateOfBirth,  String phoneNumber,  int? countyId,  int? subCountyId,  AppLanguage language,  PractitionerTitle? title,  List<Specialty> specialties,  String bio,  String kmpdcNumber,  List<UploadFile> licenses,  UploadFile? picture,  String facilityId,  bool isAvailable,  bool termsAccepted)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SignUpDraft() when $default != null:
-return $default(_that.role,_that.firstName,_that.middleName,_that.lastName,_that.sex,_that.dateOfBirth,_that.phoneNumber,_that.countyId,_that.subCountyId,_that.language,_that.title,_that.specialties,_that.bio,_that.kmpdcNumber,_that.licenses,_that.picture,_that.facilityId,_that.isAvailable,_that.termsAccepted);case _:
+return $default(_that.role,_that.email,_that.firstName,_that.middleName,_that.lastName,_that.sex,_that.dateOfBirth,_that.phoneNumber,_that.countyId,_that.subCountyId,_that.language,_that.title,_that.specialties,_that.bio,_that.kmpdcNumber,_that.licenses,_that.picture,_that.facilityId,_that.isAvailable,_that.termsAccepted);case _:
   return orElse();
 
 }
@@ -190,10 +191,10 @@ return $default(_that.role,_that.firstName,_that.middleName,_that.lastName,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Role? role,  String firstName,  String middleName,  String lastName,  Sex? sex,  String dateOfBirth,  String phoneNumber,  int? countyId,  int? subCountyId,  AppLanguage language,  PractitionerTitle? title,  List<Specialty> specialties,  String bio,  String kmpdcNumber,  List<UploadFile> licenses,  UploadFile? picture,  String facilityId,  bool isAvailable,  bool termsAccepted)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( Role? role,  String email,  String firstName,  String middleName,  String lastName,  Sex? sex,  String dateOfBirth,  String phoneNumber,  int? countyId,  int? subCountyId,  AppLanguage language,  PractitionerTitle? title,  List<Specialty> specialties,  String bio,  String kmpdcNumber,  List<UploadFile> licenses,  UploadFile? picture,  String facilityId,  bool isAvailable,  bool termsAccepted)  $default,) {final _that = this;
 switch (_that) {
 case _SignUpDraft():
-return $default(_that.role,_that.firstName,_that.middleName,_that.lastName,_that.sex,_that.dateOfBirth,_that.phoneNumber,_that.countyId,_that.subCountyId,_that.language,_that.title,_that.specialties,_that.bio,_that.kmpdcNumber,_that.licenses,_that.picture,_that.facilityId,_that.isAvailable,_that.termsAccepted);case _:
+return $default(_that.role,_that.email,_that.firstName,_that.middleName,_that.lastName,_that.sex,_that.dateOfBirth,_that.phoneNumber,_that.countyId,_that.subCountyId,_that.language,_that.title,_that.specialties,_that.bio,_that.kmpdcNumber,_that.licenses,_that.picture,_that.facilityId,_that.isAvailable,_that.termsAccepted);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -210,10 +211,10 @@ return $default(_that.role,_that.firstName,_that.middleName,_that.lastName,_that
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Role? role,  String firstName,  String middleName,  String lastName,  Sex? sex,  String dateOfBirth,  String phoneNumber,  int? countyId,  int? subCountyId,  AppLanguage language,  PractitionerTitle? title,  List<Specialty> specialties,  String bio,  String kmpdcNumber,  List<UploadFile> licenses,  UploadFile? picture,  String facilityId,  bool isAvailable,  bool termsAccepted)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( Role? role,  String email,  String firstName,  String middleName,  String lastName,  Sex? sex,  String dateOfBirth,  String phoneNumber,  int? countyId,  int? subCountyId,  AppLanguage language,  PractitionerTitle? title,  List<Specialty> specialties,  String bio,  String kmpdcNumber,  List<UploadFile> licenses,  UploadFile? picture,  String facilityId,  bool isAvailable,  bool termsAccepted)?  $default,) {final _that = this;
 switch (_that) {
 case _SignUpDraft() when $default != null:
-return $default(_that.role,_that.firstName,_that.middleName,_that.lastName,_that.sex,_that.dateOfBirth,_that.phoneNumber,_that.countyId,_that.subCountyId,_that.language,_that.title,_that.specialties,_that.bio,_that.kmpdcNumber,_that.licenses,_that.picture,_that.facilityId,_that.isAvailable,_that.termsAccepted);case _:
+return $default(_that.role,_that.email,_that.firstName,_that.middleName,_that.lastName,_that.sex,_that.dateOfBirth,_that.phoneNumber,_that.countyId,_that.subCountyId,_that.language,_that.title,_that.specialties,_that.bio,_that.kmpdcNumber,_that.licenses,_that.picture,_that.facilityId,_that.isAvailable,_that.termsAccepted);case _:
   return null;
 
 }
@@ -225,10 +226,11 @@ return $default(_that.role,_that.firstName,_that.middleName,_that.lastName,_that
 
 
 class _SignUpDraft extends SignUpDraft {
-  const _SignUpDraft({this.role, this.firstName = '', this.middleName = '', this.lastName = '', this.sex, this.dateOfBirth = '', this.phoneNumber = '', this.countyId, this.subCountyId, this.language = AppLanguage.en, this.title, final  List<Specialty> specialties = const <Specialty>[], this.bio = '', this.kmpdcNumber = '', final  List<UploadFile> licenses = const <UploadFile>[], this.picture, this.facilityId = '', this.isAvailable = true, this.termsAccepted = false}): _specialties = specialties,_licenses = licenses,super._();
+  const _SignUpDraft({this.role, this.email = '', this.firstName = '', this.middleName = '', this.lastName = '', this.sex, this.dateOfBirth = '', this.phoneNumber = '', this.countyId, this.subCountyId, this.language = AppLanguage.en, this.title, final  List<Specialty> specialties = const <Specialty>[], this.bio = '', this.kmpdcNumber = '', final  List<UploadFile> licenses = const <UploadFile>[], this.picture, this.facilityId = '', this.isAvailable = true, this.termsAccepted = false}): _specialties = specialties,_licenses = licenses,super._();
   
 
 @override final  Role? role;
+@override@JsonKey() final  String email;
 @override@JsonKey() final  String firstName;
 @override@JsonKey() final  String middleName;
 @override@JsonKey() final  String lastName;
@@ -271,16 +273,16 @@ _$SignUpDraftCopyWith<_SignUpDraft> get copyWith => __$SignUpDraftCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SignUpDraft&&(identical(other.role, role) || other.role == role)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countyId, countyId) || other.countyId == countyId)&&(identical(other.subCountyId, subCountyId) || other.subCountyId == subCountyId)&&(identical(other.language, language) || other.language == language)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other._specialties, _specialties)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.kmpdcNumber, kmpdcNumber) || other.kmpdcNumber == kmpdcNumber)&&const DeepCollectionEquality().equals(other._licenses, _licenses)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.facilityId, facilityId) || other.facilityId == facilityId)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.termsAccepted, termsAccepted) || other.termsAccepted == termsAccepted));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _SignUpDraft&&(identical(other.role, role) || other.role == role)&&(identical(other.email, email) || other.email == email)&&(identical(other.firstName, firstName) || other.firstName == firstName)&&(identical(other.middleName, middleName) || other.middleName == middleName)&&(identical(other.lastName, lastName) || other.lastName == lastName)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.dateOfBirth, dateOfBirth) || other.dateOfBirth == dateOfBirth)&&(identical(other.phoneNumber, phoneNumber) || other.phoneNumber == phoneNumber)&&(identical(other.countyId, countyId) || other.countyId == countyId)&&(identical(other.subCountyId, subCountyId) || other.subCountyId == subCountyId)&&(identical(other.language, language) || other.language == language)&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other._specialties, _specialties)&&(identical(other.bio, bio) || other.bio == bio)&&(identical(other.kmpdcNumber, kmpdcNumber) || other.kmpdcNumber == kmpdcNumber)&&const DeepCollectionEquality().equals(other._licenses, _licenses)&&(identical(other.picture, picture) || other.picture == picture)&&(identical(other.facilityId, facilityId) || other.facilityId == facilityId)&&(identical(other.isAvailable, isAvailable) || other.isAvailable == isAvailable)&&(identical(other.termsAccepted, termsAccepted) || other.termsAccepted == termsAccepted));
 }
 
 
 @override
-int get hashCode => Object.hashAll([runtimeType,role,firstName,middleName,lastName,sex,dateOfBirth,phoneNumber,countyId,subCountyId,language,title,const DeepCollectionEquality().hash(_specialties),bio,kmpdcNumber,const DeepCollectionEquality().hash(_licenses),picture,facilityId,isAvailable,termsAccepted]);
+int get hashCode => Object.hashAll([runtimeType,role,email,firstName,middleName,lastName,sex,dateOfBirth,phoneNumber,countyId,subCountyId,language,title,const DeepCollectionEquality().hash(_specialties),bio,kmpdcNumber,const DeepCollectionEquality().hash(_licenses),picture,facilityId,isAvailable,termsAccepted]);
 
 @override
 String toString() {
-  return 'SignUpDraft(role: $role, firstName: $firstName, middleName: $middleName, lastName: $lastName, sex: $sex, dateOfBirth: $dateOfBirth, phoneNumber: $phoneNumber, countyId: $countyId, subCountyId: $subCountyId, language: $language, title: $title, specialties: $specialties, bio: $bio, kmpdcNumber: $kmpdcNumber, licenses: $licenses, picture: $picture, facilityId: $facilityId, isAvailable: $isAvailable, termsAccepted: $termsAccepted)';
+  return 'SignUpDraft(role: $role, email: $email, firstName: $firstName, middleName: $middleName, lastName: $lastName, sex: $sex, dateOfBirth: $dateOfBirth, phoneNumber: $phoneNumber, countyId: $countyId, subCountyId: $subCountyId, language: $language, title: $title, specialties: $specialties, bio: $bio, kmpdcNumber: $kmpdcNumber, licenses: $licenses, picture: $picture, facilityId: $facilityId, isAvailable: $isAvailable, termsAccepted: $termsAccepted)';
 }
 
 
@@ -291,7 +293,7 @@ abstract mixin class _$SignUpDraftCopyWith<$Res> implements $SignUpDraftCopyWith
   factory _$SignUpDraftCopyWith(_SignUpDraft value, $Res Function(_SignUpDraft) _then) = __$SignUpDraftCopyWithImpl;
 @override @useResult
 $Res call({
- Role? role, String firstName, String middleName, String lastName, Sex? sex, String dateOfBirth, String phoneNumber, int? countyId, int? subCountyId, AppLanguage language, PractitionerTitle? title, List<Specialty> specialties, String bio, String kmpdcNumber, List<UploadFile> licenses, UploadFile? picture, String facilityId, bool isAvailable, bool termsAccepted
+ Role? role, String email, String firstName, String middleName, String lastName, Sex? sex, String dateOfBirth, String phoneNumber, int? countyId, int? subCountyId, AppLanguage language, PractitionerTitle? title, List<Specialty> specialties, String bio, String kmpdcNumber, List<UploadFile> licenses, UploadFile? picture, String facilityId, bool isAvailable, bool termsAccepted
 });
 
 
@@ -308,10 +310,11 @@ class __$SignUpDraftCopyWithImpl<$Res>
 
 /// Create a copy of SignUpDraft
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? role = freezed,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? sex = freezed,Object? dateOfBirth = null,Object? phoneNumber = null,Object? countyId = freezed,Object? subCountyId = freezed,Object? language = null,Object? title = freezed,Object? specialties = null,Object? bio = null,Object? kmpdcNumber = null,Object? licenses = null,Object? picture = freezed,Object? facilityId = null,Object? isAvailable = null,Object? termsAccepted = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? role = freezed,Object? email = null,Object? firstName = null,Object? middleName = null,Object? lastName = null,Object? sex = freezed,Object? dateOfBirth = null,Object? phoneNumber = null,Object? countyId = freezed,Object? subCountyId = freezed,Object? language = null,Object? title = freezed,Object? specialties = null,Object? bio = null,Object? kmpdcNumber = null,Object? licenses = null,Object? picture = freezed,Object? facilityId = null,Object? isAvailable = null,Object? termsAccepted = null,}) {
   return _then(_SignUpDraft(
 role: freezed == role ? _self.role : role // ignore: cast_nullable_to_non_nullable
-as Role?,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
+as Role?,email: null == email ? _self.email : email // ignore: cast_nullable_to_non_nullable
+as String,firstName: null == firstName ? _self.firstName : firstName // ignore: cast_nullable_to_non_nullable
 as String,middleName: null == middleName ? _self.middleName : middleName // ignore: cast_nullable_to_non_nullable
 as String,lastName: null == lastName ? _self.lastName : lastName // ignore: cast_nullable_to_non_nullable
 as String,sex: freezed == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable

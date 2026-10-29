@@ -10,7 +10,10 @@ import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
+import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_errors.dart';
 import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
@@ -28,9 +31,17 @@ class PatientAccountScreen extends StatefulWidget {
 }
 
 class _PatientAccountScreenState extends State<PatientAccountScreen> {
-  final _emailController = TextEditingController();
+  late final TextEditingController _emailController;
   final _passwordController = TextEditingController();
   AppError? _localError;
+
+  @override
+  void initState() {
+    super.initState();
+    _emailController = TextEditingController(
+      text: context.read<SignUpBloc>().state.draft.email,
+    );
+  }
 
   @override
   void dispose() {
@@ -50,6 +61,9 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
           : const VerifyEmailRoute().push<void>(context),
     );
   }
+
+  SignUpDraft _fill(SignUpDraft draft) =>
+      draft.copyWith(email: _emailController.text.trim());
 
   void _submit(bool signedIn) {
     // Backed into from D3: the account already exists.
@@ -89,96 +103,102 @@ class _PatientAccountScreenState extends State<PatientAccountScreen> {
         final signedIn = state.session is SignUpIncompleteSession;
         final strongEnough = isPasswordStrong(_passwordController.text);
 
-        return StepScaffold(
-          step: 2,
-          total: 4,
-          backLabel: l10n.commonBack,
-          onBack: busy ? null : () => Navigator.of(context).pop(),
-          title: l10n.patientAccountTitle,
-          subtitle: l10n.patientAccountSubtitle,
-          error: failure != null && fieldFor(failure) == null ? failure : null,
-          role: Role.patient,
-          footer: TabibuButton.primary(
-            label: l10n.commonContinue,
-            isLoading: busy,
-            onTap: busy || (!signedIn && !strongEnough)
-                ? null
-                : () => _submit(signedIn),
-          ),
-          child: AutofillGroup(
-            child: Column(
-              children: [
-                IgnorePointer(
-                  ignoring: busy,
-                  child: Column(
-                    children: [
-                      Focus(
-                        onFocusChange: (hasFocus) {
-                          if (!hasFocus &&
-                              _emailController.text.trim().isNotEmpty &&
-                              !isValidEmail(_emailController.text)) {
-                            setState(() => _localError = .invalidEmail);
-                          }
-                        },
-                        child: TabibuTextField(
-                          label: l10n.accountEmailLabel,
-                          hint: l10n.accountEmailHint,
-                          controller: _emailController,
-                          leading: FieldIcon(Assets.icons.emailIcon),
-                          errorText:
-                              failure != null && fieldFor(failure) == .email
-                              ? fieldErrorText(failure, l10n)
-                              : null,
-                          required: true,
-                          keyboardType: TextInputType.emailAddress,
-                          textInputAction: TextInputAction.next,
-                          autofillHints: const [AutofillHints.email],
-                          onChanged: (_) => setState(
-                            () => _localError = errorAfterChange(
-                              _localError,
-                              .email,
+        return DraftPopScope(
+          fill: _fill,
+          canPop: !busy,
+          child: StepScaffold(
+            step: 2,
+            total: 4,
+            backLabel: l10n.commonBack,
+            onBack: busy ? null : () => Navigator.of(context).pop(),
+            title: l10n.patientAccountTitle,
+            subtitle: l10n.patientAccountSubtitle,
+            error: failure != null && fieldFor(failure) == null
+                ? failure
+                : null,
+            role: Role.patient,
+            footer: TabibuButton.primary(
+              label: l10n.commonContinue,
+              isLoading: busy,
+              onTap: busy || (!signedIn && !strongEnough)
+                  ? null
+                  : () => _submit(signedIn),
+            ),
+            child: AutofillGroup(
+              child: Column(
+                children: [
+                  IgnorePointer(
+                    ignoring: busy,
+                    child: Column(
+                      children: [
+                        Focus(
+                          onFocusChange: (hasFocus) {
+                            if (!hasFocus &&
+                                _emailController.text.trim().isNotEmpty &&
+                                !isValidEmail(_emailController.text)) {
+                              setState(() => _localError = .invalidEmail);
+                            }
+                          },
+                          child: TabibuTextField(
+                            label: l10n.accountEmailLabel,
+                            hint: l10n.accountEmailHint,
+                            controller: _emailController,
+                            leading: FieldIcon(Assets.icons.emailIcon),
+                            errorText:
+                                failure != null && fieldFor(failure) == .email
+                                ? fieldErrorText(failure, l10n)
+                                : null,
+                            required: true,
+                            keyboardType: TextInputType.emailAddress,
+                            textInputAction: TextInputAction.next,
+                            autofillHints: const [AutofillHints.email],
+                            onChanged: (_) => setState(
+                              () => _localError = errorAfterChange(
+                                _localError,
+                                .email,
+                              ),
                             ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      PasswordField(
-                        label: l10n.passwordLabel,
-                        showLabel: l10n.passwordShow,
-                        hideLabel: l10n.passwordHide,
-                        controller: _passwordController,
-                        errorText:
-                            failure != null && fieldFor(failure) == .password
-                            ? fieldErrorText(failure, l10n)
-                            : null,
-                        required: true,
-                        textInputAction: TextInputAction.done,
-                        autofillHints: const [AutofillHints.newPassword],
-                        onChanged: (_) => setState(
-                          () => _localError = errorAfterChange(
-                            _localError,
-                            .password,
+                        const SizedBox(height: AppSpacing.md),
+                        PasswordField(
+                          label: l10n.passwordLabel,
+                          showLabel: l10n.passwordShow,
+                          hideLabel: l10n.passwordHide,
+                          controller: _passwordController,
+                          errorText:
+                              failure != null && fieldFor(failure) == .password
+                              ? fieldErrorText(failure, l10n)
+                              : null,
+                          required: true,
+                          textInputAction: TextInputAction.done,
+                          autofillHints: const [AutofillHints.newPassword],
+                          onChanged: (_) => setState(
+                            () => _localError = errorAfterChange(
+                              _localError,
+                              .password,
+                            ),
                           ),
+                          onSubmitted: (_) {
+                            if (signedIn || strongEnough) _submit(signedIn);
+                          },
                         ),
-                        onSubmitted: (_) {
-                          if (signedIn || strongEnough) _submit(signedIn);
-                        },
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-                ),
-                const SizedBox(height: AppSpacing.md),
-                PasswordStrengthMeter(
-                  password: _passwordController.text,
-                  strengthWord: passwordStrengthWord(
-                    _passwordController.text,
-                    l10n,
+                  const SizedBox(height: AppSpacing.md),
+                  PasswordStrengthMeter(
+                    password: _passwordController.text,
+                    strengthWord: passwordStrengthWord(
+                      _passwordController.text,
+                      l10n,
+                    ),
+                    lengthLabel: l10n.passwordRuleLength,
+                    numberLabel: l10n.passwordRuleNumber,
+                    symbolLabel: l10n.passwordRuleSymbol,
                   ),
-                  lengthLabel: l10n.passwordRuleLength,
-                  numberLabel: l10n.passwordRuleNumber,
-                  symbolLabel: l10n.passwordRuleSymbol,
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         );

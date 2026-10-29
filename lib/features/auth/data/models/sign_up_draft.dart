@@ -15,6 +15,7 @@ part 'sign_up_draft.freezed.dart';
 abstract class SignUpDraft with _$SignUpDraft {
   const factory SignUpDraft({
     Role? role,
+    @Default('') String email,
     @Default('') String firstName,
     @Default('') String middleName,
     @Default('') String lastName,

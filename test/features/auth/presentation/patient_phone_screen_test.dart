@@ -36,6 +36,27 @@ void main() {
       child: const PatientPhoneScreen(),
     );
 
+    Future<void> pumpUnderStub(WidgetTester tester, Widget step) async {
+      final router = GoRouter(
+        initialLocation: '/previous/step',
+        routes: [
+          GoRoute(
+            path: '/previous',
+            builder: (_, _) => const Text('Previous step'),
+            routes: [GoRoute(path: 'step', builder: (_, _) => step)],
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      await tester.pumpRouterApp(router);
+      await tester.pumpAndSettle();
+    }
+
+    SignUpDraft committedDraft(MockSignUpBloc bloc) {
+      final captured = verify(() => bloc.add(captureAny())).captured;
+      return (captured.last as SignUpDraftUpdated).draft;
+    }
+
     testWidgets('renders in light and dark', (tester) async {
       await tester.pumpApp(screen(), themeMode: ThemeMode.light);
       await tester.pumpAndSettle();
@@ -94,6 +115,29 @@ void main() {
               as SignUpDraftUpdated;
       expect(captured.draft.phoneNumber, '+254712345678');
       expect(find.text('D4 stub'), findsOneWidget);
+    });
+
+    testWidgets('back keeps the number in the draft', (tester) async {
+      await pumpUnderStub(tester, screen());
+      await tester.enterText(find.byType(TextField), '712345678');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Previous step'), findsOneWidget);
+      expect(committedDraft(signUpBloc).phoneNumber, '+254712345678');
+    });
+
+    testWidgets('back keeps an unfinished number as typed', (tester) async {
+      await pumpUnderStub(tester, screen());
+      await tester.enterText(find.byType(TextField), '7123');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.bySemanticsLabel('Back'));
+      await tester.pumpAndSettle();
+
+      expect(committedDraft(signUpBloc).phoneNumber, '7123');
     });
   });
 }

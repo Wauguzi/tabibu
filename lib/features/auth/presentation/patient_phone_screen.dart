@@ -8,6 +8,8 @@ import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
+import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
+import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -41,6 +43,11 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
     super.dispose();
   }
 
+  SignUpDraft _fill(SignUpDraft draft) => draft.copyWith(
+    phoneNumber:
+        normalizeKePhone(_phoneController.text) ?? _phoneController.text.trim(),
+  );
+
   void _continue() {
     final normalized = normalizeKePhone(_phoneController.text);
     if (normalized == null) {
@@ -48,9 +55,7 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
       return;
     }
     setState(() => _error = null);
-    final draft = context.read<SignUpBloc>().state.draft.copyWith(
-      phoneNumber: normalized,
-    );
+    final draft = _fill(context.read<SignUpBloc>().state.draft);
     context.read<SignUpBloc>().add(SignUpDraftUpdated(draft: draft));
     unawaited(const PatientAreaRoute().push<void>(context));
   }
@@ -60,43 +65,46 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
     final l10n = context.l10n;
     final textTheme = Theme.of(context).textTheme;
 
-    return StepScaffold(
-      step: 3,
-      total: 4,
-      backLabel: l10n.commonBack,
-      onBack: () => Navigator.of(context).pop(),
-      title: l10n.patientPhoneTitle,
-      subtitle: l10n.patientPhoneSubtitle,
-      error: _error,
-      role: Role.patient,
-      footer: TabibuButton.primary(
-        label: l10n.commonContinue,
-        onTap: _continue,
-      ),
-      child: Column(
-        children: [
-          TabibuTextField(
-            label: l10n.phoneLabel,
-            hint: l10n.phoneHint,
-            controller: _phoneController,
-            leading: ExcludeSemantics(
-              child: Text('+254', style: textTheme.bodyLarge),
+    return DraftPopScope(
+      fill: _fill,
+      child: StepScaffold(
+        step: 3,
+        total: 4,
+        backLabel: l10n.commonBack,
+        onBack: () => Navigator.of(context).pop(),
+        title: l10n.patientPhoneTitle,
+        subtitle: l10n.patientPhoneSubtitle,
+        error: _error,
+        role: Role.patient,
+        footer: TabibuButton.primary(
+          label: l10n.commonContinue,
+          onTap: _continue,
+        ),
+        child: Column(
+          children: [
+            TabibuTextField(
+              label: l10n.phoneLabel,
+              hint: l10n.phoneHint,
+              controller: _phoneController,
+              leading: ExcludeSemantics(
+                child: Text('+254', style: textTheme.bodyLarge),
+              ),
+              errorText: _error?.description(l10n),
+              required: true,
+              keyboardType: TextInputType.phone,
+              textInputAction: TextInputAction.done,
+              autofillHints: const [AutofillHints.telephoneNumberNational],
+              onChanged: (_) => setState(() => _error = null),
+              onSubmitted: (_) => _continue(),
             ),
-            errorText: _error?.description(l10n),
-            required: true,
-            keyboardType: TextInputType.phone,
-            textInputAction: TextInputAction.done,
-            autofillHints: const [AutofillHints.telephoneNumberNational],
-            onChanged: (_) => setState(() => _error = null),
-            onSubmitted: (_) => _continue(),
-          ),
-          const SizedBox(height: AppSpacing.md),
-          NoticeCard(
-            variant: NoticeVariant.info,
-            icon: Assets.icons.shieldIcon,
-            body: l10n.phonePrivacyNotice,
-          ),
-        ],
+            const SizedBox(height: AppSpacing.md),
+            NoticeCard(
+              variant: NoticeVariant.info,
+              icon: Assets.icons.shieldIcon,
+              body: l10n.phonePrivacyNotice,
+            ),
+          ],
+        ),
       ),
     );
   }
