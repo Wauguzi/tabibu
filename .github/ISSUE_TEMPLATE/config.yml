@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Report a security vulnerability
+    url: https://github.com/Wauguzi/tabibu/security/advisories/new
+    about: Report privately, never in a public issue. See SECURITY.md.
+  - name: Code of conduct
+    url: https://github.com/Wauguzi/tabibu/blob/main/CODE_OF_CONDUCT.md
+    about: How we work together, and how to report a violation.
