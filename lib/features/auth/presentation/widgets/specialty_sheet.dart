@@ -18,7 +18,6 @@ Future<List<Specialty>?> showSpecialtySheet({
 }) => TabibuBottomSheet.show<List<Specialty>>(
   context,
   title: title,
-  closeLabel: context.l10n.commonClose,
   builder: (context) => _SpecialtyBody(
     subtitle: subtitle,
     searchHint: searchHint,

@@ -65,7 +65,6 @@ class PhotoRow extends StatelessWidget {
     final fromCamera = await TabibuBottomSheet.show<bool>(
       context,
       title: l10n.photoTitle,
-      closeLabel: l10n.commonClose,
       cancelLabel: l10n.commonCancel,
       builder: (context) => Column(
         mainAxisSize: MainAxisSize.min,

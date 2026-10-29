@@ -93,7 +93,6 @@ class _PatientAreaScreenState extends State<PatientAreaScreen> {
     final picked = await showSingleSelectSheet<CountyModel>(
       context: context,
       title: l10n.countyHint,
-      closeLabel: l10n.commonClose,
       searchHint: l10n.countySearchHint,
       items: counties,
       label: (county) => county.name,

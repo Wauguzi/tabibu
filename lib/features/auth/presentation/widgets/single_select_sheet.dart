@@ -7,7 +7,6 @@ import 'package:tabibu/core/widgets/widgets.dart';
 Future<T?> showSingleSelectSheet<T extends Object>({
   required BuildContext context,
   required String title,
-  required String closeLabel,
   required String searchHint,
   required List<T> items,
   required String Function(T item) label,
@@ -15,7 +14,6 @@ Future<T?> showSingleSelectSheet<T extends Object>({
 }) => TabibuBottomSheet.show<T>(
   context,
   title: title,
-  closeLabel: closeLabel,
   builder: (context) => _SingleSelectBody<T>(
     searchHint: searchHint,
     items: items,

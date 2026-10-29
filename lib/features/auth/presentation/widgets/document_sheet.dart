@@ -14,7 +14,6 @@ Future<DocumentSource?> showDocumentSheet(BuildContext context) {
   return TabibuBottomSheet.show<DocumentSource>(
     context,
     title: l10n.documentSheetTitle,
-    closeLabel: l10n.commonClose,
     subtitle: l10n.documentSheetSubtitle,
     cancelLabel: l10n.commonCancel,
     builder: (context) => Column(
