@@ -356,5 +356,6 @@
     "documentsCount": "{count, plural, =1{nyaraka 1} other{nyaraka {count}}}",
     "licenceDeleteLabel": "Ondoa {name}",
     "listAnd": "na",
+    "splashTagline": "Huduma unayoiamini, kutoka ziara yako ya kwanza hadi matokeo yaliyosainiwa",
     "errorEmailNotVerified": "Thibitisha barua pepe yako kwanza. Fungua kiungo tulichokutumia."
 }

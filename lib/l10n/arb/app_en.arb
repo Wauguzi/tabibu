@@ -1530,6 +1530,10 @@
     "@listAnd": {
         "description": "Join word inside an area list"
     },
+    "splashTagline": "Trusted care, from your first visit to a signed result",
+    "@splashTagline": {
+        "description": "A1 tagline under the wordmark"
+    },
     "errorEmailNotVerified": "Confirm your email address first. Open the link we sent you.",
     "@errorEmailNotVerified": {
         "description": "The server refused sign-up because the email address is not confirmed yet"
