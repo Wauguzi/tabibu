@@ -73,7 +73,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
     final name =
         '${_firstNameController.text.trim()} ${_lastNameController.text.trim()}'
             .trim();
-    return name.isEmpty ? '?' : name;
+    return name;
   }
 
   Future<void> _pickBirthDate() async {
@@ -303,7 +303,8 @@ class _SexPicker extends StatelessWidget {
         const SizedBox(height: AppSpacing.xs),
         Row(
           children: [
-            for (final sex in Sex.values) ...[
+            // Female first, as designed; the enum keeps its order.
+            for (final sex in <Sex>[.female, .male]) ...[
               Expanded(
                 child: _SexCard(
                   sex: sex,

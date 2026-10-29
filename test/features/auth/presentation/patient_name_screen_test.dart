@@ -270,6 +270,15 @@ void main() {
       expect(find.text('14 Mar 1980'), findsOneWidget);
     });
 
+    testWidgets('shows Female before Male', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final femaleX = tester.getTopLeft(find.text('Female')).dx;
+      final maleX = tester.getTopLeft(find.text('Male')).dx;
+      expect(femaleX, lessThan(maleX));
+    });
+
     testWidgets('a picked photo replaces Add with Change', (tester) async {
       when(
         () => filePicker.pickPhoto(fromCamera: any(named: 'fromCamera')),

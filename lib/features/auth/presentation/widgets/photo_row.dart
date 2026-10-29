@@ -100,9 +100,29 @@ class PhotoRow extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final picture = this.picture;
 
+    final nameless = picture == null && name.trim().isEmpty;
+
     return Row(
       children: [
-        if (picture == null)
+        if (nameless)
+          Container(
+            width: 56,
+            height: 56,
+            alignment: .center,
+            decoration: BoxDecoration(
+              shape: .circle,
+              color: scheme.surfaceContainerHigh,
+            ),
+            child: ExcludeSemantics(
+              child: AssetIcon(
+                Assets.icons.personIcon,
+                size: 22,
+                scaleUp: false,
+                color: scheme.onSurfaceVariant,
+              ),
+            ),
+          )
+        else if (picture == null)
           Avatar(name: name, radius: 28)
         else
           Avatar(name: name, image: MemoryImage(picture.bytes), radius: 28),
