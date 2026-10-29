@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -19,6 +20,7 @@ class TabibuTextField extends StatefulWidget {
     this.textInputAction,
     this.maxLines = 1,
     this.maxLength,
+    this.inputFormatters,
     this.onChanged,
     this.onSubmitted,
     this.obscureText = false,
@@ -39,6 +41,7 @@ class TabibuTextField extends StatefulWidget {
   final TextInputAction? textInputAction;
   final int maxLines;
   final int? maxLength;
+  final List<TextInputFormatter>? inputFormatters;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
   final bool obscureText;
@@ -81,6 +84,7 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
       maxLength: maxLength,
       obscureText: widget.obscureText,
       autofillHints: widget.autofillHints,
+      inputFormatters: widget.inputFormatters,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
       style: textTheme.bodyLarge,

@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_state.dart';
@@ -76,7 +77,19 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('a bad number shows its message', (tester) async {
+    testWidgets('shows the +254 prefix beside the number field', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text('🇰🇪'), findsOneWidget);
+      expect(find.text('+254'), findsOneWidget);
+    });
+
+    testWidgets('a bad number shows its message under the field', (
+      tester,
+    ) async {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
@@ -86,8 +99,14 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(
-        find.text('The phone number is not valid. Check it and try again.'),
-        findsNWidgets(2),
+        find.text('Enter a Kenyan mobile number, like 712 345 678'),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is NoticeCard && w.variant == NoticeVariant.error,
+        ),
+        findsNothing,
       );
     });
 
@@ -105,8 +124,13 @@ void main() {
       await tester.pumpRouterApp(router);
       await tester.pumpAndSettle();
 
-      await tester.enterText(find.byType(TextField), '712 345 678');
+      await tester.enterText(find.byType(TextField), '712345678');
       await tester.pumpAndSettle();
+      // The hint shows the same grouping, so read the field itself.
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).controller!.text,
+        '712 345 678',
+      );
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
@@ -137,7 +161,7 @@ void main() {
       await tester.tap(find.bySemanticsLabel('Back'));
       await tester.pumpAndSettle();
 
-      expect(committedDraft(signUpBloc).phoneNumber, '7123');
+      expect(committedDraft(signUpBloc).phoneNumber, '712 3');
     });
   });
 }

@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
@@ -10,6 +11,8 @@ import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/presentation/widgets/draft_pop_scope.dart';
+import 'package:tabibu/features/auth/presentation/widgets/field_errors.dart';
+import 'package:tabibu/features/auth/presentation/widgets/field_icon.dart';
 import 'package:tabibu/features/auth/presentation/widgets/step_scaffold.dart';
 import 'package:tabibu/features/auth/presentation/widgets/validators.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -32,9 +35,7 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
   void initState() {
     super.initState();
     final phone = context.read<SignUpBloc>().state.draft.phoneNumber;
-    _phoneController = TextEditingController(
-      text: phone.startsWith('+254') ? phone.substring(4) : phone,
-    );
+    _phoneController = TextEditingController(text: formatKePhone(phone));
   }
 
   @override
@@ -63,7 +64,7 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
-    final textTheme = Theme.of(context).textTheme;
+    final error = _error;
 
     return DraftPopScope(
       fill: _fill,
@@ -74,7 +75,7 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
         onBack: () => Navigator.of(context).pop(),
         title: l10n.patientPhoneTitle,
         subtitle: l10n.patientPhoneSubtitle,
-        error: _error,
+        error: error != null && fieldFor(error) == null ? error : null,
         role: Role.patient,
         footer: TabibuButton.primary(
           label: l10n.commonContinue,
@@ -82,20 +83,34 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
         ),
         child: Column(
           children: [
-            TabibuTextField(
-              label: l10n.phoneLabel,
-              hint: l10n.phoneHint,
-              controller: _phoneController,
-              leading: ExcludeSemantics(
-                child: Text('+254', style: textTheme.bodyLarge),
-              ),
-              errorText: _error?.description(l10n),
-              required: true,
-              keyboardType: TextInputType.phone,
-              textInputAction: TextInputAction.done,
-              autofillHints: const [AutofillHints.telephoneNumberNational],
-              onChanged: (_) => setState(() => _error = null),
-              onSubmitted: (_) => _continue(),
+            Row(
+              crossAxisAlignment: .start,
+              children: [
+                const _PhonePrefix(),
+                const SizedBox(width: AppSpacing.sm),
+                Expanded(
+                  child: TabibuTextField(
+                    label: l10n.phoneLabel,
+                    hint: l10n.phoneHint,
+                    controller: _phoneController,
+                    leading: FieldIcon(Assets.icons.phoneIcon),
+                    errorText: _error == .invalidPhone
+                        ? fieldErrorText(_error!, l10n)
+                        : null,
+                    required: true,
+                    keyboardType: TextInputType.phone,
+                    textInputAction: TextInputAction.done,
+                    autofillHints: const [
+                      AutofillHints.telephoneNumberNational,
+                    ],
+                    inputFormatters: const [KePhoneFormatter()],
+                    onChanged: (_) => setState(
+                      () => _error = errorAfterChange(_error, .phone),
+                    ),
+                    onSubmitted: (_) => _continue(),
+                  ),
+                ),
+              ],
             ),
             const SizedBox(height: AppSpacing.md),
             NoticeCard(
@@ -105,6 +120,54 @@ class _PatientPhoneScreenState extends State<PatientPhoneScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+/// D3's +254 prefix: its own small, read-only box beside the number field.
+/// Kenya only, so the chevron is decorative.
+class _PhonePrefix extends StatelessWidget {
+  const _PhonePrefix();
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return ExcludeSemantics(
+      child: Column(
+        mainAxisSize: .min,
+        children: [
+          // A blank line matching the number field's label, so the boxes
+          // align.
+          Text(' ', style: textTheme.titleMedium),
+          const SizedBox(height: AppSpacing.xs),
+          Container(
+            padding: const EdgeInsets.symmetric(
+              horizontal: AppSpacing.md,
+              vertical: AppSpacing.md,
+            ),
+            decoration: BoxDecoration(
+              color: scheme.surfaceContainerLowest,
+              borderRadius: BorderRadius.circular(AppRadii.field),
+            ),
+            child: Row(
+              mainAxisSize: .min,
+              children: [
+                Text('🇰🇪', style: textTheme.titleLarge),
+                const SizedBox(width: AppSpacing.xs),
+                Text('+254', style: textTheme.bodyLarge),
+                const SizedBox(width: AppSpacing.xs),
+                AssetIcon(
+                  Assets.icons.dropDownIcon,
+                  size: 22,
+                  scaleUp: false,
+                  color: scheme.onSurfaceVariant,
+                ),
+              ],
+            ),
+          ),
+        ],
       ),
     );
   }

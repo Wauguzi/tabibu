@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// The server accepts Kenyan mobile numbers only, stored E.164. Accepts the
@@ -13,6 +14,42 @@ String? normalizeKePhone(String raw) {
   }
   if (!RegExp(r'^[17]\d{8}$').hasMatch(digits)) return null;
   return '+254$digits';
+}
+
+/// Groups national digits 3-3-3 for display ("712 345 678"), dropping a
+/// pasted 0 or 254 prefix and anything past nine digits. Storage stays
+/// E.164 through [normalizeKePhone].
+String formatKePhone(String value) {
+  var digits = value.replaceAll(RegExp(r'\D'), '');
+  if (digits.length > 9 && digits.startsWith('254')) {
+    digits = digits.substring(3);
+  }
+  digits = digits.replaceFirst(RegExp('^0+'), '');
+  if (digits.length > 9) digits = digits.substring(0, 9);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) {
+    return '${digits.substring(0, 3)} ${digits.substring(3)}';
+  }
+  return '${digits.substring(0, 3)} ${digits.substring(3, 6)} '
+      '${digits.substring(6)}';
+}
+
+/// Groups typed digits as [formatKePhone]; the caret rests at the end.
+class KePhoneFormatter extends TextInputFormatter {
+  const KePhoneFormatter();
+
+  @override
+  TextEditingValue formatEditUpdate(
+    TextEditingValue oldValue,
+    TextEditingValue newValue,
+  ) {
+    final text = formatKePhone(newValue.text);
+    return newValue.copyWith(
+      text: text,
+      selection: TextSelection.collapsed(offset: text.length),
+      composing: TextRange.empty,
+    );
+  }
 }
 
 /// The meter's three rules, mirrored so Continue enables exactly when the
