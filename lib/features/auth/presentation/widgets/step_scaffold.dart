@@ -63,7 +63,7 @@ class StepScaffold extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(title, style: textTheme.displaySmall),
+                      Text(title, style: textTheme.headlineMedium),
                       if (subtitle != null) ...[
                         const SizedBox(height: AppSpacing.xs),
                         Text(subtitle, style: textTheme.bodyLarge),
