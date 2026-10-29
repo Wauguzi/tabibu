@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:cupertino_ui/cupertino_ui.dart'
     show GlobalCupertinoLocalizations;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalWidgetsLocalizations;
@@ -139,14 +140,23 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           debugShowCheckedModeBanner: false,
           builder: (context, child) {
             final mediaQuery = MediaQuery.of(context);
-            return MediaQuery(
-              data: mediaQuery.copyWith(
-                textScaler: composedTextScaler(
-                  base: mediaQuery.textScaler,
-                  extraScaleFactor: screenAwareTextScaleFactor(context),
-                ),
+            final isDark = Theme.of(context).brightness == Brightness.dark;
+            // The default for screens that set no style of their own.
+            return AnnotatedRegion<SystemUiOverlayStyle>(
+              value: SystemUiOverlayStyle(
+                statusBarColor: Colors.transparent,
+                statusBarBrightness: isDark ? .dark : .light,
+                statusBarIconBrightness: isDark ? .light : .dark,
               ),
-              child: child!,
+              child: MediaQuery(
+                data: mediaQuery.copyWith(
+                  textScaler: composedTextScaler(
+                    base: mediaQuery.textScaler,
+                    extraScaleFactor: screenAwareTextScaleFactor(context),
+                  ),
+                ),
+                child: child!,
+              ),
             );
           },
         ),
