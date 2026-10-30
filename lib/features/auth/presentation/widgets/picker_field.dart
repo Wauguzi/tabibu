@@ -109,7 +109,7 @@ class PickerField extends StatelessWidget {
           enabled: onTap != null,
           label: value == null ? label : '$label, $value',
           excludeSemantics: excludeSemantics,
-          child: GestureDetector(onTap: onTap, child: box),
+          child: Tappable(onTap: onTap, child: box),
         ),
         if (hasError) ...[
           const SizedBox(height: AppSpacing.xs),

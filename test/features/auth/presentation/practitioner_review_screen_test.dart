@@ -1,6 +1,5 @@
-import 'dart:typed_data';
-
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -381,6 +380,36 @@ void main() {
 
       expect(find.text('Check and submit'), findsOneWidget);
       expect(find.text('Previous step'), findsNothing);
+    });
+
+    testWidgets('Space checks the terms, and Tab leaves the row', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text(_doctorTerms));
+      await tester.pumpAndSettle();
+      await tester.tabTo(find.text(_doctorTerms));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+      final updated =
+          verify(() => signUpBloc.add(captureAny())).captured.single
+              as SignUpDraftUpdated;
+      expect(updated.draft.termsAccepted, isTrue);
+
+      // One stop on the row: the next Tab reaches Submit, not the Checkbox.
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      expect(
+        Focus.of(tester.element(find.text(_doctorTerms))).hasFocus,
+        isFalse,
+      );
+      expect(
+        Focus.of(tester.element(find.text('Submit for verification'))).hasFocus,
+        isTrue,
+      );
     });
   });
 }

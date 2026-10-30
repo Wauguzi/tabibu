@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -93,6 +94,12 @@ void main() {
       await tester.pumpAndSettle();
       await tester.tap(find.text('Dr.').last);
       await tester.pumpAndSettle();
+    }
+
+    // Cupertino sheet routes never settle.
+    Future<void> settleSheet(WidgetTester tester) async {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
     }
 
     Future<void> fillNames(WidgetTester tester) async {
@@ -571,6 +578,21 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('w.kamau@akuh.example'), findsOneWidget);
+    });
+
+    testWidgets('Enter on the title opens the title sheet', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tabTo(find.text('Choose your title'));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await settleSheet(tester);
+      expect(find.byType(TabibuBottomSheet), findsOneWidget);
+
+      await tester.tap(find.text('Dr.').last);
+      await settleSheet(tester);
+      expect(find.byType(TabibuBottomSheet), findsNothing);
     });
   });
 }

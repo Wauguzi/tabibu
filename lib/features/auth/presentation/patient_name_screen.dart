@@ -357,9 +357,8 @@ class _SexCard extends StatelessWidget {
         button: true,
         selected: selected,
         onTap: onTap,
-        // Focusable, so a keyboard reaches it; it merges into the card's node.
-        child: Focus(
-          canRequestFocus: true,
+        child: Tappable(
+          onTap: onTap,
           child: Material(
             // Selection is the brand mint, as in OptionCard (design system §6).
             color: selected
@@ -368,34 +367,30 @@ class _SexCard extends StatelessWidget {
                       : AppColors.mintLight)
                 : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.card),
-            child: GestureDetector(
-              onTap: onTap,
-              behavior: .opaque,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: AppSpacing.md,
-                  vertical: AppSpacing.sm + 4,
-                ),
-                child: Row(
-                  mainAxisAlignment: .center,
-                  children: [
-                    ExcludeSemantics(
-                      child: AssetIcon(
-                        selected
-                            ? Assets.icons.checkSelectedIcon
-                            : Assets.icons.checkUnselectedIcon,
-                        size: 22,
-                      ),
+            child: Padding(
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppSpacing.md,
+                vertical: AppSpacing.sm + 4,
+              ),
+              child: Row(
+                mainAxisAlignment: .center,
+                children: [
+                  ExcludeSemantics(
+                    child: AssetIcon(
+                      selected
+                          ? Assets.icons.checkSelectedIcon
+                          : Assets.icons.checkUnselectedIcon,
+                      size: 22,
                     ),
-                    const SizedBox(width: AppSpacing.xs),
-                    Flexible(
-                      child: Text(
-                        sex.description(context.l10n),
-                        style: textTheme.titleMedium,
-                      ),
+                  ),
+                  const SizedBox(width: AppSpacing.xs),
+                  Flexible(
+                    child: Text(
+                      sex.description(context.l10n),
+                      style: textTheme.titleMedium,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           ),

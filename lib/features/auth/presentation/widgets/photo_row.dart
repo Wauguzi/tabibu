@@ -210,9 +210,8 @@ class _PhotoRowState extends State<PhotoRow> {
             Semantics(
               button: true,
               onTap: _sheet,
-              child: GestureDetector(
+              child: Tappable(
                 onTap: _sheet,
-                behavior: .opaque,
                 // The 48 dp floor wraps the hit area; the drawn pill keeps
                 // its size, centered in the row's height.
                 child: ConstrainedBox(

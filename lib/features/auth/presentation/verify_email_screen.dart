@@ -225,8 +225,7 @@ class _ResendLink extends StatelessWidget {
     return Semantics(
       button: true,
       enabled: enabled,
-      child: GestureDetector(
-        behavior: .opaque,
+      child: Tappable(
         onTap: onTap,
         // The 48 dp floor wraps the hit area; the drawn link keeps its
         // size, centered in the taller row.

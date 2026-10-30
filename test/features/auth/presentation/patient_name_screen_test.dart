@@ -3,6 +3,7 @@ import 'dart:convert';
 
 import 'package:bloc_test/bloc_test.dart';
 import 'package:cupertino_ui/cupertino_ui.dart' show CupertinoDatePicker;
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -427,6 +428,44 @@ void main() {
       expect(draft.firstName, 'Amina');
       expect(draft.lastName, 'Wambui');
       expect(draft.dateOfBirth, isEmpty);
+    });
+
+    testWidgets('Enter on the birth date opens the picker', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Select date'));
+      await tester.pumpAndSettle();
+      await tester.tabTo(find.text('Select date'));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoDatePicker), findsOneWidget);
+
+      await tester.tapAt(const Offset(20, 20));
+      await tester.pumpAndSettle();
+      expect(find.byType(CupertinoDatePicker), findsNothing);
+    });
+
+    testWidgets('Space on a sex card selects it', (tester) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.ensureVisible(find.text('Female'));
+      await tester.pumpAndSettle();
+      await tester.tabTo(find.text('Female'));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.space);
+      await tester.pump();
+
+      final selected = tester
+          .widgetList<Material>(find.byType(Material))
+          .where(
+            (m) =>
+                m.borderRadius == BorderRadius.circular(AppRadii.card) &&
+                m.color == AppColors.mintLight,
+          );
+      expect(selected, hasLength(1));
     });
   });
 }

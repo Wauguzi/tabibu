@@ -294,8 +294,7 @@ class _RetryLink extends StatelessWidget {
     final style = Theme.of(context).textTheme.titleSmall;
     return Semantics(
       button: true,
-      child: GestureDetector(
-        behavior: .opaque,
+      child: Tappable(
         onTap: onTap,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: AppSpacing.xxs),

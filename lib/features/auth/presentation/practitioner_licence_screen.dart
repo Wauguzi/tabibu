@@ -308,9 +308,8 @@ class _AreaChip extends StatelessWidget {
             button: true,
             label: '$label, $removeLabel',
             excludeSemantics: true,
-            child: GestureDetector(
+            child: Tappable(
               onTap: onRemoved,
-              behavior: HitTestBehavior.opaque,
               // The 48 dp floor wraps the hit area; the drawn cross keeps
               // its size, centered in the chip's height.
               child: ConstrainedBox(
@@ -396,9 +395,8 @@ class _DocumentsSection extends StatelessWidget {
                   ? AppColors.mintDark
                   : AppColors.mintLight,
               borderRadius: BorderRadius.circular(AppRadii.card),
-              child: GestureDetector(
+              child: Tappable(
                 onTap: onAdd,
-                behavior: .opaque,
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.md),
                   child: Row(
