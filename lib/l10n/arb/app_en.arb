@@ -1,7 +1,1945 @@
 {
     "@@locale": "en",
-    "counterAppBarTitle": "Counter",
-    "@counterAppBarTitle": {
-        "description": "Text shown in the AppBar of the Counter Page"
+    "errorNoInternet": "No internet access.",
+    "@errorNoInternet": {
+        "description": "Shown when an action needs the internet and there is none"
+    },
+    "errorInvalidEmail": "The email address is not valid.",
+    "@errorInvalidEmail": {
+        "description": "Shown when an email fails validation; also a Cloud Functions refusal key"
+    },
+    "errorUserDisabled": "This account has been disabled.",
+    "@errorUserDisabled": {
+        "description": "Shown when signing in to a disabled account"
+    },
+    "errorUserNotFound": "No account found with this email.",
+    "@errorUserNotFound": {
+        "description": "Shown when signing in with an unknown email"
+    },
+    "errorWrongPassword": "Incorrect password. Please try again.",
+    "@errorWrongPassword": {
+        "description": "Shown when the password does not match"
+    },
+    "errorEmailAlreadyInUse": "An account already exists with this email. Sign in instead.",
+    "@errorEmailAlreadyInUse": {
+        "description": "Shown when signing up with an email that already has an account"
+    },
+    "errorWeakPassword": "Password is too weak. Use at least 6 characters.",
+    "@errorWeakPassword": {
+        "description": "Shown when the chosen password is too weak"
+    },
+    "errorOperationNotAllowed": "This sign-in method is not enabled.",
+    "@errorOperationNotAllowed": {
+        "description": "Shown when the sign-in method is disabled"
+    },
+    "errorTooManyRequests": "Too many attempts. Please try again later.",
+    "@errorTooManyRequests": {
+        "description": "Shown when the account is temporarily rate-limited"
+    },
+    "errorInvalidCredential": "Invalid credentials. Please try again.",
+    "@errorInvalidCredential": {
+        "description": "Shown when the sign-in credential is rejected"
+    },
+    "errorAccountExistsWithDifferentCredential": "An account already exists with this email using a different sign-in method.",
+    "@errorAccountExistsWithDifferentCredential": {
+        "description": "Shown when the email has an account under another sign-in method"
+    },
+    "errorRequiresRecentLogin": "Please sign in again to complete this action.",
+    "@errorRequiresRecentLogin": {
+        "description": "Shown when a sensitive action needs a fresh sign-in"
+    },
+    "errorCredentialAlreadyInUse": "This credential is already linked to another account.",
+    "@errorCredentialAlreadyInUse": {
+        "description": "Shown when linking a credential that another account holds"
+    },
+    "errorExpiredActionCode": "This link has expired. Please request a new one.",
+    "@errorExpiredActionCode": {
+        "description": "Shown when an email action link has expired"
+    },
+    "errorInvalidActionCode": "This link is invalid. Please request a new one.",
+    "@errorInvalidActionCode": {
+        "description": "Shown when an email action link is invalid"
+    },
+    "errorUserTokenExpired": "Your session has expired. Please sign in again.",
+    "@errorUserTokenExpired": {
+        "description": "Shown when the session token has expired"
+    },
+    "errorPermissionDenied": "You do not have permission to perform this action.",
+    "@errorPermissionDenied": {
+        "description": "Shown when the server refuses an action for lack of permission"
+    },
+    "errorDataNotFound": "The requested data was not found.",
+    "@errorDataNotFound": {
+        "description": "Shown when a requested record does not exist"
+    },
+    "errorServiceUnavailable": "Service temporarily unavailable. Please try again.",
+    "@errorServiceUnavailable": {
+        "description": "Shown when the backend is temporarily unreachable"
+    },
+    "errorRequestTimeout": "Request timed out. Please try again.",
+    "@errorRequestTimeout": {
+        "description": "Shown when a request takes too long"
+    },
+    "errorUserNotRegistered": "This Google account is not registered yet. Sign up to continue.",
+    "@errorUserNotRegistered": {
+        "description": "Shown when signing in with Google before signing up"
+    },
+    "errorUnknown": "Something went wrong. Please try again.",
+    "@errorUnknown": {
+        "description": "Fallback for any error with no specific message"
+    },
+    "errorUnauthenticated": "You are not signed in. Sign in and try again.",
+    "@errorUnauthenticated": {
+        "description": "Refusal when calling a function without signing in"
+    },
+    "errorEmailRequired": "An email address is required to continue.",
+    "@errorEmailRequired": {
+        "description": "Refusal when the account has no email address"
+    },
+    "errorInvalidName": "The name is not valid. Check it and try again.",
+    "@errorInvalidName": {
+        "description": "Refusal when a name fails validation"
+    },
+    "errorInvalidSex": "The sex selected is not valid.",
+    "@errorInvalidSex": {
+        "description": "Refusal when the selected sex is not valid"
+    },
+    "errorInvalidDateOfBirth": "The date of birth is not valid.",
+    "@errorInvalidDateOfBirth": {
+        "description": "Refusal when the date of birth is not valid"
+    },
+    "errorInvalidPhone": "The phone number is not valid. Check it and try again.",
+    "@errorInvalidPhone": {
+        "description": "Refusal when the phone number is not valid"
+    },
+    "errorInvalidCounty": "Select a valid county.",
+    "@errorInvalidCounty": {
+        "description": "Refusal when the selected county is not valid"
+    },
+    "errorInvalidSubCounty": "Select a valid sub-county.",
+    "@errorInvalidSubCounty": {
+        "description": "Refusal when the selected sub-county is not valid"
+    },
+    "errorInvalidLanguage": "The language selected is not valid.",
+    "@errorInvalidLanguage": {
+        "description": "Refusal when the selected language is not valid"
+    },
+    "errorRoleAlreadySet": "This account is already registered. Sign in instead.",
+    "@errorRoleAlreadySet": {
+        "description": "Refusal when the account already has a role"
+    },
+    "errorPatientAlreadyRegistered": "This patient is already registered.",
+    "@errorPatientAlreadyRegistered": {
+        "description": "Refusal when the patient already has an account"
+    },
+    "errorPatientExists": "A patient record already exists with these details.",
+    "@errorPatientExists": {
+        "description": "Refusal when a record already holds this phone and birth date"
+    },
+    "errorDoctorsOnly": "Only doctors can perform this action.",
+    "@errorDoctorsOnly": {
+        "description": "Refusal when a non-doctor calls a doctors-only function"
+    },
+    "errorInvalidPatient": "The patient selected is not valid.",
+    "@errorInvalidPatient": {
+        "description": "Refusal when the selected patient is not valid"
+    },
+    "errorAccountNotFound": "No account found with these details.",
+    "@errorAccountNotFound": {
+        "description": "Refusal when no account matches the given details"
+    },
+    "errorAccountAlreadyHasRole": "That account is already registered on Tabibu, so it cannot be linked to this record.",
+    "@errorAccountAlreadyHasRole": {
+        "description": "Refusal when linking an account that already has a role"
+    },
+    "errorAlreadyLinked": "This record is already linked to an account.",
+    "@errorAlreadyLinked": {
+        "description": "Refusal when the record is already linked to an account"
+    },
+    "errorInvalidRole": "Choose whether you are a doctor or a pathologist.",
+    "@errorInvalidRole": {
+        "description": "Refusal when the role is not valid"
+    },
+    "errorTermsRequired": "Accept the terms to continue.",
+    "@errorTermsRequired": {
+        "description": "Refusal when the terms were not accepted"
+    },
+    "errorInvalidKmpdcNumber": "The KMPDC number is not valid. Check it and try again.",
+    "@errorInvalidKmpdcNumber": {
+        "description": "Refusal when the KMPDC number is not valid"
+    },
+    "errorInvalidFacility": "Select a valid facility.",
+    "@errorInvalidFacility": {
+        "description": "Refusal when the selected facility is not valid"
+    },
+    "errorFacilityNotOperational": "This facility is not operational. Select another one.",
+    "@errorFacilityNotOperational": {
+        "description": "Refusal when the selected facility is closed"
+    },
+    "errorInvalidTitle": "Select a valid title.",
+    "@errorInvalidTitle": {
+        "description": "Refusal when the selected title is not valid"
+    },
+    "errorInvalidPicture": "The picture is not valid. Choose another one.",
+    "@errorInvalidPicture": {
+        "description": "Refusal when the uploaded picture is not valid"
+    },
+    "errorInvalidBio": "The biography is not valid. Check it and try again.",
+    "@errorInvalidBio": {
+        "description": "Refusal when the biography is not valid"
+    },
+    "errorInvalidLicense": "The license is not valid. Check it and try again.",
+    "@errorInvalidLicense": {
+        "description": "Refusal when the license is not valid"
+    },
+    "errorKmpdcNumberInUse": "This KMPDC number is already registered. Check it, or contact support.",
+    "@errorKmpdcNumberInUse": {
+        "description": "Refusal when another account holds the KMPDC number"
+    },
+    "errorFileTooLarge": "That file is too large. Choose a smaller photo or scan.",
+    "@errorFileTooLarge": {
+        "description": "A photo or licence file is over the upload limit"
+    },
+    "errorAdminOnly": "Only an administrator can perform this action.",
+    "@errorAdminOnly": {
+        "description": "Refusal when a non-admin calls an admin-only function"
+    },
+    "errorInvalidPractitioner": "The practitioner selected is not valid.",
+    "@errorInvalidPractitioner": {
+        "description": "Refusal when the selected practitioner is not valid"
+    },
+    "errorInvalidDecision": "The decision is not valid.",
+    "@errorInvalidDecision": {
+        "description": "Refusal when the verification decision is not valid"
+    },
+    "errorPractitionerPendingVerification": "Your account is waiting for verification. Check back later.",
+    "@errorPractitionerPendingVerification": {
+        "description": "Shown when a pending practitioner reaches for a clinical route"
+    },
+    "errorNoRoleAssigned": "This account is not set up yet. Finish signing up, or contact support.",
+    "@errorNoRoleAssigned": {
+        "description": "Shown when the signed-in account has no role claim"
+    },
+    "fieldErrorTitle": "Choose your title",
+    "@fieldErrorTitle": {
+        "description": "Under E1/F1's title picker when none is chosen"
+    },
+    "fieldErrorPicture": "Add a photo of yourself",
+    "@fieldErrorPicture": {
+        "description": "Under E1/F1's photo row when no photo is added"
+    },
+    "fieldErrorEmailInvalid": "That doesn't look like an email address",
+    "@fieldErrorEmailInvalid": {
+        "description": "Under the email field when the address has no email structure"
+    },
+    "fieldErrorEmailInUse": "An account already uses this email. Sign in instead.",
+    "@fieldErrorEmailInUse": {
+        "description": "Under the email field when the address already has an account"
+    },
+    "fieldErrorPasswordWeak": "Use at least 8 characters, a number and a symbol",
+    "@fieldErrorPasswordWeak": {
+        "description": "Under the password field when it misses the strength rules"
+    },
+    "fieldErrorName": "Enter your name",
+    "@fieldErrorName": {
+        "description": "Under the first empty name field"
+    },
+    "fieldErrorSex": "Choose one",
+    "@fieldErrorSex": {
+        "description": "Under the sex cards when none is chosen"
+    },
+    "fieldErrorDateOfBirth": "Enter your date of birth",
+    "@fieldErrorDateOfBirth": {
+        "description": "Under the date-of-birth picker when empty"
+    },
+    "fieldErrorPhone": "Enter a Kenyan mobile number, like 712 345 678",
+    "@fieldErrorPhone": {
+        "description": "Under the phone field when the digits are not a Kenyan mobile"
+    },
+    "fieldErrorCounty": "Choose your county",
+    "@fieldErrorCounty": {
+        "description": "Under the county picker when empty"
+    },
+    "fieldErrorSubCounty": "Choose your area",
+    "@fieldErrorSubCounty": {
+        "description": "Under the sub-county picker when empty"
+    },
+    "sexMale": "Male",
+    "@sexMale": {
+        "description": "Label for the male sex option"
+    },
+    "sexFemale": "Female",
+    "@sexFemale": {
+        "description": "Label for the female sex option"
+    },
+    "verificationStatusPending": "Pending",
+    "@verificationStatusPending": {
+        "description": "Label for a practitioner awaiting verification"
+    },
+    "verificationStatusVerified": "Verified",
+    "@verificationStatusVerified": {
+        "description": "Label for a verified practitioner"
+    },
+    "verificationStatusRejected": "Rejected",
+    "@verificationStatusRejected": {
+        "description": "Label for a practitioner whose verification was rejected"
+    },
+    "languageEn": "English",
+    "@languageEn": {
+        "description": "Name of the English language option"
+    },
+    "languageSw": "Kiswahili",
+    "@languageSw": {
+        "description": "Name of the Kiswahili language option"
+    },
+    "notificationChannelAccount": "Account and security",
+    "@notificationChannelAccount": {
+        "description": "Android notification channel for sign-in, sign-up, password reset and security notices."
+    },
+    "notificationChannelAccountDescription": "Sign-in, sign-up, password reset and security notices.",
+    "@notificationChannelAccountDescription": {
+        "description": "Description of the account and security notification channel."
+    },
+    "notificationChannelAlerts": "Outbreak alerts",
+    "@notificationChannelAlerts": {
+        "description": "Android notification channel for approved outbreak alerts."
+    },
+    "notificationChannelAlertsDescription": "Approved alerts about disease in your area.",
+    "@notificationChannelAlertsDescription": {
+        "description": "Description of the outbreak alerts notification channel."
+    },
+    "notificationChannelCaseUpdates": "Case updates",
+    "@notificationChannelCaseUpdates": {
+        "description": "Android notification channel for case progress."
+    },
+    "notificationChannelCaseUpdatesDescription": "Reports, results and invitations on your cases.",
+    "@notificationChannelCaseUpdatesDescription": {
+        "description": "Description of the case updates notification channel."
+    },
+    "notificationWelcomeTitle": "Welcome to Tabibu",
+    "@notificationWelcomeTitle": {
+        "description": "Local notification after a patient finishes sign-up; no personal details (lock screens are public)"
+    },
+    "notificationWelcomeMessage": "Your account is ready.",
+    "@notificationWelcomeMessage": {
+        "description": "Body of the welcome notification"
+    },
+    "notificationLicenceReceivedTitle": "Licence received",
+    "@notificationLicenceReceivedTitle": {
+        "description": "Local notification after a practitioner submits sign-up"
+    },
+    "notificationLicenceReceivedMessage": "We are checking your licence. We will let you know when you are verified.",
+    "@notificationLicenceReceivedMessage": {
+        "description": "Body of the licence received notification"
+    },
+    "notificationSecurityAlertTitle": "Security alert",
+    "@notificationSecurityAlertTitle": {
+        "description": "Title of a security notification for a critical threat; the app closes after it."
+    },
+    "notificationSecurityWarningTitle": "Security warning",
+    "@notificationSecurityWarningTitle": {
+        "description": "Title of a security notification for a severe threat."
+    },
+    "notificationSecurityNoticeTitle": "Security notice",
+    "@notificationSecurityNoticeTitle": {
+        "description": "Title of a security notification for an advisory threat."
+    },
+    "notificationSecurityHintDevice": "This device doesn't meet Tabibu's security requirements.",
+    "@notificationSecurityHintDevice": {
+        "description": "The device itself is unsuitable or compromised. Never names the detection."
+    },
+    "notificationSecurityHintApp": "This copy of Tabibu couldn't be verified. Reinstall it from the official store.",
+    "@notificationSecurityHintApp": {
+        "description": "This copy of the app cannot be verified."
+    },
+    "notificationSecurityHintOtherApp": "Another app on this device is interfering with Tabibu.",
+    "@notificationSecurityHintOtherApp": {
+        "description": "Something else on the device is watching or interfering."
+    },
+    "notificationSecurityHintNetwork": "Your connection or device settings can't be trusted right now.",
+    "@notificationSecurityHintNetwork": {
+        "description": "The connection or device settings cannot be trusted."
+    },
+    "notificationSecurityClosing": "Tabibu will close to protect your data.",
+    "@notificationSecurityClosing": {
+        "description": "Appended to a critical security notice, just before the app closes."
+    },
+    "errorInvalidSpecialties": "Choose one to five specialties from the list.",
+    "@errorInvalidSpecialties": {
+        "description": "Refusal when the chosen specialties are empty, too many, or not on the role's list"
+    },
+    "errorInvalidAvailability": "Choose whether you are accepting new patients.",
+    "@errorInvalidAvailability": {
+        "description": "Refusal when the availability switch is missing or malformed"
+    },
+    "specialtyHistopathology": "Histopathology",
+    "@specialtyHistopathology": {
+        "description": "Pathology area: tissue"
+    },
+    "specialtyHistopathologyHint": "Tissue, including lymph nodes",
+    "@specialtyHistopathologyHint": {
+        "description": "What histopathology covers, under its name in the area picker"
+    },
+    "specialtyCytology": "Cytology",
+    "@specialtyCytology": {
+        "description": "Pathology area: cells"
+    },
+    "specialtyCytologyHint": "Smears, FNA and Pap tests",
+    "@specialtyCytologyHint": {
+        "description": "What cytology covers"
+    },
+    "specialtyHaematology": "Haematology",
+    "@specialtyHaematology": {
+        "description": "Pathology area: blood"
+    },
+    "specialtyHaematologyHint": "Blood films, malaria",
+    "@specialtyHaematologyHint": {
+        "description": "What haematology covers"
+    },
+    "specialtyMicrobiology": "Microbiology",
+    "@specialtyMicrobiology": {
+        "description": "Pathology area: microbes"
+    },
+    "specialtyMicrobiologyHint": "Cultures and PCR",
+    "@specialtyMicrobiologyHint": {
+        "description": "What microbiology covers"
+    },
+    "specialtyImmunohistochemistry": "Immunohistochemistry",
+    "@specialtyImmunohistochemistry": {
+        "description": "Pathology area: stains"
+    },
+    "specialtyImmunohistochemistryHint": "IHC stains and markers",
+    "@specialtyImmunohistochemistryHint": {
+        "description": "What immunohistochemistry covers"
+    },
+    "specialtyGeneralPractice": "General practice",
+    "@specialtyGeneralPractice": {
+        "description": "Clinical specialty"
+    },
+    "specialtyFamilyMedicine": "Family medicine",
+    "@specialtyFamilyMedicine": {
+        "description": "Clinical specialty"
+    },
+    "specialtyInternalMedicine": "Internal medicine",
+    "@specialtyInternalMedicine": {
+        "description": "Clinical specialty"
+    },
+    "specialtyGeneralSurgery": "General surgery",
+    "@specialtyGeneralSurgery": {
+        "description": "Clinical specialty"
+    },
+    "specialtyBreastSurgery": "Breast surgery",
+    "@specialtyBreastSurgery": {
+        "description": "Clinical specialty"
+    },
+    "specialtyObstetricsAndGynaecology": "Obstetrics and gynaecology",
+    "@specialtyObstetricsAndGynaecology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyPaediatrics": "Paediatrics",
+    "@specialtyPaediatrics": {
+        "description": "Clinical specialty"
+    },
+    "specialtyOncology": "Oncology",
+    "@specialtyOncology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyDermatology": "Dermatology",
+    "@specialtyDermatology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyEarNoseAndThroat": "Ear, nose and throat",
+    "@specialtyEarNoseAndThroat": {
+        "description": "Clinical specialty"
+    },
+    "specialtyUrology": "Urology",
+    "@specialtyUrology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyGastroenterology": "Gastroenterology",
+    "@specialtyGastroenterology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyInfectiousDiseases": "Infectious diseases",
+    "@specialtyInfectiousDiseases": {
+        "description": "Clinical specialty"
+    },
+    "specialtyCardiology": "Cardiology",
+    "@specialtyCardiology": {
+        "description": "Clinical specialty"
+    },
+    "specialtyOrthopaedics": "Orthopaedics",
+    "@specialtyOrthopaedics": {
+        "description": "Clinical specialty"
+    },
+    "themeLight": "Light",
+    "@themeLight": {
+        "description": "Theme choice"
+    },
+    "themeDark": "Dark",
+    "@themeDark": {
+        "description": "Theme choice"
+    },
+    "themeSystem": "Same as device",
+    "@themeSystem": {
+        "description": "Theme choice that follows the device setting"
+    },
+    "commonContinue": "Continue",
+    "@commonContinue": {
+        "description": "Primary forward action across flows"
+    },
+    "commonBack": "Back",
+    "@commonBack": {
+        "description": "Secondary back action"
+    },
+    "commonNext": "Next",
+    "@commonNext": {
+        "description": "Intro pager forward action"
+    },
+    "commonSkip": "Skip",
+    "@commonSkip": {
+        "description": "Intro pager skip action"
+    },
+    "stepProgress": "Step {step} of {total}",
+    "@stepProgress": {
+        "description": "Announced step progress, e.g. Step 2 of 4",
+        "placeholders": {
+            "step": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "rolePatient": "Patient",
+    "@rolePatient": {
+        "description": "The patient role name"
+    },
+    "roleDoctor": "Doctor",
+    "@roleDoctor": {
+        "description": "The doctor role name"
+    },
+    "rolePathologist": "Pathologist",
+    "@rolePathologist": {
+        "description": "The pathologist role name"
+    },
+    "languageTitle": "Choose your language",
+    "@languageTitle": {
+        "description": "A2 title"
+    },
+    "languageSubtitle": "You can switch any time from your profile.",
+    "@languageSubtitle": {
+        "description": "A2 subtitle"
+    },
+    "languageEnglishSupporting": "Use Tabibu in English",
+    "@languageEnglishSupporting": {
+        "description": "A2 English card supporting text, always in English"
+    },
+    "languageSwahiliSupporting": "Tumia Tabibu kwa Kiswahili",
+    "@languageSwahiliSupporting": {
+        "description": "A2 Kiswahili card supporting text, always in Kiswahili"
+    },
+    "introBookBody": "Every doctor and pathologist is checked with KMPDC before they join. Patients book them in English or Kiswahili, close to home.",
+    "@introBookBody": {
+        "description": "A3 body"
+    },
+    "introBookDoctorName": "Dr. Wanjiru Kamau",
+    "@introBookDoctorName": {
+        "description": "A3 mock booking card name"
+    },
+    "introBookDoctorDetail": "Breast surgeon · Aga Khan",
+    "@introBookDoctorDetail": {
+        "description": "A3 mock booking card detail"
+    },
+    "introBookSlot1": "10:30 AM",
+    "@introBookSlot1": {
+        "description": "A3 mock booking slot"
+    },
+    "introBookSlot2": "11:15 AM",
+    "@introBookSlot2": {
+        "description": "A3 mock booking slot"
+    },
+    "introBookSlot3": "12:00 PM",
+    "@introBookSlot3": {
+        "description": "A3 mock booking slot"
+    },
+    "introBookBooked": "Booked",
+    "@introBookBooked": {
+        "description": "A3 mock booked pill"
+    },
+    "introBookBookedDetail": "Thu 29 Oct · 11:15 AM",
+    "@introBookBookedDetail": {
+        "description": "A3 mock booked detail"
+    },
+    "introCaseTitleA": "One case.",
+    "@introCaseTitleA": {
+        "description": "A4 title, first line"
+    },
+    "introCaseTitleB": "Everyone",
+    "@introCaseTitleB": {
+        "description": "A4 title, teal second line"
+    },
+    "introCaseTitleC": "on the same page.",
+    "@introCaseTitleC": {
+        "description": "A4 title, third line"
+    },
+    "introCasePatientBody": "Books a verified doctor nearby",
+    "@introCasePatientBody": {
+        "description": "A4 patient row"
+    },
+    "introCaseDoctorBody": "Sees the patient and orders the right test",
+    "@introCaseDoctorBody": {
+        "description": "A4 doctor row"
+    },
+    "introCasePathologistBody": "Reads the sample and signs the report",
+    "@introCasePathologistBody": {
+        "description": "A4 pathologist row"
+    },
+    "introCaseBackTitle": "Back to the patient",
+    "@introCaseBackTitle": {
+        "description": "A4 final row"
+    },
+    "introCaseBackBody": "The doctor explains the result, in their language",
+    "@introCaseBackBody": {
+        "description": "A4 final row body"
+    },
+    "introResultsTitleA": "Checked by experts.",
+    "@introResultsTitleA": {
+        "description": "A5 title, first line"
+    },
+    "introResultsTitleB": "Explained by your doctor.",
+    "@introResultsTitleB": {
+        "description": "A5 title, teal second line"
+    },
+    "introResultsBody": "Every result is checked and signed by a qualified pathologist. Then your doctor walks you through it, in English or Kiswahili.",
+    "@introResultsBody": {
+        "description": "A5 body"
+    },
+    "introResultsCardTitle": "Your results",
+    "@introResultsCardTitle": {
+        "description": "A5 mock results card title"
+    },
+    "introResultsChecked": "Checked by a pathologist",
+    "@introResultsChecked": {
+        "description": "A5 mock checked line"
+    },
+    "introResultsReviewed": "Reviewed",
+    "@introResultsReviewed": {
+        "description": "A5 mock reviewed stamp"
+    },
+    "introResultsReviewedDetail": "Dr. A. Odhiambo · 10:42 AM",
+    "@introResultsReviewedDetail": {
+        "description": "A5 mock reviewed stamp detail"
+    },
+    "introGetStarted": "Get started",
+    "@introGetStarted": {
+        "description": "A5 final action to A6"
+    },
+    "getStartedBadge1": "Licensed, verified doctors",
+    "@getStartedBadge1": {
+        "description": "A6 hero badge"
+    },
+    "getStartedBadge2": "Results in Kiswahili",
+    "@getStartedBadge2": {
+        "description": "A6 hero badge"
+    },
+    "getStartedBadge3": "Results checked by a specialist",
+    "@getStartedBadge3": {
+        "description": "A6 hero badge"
+    },
+    "getStartedTitle": "Care that reaches you faster.",
+    "@getStartedTitle": {
+        "description": "A6 title"
+    },
+    "getStartedBody": "Patients see verified doctors and get results they understand. Doctors and pathologists share one case, from order to signed report.",
+    "@getStartedBody": {
+        "description": "A6 body"
+    },
+    "getStartedCreateAccount": "Create an account",
+    "@getStartedCreateAccount": {
+        "description": "A6 primary action to role choice"
+    },
+    "getStartedSignIn": "Sign in",
+    "@getStartedSignIn": {
+        "description": "A6 secondary action to sign in"
+    },
+    "getStartedTerms": "By continuing you agree to our Terms and Privacy Policy.",
+    "@getStartedTerms": {
+        "description": "A6 terms footnote"
+    },
+    "updateTitle": "Please update Tabibu",
+    "@updateTitle": {
+        "description": "Update screen title, ARB fallback for Remote Config"
+    },
+    "updateMessage": "This version is no longer supported. Update to keep using Tabibu.",
+    "@updateMessage": {
+        "description": "Update screen message, ARB fallback for Remote Config"
+    },
+    "updateButton": "Update now",
+    "@updateButton": {
+        "description": "Update screen store button"
+    },
+    "updateStoreUnavailable": "Couldn't open the store. Please try again.",
+    "@updateStoreUnavailable": {
+        "description": "Shown when the store link fails to open"
+    },
+    "commonDismiss": "Dismiss",
+    "@commonDismiss": {
+        "description": "Screen-reader hint on dismissable notifications"
+    },
+    "signInTitle": "Welcome back",
+    "@signInTitle": {
+        "description": "B1 title"
+    },
+    "signInSubtitle": "Sign in to pick up where you left off.",
+    "@signInSubtitle": {
+        "description": "B1 subtitle"
+    },
+    "signInEmailLabel": "Email",
+    "@signInEmailLabel": {
+        "description": "B1 identifier field label"
+    },
+    "signInEmailHint": "you@example.com",
+    "@signInEmailHint": {
+        "description": "B1 identifier field hint"
+    },
+    "signInPasswordLabel": "Password",
+    "@signInPasswordLabel": {
+        "description": "B1 password field label"
+    },
+    "signInShowPassword": "Show password",
+    "@signInShowPassword": {
+        "description": "B1 show password action"
+    },
+    "signInHidePassword": "Hide password",
+    "@signInHidePassword": {
+        "description": "B1 hide password action"
+    },
+    "signInForgot": "Forgot password?",
+    "@signInForgot": {
+        "description": "B1 forgot password link"
+    },
+    "signInOr": "or",
+    "@signInOr": {
+        "description": "B1 divider between sign-in methods"
+    },
+    "signInGoogle": "Sign in with Google",
+    "@signInGoogle": {
+        "description": "B1 Google sign-in button"
+    },
+    "signInNewTo": "New to Tabibu?",
+    "@signInNewTo": {
+        "description": "B1 sign-up prompt"
+    },
+    "resetTitle": "Reset your password",
+    "@resetTitle": {
+        "description": "Reset request title"
+    },
+    "resetSubtitle": "Enter the email you signed up with. We'll send a reset link.",
+    "@resetSubtitle": {
+        "description": "Reset request subtitle"
+    },
+    "resetEmailLabel": "Email",
+    "@resetEmailLabel": {
+        "description": "Reset request field label"
+    },
+    "resetSend": "Send reset link",
+    "@resetSend": {
+        "description": "Reset request action"
+    },
+    "resetSentTitle": "Check your email",
+    "@resetSentTitle": {
+        "description": "B5 title"
+    },
+    "resetSentBody": "We sent a reset link to your email. It works for 30 minutes.",
+    "@resetSentBody": {
+        "description": "B5 body with masked address"
+    },
+    "resetSentHint": "Can't find it? Check spam.",
+    "@resetSentHint": {
+        "description": "B5 hint notice"
+    },
+    "resetSentOpenApp": "Open email app",
+    "@resetSentOpenApp": {
+        "description": "B5 primary action"
+    },
+    "resetSentBackToSignIn": "Back to sign in",
+    "@resetSentBackToSignIn": {
+        "description": "B5 secondary action"
+    },
+    "roleTitle": "I'm joining Tabibu as…",
+    "@roleTitle": {
+        "description": "C1 title"
+    },
+    "roleSubtitle": "One app, three workspaces. Pick yours and we'll set it up.",
+    "@roleSubtitle": {
+        "description": "C1 subtitle"
+    },
+    "roleCardPatientTitle": "A patient",
+    "@roleCardPatientTitle": {
+        "description": "C1 patient card title"
+    },
+    "roleCardPatientBody": "Find a doctor, follow your case and read results simply",
+    "@roleCardPatientBody": {
+        "description": "C1 patient card body"
+    },
+    "roleCardDoctorTitle": "A doctor",
+    "@roleCardDoctorTitle": {
+        "description": "C1 doctor card title"
+    },
+    "roleCardDoctorBody": "Run appointments, order tests and review signed reports",
+    "@roleCardDoctorBody": {
+        "description": "C1 doctor card body"
+    },
+    "roleCardPathologistTitle": "A pathologist",
+    "@roleCardPathologistTitle": {
+        "description": "C1 pathologist card title"
+    },
+    "roleCardPathologistBody": "Check AI pre-reads, edit and sign reports",
+    "@roleCardPathologistBody": {
+        "description": "C1 pathologist card body"
+    },
+    "roleVerifyNotice": "Doctors and pathologists are verified with KMPDC before they can take cases.",
+    "@roleVerifyNotice": {
+        "description": "C1 verification notice"
+    },
+    "commonCancel": "Cancel",
+    "@commonCancel": {
+        "description": "Bottom-sheet cancel action"
+    },
+    "commonRetry": "Try again",
+    "@commonRetry": {
+        "description": "Retry action after a failure"
+    },
+    "signInButton": "Sign in",
+    "@signInButton": {
+        "description": "B1 submit"
+    },
+    "signUpAction": "Create an account",
+    "@signUpAction": {
+        "description": "B1 sign-up link"
+    },
+    "resetEmailHint": "you@example.com",
+    "@resetEmailHint": {
+        "description": "Reset request field hint"
+    },
+    "resetSentMailFailed": "Couldn't open an email app.",
+    "@resetSentMailFailed": {
+        "description": "B5 mail launch failure"
+    },
+    "patientNameTitle": "Tell us about you",
+    "@patientNameTitle": {
+        "description": "D1 title"
+    },
+    "patientNameSubtitle": "Use the name on your ID so your doctor can match your records.",
+    "@patientNameSubtitle": {
+        "description": "D1 subtitle"
+    },
+    "photoTitle": "Profile photo",
+    "@photoTitle": {
+        "description": "Photo row title"
+    },
+    "photoPatientBody": "Optional. Helps your doctor recognise you.",
+    "@photoPatientBody": {
+        "description": "D1 photo supporting"
+    },
+    "photoAdd": "Add",
+    "@photoAdd": {
+        "description": "Photo row action when empty"
+    },
+    "photoChange": "Change",
+    "@photoChange": {
+        "description": "Photo row action when set"
+    },
+    "photoTake": "Take a photo",
+    "@photoTake": {
+        "description": "Photo sheet camera option"
+    },
+    "photoLibrary": "Choose from library",
+    "@photoLibrary": {
+        "description": "Photo sheet library option"
+    },
+    "firstNameLabel": "First name",
+    "@firstNameLabel": {
+        "description": "First name field label"
+    },
+    "middleNameLabel": "Middle name",
+    "@middleNameLabel": {
+        "description": "Middle name field label"
+    },
+    "lastNameLabel": "Last name",
+    "@lastNameLabel": {
+        "description": "Last name field label"
+    },
+    "sexLabel": "Sex",
+    "@sexLabel": {
+        "description": "D1 sex label"
+    },
+    "dobLabel": "Date of birth",
+    "@dobLabel": {
+        "description": "D1 date of birth label"
+    },
+    "dobHint": "Select date",
+    "@dobHint": {
+        "description": "D1 date of birth empty hint"
+    },
+    "patientAccountTitle": "Your email and a password",
+    "@patientAccountTitle": {
+        "description": "D2 title"
+    },
+    "patientAccountSubtitle": "You'll use these to sign in.",
+    "@patientAccountSubtitle": {
+        "description": "D2 subtitle"
+    },
+    "accountEmailLabel": "Email",
+    "@accountEmailLabel": {
+        "description": "D2 email label"
+    },
+    "accountEmailHint": "you@example.com",
+    "@accountEmailHint": {
+        "description": "D2 email hint"
+    },
+    "passwordLabel": "Password",
+    "@passwordLabel": {
+        "description": "Sign-up password label"
+    },
+    "passwordShow": "Show password",
+    "@passwordShow": {
+        "description": "Sign-up show password"
+    },
+    "passwordHide": "Hide password",
+    "@passwordHide": {
+        "description": "Sign-up hide password"
+    },
+    "passwordRuleLength": "At least 8 characters",
+    "@passwordRuleLength": {
+        "description": "Password rule: length"
+    },
+    "passwordRuleNumber": "Includes a number",
+    "@passwordRuleNumber": {
+        "description": "Password rule: number"
+    },
+    "passwordRuleSymbol": "Includes a symbol, like ! or #",
+    "@passwordRuleSymbol": {
+        "description": "Password rule: symbol"
+    },
+    "passwordStrengthWeak": "Weak",
+    "@passwordStrengthWeak": {
+        "description": "Password strength word, under two rules"
+    },
+    "passwordStrengthGood": "Good",
+    "@passwordStrengthGood": {
+        "description": "Password strength word, two rules"
+    },
+    "passwordStrengthStrong": "Strong",
+    "@passwordStrengthStrong": {
+        "description": "Password strength word, three rules"
+    },
+    "patientPhoneTitle": "Your phone number",
+    "@patientPhoneTitle": {
+        "description": "D3 title"
+    },
+    "patientPhoneSubtitle": "Your doctor can use it for appointment reminders.",
+    "@patientPhoneSubtitle": {
+        "description": "D3 subtitle"
+    },
+    "phoneLabel": "Phone number",
+    "@phoneLabel": {
+        "description": "D3 phone label"
+    },
+    "phoneHint": "712 345 678",
+    "@phoneHint": {
+        "description": "D3 phone hint, national digits"
+    },
+    "phonePrivacyNotice": "We never share your number. Only your doctor can see it.",
+    "@phonePrivacyNotice": {
+        "description": "D3 privacy notice"
+    },
+    "patientAreaTitle": "Where do you live?",
+    "@patientAreaTitle": {
+        "description": "D4 title"
+    },
+    "patientAreaSubtitle": "We use this to show doctors near you and to share health notices for your area.",
+    "@patientAreaSubtitle": {
+        "description": "D4 subtitle"
+    },
+    "countyLabel": "County",
+    "@countyLabel": {
+        "description": "D4 county label"
+    },
+    "countyHint": "Choose your county",
+    "@countyHint": {
+        "description": "D4 county picker"
+    },
+    "countySearchHint": "Search counties",
+    "@countySearchHint": {
+        "description": "County sheet search"
+    },
+    "subCountyLabel": "Sub-county",
+    "@subCountyLabel": {
+        "description": "D4 sub-county label"
+    },
+    "subCountySearchHint": "Search sub-counties in {county}",
+    "@subCountySearchHint": {
+        "description": "D4 sub-county search",
+        "placeholders": {
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "countyNoun": "{county} County",
+    "@countyNoun": {
+        "description": "Sub-county card supporting",
+        "placeholders": {
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "areaPrivacyNotice": "Tabibu never tracks your location. You can change your area any time.",
+    "@areaPrivacyNotice": {
+        "description": "D4 privacy notice"
+    },
+    "patientFinish": "Finish",
+    "@patientFinish": {
+        "description": "D4 submit"
+    },
+    "allSetTitle": "Karibu, {name}!",
+    "@allSetTitle": {
+        "description": "D5 title",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "allSetSubtitle": "Your account is ready. Here's a good place to start.",
+    "@allSetSubtitle": {
+        "description": "D5 subtitle"
+    },
+    "allSetButton": "Go to my home",
+    "@allSetButton": {
+        "description": "D5 action"
+    },
+    "practitionerDetailsTitle": "Your details",
+    "@practitionerDetailsTitle": {
+        "description": "E1/F1 title"
+    },
+    "practitionerDetailsSubtitle": "Use the name on your KMPDC registration.",
+    "@practitionerDetailsSubtitle": {
+        "description": "E1/F1 subtitle"
+    },
+    "practitionerPhotoDoctorBody": "Patients see this on your profile.",
+    "@practitionerPhotoDoctorBody": {
+        "description": "E1 photo supporting"
+    },
+    "practitionerPhotoPathologistBody": "Doctors see this when they attach you.",
+    "@practitionerPhotoPathologistBody": {
+        "description": "F1 photo supporting"
+    },
+    "titleLabel": "Title",
+    "@titleLabel": {
+        "description": "E1/F1 title label"
+    },
+    "titleSheetTitle": "Choose your title",
+    "@titleSheetTitle": {
+        "description": "Title sheet"
+    },
+    "titleSearchHint": "Search titles",
+    "@titleSearchHint": {
+        "description": "Title sheet search hint"
+    },
+    "workEmailLabel": "Work email",
+    "@workEmailLabel": {
+        "description": "E1/F1 email label"
+    },
+    "workEmailHint": "you@hospital.example",
+    "@workEmailHint": {
+        "description": "E1/F1 email hint"
+    },
+    "practitionerPhoneHint": "+254 722 000 000",
+    "@practitionerPhoneHint": {
+        "description": "E1/F1 phone hint"
+    },
+    "licenceTitle": "Verify your licence",
+    "@licenceTitle": {
+        "description": "E2 title"
+    },
+    "licenceDoctorSubtitle": "We check your number with the Kenya Medical Practitioners and Dentists Council before you take cases.",
+    "@licenceDoctorSubtitle": {
+        "description": "E2 subtitle"
+    },
+    "kmpdcLabel": "KMPDC registration number",
+    "@kmpdcLabel": {
+        "description": "E2/F2 KMPDC label"
+    },
+    "kmpdcHint": "A 12345",
+    "@kmpdcHint": {
+        "description": "E2/F2 KMPDC hint"
+    },
+    "kmpdcHelper": "You'll find it on your practising licence.",
+    "@kmpdcHelper": {
+        "description": "E2 KMPDC helper"
+    },
+    "specialtyLabel": "Specialty",
+    "@specialtyLabel": {
+        "description": "E2 specialty label"
+    },
+    "specialtyPlaceholder": "Choose up to five",
+    "@specialtyPlaceholder": {
+        "description": "E2 specialty empty"
+    },
+    "specialtySheetTitle": "Choose your specialty",
+    "@specialtySheetTitle": {
+        "description": "E2 sheet title"
+    },
+    "specialtySheetSubtitle": "Choose up to five. {count} selected.",
+    "@specialtySheetSubtitle": {
+        "description": "E2 sheet subtitle",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "specialtySearchHint": "Search specialties",
+    "@specialtySearchHint": {
+        "description": "E2 sheet search"
+    },
+    "specialtyDone": "Done · {count} selected",
+    "@specialtyDone": {
+        "description": "Specialty sheet done",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "licenceDocsLabel": "Licence documents",
+    "@licenceDocsLabel": {
+        "description": "E2/F2 documents label"
+    },
+    "licenceDocsDoctorBody": "Add your practising licence and any specialist certificates. JPG, PNG or PDF, up to 10 MB each.",
+    "@licenceDocsDoctorBody": {
+        "description": "E2 documents body"
+    },
+    "licenceDocsPathologistBody": "Add your KMPDC licence and practising certificate. JPG, PNG or PDF, up to 10 MB each.",
+    "@licenceDocsPathologistBody": {
+        "description": "F2 documents body"
+    },
+    "licenceMetaPhoto": "{size} · photo",
+    "@licenceMetaPhoto": {
+        "description": "Document tile meta, image",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "licenceMetaPdf": "{size} · PDF",
+    "@licenceMetaPdf": {
+        "description": "Document tile meta, PDF",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "addDocument": "Add another document",
+    "@addDocument": {
+        "description": "Add document action"
+    },
+    "documentSheetTitle": "Add a document",
+    "@documentSheetTitle": {
+        "description": "Document sheet title"
+    },
+    "documentSheetSubtitle": "Practising licence or specialist certificate. Up to two.",
+    "@documentSheetSubtitle": {
+        "description": "Document sheet subtitle"
+    },
+    "documentSheetPathologistSubtitle": "Licence, practising certificate or ID. Up to two.",
+    "@documentSheetPathologistSubtitle": {
+        "description": "Document sheet subtitle for pathologists"
+    },
+    "documentTakePhotoBody": "Use your camera. Keep the whole page in view.",
+    "@documentTakePhotoBody": {
+        "description": "Document sheet camera body"
+    },
+    "documentUploadFile": "Upload a file",
+    "@documentUploadFile": {
+        "description": "Document sheet file option"
+    },
+    "documentUploadFileBody": "JPG, PNG or PDF from your phone, up to 10 MB",
+    "@documentUploadFileBody": {
+        "description": "Document sheet file body"
+    },
+    "areasTitle": "Your licence and the work you read",
+    "@areasTitle": {
+        "description": "F2 title"
+    },
+    "areasSubtitle": "We verify your KMPDC number. Your areas decide which cases reach your desk.",
+    "@areasSubtitle": {
+        "description": "F2 subtitle"
+    },
+    "areasLabel": "Areas you report on",
+    "@areasLabel": {
+        "description": "F2 areas label"
+    },
+    "areasPlaceholder": "Choose your areas",
+    "@areasPlaceholder": {
+        "description": "F2 areas empty"
+    },
+    "areasSheetSubtitle": "Pick all that apply. {count} selected.",
+    "@areasSheetSubtitle": {
+        "description": "F2 sheet subtitle",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "areasSearchHint": "Search areas",
+    "@areasSearchHint": {
+        "description": "F2 sheet search"
+    },
+    "areasHelper": "Pick all that apply. Only cases in these areas reach your desk.",
+    "@areasHelper": {
+        "description": "F2 areas helper"
+    },
+    "removeArea": "Remove {area}",
+    "@removeArea": {
+        "description": "F2 area chip's remove button",
+        "placeholders": {
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "facilityTitle": "Where do you practise?",
+    "@facilityTitle": {
+        "description": "E3 title"
+    },
+    "facilityDoctorSubtitle": "Your facility sets where patients find you. Nairobi only for now.",
+    "@facilityDoctorSubtitle": {
+        "description": "E3 subtitle"
+    },
+    "facilitySearchHint": "Search facilities",
+    "@facilitySearchHint": {
+        "description": "E3 search"
+    },
+    "facilityMfl": "MFL {mfl}",
+    "@facilityMfl": {
+        "description": "E3/F3 facility row: the MFL code",
+        "placeholders": {
+            "mfl": {
+                "type": "String"
+            }
+        }
+    },
+    "filterAll": "All",
+    "@filterAll": {
+        "description": "Facility filter: all"
+    },
+    "filterHospital": "Hospital",
+    "@filterHospital": {
+        "description": "Facility filter: hospitals"
+    },
+    "filterHealthCentre": "Health centre",
+    "@filterHealthCentre": {
+        "description": "Facility filter: health centres"
+    },
+    "filterClinic": "Clinic",
+    "@filterClinic": {
+        "description": "Facility filter: clinics"
+    },
+    "filterDispensary": "Dispensary",
+    "@filterDispensary": {
+        "description": "Facility filter: dispensaries"
+    },
+    "filterLabs": "Labs",
+    "@filterLabs": {
+        "description": "Facility filter: laboratories"
+    },
+    "filterHospitals": "Hospitals",
+    "@filterHospitals": {
+        "description": "Facility filter: hospitals, plural"
+    },
+    "ownerPublic": "Public",
+    "@ownerPublic": {
+        "description": "Facility row: public ownership"
+    },
+    "ownerPrivate": "Private",
+    "@ownerPrivate": {
+        "description": "Facility row: private ownership"
+    },
+    "facilityPilotNotice": "The pilot covers Nairobi facilities for now.",
+    "@facilityPilotNotice": {
+        "description": "E3/F3 pilot notice"
+    },
+    "profileSectionTitle": "Your public profile",
+    "@profileSectionTitle": {
+        "description": "E3/F3 profile section"
+    },
+    "bioLabel": "Short bio (optional)",
+    "@bioLabel": {
+        "description": "Bio label"
+    },
+    "bioHint": "A few words about your practice",
+    "@bioHint": {
+        "description": "Bio hint"
+    },
+    "availabilityDoctorTitle": "Accepting new patients",
+    "@availabilityDoctorTitle": {
+        "description": "E3 availability"
+    },
+    "availabilityDoctorBody": "Patients can book you. Turn off any time.",
+    "@availabilityDoctorBody": {
+        "description": "E3 availability body"
+    },
+    "availabilityPathologistTitle": "Accepting new cases",
+    "@availabilityPathologistTitle": {
+        "description": "F3 availability"
+    },
+    "availabilityPathologistBody": "Doctors can attach you to new cases.",
+    "@availabilityPathologistBody": {
+        "description": "F3 availability body"
+    },
+    "facilityEmptyTitle": "No facilities found",
+    "@facilityEmptyTitle": {
+        "description": "Empty search title"
+    },
+    "facilityEmptyBody": "Try a different search.",
+    "@facilityEmptyBody": {
+        "description": "Empty search body"
+    },
+    "labTitle": "Which lab do you report from?",
+    "@labTitle": {
+        "description": "F3 title"
+    },
+    "labSubtitle": "Doctors attach you to cases by your lab. Nairobi only for now.",
+    "@labSubtitle": {
+        "description": "F3 subtitle"
+    },
+    "labSearchHint": "Search labs",
+    "@labSearchHint": {
+        "description": "F3 search"
+    },
+    "multiLabNotice": "Report from more than one lab? You can add others later in your profile.",
+    "@multiLabNotice": {
+        "description": "F3 multi-lab notice"
+    },
+    "reviewTitle": "Check and submit",
+    "@reviewTitle": {
+        "description": "E4/F4 title"
+    },
+    "reviewYouTitle": "You",
+    "@reviewYouTitle": {
+        "description": "Review identity card"
+    },
+    "reviewNameRow": "Name",
+    "@reviewNameRow": {
+        "description": "Review name row"
+    },
+    "reviewEmailRow": "Email",
+    "@reviewEmailRow": {
+        "description": "Review email row"
+    },
+    "reviewPhoneRow": "Phone",
+    "@reviewPhoneRow": {
+        "description": "Review phone row"
+    },
+    "reviewLicenceTitle": "Licence",
+    "@reviewLicenceTitle": {
+        "description": "Review licence card, doctor"
+    },
+    "reviewLicenceAreasTitle": "Licence and areas",
+    "@reviewLicenceAreasTitle": {
+        "description": "Review licence card, pathologist"
+    },
+    "reviewKmpdcRow": "KMPDC no.",
+    "@reviewKmpdcRow": {
+        "description": "Review KMPDC row"
+    },
+    "reviewAreasRow": "Areas",
+    "@reviewAreasRow": {
+        "description": "Review areas row"
+    },
+    "reviewDocumentsRow": "Documents",
+    "@reviewDocumentsRow": {
+        "description": "Review documents row"
+    },
+    "reviewFacilityTitle": "Facility",
+    "@reviewFacilityTitle": {
+        "description": "Review facility card"
+    },
+    "reviewLabTitle": "Lab",
+    "@reviewLabTitle": {
+        "description": "Review lab card"
+    },
+    "reviewAreaRow": "Area",
+    "@reviewAreaRow": {
+        "description": "Review area row"
+    },
+    "reviewAvailabilityRow": "Availability",
+    "@reviewAvailabilityRow": {
+        "description": "Review availability row"
+    },
+    "reviewEdit": "Edit",
+    "@reviewEdit": {
+        "description": "Review card edit link"
+    },
+    "availabilityOffDoctor": "Not accepting new patients",
+    "@availabilityOffDoctor": {
+        "description": "Review availability off, doctor"
+    },
+    "availabilityOffPathologist": "Not accepting new cases",
+    "@availabilityOffPathologist": {
+        "description": "Review availability off, pathologist"
+    },
+    "reviewTerms": "I confirm these details are true and that I hold a current practising licence.",
+    "@reviewTerms": {
+        "description": "Review terms checkbox, doctor"
+    },
+    "reviewTermsPathologist": "I confirm these details are true. I understand AI drafts are a starting point and I am responsible for every report I sign.",
+    "@reviewTermsPathologist": {
+        "description": "Review terms checkbox, pathologist"
+    },
+    "reviewSubmit": "Submit for verification",
+    "@reviewSubmit": {
+        "description": "Review submit"
+    },
+    "pendingTitle": "We're checking your details",
+    "@pendingTitle": {
+        "description": "E5 title"
+    },
+    "pendingSubtitle": "This usually takes less than one working day. We'll notify you the moment you're verified.",
+    "@pendingSubtitle": {
+        "description": "E5 subtitle"
+    },
+    "pendingTimelineTitle": "Your verification",
+    "@pendingTimelineTitle": {
+        "description": "Timeline card title"
+    },
+    "pendingStep1Title": "Details submitted",
+    "@pendingStep1Title": {
+        "description": "Timeline step 1"
+    },
+    "pendingStep1DoctorBody": "name, contacts and licence documents",
+    "@pendingStep1DoctorBody": {
+        "description": "Step 1 body, doctor"
+    },
+    "pendingStep1PathologistBody": "licence, areas and documents",
+    "@pendingStep1PathologistBody": {
+        "description": "Step 1 body, pathologist"
+    },
+    "pendingToday": "Today, {time}",
+    "@pendingToday": {
+        "description": "Submission timestamp",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "pendingDated": "{date}, {time}",
+    "@pendingDated": {
+        "description": "Dated submission timestamp",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "pendingStep2Title": "Licence check with KMPDC",
+    "@pendingStep2Title": {
+        "description": "Timeline step 2, pending"
+    },
+    "pendingStep2Body": "We match {number} with the KMPDC register. Usually under 1 working day.",
+    "@pendingStep2Body": {
+        "description": "Step 2 body, pending",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "pendingStep3DoctorTitle": "Facility confirmed",
+    "@pendingStep3DoctorTitle": {
+        "description": "Timeline step 3, doctor"
+    },
+    "pendingStep3DoctorBody": "We confirm you practise at {facility}.",
+    "@pendingStep3DoctorBody": {
+        "description": "Step 3 body, doctor",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "pendingStep3PathologistTitle": "Lab confirmed",
+    "@pendingStep3PathologistTitle": {
+        "description": "Timeline step 3, pathologist"
+    },
+    "pendingStep3PathologistBody": "We confirm you sign reports for {facility}, {area}.",
+    "@pendingStep3PathologistBody": {
+        "description": "Step 3 body, pathologist",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            },
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "pendingStep4Title": "Verified",
+    "@pendingStep4Title": {
+        "description": "Timeline step 4"
+    },
+    "pendingStep4DoctorBody": "You can see patients, order tests and join MDTs.",
+    "@pendingStep4DoctorBody": {
+        "description": "Step 4 body, doctor"
+    },
+    "pendingStep4PathologistBody": "Cases in {areas} start reaching your desk.",
+    "@pendingStep4PathologistBody": {
+        "description": "Step 4 body, pathologist",
+        "placeholders": {
+            "areas": {
+                "type": "String"
+            }
+        }
+    },
+    "pendingNotice": "You can sign out now and sign in again later to see where it stands.",
+    "@pendingNotice": {
+        "description": "E5 notice"
+    },
+    "pendingCheckAgain": "Check again",
+    "@pendingCheckAgain": {
+        "description": "E5 check again"
+    },
+    "pendingStillChecking": "Not verified yet. We'll let you know the moment it's done.",
+    "@pendingStillChecking": {
+        "description": "E5/F4b: Check again found the account still pending"
+    },
+    "chipDone": "Done",
+    "@chipDone": {
+        "description": "Timeline chip: done"
+    },
+    "chipInProgress": "In progress",
+    "@chipInProgress": {
+        "description": "Timeline chip: in progress"
+    },
+    "chipUpNext": "Up next",
+    "@chipUpNext": {
+        "description": "Timeline chip: up next"
+    },
+    "pendingRejectedTitle": "Verification didn't pass",
+    "@pendingRejectedTitle": {
+        "description": "Rejected title"
+    },
+    "pendingRejectedBody": "We couldn't match your details with the KMPDC register. Check your documents, or check again later.",
+    "@pendingRejectedBody": {
+        "description": "Rejected body"
+    },
+    "verifiedTitle": "You're verified, {name}",
+    "@verifiedTitle": {
+        "description": "E6/F5 title",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "verifiedDoctorBody": "Patients near {facility} can now find and book you. Your first visits will show on your Today screen.",
+    "@verifiedDoctorBody": {
+        "description": "E6 body",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "verifiedPathologistBody": "Your desk is open. Cases from Nairobi doctors in your areas start arriving now.",
+    "@verifiedPathologistBody": {
+        "description": "F5 body"
+    },
+    "verifiedAllDone": "All 4 steps done",
+    "@verifiedAllDone": {
+        "description": "Verified timeline progress"
+    },
+    "verifiedStep2DoneTitle": "Licence checked with KMPDC",
+    "@verifiedStep2DoneTitle": {
+        "description": "Verified step 2"
+    },
+    "verifiedStep2DoneBody": "{number} matches the KMPDC register",
+    "@verifiedStep2DoneBody": {
+        "description": "Verified step 2 body",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "verifiedStep4PathologistBody": "{areas} cases now reach your desk.",
+    "@verifiedStep4PathologistBody": {
+        "description": "Verified step 4, pathologist",
+        "placeholders": {
+            "areas": {
+                "type": "String"
+            }
+        }
+    },
+    "verifiedDoctorButton": "Go to my day",
+    "@verifiedDoctorButton": {
+        "description": "E6 action"
+    },
+    "verifiedPathologistButton": "Go to my desk",
+    "@verifiedPathologistButton": {
+        "description": "F5 action"
+    },
+    "clinicTitle": "A clinic record already exists",
+    "@clinicTitle": {
+        "description": "Clinic record title"
+    },
+    "clinicBody": "A clinic already holds this phone number and birth date. Your doctor will link this account to your record when you visit in person.",
+    "@clinicBody": {
+        "description": "Clinic record body"
+    },
+    "clinicSignOut": "Sign out",
+    "@clinicSignOut": {
+        "description": "Clinic record sign out"
+    },
+    "documentsCount": "{count, plural, =1{1 document} other{{count} documents}}",
+    "@documentsCount": {
+        "description": "Review documents row",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "licenceDeleteLabel": "Remove {name}",
+    "@licenceDeleteLabel": {
+        "description": "Document tile delete action",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "listAnd": "and",
+    "@listAnd": {
+        "description": "Join word inside an area list"
+    },
+    "splashTagline": "Trusted care, from your first visit to a signed result",
+    "@splashTagline": {
+        "description": "A1 tagline under the wordmark"
+    },
+    "errorEmailNotVerified": "Confirm your email address first. Open the link we sent you.",
+    "@errorEmailNotVerified": {
+        "description": "The server refused sign-up because the email address is not confirmed yet"
+    },
+    "introBookTitleA": "Only verified",
+    "@introBookTitleA": {
+        "description": "A3 title, first line"
+    },
+    "introBookTitleB": "clinicians",
+    "@introBookTitleB": {
+        "description": "A3 title after the portrait pill"
+    },
+    "verifyEmailTitle": "Check your email",
+    "@verifyEmailTitle": {
+        "description": "Verify-email screen title"
+    },
+    "verifyEmailBody": "We sent a link to {email}. Open it, then come back and tap Verified.",
+    "@verifyEmailBody": {
+        "description": "Verify-email body; email is masked",
+        "placeholders": {
+            "email": {
+                "type": "String"
+            }
+        }
+    },
+    "verifyEmailHint": "Can't find it? Check spam, or resend the link.",
+    "@verifyEmailHint": {
+        "description": "Verify-email notice"
+    },
+    "verifyEmailResend": "Resend the link",
+    "@verifyEmailResend": {
+        "description": "Verify-email resend link"
+    },
+    "verifyEmailResendIn": "Resend in {seconds}s",
+    "@verifyEmailResendIn": {
+        "description": "Verify-email resend cooldown",
+        "placeholders": {
+            "seconds": {
+                "type": "int"
+            }
+        }
+    },
+    "verifyEmailResent": "Sent. Check your inbox.",
+    "@verifyEmailResent": {
+        "description": "Verify-email resend success"
+    },
+    "verifyEmailVerified": "Verified",
+    "@verifyEmailVerified": {
+        "description": "Verify-email primary button"
+    },
+    "verifyEmailNotYet": "Not verified yet. Open the link in the email, then tap Verified.",
+    "@verifyEmailNotYet": {
+        "description": "Verify-email check found the address unverified"
+    },
+    "verifyEmailBackToSignIn": "Back to sign in",
+    "@verifyEmailBackToSignIn": {
+        "description": "Verify-email: sign out and return to sign-in"
+    },
+    "tabHome": "Home",
+    "@tabHome": {
+        "description": "Patient tab: home"
+    },
+    "tabAppointments": "Appointments",
+    "@tabAppointments": {
+        "description": "Patient tab: appointments"
+    },
+    "tabResults": "Results",
+    "@tabResults": {
+        "description": "Patient tab: results"
+    },
+    "tabToday": "Today",
+    "@tabToday": {
+        "description": "Doctor tab: today"
+    },
+    "tabCases": "Cases",
+    "@tabCases": {
+        "description": "Doctor tab: cases"
+    },
+    "tabDesk": "Desk",
+    "@tabDesk": {
+        "description": "Pathologist tab: the case desk"
+    },
+    "tabSigned": "Signed",
+    "@tabSigned": {
+        "description": "Pathologist tab: signed reports"
+    },
+    "tabMdt": "MDT",
+    "@tabMdt": {
+        "description": "Doctor and pathologist tab: multidisciplinary team consults"
+    },
+    "tabProfile": "Profile",
+    "@tabProfile": {
+        "description": "Every role's profile tab"
+    },
+    "homeGreeting": "Habari, {name}",
+    "@homeGreeting": {
+        "description": "Home header greeting; name is a first name, or a title and last name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "homeSubtitlePatient": "{place} · {date}",
+    "@homeSubtitlePatient": {
+        "description": "Patient home header: the area, then today's date",
+        "placeholders": {
+            "place": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "homeSubtitlePractitioner": "{date} · {place}",
+    "@homeSubtitlePractitioner": {
+        "description": "Practitioner home header: today's date, then the facility",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "place": {
+                "type": "String"
+            }
+        }
+    },
+    "appointmentsTitle": "Your appointments",
+    "@appointmentsTitle": {
+        "description": "Patient appointments tab title"
+    },
+    "resultsTitle": "Your results",
+    "@resultsTitle": {
+        "description": "Patient results tab title"
+    },
+    "casesTitle": "Cases",
+    "@casesTitle": {
+        "description": "Doctor cases tab title"
+    },
+    "mdtTitle": "MDT consults",
+    "@mdtTitle": {
+        "description": "MDT tab title"
+    },
+    "signedTitle": "Signed",
+    "@signedTitle": {
+        "description": "Pathologist signed-reports tab title"
+    },
+    "profileTitlePatient": "Your profile",
+    "@profileTitlePatient": {
+        "description": "Patient profile tab title"
+    },
+    "profileTitleDoctor": "My profile",
+    "@profileTitleDoctor": {
+        "description": "Doctor profile tab title"
+    },
+    "profileTitlePathologist": "Me",
+    "@profileTitlePathologist": {
+        "description": "Pathologist profile tab title"
+    },
+    "profileEdit": "Edit profile",
+    "@profileEdit": {
+        "description": "Profile card: edit button label"
+    },
+    "profileRoleAtFacility": "{role} · {facility}",
+    "@profileRoleAtFacility": {
+        "description": "Practitioner card: specialty or role, then the facility",
+        "placeholders": {
+            "role": {
+                "type": "String"
+            },
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "profilePathologist": "Pathologist",
+    "@profilePathologist": {
+        "description": "Practitioner card: the pathologist role"
+    },
+    "profileKmpdcVerified": "KMPDC verified · {number}",
+    "@profileKmpdcVerified": {
+        "description": "Practitioner card: verified badge with the KMPDC number",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "profileAlertApprover": "You can approve area alerts for {county}.",
+    "@profileAlertApprover": {
+        "description": "Doctor profile: notice for alert approvers",
+        "placeholders": {
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "profileAreas": "Areas you report on",
+    "@profileAreas": {
+        "description": "Pathologist profile: areas heading"
+    },
+    "profileSectionPreferences": "Preferences",
+    "@profileSectionPreferences": {
+        "description": "Patient profile section"
+    },
+    "profileSectionPractice": "Practice and preferences",
+    "@profileSectionPractice": {
+        "description": "Practitioner profile section"
+    },
+    "profileSectionAlerts": "Alerts and security",
+    "@profileSectionAlerts": {
+        "description": "Profile section"
+    },
+    "profileSectionHelp": "Help and account",
+    "@profileSectionHelp": {
+        "description": "Profile section"
+    },
+    "profileLanguage": "Language",
+    "@profileLanguage": {
+        "description": "Profile row"
+    },
+    "profileMyArea": "My area",
+    "@profileMyArea": {
+        "description": "Patient profile row"
+    },
+    "profileTheme": "Theme",
+    "@profileTheme": {
+        "description": "Profile row"
+    },
+    "profileThemeSupporting": "Light, dark or device theme",
+    "@profileThemeSupporting": {
+        "description": "Profile row: theme supporting text"
+    },
+    "profileFacility": "Facility",
+    "@profileFacility": {
+        "description": "Doctor profile row"
+    },
+    "profileLab": "Lab",
+    "@profileLab": {
+        "description": "Pathologist profile row"
+    },
+    "profileClinicHours": "Clinic hours",
+    "@profileClinicHours": {
+        "description": "Doctor profile row"
+    },
+    "profileAcceptCases": "Accept new cases",
+    "@profileAcceptCases": {
+        "description": "Pathologist profile toggle"
+    },
+    "profileNotifications": "Notifications",
+    "@profileNotifications": {
+        "description": "Profile row; also the home header bell"
+    },
+    "profileBiometrics": "Biometrics",
+    "@profileBiometrics": {
+        "description": "Profile toggle: sign in with face or fingerprint"
+    },
+    "profileHealthNotices": "Health notices for my area",
+    "@profileHealthNotices": {
+        "description": "Profile toggle"
+    },
+    "profilePrivacy": "Privacy and data",
+    "@profilePrivacy": {
+        "description": "Profile row"
+    },
+    "profileHelp": "Help and support",
+    "@profileHelp": {
+        "description": "Profile row"
+    },
+    "profileSignOut": "Sign out",
+    "@profileSignOut": {
+        "description": "Profile row and the sign-out sheet's button"
+    },
+    "profileDeleteAccount": "Delete account",
+    "@profileDeleteAccount": {
+        "description": "Profile row"
+    },
+    "profileVersion": "v{version}",
+    "@profileVersion": {
+        "description": "Profile: the app version",
+        "placeholders": {
+            "version": {
+                "type": "String"
+            }
+        }
+    },
+    "signOutTitle": "Sign out of Tabibu?",
+    "@signOutTitle": {
+        "description": "Sign-out sheet title"
+    },
+    "signOutPatientBody": "Your appointments and results stay safe. Sign back in any time with your email or Google.",
+    "@signOutPatientBody": {
+        "description": "Sign-out sheet body for patients"
+    },
+    "signOutPractitionerBody": "Your cases and reports stay safe. Sign back in any time with your email or Google.",
+    "@signOutPractitionerBody": {
+        "description": "Sign-out sheet body for doctors and pathologists"
+    },
+    "accountCreatedNotice": "Your account is set up with this email. Continue to the next step.",
+    "@accountCreatedNotice": {
+        "description": "D2 and E1 once the account exists: why the email cannot change"
     }
 }

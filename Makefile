@@ -3,11 +3,16 @@
 adb:
 		adb logcat -s flutter
 
+# The generator turns a 16-bit logo into a black iOS icon when it strips alpha (CRQ-0021).
 icons:
+		@bits=$$(sips -g bitsPerSample assets/icons/tabibu_logo.png | awk '/bitsPerSample/ {print $$2}'); \
+		  test "$$bits" = "8" || { echo "assets/icons/tabibu_logo.png is $$bits-bit; export it as 8-bit PNG."; exit 1; }
 		dart run flutter_launcher_icons
 
 splash:
 		dart run flutter_native_splash:create
+		# The generator locks the web page's zoom; pinch zoom is an accessibility need (WCAG 1.4.4).
+		sed -i '' 's/, maximum-scale=1.0, user-scalable=no//' web/index.html
 
 gen:
 		dart run build_runner build --delete-conflicting-outputs
@@ -18,8 +23,12 @@ gen-watch:
 l10n:
 		flutter gen-l10n
 
+# Same file set as the format check in prod_apk.yaml; change both together.
 fmt:
-		dart fix --apply && dart format lib test
+		dart fix --apply
+		find lib test -type f -name "*.dart" \
+		    ! -path "lib/l10n/gen/*" ! -path "lib/gen/*" ! -name "firebase_options.dart" -print0 \
+		    | xargs -0 dart format
 
 commas:
 		dart fix --apply
@@ -34,8 +43,9 @@ bloc-lint:
 
 spell:
 		npx --yes cspell@8 --no-progress \
-		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/*" "ai_service/*" .gitignore .gitleaks.toml \
-		    Makefile Gemfile pubspec.yaml "lib/**/*.dart" "test/**/*.dart"
+		    "**/*.md" ".greptile/*" ".github/**/*" "fastlane/*" "scripts/**/*" "ai_service/*" .gitignore .gitleaks.toml \
+		    Makefile Gemfile pubspec.yaml "lib/**/*.dart" "test/**/*.dart" \
+		    firebase.json firestore.rules storage.rules "functions/src/*.ts" "test/firestore_rules/*.js"
 
 # Same allow-list and skip list as .github/workflows/license_check.yaml; change both together.
 licenses:
@@ -51,15 +61,18 @@ secrets:
 		gitleaks git --redact --verbose .
 		gitleaks git --redact --verbose --staged .
 
+# Every release build obfuscates: freeRASP terminates a release binary without it (CRQ-0024).
 apk:
-		flutter build apk --flavor production --target lib/main_production.dart -vv
+		flutter build apk --flavor production --target lib/main_production.dart \
+		    --obfuscate --split-debug-info=debug-symbols -vv
 
 apk-release:
 		flutter build apk --flavor production --release --target lib/main_production.dart \
 		    --obfuscate --split-debug-info=debug-symbols -vv
 
 dev-apk:
-		flutter build apk --flavor development --target lib/main_development.dart -vv
+		flutter build apk --flavor development --target lib/main_development.dart \
+		    --obfuscate --split-debug-info=debug-symbols -vv
 
 aab:
 		flutter build appbundle --flavor production --target lib/main_production.dart \
@@ -102,21 +115,33 @@ run-web:
 clean-pods:
 		rm -f ios/Podfile.lock && rm -rf ios/Pods
 
+# iOS plugins come through Swift Package Manager, so there is no Podfile. This resolves the
+# packages without building; Flutter writes a Podfile only if a plugin needs CocoaPods, and
+# the pod targets below then install it.
+ios-deps:
+		flutter build ios --config-only --no-codesign --debug \
+		    --flavor development --target lib/main_development.dart
+		@if [ -f ios/Podfile ]; then cd ios && pod install --no-repo-update; fi
+
+# Each pod target runs pod install where a Podfile exists, and ios-deps where none does.
 pods:
-		cd ios && pod install --repo-update --verbose && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod install --repo-update --verbose; \
+		else $(MAKE) --no-print-directory ios-deps; fi
 
 pods-clean:
 		rm -rf ios/Pods
 		rm -f ios/Podfile.lock
 		rm -rf ios/.symlinks
 		pod cache clean --all --verbose || true
-		cd ios && pod deintegrate --verbose && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod deintegrate --verbose; fi
 
 pods-no-update:
-		cd ios && pod install && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod install; \
+		else $(MAKE) --no-print-directory ios-deps; fi
 
 pods-no-cdn:
-		cd ios && pod install --no-repo-update && cd ..
+		@if [ -f ios/Podfile ]; then cd ios && pod install --no-repo-update; \
+		else $(MAKE) --no-print-directory ios-deps; fi
 
 # Installs fastlane into vendor/bundle; run once after cloning or after editing the Gemfile.
 fastlane-setup:
@@ -126,7 +151,11 @@ fastlane-setup:
 # Model API keys live in the macOS Keychain, never in a file (CRQ-0007).
 KEYCHAIN_BASETEN := tabibu-baseten-api-key
 KEYCHAIN_META := tabibu-meta-api-key
+KEYCHAIN_FIREWORKS := tabibu-fireworks-api-key
+KEYCHAIN_MODAL_ID := tabibu-modal-token-id
+KEYCHAIN_MODAL_SECRET := tabibu-modal-token-secret
 KEYCHAIN_APP_CHECK := tabibu-app-check-debug-token
+KEYCHAIN_SEED := tabibu-seed-password
 
 # Each prompt asks twice and shows nothing as you paste; re-run to replace a key.
 keys-add:
@@ -134,11 +163,37 @@ keys-add:
 		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_BASETEN) -w
 		@echo "Meta Model API key (paste, Enter, then paste again to confirm):"
 		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_META) -w
+		@echo "Fireworks API key (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_FIREWORKS) -w
 		@$(MAKE) --no-print-directory keys-check
+
+# make key-add KEY=fireworks stores or replaces one key, leaving the others alone.
+key-add:
+		$(if $(filter $(KEY),baseten meta fireworks),,$(error Usage: make key-add KEY=baseten|meta|fireworks))
+		@echo "$(KEY) API key (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s tabibu-$(KEY)-api-key -w
+		@$(MAKE) --no-print-directory keys-check
+
+# Modal authenticates with a token pair (dashboard → Settings → API Tokens), kept here instead
+# of the plain text ~/.modal.toml that `modal token new` writes.
+modal-token-add:
+		@echo "Modal token ID, ak-… (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_MODAL_ID) -w
+		@echo "Modal token secret, as-… (paste, Enter, then paste again to confirm):"
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_MODAL_SECRET) -w
+		@$(MAKE) --no-print-directory keys-check
+
+# make modal ARGS="token info" runs the Modal CLI with the token pair in its environment only.
+modal:
+		@command -v modal >/dev/null 2>&1 || { echo "modal not found: pip install modal"; exit 1; }
+		@MODAL_TOKEN_ID="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_MODAL_ID) -w 2>/dev/null)" \
+		MODAL_TOKEN_SECRET="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_MODAL_SECRET) -w 2>/dev/null)" \
+		modal $(ARGS)
 
 # Confirms each key is stored, showing only its length and last four characters.
 keys-check:
-		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META) $(KEYCHAIN_APP_CHECK); do \
+		@for s in $(KEYCHAIN_BASETEN) $(KEYCHAIN_META) $(KEYCHAIN_FIREWORKS) $(KEYCHAIN_MODAL_ID) \
+		    $(KEYCHAIN_MODAL_SECRET) $(KEYCHAIN_APP_CHECK); do \
 		  k="$$(security find-generic-password -a "$$USER" -s "$$s" -w 2>/dev/null)"; \
 		  if [ -n "$$k" ]; then printf '%-30s stored  (%s chars, ends …%s)\n' "$$s" "$${#k}" "$${k: -4}"; \
 		  else printf '%-30s MISSING\n' "$$s"; fi; \
@@ -174,11 +229,12 @@ muse:
 		test -n "$$k" || { echo "Meta key missing: make keys-add"; exit 1; }; \
 		META_API_KEY="$$k" muse $(ARGS)
 
-# make ai-dev CMD="<command>" runs it with both keys in its environment only.
+# make ai-dev CMD="<command>" runs it with the model keys in its environment only.
 ai-dev:
 		$(if $(CMD),,$(error Usage: make ai-dev CMD="<command>"))
 		@BASETEN_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_BASETEN) -w)" \
 		META_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_META) -w)" \
+		FIREWORKS_API_KEY="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_FIREWORKS) -w)" \
 		$(CMD)
 
 # make pods-ios-target IOS_MIN=16.0 (Firebase needs 15.0+). The Podfile exists once an iOS build has run.
@@ -188,6 +244,25 @@ pods-ios-target:
 		    ios/Runner.xcodeproj/project.pbxproj
 		if [ -f ios/Podfile ]; then sed -i '' "s/^platform :ios, '[0-9.]*'/platform :ios, '$(IOS_MIN)'/" ios/Podfile; fi
 		@echo "iOS deployment target → $(IOS_MIN)"
+
+# Rebuilds assets/data/ from the Ministry of Health exports (RTF or text), e.g.
+# make facilities FACILITIES=~/Downloads/nairobi_facilities_moh.rtf COUNTIES=~/Downloads/kenya_counties_moh.rtf
+facilities:
+		@test -f "$(wildcard $(FACILITIES))" -a -f "$(wildcard $(COUNTIES))" || { echo "usage: make facilities FACILITIES=<file> COUNTIES=<file>"; exit 1; }
+		@mkdir -p build/facilities
+		textutil -convert txt -output build/facilities/facilities.txt "$(wildcard $(FACILITIES))"
+		textutil -convert txt -output build/facilities/counties.txt "$(wildcard $(COUNTIES))"
+		dart run scripts/facilities/build_facility_assets.dart build/facilities/facilities.txt build/facilities/counties.txt assets/data
+		cp assets/data/facilities_nairobi.json assets/data/sub_counties_nairobi.json assets/data/counties.json functions/data/
+
+# Rebuilds the lab test catalogue in assets/data/ from the Ministry of Health's test-type export, e.g.
+# make lab-tests TESTS=~/Downloads/test_types_moh.rtf
+lab-tests:
+		@test -f "$(wildcard $(TESTS))" || { echo "usage: make lab-tests TESTS=<file>"; exit 1; }
+		@mkdir -p build/lab_tests
+		textutil -convert txt -output build/lab_tests/test_types.txt "$(wildcard $(TESTS))"
+		dart run scripts/lab_tests/build_lab_test_assets.dart build/lab_tests/test_types.txt assets/data
+		cp assets/data/lab_test_types.json assets/data/lab_tests.json functions/data/
 
 test:
 		flutter test --coverage --reporter=expanded
@@ -239,13 +314,58 @@ rules-test:
 		@! lsof -nP -iTCP:9199 -sTCP:LISTEN >/dev/null 2>&1 || \
 		  { echo "Port 9199 (Storage emulator) is taken; stop that emulator first."; exit 1; }
 		cd test/firestore_rules && npm install --silent
-		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,storage --project $(PROJECT) \
+		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,storage --project demo-tabibu \
 		    "cd test/firestore_rules && node_modules/.bin/mocha --timeout 20000 '*.test.js'"
 
+# Lint and build as a deploy would, then the handler suites against Firestore and Auth emulators
+# on a demo- project, which cannot reach the live one.
 functions-test:
-		cd functions && ./node_modules/.bin/eslint src \
-		    && ./node_modules/.bin/tsc -p tsconfig.build.json \
-		    && npm test
+		$(require_java21)
+		cd functions && npm install --silent && ./node_modules/.bin/eslint src \
+		    && ./node_modules/.bin/tsc -p tsconfig.build.json
+		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,auth --project demo-tabibu \
+		    "cd functions && npm test"
+
+# Demo accounts, one per role (CRQ-0018). The password lives in the Keychain only.
+seed-password:
+		@security add-generic-password -U -a "$$USER" -s $(KEYCHAIN_SEED) -w
+
+# Into running emulators (make emulators in another terminal).
+seed-emulator:
+		cd functions && npm install --silent && \
+		  FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
+		  FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 \
+		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
+		  ./node_modules/.bin/ts-node src/seed.ts
+
+# Into the live project, through Application Default Credentials (gcloud auth application-default login),
+# e.g. make seed-live CONFIRM=tabibu-86ea2 SEED_EMAIL_TEMPLATE='tabibu.demo+{role}@gmail.com'
+seed-live:
+		@test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make seed-live CONFIRM=$(PROJECT)"; exit 1; }
+		cd functions && npm install --silent && \
+		  SEED_CONFIRM=$(CONFIRM) SEED_EMAIL_TEMPLATE="$(SEED_EMAIL_TEMPLATE)" \
+		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
+		  ./node_modules/.bin/ts-node src/seed.ts --live
+
+# The tag this commit would release: v + the pubspec.yaml version (CRQ-0025).
+release-next:
+		node scripts/next-release.cjs
+
+# The release script's arithmetic and the wiring of the files that call it.
+release-check:
+		node --test scripts/*.test.cjs
+
+# Publishes the draft the merge workflow left and marks it Latest: a draft cannot be marked Latest,
+# so it happens here, in the same command. It asks which draft is ours rather than taking the first.
+release-publish:
+		@tag=$$(gh release list --limit 50 --json tagName,isDraft \
+		          | node scripts/next-release.cjs --managed-draft); \
+		  case "$$tag" in \
+		    v*) ;; \
+		    *) echo "No draft matching the release convention is open."; exit 1;; \
+		  esac; \
+		  gh release edit "$$tag" --draft=false --latest && \
+		  echo "Published $$tag as the latest release."
 
 deploy-rules:
 		$(FIREBASE) deploy --only firestore:rules --project $(PROJECT)
@@ -264,6 +384,7 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target test test-randomize test-watch coverage \
-	emulators rules-test functions-test \
+	clean-pods ios-deps pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities lab-tests test test-randomize test-watch coverage \
+	emulators rules-test functions-test seed-password seed-emulator seed-live \
+	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting

@@ -28,6 +28,20 @@ the same way, and so that a reviewer can check a change against a written
 rule rather than a guess. Where the code does not yet match this document,
 the gap is listed in §16 rather than glossed over.
 
+**Reach.** The pilot is Nairobi, which had the most health facilities of any
+county in the Ministry of Health's 2023 census: 1,319 targeted
+([Kenya Health Facility Census, September 2023, §3.1](https://www.health.go.ke/sites/default/files/2024-01/Kenya%20Health%20Facility%20Census%20Report%20September%202023.pdf#page=20)).
+Tabibu ships the Ministry's current Nairobi list from the
+[Kenya Master Health Facility List](https://api.kmhfr.health.go.ke/media/KMHFL_Implementation_Guide_Jan_2020.pdf):
+**1,447 facilities across all 17 sub-counties, 1,241 of them operational**,
+and a doctor or pathologist at any operational one can join from the first
+day (§6.2). The country is the next step. The same census targeted 14,366
+listed facilities across the 47 counties and visited 14,883, 2,633 of which
+were not yet on the list
+([Table 1](https://www.health.go.ke/sites/default/files/2024-01/Kenya%20Health%20Facility%20Census%20Report%20September%202023.pdf#page=20)).
+Adding a county is a data step, the same script run on that county's
+export, with no change to the data model.
+
 ## 2. Tech stack
 
 Versions are the constraints in `pubspec.yaml`; `pubspec.lock` is
@@ -49,6 +63,7 @@ authoritative for what resolved.
 | Secure storage | `flutter_secure_storage 11.2.0` (exact pin) | Holds the Hive encryption key. On the cold-start path; see §15 rule 2. |
 | Auth providers | `firebase_auth`, `google_sign_in ^7.2.0`, `local_auth ^3.0.2` | Email/password for the seeded demo accounts; Google sign-in; biometric re-entry. |
 | Charts / PDF | `fl_chart ^1.3.0`, `pdf ^3.13.1`, `printing ^5.15.1` | Evaluation charts on the proof screen; the signed report as a PDF. |
+| File picking | `file_picker ^13.3.0`, `image_picker ^1.2.4` | Sign-up photo and licence files, read as bytes so one path serves mobile and the web demo; sizes checked before upload (CRQ-0031, CRQ-0036). |
 | Asset/font codegen | `flutter_gen ^5.15.0` | Generates `Assets` and `FontFamily` into `lib/gen/`. No hand-written asset paths. |
 | Testing | `flutter_test`, `bloc_test ^10.0.0`, `mocktail ^1.0.5`, `fake_cloud_firestore ^4.4.0` | `fake_cloud_firestore` must track `cloud_firestore`'s minor version (§15 rule 9). |
 
@@ -96,9 +111,10 @@ Three rules follow from the diagram and are not negotiable:
 
 ## 4. Folder structure
 
-**Today** the app is the Very Good CLI scaffold: `lib/app/`, `lib/counter/`
-(the template's example feature, to be deleted when the first real feature
-lands), `lib/l10n/`, `bootstrap.dart` and three flavor entrypoints.
+**Today** the app has `lib/app/` (a placeholder home until the router
+lands), `lib/core/constants/` (the theme), `lib/core/services/`
+(`GeohashService`), `lib/l10n/` (`en`, `sw`), `bootstrap.dart` and three
+flavor entrypoints. No feature folder exists yet.
 
 **Target** layout, which every feature is built to:
 
@@ -119,14 +135,21 @@ lib/
 │   ├── helpers/               # <feature>_helper.dart (cache/remote),
 │   │                          # hive_helper.dart, db_helper.dart,
 │   │                          # role_helper.dart, get_it_helper.dart
-│   ├── routing/               # app_router.dart, app_routes.dart
+│   ├── routing/               # app_router.dart, app_routes.dart, landing.dart
 │   ├── services/              # analytics, notification, internet,
 │   │                          # rasp, remote_config, performance
 │   ├── utils/                 # extensions, sync_cursor, input_sanitizer,
 │   │                          # text_scale
 │   └── widgets/               # Shared Custom* components (design doc §4)
 ├── features/
-│   ├── auth/                  # Sign-in, role resolution, profile, county
+│   ├── auth/                  # Sign-in, the three sign-up routes, reset,
+│   │                          # session, the decision route
+│   ├── profile/               # The signed-in person's profile, language,
+│   │                          # picture, license, sign-out
+│   ├── patients/              # Patient records, self- or doctor-added (§6.1)
+│   ├── practitioners/         # The directory; nearest-first by geohash
+│   ├── facilities/            # The bundled facility, county and
+│   │                          # sub-county lists (§6.2)
 │   ├── cases/                 # The shared case record and its timeline
 │   ├── intake/                # Patient symptoms by voice or text
 │   ├── orders/                # Test catalogue, ordering, risk-check banner
@@ -172,10 +195,12 @@ Bloc, enforced by `bloc_lint` in CI. The rules:
    listener refreshes where only the latest matters.
 7. **Every user-visible action logs one analytics event** in its handler.
    A new action that logs nothing is an omission.
-8. **Blocs are provided above the router and outlive individual screens.** A
-   screen that keeps local state derived from a bloc seeds it from
-   `bloc.state` on build rather than waiting for an emission that may never
-   come.
+8. **Blocs are provided above the router and outlive individual screens.**
+   `BlocsHelper.initializeBlocs()` lists them, and `bootstrap` mounts them
+   in the one `MultiBlocProvider` around `App`; a feature bloc joins that
+   list, never a screen's own provider. A screen that keeps local state
+   derived from a bloc seeds it from `bloc.state` on build rather than
+   waiting for an emission that may never come.
 
 **UI consumers.** Use the narrowest widget for the job:
 
@@ -209,13 +234,23 @@ indices follow the Freezed constructor's field order exactly, so the two can
 be compared line by line in review. A Hive model never imports another
 feature's Hive classes except inside `toModel`/`fromModel`.
 
+That holds only until the first release. Once a build has shipped, a field
+whose type changes takes a new index and its old one is retired, because an
+older cache still holds the old type at that index.
+
 **Hive typeIds are allocated once and never reused.** A reused id lets an
 old install decode bytes written for a different class without any error.
 The registry below is the record. Add a row in the same commit as the model.
 
 | typeId | Class | Feature | Added |
 |---|---|---|---|
-| — | none allocated yet | — | — |
+| 0 | `PatientHive` | `patients` | Added 2026-10-27 (CRQ-0019) |
+| 1 | `DoctorHive` | `profile` | Added 2026-10-27 (CRQ-0019) |
+| 2 | `PractitionerHive` | `practitioners` | Added 2026-10-27 (CRQ-0019) |
+| 3 | `OnboardingHive` | `auth` | Added 2026-10-27 (CRQ-0020) |
+
+A reserved row becomes "Added" in the commit that creates the class. Reserving
+ahead stops two agents working in parallel from taking the same id.
 
 **Adapters register in one hand-maintained cascade in `hive_helper.dart`**,
 and `test/core/helpers/hive_adapter_registration_test.dart` asserts that
@@ -245,12 +280,204 @@ uid and role and filters on them. There is **no unscoped `getAll*` method**.
 The rules enforce the same scope server-side (§11); the client filter keeps
 the cache honest, and the rules are what actually protect the data.
 
+**One way into the boxes.** `HiveHelper` reaches Hive only through
+`DBHelper`, which opens each box through its own type and turns every
+failure, `HiveError` included, into an `AppError`. A box opened typed cannot
+be closed as `Hive.box<dynamic>`, so `DBHelper.deleteAll` dispatches on the
+box's type. An untyped close throws, and the data stays on disk.
+
 **Health data on the device.** The Hive boxes are AES-encrypted with a key
-held in secure storage. **Sign-out wipes every case-bearing box and rotates
-the key**, because a clinic phone is often shared. The cost is a full
+held in secure storage. **Sign-out deletes every encrypted box and rotates
+the key**, because a clinic phone is often shared. The boxes are deleted, not
+cleared: a cleared box would still be encrypted with the old key. Device
+preferences (onboarding seen, language) are not health data and live in an
+unencrypted box that survives sign-out.
+
+**The cache belongs to one person.** Its owner's uid is stored beside the key.
+Before a session's first cached read, `scopeTo(uid)` checks it. A cache
+filled for someone else is wiped first, which covers a session that ended
+without a sign-out: an expired token, a deleted account, a killed app. Every
+cached read also takes the signed-in uid (a patient's own record by `uid`; a
+care list by `doctorUids`). The cost is a full
 re-download on the next sign-in, which is acceptable at demo volumes. Slide
 tiles and smear images are not stored in Hive; they stream from Storage
 through the image cache.
+
+### 6.1 Identity: patients, practitioners and the directory
+
+There is no `users` collection. A person is their role claim (§11) plus one
+profile document: `patients` for patients, `doctors` for doctors and
+pathologists. The public `practitioners` directory is a server-written
+projection of verified `doctors`. Field order below is the Freezed
+constructor order. "Server" means a Cloud Function or the trigger; "owner"
+means the signed-in person whose document it is.
+
+**`patients/{patientId}`.** A self-registered patient's `patientId` is their
+Auth uid. A doctor-added patient has no Auth account, so their `patientId`
+is generated, and it never changes, even when they later register.
+
+| Field | Type | Written by | Notes |
+|---|---|---|---|
+| `patientId` | String | Server | The document id |
+| `uid` | String | Server | Auth uid; `''` until the patient has an account |
+| `isRegistered` | bool | Server | `true` exactly when `uid` is set |
+| `createdByUid` | String | Server | The patient themselves, or the doctor who added them |
+| `firstName`, `middleName`, `lastName` | String | Server at creation; owner after | `middleName` may be `''` |
+| `sex` | String (`Sex`) | Server at creation | Clinical: reference ranges depend on it |
+| `dateOfBirth` | String (ISO date) | Server at creation | Required for every patient; age is derived, never stored. With the phone it anchors the duplicate check, so it does not change from the client |
+| `phoneNumber` | String (E.164) | Server at creation; owner after | Normalised to `+254…` |
+| `email` | String | Server | From the Auth token; never changes once registered. Before then, the creating doctor may correct it |
+| `profilePictureUrl` | String | Owner, or a care-team doctor while unregistered | `''` until uploaded; never public |
+| `county` | String | Server | One of the 47; defaults to Nairobi |
+| `subCounty` | String | Server | Nairobi sub-counties only; `''` outside Nairobi. The geohash follows it, so both are the server's (T-9) |
+| `geohash` | String | Server | 9 characters, computed from the sub-county's centre, so it locates an area, never a home (T-9). `''` outside Nairobi |
+| `doctorUids` | List\<String\> | Server | The care team: the doctors and pathologists who may read this profile |
+| `fcmTokens` | List\<String\> | Owner | One per signed-in device; read only by Cloud Functions |
+| `language` | String | Owner | `en` or `sw`; also the language of server-sent pushes |
+| `receiveNotifications` | bool | Owner | |
+| `casesReported`, `appointmentsBooked` | int | Server | Counters |
+| `createdAt`, `lastUpdatedAt` | String | Both | §6 timestamps |
+
+**`doctors/{uid}`**, for doctors and pathologists. The document id is the Auth
+uid.
+
+| Field | Type | Written by | Notes |
+|---|---|---|---|
+| `uid` | String | Server | |
+| `title`, `firstName`, `lastName` | String | Owner | |
+| `email` | String | Server | From the Auth token; never changes |
+| `phoneNumber` | String (E.164) | Owner | |
+| `profilePictureUrl` | String | Owner | Required from sign-up and cannot be removed; public: copied to the directory |
+| `isPathologist` | bool | Server | Chosen on sign-up; fixed after |
+| `specialties` | List\<String\> | Owner | One to five from the role's own list (`Specialty`), stored in list order. A pathologist may report in several areas |
+| `bio` | String | Owner | Plain text through `InputSanitizer` |
+| `kmpdcNumber` | String | Owner until verified | Unique across accounts. Final once `Verified` |
+| `licenseUrls` | List\<String\> | Owner until verified | One or two files (the practising license, and a certificate if needed), each in the owner's `licenses/` folder. Final once `Verified`; never public |
+| `verificationStatus` | String (`VerificationStatus`) | Server | `Pending`, `Verified` or `Rejected` |
+| `facilityId`, `facilityMflCode`, `facilityName` | String | Owner picks; server checks | From the facility list (§6.2) |
+| `county`, `subCounty`, `geohash` | String | Server | Copied from the facility; `geohash` is the facility's 9 characters |
+| `isAvailable` | bool | Owner | Set at sign-up (accepting new patients, or new cases); defaults to `true` |
+| `fcmTokens`, `language`, `receiveNotifications` | | Owner | As for patients |
+| `appointmentsHandled`, `ordersCreated`, `reportsSigned` | int | Server | `reportsSigned` stays 0 for doctors |
+| `termsAcceptedAt`, `createdAt`, `lastUpdatedAt` | String | Server, Both | |
+
+**`practitioners/{uid}`** is the directory every signed-in user may read. Only
+the `syncPractitioner` trigger on `doctors` writes it, and only while the
+doctor is `Verified`; a doctor's own profile edit therefore updates the entry,
+and an entry is removed if the doctor stops being verified. Its fields are the
+public subset of `doctors`, in the same order: `uid`, `title`, `firstName`,
+`lastName`, `profilePictureUrl`, `isPathologist`, `specialties`, `bio`,
+the facility fields, `county`, `subCounty`, `geohash`, `isAvailable`, the three
+counters, and `lastUpdatedAt`. The facility fields come from the server's
+facility list, not from what the client sent. It never carries email, phone,
+KMPDC number, license or tokens.
+
+**Every geohash is 9 characters** (about 5 m), from `GeohashService.encode`. A
+search widens by truncating the prefix. Characters that were never stored
+cannot be recovered.
+
+**Counters** are incremented only by triggers, with `FieldValue.increment`.
+Triggers are delivered at least once, so each records its event id before
+incrementing, and a redelivered event counts nothing. A counter added later
+is `@Default(0)` in its model, so older documents still parse.
+
+**How each document is created.** Clients never create a `patients`,
+`doctors` or `practitioners` document; callables do, and set the role claim
+in the same step.
+
+| Callable | Caller | Does |
+|---|---|---|
+| `completePatientSignUp` | A new account | Normalises the phone, then looks for an unregistered record with the same phone and date of birth. With no match, it creates `patients/{uid}` and sets `role: patient`. With a match, it creates nothing and returns `clinic-record-exists`: an account is linked to an existing record only in person (`linkPatientAccount`), because a phone number and birth date are not proof of identity |
+| `completePractitionerSignUp` | A new account | Checks the KMPDC number is unused and the facility exists, then creates `doctors/{uid}` as `Pending`. **No role claim is set**, so a pending account reaches no clinical route |
+| `verifyPractitioner` | Admin only (seed script for the pilot) | Sets `Verified` or `Rejected`; on `Verified`, sets `role: doctor` or `role: pathologist` |
+| `addPatient` | A verified doctor | Same duplicate check, then creates the record with `uid: ''` and the doctor in `doctorUids` |
+| `linkPatientAccount` | A doctor on the record's care team | Attaches a registered account to a doctor-added record, with the patient present |
+| `inviteToCase` | The patient | Adds a verified practitioner to a case's participants and to `doctorUids` |
+
+Being in `doctorUids` grants the patient's profile, not their cases. Each
+case's own participant list (§11) still decides who reads which case. A
+second-opinion doctor sees the shared case only. The patient may remove a
+doctor from `doctorUids`.
+
+**Storage.** Each path is written only by the people listed below, and
+only under its fixed names (one per slot and format), so an account holds at
+most two pictures and six licence files however often it uploads. The name's extension must match the content
+type, and only JPEG, PNG and PDF pass, so an SVG or HTML file cannot be
+stored as an image. A practitioner's files go up before their profile
+exists, so an upload under the caller's own uid needs a confirmed email
+instead.
+
+| Path | Who writes | Who reads | Limit |
+|---|---|---|---|
+| `profilePictures/{id}/photo.jpg` or `photo.png` (`id` is a `doctors` uid or a `patientId`) | The owner (with a confirmed email when `id` is their uid); or, for an unregistered patient, a doctor in their `doctorUids` | A patient's: the patient and their care team. A practitioner's: any signed-in user. No listing | 3 MB, JPEG or PNG |
+| `licenses/{uid}/license_1` or `license_2` (`.jpg`, `.png` or `.pdf`) | Owner with a confirmed email, until `Verified` | Owner and admin | 10 MB, JPEG, PNG or PDF |
+
+There is no picture collection: the download URL is stored on the profile
+(`profilePictureUrl`), and the trigger copies a practitioner's into the
+directory, so a screen fetches one document. A download URL works for
+anyone who holds it, and its URL sits on a document only the patient and
+their care team can read. With fixed names a path can be guessed, so the
+Storage read rule also limits a patient's picture to the same people.
+
+### 6.2 Reference data shipped with the app
+
+The pilot is Nairobi. Five JSON assets, produced from the Ministry of
+Health's exports by `scripts/facilities/` (`make facilities`) and
+`scripts/lab_tests/` (`make lab-tests`), are read from the bundle and never
+written:
+
+| Asset | Holds |
+|---|---|
+| `assets/data/facilities_nairobi.json` | All 1,447 facilities: `facilityId` (the Ministry's id), `mflCode`, `name`, `kephLevel`, `facilityType`, `owner`, `wardId`, `ward`, `subCountyId`, `subCounty`, `countyId`, `county`, `latitude`, `longitude`, `geohash` (9), `isLocationApproximate`, `isLab`, `operationStatus`, `isOperational` |
+| `assets/data/counties.json` | All 47 counties, with their official codes (Nairobi is 47) |
+| `assets/data/sub_counties_nairobi.json` | Nairobi's 17 sub-counties, each with its id, its centre and its 9-character geohash |
+| `assets/data/lab_test_types.json` | The 11 test types a doctor orders from: `testTypeId`, `name`, `testCount` |
+| `assets/data/lab_tests.json` | All 247 lab tests, by type then name: `labTestId`, `testTypeId`, `testTypeName`, `name`, `isActive`, `testPriceKes`, `isPriceEstimate`, `tatCollectionToDelivery`, `tatDeliveryToResults`, `totalTurnaroundTime` |
+
+What the script does to the export, and why:
+
+- **Keyed by the Ministry's `id`.** Ten facilities have no MFL code (the
+  export says `"None"`); their `mflCode` is `''`.
+- **Closed facilities are kept**, with `isOperational: false` (206 of
+  them). The picker greys them out, and `completePractitionerSignUp`
+  refuses one, so the full list can be quoted without anyone joining a
+  closed facility. A facility is operational only when the export says
+  both `active` and `Operational`.
+- **223 facilities have no coordinates** (exported as `0, 0`). They take
+  their sub-county's centre and `isLocationApproximate: true`; hashing
+  `0, 0` would put them in the Gulf of Guinea.
+- **A sub-county's centre** is the mean of its located facilities.
+- Fields that are null in every row (`facility_type_category`,
+  `owner_type`, `constituency`, `phone_number`, `email`) are dropped; every
+  other `null` becomes `''`, `0` or `false`, and whitespace is trimmed and
+  collapsed.
+- Rows outside Nairobi, coordinates outside Kenya, a sub-county with no
+  located facility, or a county list other than 1 to 47 stop the run.
+  Repeated rows from overlapping batches are kept once, so the script is
+  safe to run again.
+
+What `make lab-tests` does (CRQ-0033):
+
+- **Each test carries its type's id and name**, so the order screen filters
+  one list by type without a join.
+- **Every test has a price** in whole shillings, and `isPriceEstimate: true`:
+  a Nairobi private-laboratory benchmark, anchored on published prices
+  (CRQ-0033 §1.2), not a lab's tariff.
+- Data-entry rows, one repeated test and an empty type are dropped by name;
+  names broken across lines in the source are mended, and the few a rule
+  cannot mend are corrected from a listed table. The always-null
+  `external_sys_id` and the `description` (equal to the name in every row)
+  are not shipped.
+- **Turnaround times are shipped as given**, in the export's unit, which it
+  does not state; the stages must add up to the total.
+- A test with no price, an unusable turnaround time, a listed drop, correction or price that matches no
+  row, a repeated id or name, or a description that says more than its name
+  stops the run.
+
+`functions/` holds byte-identical copies, so the server checks a facility,
+and will price an order, against its own lists rather than trusting a
+client; a test compares them. A patient outside Nairobi can still sign up: they see a pilot notice,
+and the directory lists every practitioner rather than the nearest.
 
 ## 7. Dependency injection
 
@@ -263,14 +490,59 @@ hand, so tests can substitute any of them.
 ## 8. Routing / navigation
 
 `go_router` with typed routes from `go_router_builder`: every route is a
-`GoRouteData` subclass, and one `TabibuRouter` holds the generated
-`$appRoutes`. A cold start lands on a `DecisionRoute`, which reads the
-cached session and the role claim and sends the person to onboarding,
-sign-in, or their role's shell. Each role has its own
-`StatefulShellRoute` with its own tabs. A patient cannot reach a
-pathologist route by typing a URL on web, because the redirect checks the
-role claim, not a cached flag. Page transitions use
-`CupertinoPageTransitionsBuilder` on every platform.
+`GoRouteData` subclass in `core/routing/app_routes.dart`, and
+`TabibuRouter.create` builds the one router from the generated `$appRoutes`
+(CRQ-0027). `AuthBloc` and `SignUpBloc` are provided above it.
+
+**Cold start.** The app opens on `DecisionRoute` (A1). It asks `AuthBloc`
+for the session, awaits the force-update check, reads whether onboarding was
+seen, and hands all three to `resolveLanding`, a pure function. Its order:
+an outdated build goes to the update screen and nothing else is checked;
+signed out goes to onboarding the first time and sign-in after; a signed-in
+account with no profile goes to email verification while its address is
+unconfirmed (CRQ-0032), then back to the role choice; then the clinic-record
+notice, the pending screen, or the role's home.
+
+**The guard** (`guardLocation`, also pure) runs on every navigation and
+again whenever the session changes. It reads the role claims carried by the
+session, which came from the ID token, never a cached flag:
+
+- `/patient`, `/doctor` and `/pathologist` need that role. A pending
+  practitioner holds no role, so reaches none of them (T-14).
+- `/account/…` and the sign-up steps that act as the user (phone, area,
+  licence, facility, review) need a signed-in account.
+- Everything else is public.
+
+A refused location goes to the decision route with `from`, which follows it
+once the session allows. Signing out therefore moves anyone on a role route
+back through the decision route to sign-in. The rules still decide what is
+readable; the guard only keeps people off screens that would fail.
+
+**Sign-up** spans the C, D, E and F screens. `SignUpBloc` holds the draft in
+memory (never the password; the account is created on the screen that asks
+for it), so going back keeps what was entered. `AuthBloc` submits it. The
+draft is cleared after sign-up or sign-out, so photos and licence scans
+leave memory.
+
+**Role shells.** Each role home is a `StatefulShellRoute` of four tabs
+under its home path (`/patient`, `/doctor`, `/pathologist`), so the guard's
+role check covers every tab. Patients have Home, Appointments, Results and
+Profile; doctors Today, Cases, MDT and Profile; pathologists Desk, Signed,
+MDT and Profile. `HomeShell` draws the floating menu over the tabs, keeps
+each tab's state while another shows, and sends back from another tab to
+the first before it leaves the app. Profile signs out through `AuthBloc`
+after a confirmation sheet; the guard then moves the person to sign-in.
+
+Page transitions use `CupertinoPageTransitionsBuilder` on every platform.
+
+**Theme and language.** `ThemeBloc` holds only the choice (light, dark, or
+the device's), read synchronously at start so the first frame is right;
+`App` maps it to `themeMode`, so following the device is the framework's
+job. The language chosen on A2 is saved on the device and, once signed in,
+on the profile, which sets the language of push notifications; `App`
+switches its locale on `LanguageChangeSuccess`. `MaterialApp.builder`
+scales type up on tablets (`core/utils/text_scale.dart`), keeping the
+person's own text scaling.
 
 ## 9. Lifecycle
 
@@ -280,10 +552,10 @@ cost are controlled:
 | Transition | What happens |
 |---|---|
 | `paused` | Set `_hasBeenBackgrounded`. Stop the Firestore listeners: the inbox, the pathologist's worklist, the pre-read status of an open case. Nothing listens while nobody is looking. |
-| `resumed` **after a real background** | Re-fetch Remote Config (kill switches, §10); reopen the listeners from the cache's cursor so nothing is missed; refresh the worklist; re-check that the account is still active. |
+| `resumed` **after a real background** | Re-fetch Remote Config (kill switches, §10) and re-run the force-update gate; re-resolve a signed-in session, so a verification granted meanwhile is picked up; reopen the listeners from the cache's cursor so nothing is missed; refresh the worklist. |
 | `inactive → resumed` on cold start | Ignored. The `DecisionRoute` already ran these checks, and only the one-way `_hasBeenBackgrounded` flag can tell a cold start from a real resume. |
 | Sign-out | Stop every listener, flush any queued writes while the credentials are still valid, then wipe the case-bearing boxes and rotate the key (§6). |
-| Notification tapped (cold or warm) | The payload (a case or alert uid) routes through the typed router; a cold launch reads it once after the `DecisionRoute` resolves. |
+| Notification tapped (cold or warm) | Local and push taps share one stream, and `launchPayload` covers both on a cold launch. The payload is a case or alert uid in `data.payload`; it is routed once the case and alert screens exist. |
 
 ## 10. Security
 
@@ -301,7 +573,21 @@ In summary:
   the Keychain (`make app-check-token`, injected by `make run-dev`).
   **Not yet enforced**: enforcement applies per API to every client, so it
   waits until each platform's release build can attest (§16 item 7).
-- **RASP**: freeRASP, configured in `core/constants/rasp_config.dart`.
+- **RASP**: freeRASP (`RaspService`, configured in
+  `core/constants/rasp_config.dart`), started in bootstrap after
+  notifications (CRQ-0024). Enforcement follows the build mode: release
+  binaries check the signing certificate and the store, and terminate on a
+  critical threat (root or jailbreak, hooks, tampering, a debugger, missing
+  obfuscation) after telling the person why. Severe and advisory threats are
+  notified on the account and security channel and logged to Crashlytics.
+  The notice names a coarse area (device, app, another app, network), never
+  the detection. A notice passes a gate first: after any notice, none other
+  for 15 minutes, and the same notice at most once a day, with the windows
+  kept across relaunches. Every detection is still logged. In production,
+  screens render black in screenshots and recordings; elsewhere capture is
+  allowed, so the demo can be recorded, and raises no notice.
+  **Every release build obfuscates**: without it, the release binary
+  terminates itself.
 - **Secrets**: no model or service key is in the app, in any form: not in
   `--dart-define`, not in a Flutter asset, not in Remote Config (Firebase's
   own guidance; every app instance can read it). The AI service reads its
@@ -320,8 +606,10 @@ In summary:
   that long to reach a running install; debug builds fetch every launch.
   The force-update parameters (`min_required_version`, `force_update`,
   `store_url_android`, `store_url_ios`, `update_title`, `update_message`)
-  default to letting the app through; the gate itself arrives with the
-  router on the auth branch.
+  default to letting the app through. The gate (`AppUpdateService`) stops a
+  build only when `force_update` is true **and** the build is older than
+  `min_required_version`, so a minimum set ahead of time locks nobody out
+  until the switch is flipped.
 - **Input**: free text (symptoms, notes, report edits) goes through
   `InputSanitizer` at the call site before it is stored or sent to the AI
   service.
@@ -336,8 +624,9 @@ In summary:
 
 | Role / permission | Can | Cannot |
 |---|---|---|
-| Patient | Describe symptoms; see their own cases; read a signed result's explanation once released; choose a county; receive area alerts | See any other patient's case; see an AI draft; see a cancer result before the doctor marks it discussed |
-| Doctor | Accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
+| Patient | Describe symptoms; see their own cases; read a signed result's explanation once released; choose a county and sub-county; browse the practitioner directory; invite a practitioner to a case | See any other patient's case; see an AI draft; see a cancer result before the doctor marks it discussed |
+| Pending practitioner (no role claim) | Edit their own `doctors` profile, KMPDC number and license | Reach any clinical route or read any patient |
+| Doctor | Add a patient; read the profiles of patients whose care team they are on; accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
 | Pathologist | Work the ranked list of cases assigned to them; review, edit and sign reports; mark a result notifiable | Release a result to a patient |
 | Alert approver (a permission on a doctor) | Read, edit and approve a drafted alert | Approve an alert they drafted by hand without the draft being recorded |
 
@@ -361,11 +650,13 @@ throws and never returns null.
 
 ## 13. CI/CD
 
-Two workflows run in CI:
+Four workflows run in CI:
 
-- **Production APK** (`prod_apk.yaml`), on every pull request to `main`.
-  Format check, code generation, `flutter analyze`, bloc lint and the tests
-  run on every PR. When the signing secrets are present (not on Dependabot
+- **Production APK** (`prod_apk.yaml`), on every pull request to `main`,
+  on Flutter 3.47.8. Format check, code generation, `flutter analyze`, bloc
+  lint and the tests run on every PR; a second job lints, builds and
+  type-checks `functions/`, the seed included (their emulator tests run
+  locally). When the signing secrets are present (not on Dependabot
   or fork PRs), it then builds the `production` APK, obfuscated and signed
   with the release keystore, keeps the debug symbols for 90 days, uploads
   the Dart symbols to Crashlytics, and sends the APK to the
@@ -375,6 +666,17 @@ Two workflows run in CI:
   is outside MIT, BSD-2-Clause, BSD-3-Clause and Apache-2.0. Packages that
   never ship in an app build (dev-tool dependencies, Linux-only plugin code)
   are skipped by name, with the reason beside the list.
+- **Labeler** (`labeler.yml`), on every pull request: path-derived labels
+  from `.github/labeler.yml`; it only adds labels (CRQ-0004).
+- **Draft release** (`release-draft.yaml`), when a pull request merges to
+  `main`. It drafts a release tagged with the merged `pubspec.yaml` version
+  (`1.0.02+1002` becomes `v1.0.02+1002`), with notes generated from every
+  pull request since the last published release. One rolling draft absorbs
+  later merges and takes the newest tag. It fails when the version was not
+  bumped past the latest release. `make release-publish` publishes the draft
+  and marks it Latest; a draft cannot be marked Latest, so CI never
+  publishes (CRQ-0025). The script's checks run in `prod_apk.yaml` and
+  through `make release-check`.
 
 Every gate also runs locally and is part of the definition of done
 ([`mobile_workflow.md` §6](../../workflow/reports/mobile_workflow.md#6-definition-of-done)):
@@ -409,9 +711,16 @@ until it is deployed.
   That helper **imports** the app's localizations, theme and providers rather
   than re-declaring them, so tests cannot drift from what ships. Screens are
   tested at 1.0x and 2.0x text scale, in `en` and `sw`.
-- **Rules tests** under `test/firestore_rules/` against the emulator, with one
-  case per row of the §11 table, run by `make rules-test`. A rules change
-  without a rules test is not finished.
+- **Rules tests** under `test/firestore_rules/` against the Firestore and
+  Storage emulators, with one case per row of the §11 table, run by
+  `make rules-test`. A rules change without a rules test is not finished.
+  Each denial has a matching allowed write that differs only in the field
+  under test, so a test cannot pass because of an unrelated failure.
+- **Function tests** in `functions/src/*.test.ts`, run by
+  `make functions-test`: lint and build as a deploy would, then the handlers
+  against the Firestore and Auth emulators, so transactions and queries
+  behave as in production. Both suites run on the `demo-tabibu` project id,
+  which cannot reach the live project.
 - **Model evaluation** in the AI service: held-out PatchCamelyon tiles and NIH
   cells, a fixed sample, recorded with the
   [evaluation template](../../testing/templates/MODEL_EVALUATION_TEMPLATE.md).
@@ -467,14 +776,13 @@ to see. Greptile is pointed at this section.
 
 ## 16. Known architectural debt / watchlist
 
-1. **The scaffold's localizations delegates are wrong for any non-English
-   locale** (`lib/app/view/app.dart`). The app imports `material_ui` but
-   passes `AppLocalizations.localizationsDelegates`, which is exactly the
-   defect rule 1 describes. It is hidden today because the second locale is
-   the template's Spanish and no screen has been tested in it. It must be
-   fixed in the same change that replaces `es` with `sw`.
-2. **The counter example feature is still in `lib/` and `test/`.** Delete it
-   when the first real feature lands.
+1. **Resolved (CRQ-0017).** The scaffold passed the generated
+   `AppLocalizations.localizationsDelegates`, which crashes `material_ui` in
+   any non-English locale. `tabibuLocalizationsDelegates` in `app.dart`
+   replaces it, `test/helpers/pump_app.dart` uses the same list, and
+   `test/app/localizations_delegates_test.dart` fails if the generated list
+   returns.
+2. **Resolved (CRQ-0017).** The counter example is gone.
 3. **Every `uses:` is pinned to a full commit SHA with the release in a
    trailing comment** (`license_check.yaml` is, since CRQ-0003). A tag can be
    moved; a SHA cannot. `prod_apk.yaml` follows the same rule (CRQ-0008).
@@ -483,10 +791,12 @@ to see. Greptile is pointed at this section.
 4. **`test_api: any` is listed under `dependencies`**, not
    `dev_dependencies`, and is unconstrained. Move it, or remove it if nothing
    imports it.
-5. **Firebase is connected (Android and iOS) but no `firestore.rules`,
-   `functions/` or rules test harness exists yet**, and neither do the
-   `make rules-test` and `make deploy-*` targets that drive them. Until they
-   land, §10 and §11 describe intent, not enforcement.
+5. **Rules and functions cover identity only, and are not deployed yet**
+   (CRQ-0016). `firestore.rules`, `storage.rules` and `functions/` enforce
+   §6.1, and every other collection is closed. Cases, orders, reports and
+   alerts get their rules with their features. Deploy (`make deploy-rules`,
+   `deploy-storage`, `deploy-functions`) waits for the pull request's
+   review; until then the live project runs whatever the console holds.
 6. **Cache wipe on sign-out costs a full re-download on sign-in.** Acceptable
    at demo volumes; a pilot with real caseloads needs delta sync that
    survives sign-out, which in turn needs a policy decision on health data
@@ -496,20 +806,40 @@ to see. Greptile is pointed at this section.
    Developer team registered in Firebase; the web demo needs a reCAPTCHA
    Enterprise key. Until each exists, that platform's release build cannot
    attest, and enforcing would reject it, App Distribution builds included.
-8. **Firebase is not configured for web**, and the web demo is the main
-   judged surface. `DefaultFirebaseOptions.currentPlatform` throws on web,
-   `bootstrap` catches it, and the app starts with no Firebase. Re-run
-   `flutterfire configure` with web selected before any Firebase-backed
-   screen is built.
+8. **Web is configured, but its key and App Check are not finished.** The
+   web app is registered (`flutterfire configure`, 2026-10-27), and
+   `DefaultFirebaseOptions.web` now exists. Still open:
+   - The auto-created browser key needs HTTP-referrer restrictions to the
+     hosting domains and `localhost`.
+   - App Check on web needs a reCAPTCHA Enterprise key (item 7).
+   - `bootstrap` must be checked on web, where the Android and Apple
+     providers do not apply.
 9. **All three flavors share one Firebase project** (`tabibu-86ea2`). That is
    acceptable for the hackathon, but development writes land in the project
    the demo runs on, so seeded demo data must be kept apart from test data
    by convention until the flavors get their own projects.
+10. **One RASP value waits on the Play account** (`rasp_config.dart`): the
+    Play App Signing certificate. Play re-signs every upload, so a Play
+    install presents Google's certificate, and without its hash every Play
+    install terminates. Add it before the first Play build. The Apple
+    Developer Team ID is set (`Z5GNM65VQN`, the project's signing team).
 
 ## 17. Change log
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-29 | §6.2: the lab test catalogue, with benchmark prices (CRQ-0033). | Theo |
+| 2026-10-29 | §8: email verification in the landing order (CRQ-0032). | Theo |
+| 2026-10-28 | §5 rule 8: `BlocsHelper` in bootstrap; §8 rewritten as built: decision route, `resolveLanding`, the role-claim guard, the sign-up draft, theme and language; §9 push taps and resume; §10 force-update rule (CRQ-0027). | Theo |
+| 2026-10-28 | §6.1: `specialties` (one to five from the role's list) replaces `specialization`; one or two `licenseUrls` up to 10 MB; profile picture required; `isAvailable` set at sign-up (CRQ-0026). | Theo |
+| 2026-10-27 | §13: four workflows, including the labeler and the draft release (CRQ-0025). | Theo |
+| 2026-10-27 | §10 RASP: tiers, notices, screen-capture blocking, obfuscation; §16 item 10 (CRQ-0024). | Theo |
+| 2026-10-27 | §6: `DBHelper`, delete-not-clear on sign-out, the cache owner check, the unencrypted preferences box; typeId 3 (CRQ-0020). | Theo |
+| 2026-10-27 | §16 item 8: web registered; key restriction and web App Check outstanding. | Theo |
+| 2026-10-27 | §4 today's tree; §16 items 1 and 2 resolved (CRQ-0017). | Theo |
+| 2026-10-27 | §14 function tests and the rules-test discipline; §16 item 5: identity rules and functions exist, not yet deployed (CRQ-0016). | Theo |
+| 2026-10-27 | §1 reach: the Nairobi facility count and the national census figures, linked to their sources. §6.2 rewritten for the generated assets: all 1,447 facilities with `isOperational`, approximate locations, sanitising rules; `make facilities` (CRQ-0015). | Theo |
+| 2026-10-27 | §6.1 identity collections (`patients`, `doctors`, `practitioners`), their callables and Storage paths; §6.2 bundled facility data; typeIds 0–2 reserved; §4 features and §11 roles updated (CRQ-0014). | Theo |
 | 2026-10-27 | §13: iOS target 15.0 and Swift Package Manager (CRQ-0012). | Theo |
 | 2026-10-27 | §10 Remote Config at startup: defaults, fetch bounds, and the force-update parameters (CRQ-0011). | Theo |
 | 2026-10-27 | §10 App Check activated, not enforced; §16 item 7 lists what enforcement waits on (CRQ-0010). | Theo |

@@ -1,0 +1,13 @@
+[
+{"testTypeId":"9f7bb987-be79-4777-98c1-ff63ca416596","name":"Haematology","testCount":28},
+{"testTypeId":"9f7bb987-d5d7-4a78-ba0a-e5156f61dab4","name":"Clinical Chemistry","testCount":66},
+{"testTypeId":"9f7bb987-e0fd-4e4c-9c8e-af2662e2a6d3","name":"Clinical and Forensic Toxicology","testCount":5},
+{"testTypeId":"9f7bb987-f12c-49ca-a430-632a54dff88f","name":"Immunology","testCount":10},
+{"testTypeId":"9f7bb988-0859-4ecb-bd73-2bbeef98f6af","name":"Bacteriology","testCount":42},
+{"testTypeId":"9f7bb988-1c02-4839-a01d-fe6b1cd261c3","name":"Mycology","testCount":9},
+{"testTypeId":"9f7bb988-2ad5-4a9d-af22-6d7a135d6c3f","name":"Food and Water Analysis","testCount":6},
+{"testTypeId":"9f7bb988-34cb-4205-9eb5-d84b89cac8f5","name":"Histopathology and Cytology","testCount":9},
+{"testTypeId":"9f7bb988-6bf7-42bd-bef6-dda61067cd4e","name":"Parasitology","testCount":20},
+{"testTypeId":"9f7bb988-9f92-460e-a833-0c751ce690d3","name":"Virology","testCount":51},
+{"testTypeId":"9f7bb988-fc42-40c3-b10f-b9ac91acd854","name":"Forensic Biology","testCount":1}
+]

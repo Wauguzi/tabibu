@@ -82,6 +82,11 @@ finding.
 - **Timestamps are ISO-8601 UTC strings from one helper.** Delta sync compares them as strings.
 - **Sign-out wipes the case-bearing boxes and rotates the Hive key.** Retaining case data across
   sign-out is a deliberate decision for a pilot, not an optimisation to make in passing.
+- **Hive is reached only through `DBHelper`.** A `Hive.box` call elsewhere bypasses the error
+  mapping, and `Hive.box<dynamic>` on a typed box throws. A new encrypted box needs its case in
+  `DBHelper.deleteAll`, or sign-out cannot delete it.
+- **Every cached read takes the signed-in uid, and `scopeTo(uid)` runs before a session's first
+  read.** A cache read with no uid filter is the on-device version of an unscoped query.
 
 ## AI service
 
@@ -108,8 +113,14 @@ finding.
 
 ## Privacy
 
-- **Patients choose a county; Tabibu never reads their location.** A `geolocator` call on a
-  patient's behalf, or a location field on a patient profile, is a defect.
+- **Patients choose a county and sub-county; Tabibu never reads their location.** A `geolocator`
+  call on a patient's behalf, a client-written `geohash`, or a latitude or longitude on a patient
+  profile is a defect. The patient geohash is the server's, from the sub-county's centre.
+- **A practitioner has no role claim until verified**, and `kmpdcNumber`, `licenseUrls` and
+  `email` are final once set as the architecture doc §6.1 describes. A rule that lets the owner
+  change them after verification is a P1.
+- **`doctorUids` grants a patient's profile, never their cases.** A case read that trusts
+  `doctorUids` instead of the case's own participants crosses the boundary.
 - **Free text goes through `InputSanitizer`** before it is stored or sent to the AI service.
 - **Nothing about a patient reaches Crashlytics.** Exception messages, `reason` strings and custom
   keys carry ids and types, never names, symptoms, results or free text; the user identifier, if
@@ -142,6 +153,11 @@ finding.
   and anything resolved by name is verified against a release build.
 - **Writes that must land together use a batch**; a transaction is only for writes whose values
   depend on a read.
+- **Every release build passes `--obfuscate`.** freeRASP treats missing obfuscation as a critical
+  threat and terminates a release binary; a build target or workflow without it ships an app that
+  closes on launch.
+- **A RASP notice names an area, never the detection.** Naming the check tells whoever triggered it
+  which one to defeat next.
 - **The FlutterFire config files are tracked on purpose.** They are public client identifiers;
   flagging them as leaked secrets is a false positive.
 

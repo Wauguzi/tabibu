@@ -1,0 +1,85 @@
+name: Draft Release
+
+# Drafts a release when a pull request merges to main (CRQ-0025). The tag is the merged
+# pubspec.yaml version (`1.0.02+1002` -> `v1.0.02+1002`), so it is never typed. It drafts and never
+# publishes: `make release-publish` publishes the draft and marks it Latest in one command.
+
+on:
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+# Drafting writes a release object. Under `pull_request` a fork gets no write token, and a merge to
+# main needs write access, so the token is never more trusted than the person who merged.
+permissions:
+  contents: write
+
+# Two close merges would otherwise race to create the same draft. A dropped queued run loses
+# nothing: the notes are regenerated whole, and the newest run always survives.
+concurrency:
+  group: release-draft
+  cancel-in-progress: false
+
+jobs:
+  draft:
+    # Closed is not merged; an abandoned pull request must not draft a release.
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # The published tags decide where the notes start.
+          fetch-depth: 0
+          fetch-tags: true
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: 24
+
+      # One rolling draft, not one per merge. Ours is the draft whose tag matches the convention, so
+      # a draft opened by hand for anything else is never adopted.
+      - id: existing
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release list --limit 50 --json tagName,isDraft \
+            | node scripts/next-release.cjs --managed-draft
+
+      # Fails the run when pubspec.yaml was not bumped past the latest release.
+      - id: next
+        run: node scripts/next-release.cjs
+
+      # Notes come from POST /releases/generate-notes: `--generate-notes` exists on create and not on
+      # edit, and generating once keeps both paths the same. The range is stated, not inferred.
+      # A later merge with a newer bump renames the open draft to its tag; `--target` moves with it,
+      # so the tag is cut from the merge the notes describe. Drafts cannot be marked Latest; that
+      # happens at publish.
+      - name: Draft
+        env:
+          GH_TOKEN: ${{ github.token }}
+          EXISTING: ${{ steps.existing.outputs.tag }}
+          TAG: ${{ steps.next.outputs.tag }}
+          PREVIOUS: ${{ steps.next.outputs.previous }}
+        run: |
+          set -euo pipefail
+          set -- -f "tag_name=$TAG" -f "target_commitish=$GITHUB_SHA"
+          if [ -n "$PREVIOUS" ]; then
+            set -- "$@" -f "previous_tag_name=$PREVIOUS"
+          fi
+          gh api "repos/$GITHUB_REPOSITORY/releases/generate-notes" "$@" --jq .body > notes.md
+          if [ -n "$EXISTING" ]; then
+            gh release edit "$EXISTING" --tag "$TAG" --title "$TAG" \
+              --notes-file notes.md --target "$GITHUB_SHA"
+          else
+            gh release create "$TAG" --draft --notes-file notes.md \
+              --title "$TAG" --target "$GITHUB_SHA"
+          fi
+          {
+            echo "Drafted **$TAG**."
+            echo ""
+            echo "Publish with \`make release-publish\`, which also marks it Latest."
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -10,7 +10,7 @@
     },
     {
       "path": "docs/security/reports/firebase_and_ai_service_threat_model.md",
-      "description": "The clinical-safety rules S-1 to S-7 and the security threats T-1 to T-12, each with its control and the test that proves it. Check any rules, functions, AI-service or result/alert change against these before treating it as self-contained.",
+      "description": "The clinical-safety rules S-1 to S-7 and the security threats T-1 to T-16, each with its control and the test that proves it. Check any rules, functions, AI-service or result/alert change against these before treating it as self-contained.",
       "scope": ["lib/**", "functions/**", "ai_service/**", "firestore.rules", "storage.rules", "test/firestore_rules/**"]
     },
     {
@@ -30,7 +30,7 @@
     },
     {
       "path": "docs/design/reports/mobile_design_system.md",
-      "description": "Semantic color roles, the AR One Sans / Manrope pairing and which TextTheme slot takes which, the 4-point AppSpacing scale, and the clinical UI conventions: unsigned AI output always inside AiDraftFrame, confidence and urgency never conveyed by color alone, the viewer and patient copy rules.",
+      "description": "Semantic color roles, Manrope throughout and which TextTheme slot takes which, the 4-point AppSpacing scale, and the clinical UI conventions: unsigned AI output always inside AiDraftFrame, confidence and urgency never conveyed by color alone, the viewer and patient copy rules.",
       "scope": ["lib/**"]
     },
     {

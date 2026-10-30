@@ -20,6 +20,30 @@ patient reads, or the alert path.
 | [CRQ-0011](./CRQ-0011-remote-config-at-startup.md) | Remote Config at startup: in-app defaults, a bounded fetch, and the force-update parameters | 2026-10-27 | Implemented — the gate arrives with the auth branch |
 | [CRQ-0012](./CRQ-0012-vscode-launches-and-ios-15.md) | VS Code launch configurations with the App Check debug token; iOS 15.0 and Swift Package Manager | 2026-10-27 | Implemented |
 | [CRQ-0013](./CRQ-0013-muse-code-agent.md) | Muse Code as a second coding agent: `make muse`, `AGENTS.md`, and a credit floor | 2026-10-27 | Implemented |
+| [CRQ-0014](./CRQ-0014-identity-data-model.md) | Identity data model: patients, practitioners, the public directory and the bundled Nairobi facility list | 2026-10-27 | Implemented — across `feat/auth` (CRQ-0015 to CRQ-0036) |
+| [CRQ-0015](./CRQ-0015-nairobi-facility-data.md) | Nairobi facility data: the Ministry of Health's 1,447 facilities, 17 sub-counties and 47 counties as app assets, with a geohash service | 2026-10-27 | Implemented |
+| [CRQ-0016](./CRQ-0016-identity-functions-and-rules.md) | Identity functions, Firestore and Storage rules, and their emulator tests | 2026-10-27 | Implemented — deploy after review |
+| [CRQ-0017](./CRQ-0017-foundations-theme-and-swahili.md) | Foundations: counter removed, Swahili replaces Spanish with the localizations-delegates fix, and the design-system theme | 2026-10-27 | Implemented — palette provisional |
+| [CRQ-0018](./CRQ-0018-demo-seed-and-google-sign-in-on-ios.md) | Demo seed (one account per role, an alert approver, clinic patients) and the iOS URL scheme for Google sign-in | 2026-10-27 | Implemented on the emulators — live seed pending |
+| [CRQ-0019](./CRQ-0019-identity-models-errors-and-di.md) | Identity models, facility reference data, enums, translated errors, and dependency injection | 2026-10-27 | Implemented |
+| [CRQ-0020](./CRQ-0020-session-layer-auth-and-encrypted-cache.md) | Session layer: auth datasource and helper, RoleHelper, the encrypted cache through DBHelper, and bootstrap wiring | 2026-10-27 | Implemented |
+| [CRQ-0021](./CRQ-0021-launcher-icons.md) | Launcher icons on Android and iOS: the missing iOS icon set, and a guard against 16-bit logos | 2026-10-27 | Implemented |
+| [CRQ-0022](./CRQ-0022-notification-service.md) | Notification service: three channels, a kept Android icon, iOS presentation, and a show that never throws | 2026-10-27 | Implemented |
+| [CRQ-0023](./CRQ-0023-android-toolchain.md) | Android builds run again: Kotlin 2.3.20, Gradle 9.3.1, compileSdk 37, one launcher background colour, and no template icons on dev and staging | 2026-10-27 | Implemented |
+| [CRQ-0024](./CRQ-0024-rasp-service.md) | Runtime protection with freeRASP: tiered threats, translated notices, screen-capture blocking, and obfuscated release builds | 2026-10-27 | Implemented — Play App Signing hash pending |
+| [CRQ-0025](./CRQ-0025-release-drafts.md) | Draft a release on every merge to main, tagged with the pubspec version; publish and mark Latest with one command | 2026-10-27 | Implemented — first run on the first merge |
+| [CRQ-0026](./CRQ-0026-specialties-and-license-files.md) | Practitioner specialties as a list, one or two license files, a required photo, and an information-security header on the Firestore rules | 2026-10-28 | Implemented — rules and functions deploy after review |
+| [CRQ-0027](./CRQ-0027-auth-bloc-and-router.md) | Auth, sign-up and theme blocs; typed router with a role-claim guard; app shell; analytics, connectivity, force-update and push-token services | 2026-10-28 | Implemented — screens in brief 04 |
+| [CRQ-0028](./CRQ-0028-fireworks-api-key.md) | Store the Fireworks API key the same way as the other model keys; replace one key at a time | 2026-10-28 | Implemented — key stored |
+| [CRQ-0029](./CRQ-0029-modal-token-pair.md) | Keep the Modal token pair in the Keychain and run the Modal CLI through make | 2026-10-28 | Implemented — token stored, workspace confirmed |
+| [CRQ-0030](./CRQ-0030-design-tokens-and-shared-widgets.md) | Design tokens from the design system, the shared widget library and its assets; AI draft and signed told apart by structure | 2026-10-28 | Implemented |
+| [CRQ-0031](./CRQ-0031-file-picker-service.md) | Pick the sign-up photo and licence files as bytes, with the size limits checked on the device | 2026-10-28 | Implemented |
+| [CRQ-0032](./CRQ-0032-email-verification.md) | Email addresses are validated before any call and confirmed before any profile is created | 2026-10-29 | Implemented — the screen in CRQ-0034 |
+| [CRQ-0033](./CRQ-0033-lab-test-catalogue.md) | Lab test catalogue: the Ministry of Health's 11 test types and 247 lab tests as app assets, each with a price in Kenya shillings | 2026-10-29 | Implemented |
+| [CRQ-0034](./CRQ-0034-sign-up-screens.md) | The onboarding, sign-in and sign-up screens (A1 to F5) to the designs, with errors under their fields and input kept on back | 2026-10-30 | Implemented — device certification pending |
+| [CRQ-0035](./CRQ-0035-role-shells-and-profile.md) | Each role lands on its own shell of four tabs under a floating menu, with a profile tab that signs out | 2026-10-30 | Implemented — device certification pending |
+| [CRQ-0036](./CRQ-0036-pre-review-hardening.md) | The pre-PR review: Storage, rules and functions hardened, and sign-out and session reads made safe | 2026-10-30 | Implemented — rules and functions to deploy with the build |
+| [CRQ-0037](./CRQ-0037-build-platform-and-repository.md) | Build and platform: AGP 9 and JVM 17, the native splash, iOS signing and icons, Hosting; the repository's community files | 2026-10-30 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

@@ -1,0 +1,93 @@
+rules_version = '2';
+
+// Storage paths (architecture §6.1, CRQ-0016, CRQ-0026). Pictures are JPEG or PNG under 3 MB;
+// licence files are JPEG, PNG or PDF under 10 MB. Each path takes fixed names only (one per slot
+// and format), so an account holds at most two pictures and six licence files however often it
+// uploads, and an upload under the caller's own uid needs a confirmed email. Everything not
+// matched here is denied.
+// Tests: test/firestore_rules/ (make rules-test).
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function signedIn() {
+      return request.auth != null;
+    }
+
+    function under3MB() {
+      return request.resource.size < 3 * 1024 * 1024;
+    }
+
+    // The name's extension and the content type agree, so an SVG or HTML file cannot pass as an
+    // image under a fixed name.
+    function typedAs(file) {
+      let type = request.resource.contentType;
+      return (file.matches('.*[.]jpg') && type == 'image/jpeg')
+          || (file.matches('.*[.]png') && type == 'image/png')
+          || (file.matches('.*[.]pdf') && type == 'application/pdf');
+    }
+
+    // The caller's own uid, with a confirmed email: a practitioner's files go up before their
+    // profile exists, so the confirmed account is what binds them.
+    function confirmedSelf(owner) {
+      return request.auth.uid == owner && request.auth.token.get('email_verified', false) == true;
+    }
+
+    function patient(id) {
+      return firestore.get(/databases/(default)/documents/patients/$(id)).data;
+    }
+
+    function hasPatient(id) {
+      return firestore.exists(/databases/(default)/documents/patients/$(id));
+    }
+
+    // `owner` is a doctors uid or a patientId; a linked patient's id is not their uid.
+    function ownsPicture(owner) {
+      return confirmedSelf(owner)
+          || (hasPatient(owner) && patient(owner).uid == request.auth.uid);
+    }
+
+    function caresForUnregistered(owner) {
+      return request.auth.token.get('role', '') == 'doctor'
+          && hasPatient(owner)
+          && patient(owner).isRegistered == false
+          && request.auth.uid in patient(owner).doctorUids;
+    }
+
+    // With fixed names a path can be guessed, so a patient's picture is read only by the patient
+    // and their care team; a practitioner's (no patient record) is public to signed-in users,
+    // as the directory shows it.
+    function readsPicture(owner) {
+      return !hasPatient(owner)
+          || patient(owner).uid == request.auth.uid
+          || request.auth.uid in patient(owner).doctorUids;
+    }
+
+    match /profilePictures/{owner}/{file} {
+      allow get: if signedIn() && readsPicture(owner);
+      allow create, update: if signedIn() && under3MB()
+          && file.matches('photo[.](jpg|png)') && typedAs(file)
+          && (ownsPicture(owner) || caresForUnregistered(owner));
+      allow delete: if signedIn() && (ownsPicture(owner) || caresForUnregistered(owner));
+    }
+
+    // Uploaded before sign-up creates the profile, so a missing profile counts as not yet verified.
+    match /licenses/{owner}/{file} {
+      function notVerified() {
+        return !firestore.exists(/databases/(default)/documents/doctors/$(owner))
+            || firestore.get(/databases/(default)/documents/doctors/$(owner)).data
+                   .verificationStatus != 'Verified';
+      }
+
+      allow get: if signedIn()
+          && (request.auth.uid == owner || request.auth.token.get('admin', false) == true);
+      // A role-less account only: a pending practitioner holds none, so a patient or a verified
+      // practitioner cannot keep files here.
+      allow create, update: if signedIn() && confirmedSelf(owner) && notVerified()
+          && request.auth.token.get('role', '') == ''
+          && request.resource.size < 10 * 1024 * 1024
+          && file.matches('license_[12][.](jpg|png|pdf)') && typedAs(file);
+      allow delete: if signedIn() && request.auth.uid == owner && notVerified();
+    }
+  }
+}

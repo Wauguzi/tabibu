@@ -9,6 +9,10 @@
 	</array>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Tabibu uses the camera to take your profile photo or photograph your practising licence.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Tabibu opens the photo you choose for your profile or your practising licence.</string>
 	<key>CFBundleDisplayName</key>
 	<string>$(FLAVOR_APP_NAME)</string>
 	<key>CFBundleExecutable</key>
@@ -73,5 +77,22 @@
 			</array>
 		</dict>
 	</dict>
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleTypeRole</key>
+			<string>Editor</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.270369739916-pg1tm5jc8vqbc15dh42gja1h107foaip</string>
+			</array>
+		</dict>
+	</array>
+	<key>UIStatusBarHidden</key>
+	<false/>
 </dict>
 </plist>

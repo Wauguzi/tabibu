@@ -50,9 +50,9 @@
 
 ## Related Documentation
 
-<!--- One CRQ per branch. Skip it only for a genuinely trivial change, and say why. -->
+<!--- Every CRQ the branch adds or changes. Skip it only for a genuinely trivial change, and say why. -->
 
-- **CRQ:** `[docs/crq/reports/CRQ-XXXX-....md, or "N/A — trivial change: <reason>"]`
+- **CRQs:** `[each docs/crq/reports/CRQ-XXXX-....md the branch adds, or "N/A — trivial change: <reason>"]`
 - **UAT / EVAL report:** `[link, or N/A]`
 - **Labels:** the CRQ's priority (`P1`–`P4`) and its `type/`. `area/*` and `security-boundary`
   are applied automatically from changed paths.

@@ -1,1 +1,111 @@
-{"flutter":{"platforms":{"android":{"default":{"projectId":"tabibu-86ea2","appId":"1:270369739916:android:488605da76eaf0aa7f17a9","fileOutput":"android/app/google-services.json"}},"ios":{"default":{"projectId":"tabibu-86ea2","appId":"1:270369739916:ios:93526f86a6a4e2f17f17a9","uploadDebugSymbols":true,"fileOutput":"ios/Runner/GoogleService-Info.plist"}},"dart":{"lib/firebase_options.dart":{"projectId":"tabibu-86ea2","configurations":{"android":"1:270369739916:android:488605da76eaf0aa7f17a9","ios":"1:270369739916:ios:93526f86a6a4e2f17f17a9"}}}}}}
+{
+  "firestore": {
+    "rules": "firestore.rules",
+    "indexes": "firestore.indexes.json"
+  },
+  "storage": {
+    "rules": "storage.rules"
+  },
+  "hosting": {
+    "public": "build/web",
+    "ignore": [
+      "firebase.json",
+      "**/.*",
+      "**/node_modules/**"
+    ],
+    "rewrites": [
+      {
+        "source": "**",
+        "destination": "/index.html"
+      }
+    ],
+    "headers": [
+      {
+        "source": "**",
+        "headers": [
+          {
+            "key": "X-Content-Type-Options",
+            "value": "nosniff"
+          }
+        ]
+      },
+      {
+        "source": "/index.html",
+        "headers": [
+          {
+            "key": "Cache-Control",
+            "value": "no-cache"
+          }
+        ]
+      }
+    ]
+  },
+  "functions": [
+    {
+      "source": "functions",
+      "codebase": "default",
+      "ignore": [
+        "node_modules",
+        ".git",
+        "firebase-debug.log",
+        "firebase-debug.*.log",
+        "*.local",
+        "src/**/*.test.ts",
+        "src/**/*.test-support.ts",
+        "src/seed.ts"
+      ],
+      "predeploy": [
+        "cd \"$RESOURCE_DIR\" && ./node_modules/.bin/eslint src",
+        "cd \"$RESOURCE_DIR\" && ./node_modules/.bin/tsc -p tsconfig.build.json"
+      ]
+    }
+  ],
+  "emulators": {
+    "auth": {
+      "port": 9099
+    },
+    "firestore": {
+      "port": 8080
+    },
+    "functions": {
+      "port": 5001
+    },
+    "storage": {
+      "port": 9199
+    },
+    "ui": {
+      "enabled": true,
+      "port": 4000
+    },
+    "singleProjectMode": true
+  },
+  "flutter": {
+    "platforms": {
+      "android": {
+        "default": {
+          "projectId": "tabibu-86ea2",
+          "appId": "1:270369739916:android:488605da76eaf0aa7f17a9",
+          "fileOutput": "android/app/google-services.json"
+        }
+      },
+      "ios": {
+        "default": {
+          "projectId": "tabibu-86ea2",
+          "appId": "1:270369739916:ios:93526f86a6a4e2f17f17a9",
+          "uploadDebugSymbols": true,
+          "fileOutput": "ios/Runner/GoogleService-Info.plist"
+        }
+      },
+      "dart": {
+        "lib/firebase_options.dart": {
+          "projectId": "tabibu-86ea2",
+          "configurations": {
+            "android": "1:270369739916:android:488605da76eaf0aa7f17a9",
+            "ios": "1:270369739916:ios:93526f86a6a4e2f17f17a9",
+            "web": "1:270369739916:web:ee124846525a27c57f17a9"
+          }
+        }
+      }
+    }
+  }
+}

@@ -13,6 +13,17 @@
   - changed-files:
       - any-glob-to-any-file:
           - "lib/features/auth/**"
+          - "lib/features/profile/**"
+          - "lib/features/patients/**"
+          - "lib/features/practitioners/**"
+          - "lib/features/facilities/**"
+          - "lib/core/helpers/auth_helper.dart"
+          - "lib/core/helpers/role_helper.dart"
+          - "lib/core/helpers/facilities_helper.dart"
+          - "lib/core/routing/**"
+          - "lib/features/home/**"
+          - "lib/features/onboarding/**"
+          - "assets/data/**"
 
 "area/cases":
   - changed-files:
@@ -37,6 +48,7 @@
   - changed-files:
       - any-glob-to-any-file:
           - "lib/features/notifications/**"
+          - "lib/core/services/notification_service.dart"
 
 "area/ai-service":
   - changed-files:
@@ -77,9 +89,15 @@
           - "lib/bootstrap.dart"
           - "lib/main_*.dart"
           - "lib/core/services/**"
+          - "lib/core/helpers/**"
+          - "lib/core/utils/**"
 
 "area/docs":
   - changed-files:
       - any-glob-to-any-file:
           - "docs/**"
           - "README.md"
+          - "AGENTS.md"
+          - "CONTRIBUTING.md"
+          - "CODE_OF_CONDUCT.md"
+          - "SECURITY.md"

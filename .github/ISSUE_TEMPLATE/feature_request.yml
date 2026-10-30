@@ -1,0 +1,47 @@
+name: Feature request
+description: Suggest something Tabibu could do better.
+title: "[Feature]: "
+labels: ["type/feature"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thank you for the suggestion. Please describe the problem first; the best solution
+        often comes from it.
+  - type: dropdown
+    id: role
+    attributes:
+      label: Who it is for
+      multiple: true
+      options:
+        - Patients
+        - Doctors
+        - Pathologists
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: The problem
+      description: What is hard, slow or missing today?
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: What you suggest
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives you considered
+  - type: checkboxes
+    id: clinical-safety
+    attributes:
+      label: Clinical safety
+      description: >-
+        In Tabibu, AI output reaches a person only after a qualified person approves it.
+      options:
+        - label: This suggestion keeps a person approving anything AI prepares.
+          required: true
