@@ -8,3 +8,11 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/functions"
+    schedule:
+      interval: "weekly"
+  - package-ecosystem: "npm"
+    directory: "/test/firestore_rules"
+    schedule:
+      interval: "weekly"
