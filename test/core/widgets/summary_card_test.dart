@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/summary_card.dart';
@@ -102,6 +103,25 @@ void main() {
         (card.decoration! as BoxDecoration).color,
         scheme.surfaceContainerHigh,
       );
+    });
+
+    testWidgets('edits with Enter from the keyboard', (tester) async {
+      var taps = 0;
+      await tester.pumpApp(
+        SummaryCard(
+          title: 'You',
+          rows: const [('Name', 'Dr. Wanjiru Kamau')],
+          editLabel: 'Edit',
+          onEdit: () => taps++,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(taps, 1);
     });
   });
 }

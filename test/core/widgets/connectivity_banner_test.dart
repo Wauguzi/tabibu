@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/connectivity_banner.dart';
@@ -114,6 +115,26 @@ void main() {
       await tester.pumpAndSettle();
 
       await expectLater(tester, meetsGuideline(androidTapTargetGuideline));
+    });
+
+    testWidgets('retries with Enter from the keyboard', (tester) async {
+      var taps = 0;
+      await tester.pumpApp(
+        ConnectivityBanner(
+          state: ConnectivityState.offline,
+          title: 'Offline',
+          body: 'Saved on this phone',
+          retryLabel: 'Retry',
+          onRetry: () => taps++,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(taps, 1);
     });
   });
 }

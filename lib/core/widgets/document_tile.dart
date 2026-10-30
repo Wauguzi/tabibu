@@ -4,6 +4,7 @@ import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/core/widgets/icon_tile.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
 /// An uploaded document: file icon, name, size-and-kind line and a delete
@@ -70,9 +71,8 @@ class DocumentTile extends StatelessWidget {
               child: Material(
                 color: scheme.surfaceContainerHigh,
                 shape: const CircleBorder(),
-                child: GestureDetector(
+                child: Tappable(
                   onTap: onDelete,
-                  behavior: .opaque,
                   child: Center(
                     child: AssetIcon(
                       Assets.icons.deleteIcon,

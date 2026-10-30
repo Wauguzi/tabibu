@@ -1,4 +1,5 @@
 import 'package:animations/animations.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
@@ -145,6 +146,18 @@ void main() {
 
       await tester.pump(const Duration(seconds: 5));
       await tester.pumpAndSettle();
+    });
+
+    testWidgets('dismisses with Enter from the keyboard', (tester) async {
+      await openNotification(tester);
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Something went wrong'), findsNothing);
+
+      await tester.pump(const Duration(seconds: 5));
     });
   });
 }

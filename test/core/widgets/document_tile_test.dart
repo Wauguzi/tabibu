@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
@@ -94,6 +95,25 @@ void main() {
         (card.decoration! as BoxDecoration).color,
         scheme.surfaceContainerHigh,
       );
+    });
+
+    testWidgets('deletes with Enter from the keyboard', (tester) async {
+      var taps = 0;
+      await tester.pumpApp(
+        DocumentTile(
+          fileName: 'licence.jpg',
+          meta: '2.1 MB · photo',
+          deleteLabel: 'Delete document',
+          onDelete: () => taps++,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(taps, 1);
     });
   });
 }

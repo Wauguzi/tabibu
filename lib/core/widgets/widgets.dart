@@ -27,5 +27,6 @@ export 'tabibu_button.dart';
 export 'tabibu_filter_chip.dart';
 export 'tabibu_notification.dart';
 export 'tabibu_text_field.dart';
+export 'tappable.dart';
 export 'theme_reveal_transition.dart';
 export 'verification_timeline.dart';

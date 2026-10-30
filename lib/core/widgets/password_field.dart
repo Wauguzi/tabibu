@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/core/widgets/tabibu_text_field.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
 /// A password field: lock leading icon, hidden text, and an eye toggle
@@ -59,9 +60,8 @@ class _PasswordFieldState extends State<PasswordField> {
         child: SizedBox(
           width: 48,
           height: 48,
-          child: GestureDetector(
+          child: Tappable(
             onTap: _toggle,
-            behavior: HitTestBehavior.opaque,
             child: Center(
               child: AssetIcon(
                 _obscured

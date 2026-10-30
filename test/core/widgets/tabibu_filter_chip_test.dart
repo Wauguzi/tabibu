@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/tabibu_filter_chip.dart';
@@ -93,6 +94,20 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('activates with Enter from the keyboard', (tester) async {
+      var taps = 0;
+      await tester.pumpApp(
+        TabibuFilterChip(label: 'Tap', selected: false, onTap: () => taps++),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(taps, 1);
     });
   });
 }

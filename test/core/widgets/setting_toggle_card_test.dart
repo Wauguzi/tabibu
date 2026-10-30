@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/icon_tile.dart';
@@ -99,6 +100,26 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('toggles with Enter from the keyboard', (tester) async {
+      var value = true;
+      await tester.pumpApp(
+        SettingToggleCard(
+          icon: Assets.icons.notificationBellIcon,
+          tone: IconTone.sky,
+          title: 'Turn on notifications',
+          value: value,
+          onChanged: (v) => value = v,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(value, isFalse);
     });
   });
 }

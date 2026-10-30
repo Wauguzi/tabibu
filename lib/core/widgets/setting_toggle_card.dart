@@ -3,6 +3,7 @@ import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/icon_tile.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
 /// A setting with a switch: icon tile, title, supporting text and a toggle.
@@ -38,42 +39,37 @@ class SettingToggleCard extends StatelessWidget {
         toggled: value,
         enabled: onChanged != null,
         onTap: onChanged == null ? null : toggle,
-        // The focus merges into the row's node.
-        child: Focus(
-          canRequestFocus: onChanged != null,
+        child: Tappable(
+          onTap: onChanged == null ? null : toggle,
           child: Material(
             color: scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.card),
             elevation: 2,
             shadowColor: AppShadows.cardColor,
-            child: GestureDetector(
-              onTap: onChanged == null ? null : toggle,
-              behavior: .opaque,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 88),
-                child: Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Row(
-                    children: [
-                      IconTile(icon: icon, tone: tone),
-                      const SizedBox(width: AppSpacing.sm),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: .start,
-                          mainAxisSize: .min,
-                          children: [
-                            Text(title, style: textTheme.titleMedium),
-                            if (supporting != null)
-                              Text(supporting, style: textTheme.bodyMedium),
-                          ],
-                        ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 88),
+              child: Padding(
+                padding: const EdgeInsets.all(AppSpacing.md),
+                child: Row(
+                  children: [
+                    IconTile(icon: icon, tone: tone),
+                    const SizedBox(width: AppSpacing.sm),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: .start,
+                        mainAxisSize: .min,
+                        children: [
+                          Text(title, style: textTheme.titleMedium),
+                          if (supporting != null)
+                            Text(supporting, style: textTheme.bodyMedium),
+                        ],
                       ),
-                      const SizedBox(width: AppSpacing.sm),
-                      ExcludeSemantics(
-                        child: Switch(value: value, onChanged: onChanged),
-                      ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(width: AppSpacing.sm),
+                    ExcludeSemantics(
+                      child: Switch(value: value, onChanged: onChanged),
+                    ),
+                  ],
                 ),
               ),
             ),

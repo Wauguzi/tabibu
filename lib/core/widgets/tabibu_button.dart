@@ -1,4 +1,3 @@
-import 'package:flutter/services.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
@@ -6,6 +5,7 @@ import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 
 /// The app's button in its four variants: the ink primary, the soft
 /// secondary, the white outline and the text-only ghost. At most one primary
@@ -132,25 +132,16 @@ class _TabibuButtonState extends State<TabibuButton> {
             borderRadius: BorderRadius.circular(AppRadii.pill),
             elevation: variant == _ButtonVariant.outline ? 2 : 0,
             shadowColor: AppShadows.raisedColor,
-            // Tab focus with Enter and Space on the same tap; taps give
-            // no ripple anywhere.
-            child: FocusableActionDetector(
-              enabled: enabled,
-              shortcuts: const {
-                SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-                SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-              },
-              actions: {
-                ActivateIntent: CallbackAction<ActivateIntent>(
-                  onInvoke: (_) => onTap?.call(),
-                ),
-              },
-              child: GestureDetector(
-                onTap: onTap,
-                onTapDown: onTap == null ? null : (_) => _setPressed(true),
-                onTapUp: onTap == null ? null : (_) => _setPressed(false),
-                onTapCancel: () => _setPressed(false),
-                behavior: .opaque,
+            // Taps give no ripple anywhere.
+            child: Tappable(
+              onTap: onTap,
+              // Pressed feedback observes the pointer here; Tappable owns
+              // the tap. Translucent, so empty padding presses too.
+              child: Listener(
+                behavior: .translucent,
+                onPointerDown: onTap == null ? null : (_) => _setPressed(true),
+                onPointerUp: (_) => _setPressed(false),
+                onPointerCancel: (_) => _setPressed(false),
                 child: AnimatedOpacity(
                   duration: const Duration(milliseconds: 100),
                   opacity: _pressed && enabled ? 0.6 : 1,

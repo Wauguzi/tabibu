@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 
 /// An error or info notification, shown near the top of the screen. It
 /// enters with a fade-and-scale transition, dismisses on tap or after a few
@@ -73,7 +74,7 @@ class _NotificationBodyState extends State<_NotificationBody> {
             button: true,
             onTap: () => Navigator.of(context).maybePop(),
             excludeSemantics: true,
-            child: GestureDetector(
+            child: Tappable(
               onTap: () => Navigator.of(context).maybePop(),
               child: Material(
                 color: widget.isError

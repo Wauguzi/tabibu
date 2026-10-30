@@ -4,6 +4,7 @@ import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 
 /// A filter chip: ink when selected, white when not. Toggles on tap.
 class TabibuFilterChip extends StatelessWidget {
@@ -32,32 +33,27 @@ class TabibuFilterChip extends StatelessWidget {
         selected: selected,
         enabled: onTap != null,
         onTap: onTap,
-        // The focus merges into the chip's node.
-        child: Focus(
-          canRequestFocus: onTap != null,
+        child: Tappable(
+          onTap: onTap,
           child: Material(
             color: selected ? status.ink : scheme.surfaceContainerLowest,
             borderRadius: BorderRadius.circular(AppRadii.pill),
             elevation: selected ? 0 : 2,
             shadowColor: AppShadows.cardColor,
-            child: GestureDetector(
-              onTap: onTap,
-              behavior: .opaque,
-              child: ConstrainedBox(
-                constraints: const BoxConstraints(minHeight: 48),
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: AppSpacing.md,
-                    vertical: AppSpacing.xs,
-                  ),
-                  child: Center(
-                    child: Text(
-                      label,
-                      style: textTheme.titleMedium?.copyWith(
-                        color: selected
-                            ? (isDark ? AppColors.inkLight : Colors.white)
-                            : scheme.onSurface,
-                      ),
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 48),
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: AppSpacing.md,
+                  vertical: AppSpacing.xs,
+                ),
+                child: Center(
+                  child: Text(
+                    label,
+                    style: textTheme.titleMedium?.copyWith(
+                      color: selected
+                          ? (isDark ? AppColors.inkLight : Colors.white)
+                          : scheme.onSurface,
                     ),
                   ),
                 ),

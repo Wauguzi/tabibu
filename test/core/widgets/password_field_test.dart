@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
@@ -146,6 +147,28 @@ void main() {
       );
 
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('toggles with Enter from the keyboard', (tester) async {
+      await tester.pumpApp(
+        const PasswordField(
+          label: 'Password',
+          showLabel: 'Show password',
+          hideLabel: 'Hide password',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pump();
+      expect(
+        tester.widget<TextField>(find.byType(TextField)).obscureText,
+        isFalse,
+      );
     });
   });
 }

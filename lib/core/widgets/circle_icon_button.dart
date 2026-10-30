@@ -1,9 +1,9 @@
-import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
 /// A circular icon button: back, open, send and the one primary action.
@@ -56,28 +56,14 @@ class CircleIconButton extends StatelessWidget {
           shape: const CircleBorder(),
           elevation: filled ? 0 : 2,
           shadowColor: AppShadows.raisedColor,
-          // Tab focus with Enter and Space on the same tap.
-          child: FocusableActionDetector(
-            enabled: onTap != null,
-            shortcuts: const {
-              SingleActivator(LogicalKeyboardKey.enter): ActivateIntent(),
-              SingleActivator(LogicalKeyboardKey.space): ActivateIntent(),
-            },
-            actions: {
-              ActivateIntent: CallbackAction<ActivateIntent>(
-                onInvoke: (_) => onTap?.call(),
-              ),
-            },
-            child: GestureDetector(
-              onTap: onTap,
-              behavior: .opaque,
-              child: Center(
-                child: AssetIcon(
-                  icon,
-                  size: 24,
-                  color: foreground,
-                  scaleUp: false,
-                ),
+          child: Tappable(
+            onTap: onTap,
+            child: Center(
+              child: AssetIcon(
+                icon,
+                size: 24,
+                color: foreground,
+                scaleUp: false,
               ),
             ),
           ),

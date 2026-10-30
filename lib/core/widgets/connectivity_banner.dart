@@ -3,6 +3,7 @@ import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
 /// Connectivity states: offline and slow carry a retry action; waiting and
@@ -122,9 +123,8 @@ class _RetryPill extends StatelessWidget {
       child: Material(
         color: scheme.surfaceContainerLowest,
         borderRadius: BorderRadius.circular(AppRadii.pill),
-        child: GestureDetector(
+        child: Tappable(
           onTap: onTap,
-          behavior: .opaque,
           child: ConstrainedBox(
             constraints: const BoxConstraints(minHeight: 48, minWidth: 48),
             child: Padding(

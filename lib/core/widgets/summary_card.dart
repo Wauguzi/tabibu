@@ -4,6 +4,7 @@ import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
 /// A review section: title with an edit link and label/value rows.
@@ -44,27 +45,30 @@ class SummaryCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text(title, style: textTheme.titleMedium)),
-              GestureDetector(
+              Semantics(
+                button: true,
                 onTap: onEdit,
-                behavior: HitTestBehavior.opaque,
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(minHeight: 48),
-                  child: Row(
-                    mainAxisSize: .min,
-                    children: [
-                      AssetIcon(
-                        Assets.icons.editIcon,
-                        size: 18,
-                        color: status.primaryText,
-                      ),
-                      const SizedBox(width: AppSpacing.xxs),
-                      Text(
-                        editLabel,
-                        style: textTheme.titleSmall?.copyWith(
+                child: Tappable(
+                  onTap: onEdit,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 48),
+                    child: Row(
+                      mainAxisSize: .min,
+                      children: [
+                        AssetIcon(
+                          Assets.icons.editIcon,
+                          size: 18,
                           color: status.primaryText,
                         ),
-                      ),
-                    ],
+                        const SizedBox(width: AppSpacing.xxs),
+                        Text(
+                          editLabel,
+                          style: textTheme.titleSmall?.copyWith(
+                            color: status.primaryText,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),

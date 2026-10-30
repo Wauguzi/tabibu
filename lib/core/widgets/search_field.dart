@@ -2,6 +2,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
 /// A search field: rounded white input with a search glyph and a clear
@@ -102,9 +103,8 @@ class _SearchFieldState extends State<SearchField> {
                 child: SizedBox(
                   width: 48,
                   height: 48,
-                  child: GestureDetector(
+                  child: Tappable(
                     onTap: clear,
-                    behavior: HitTestBehavior.opaque,
                     child: Center(
                       child: AssetIcon(
                         Assets.icons.cancelIcon,
