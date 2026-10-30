@@ -9,7 +9,7 @@
 | Date implemented | 2026-10-30 |
 | Priority | P3 Medium — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/auth`: 61d4a96, b1b0676, 0db5a8e, 29c5573, 8c21890, ec814e2, d923ce5, c5acc63 |
+| Commit(s) / PR | `feat/auth`: 61d4a96, b1b0676, 0db5a8e, 29c5573, 8c21890, ec814e2, d923ce5, c5acc63, 59dd9d0, ac47aed |
 
 ## 1. Description of change
 
@@ -95,7 +95,7 @@ repository settings.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-30 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | None |
 | Security Analyst | §4 flags security impact | Covered by CTO | 2026-10-30 | Approved |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | 2026-10-30 | Approved — no patient data in reports |
@@ -106,6 +106,11 @@ repository settings.
 - The splash generator writes a viewport that blocks pinch zoom; `make splash`
   now removes the lock after generating, and `web/index.html` allows zoom.
 - CRQ-0023 §9's "plan the AGP 9 upgrade" is done here.
+- PR #6 round 2: the round-1 bump `1.0.02+1003` broke the release
+  convention, which the merge's release script and its pubspec test enforce
+  (the build is the version without its dots); now `1.0.03+1003` (ac47aed).
+  Each review round now bumps the patch and the build together, and
+  `make release-check` runs with the gates.
 
 ## 10. Related records
 

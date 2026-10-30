@@ -92,7 +92,7 @@ confirmed `keys-check` reports the pair missing before it is stored.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-28 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Security Analyst | A new credential | Covered by CTO | 2026-10-28 | Approved — same rules as CRQ-0007 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
 | Compliance Officer | §4 flags data protection impact | N/A | — | No impact in §4 |

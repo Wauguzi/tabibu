@@ -9,7 +9,7 @@
 | Date implemented | 2026-10-30 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/auth`: 6cf42fa, 35857fd, 63834d4 (the shared sign-out sheet), f90e9ac, 6b8dbe7, d6709f1 |
+| Commit(s) / PR | `feat/auth`: 6cf42fa, 35857fd, 63834d4 (the shared sign-out sheet), f90e9ac, 6b8dbe7, d6709f1, 5da6b2a |
 
 ## 1. Description of change
 
@@ -100,7 +100,7 @@ previous single screens. No deploy is involved.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-30 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No clinical content |
 | Security Analyst | §4 flags security impact | Covered by CTO | 2026-10-30 | Approved — the guard holds every tab |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | 2026-10-30 | Approved — the phone is masked |
@@ -113,6 +113,7 @@ previous single screens. No deploy is involved.
   version on every profile; "Health notices for my area" wraps at the type
   scale's size; the sign-out sheet is full height, as every sheet is.
 - On a device: tab state, back, sign-out offline, Kiswahili, dark.
+- PR #6 round 1: the settings rows take the shared `Tappable` (5da6b2a).
 
 ## 10. Related records
 

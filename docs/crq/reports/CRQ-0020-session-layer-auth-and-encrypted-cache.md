@@ -127,7 +127,7 @@ screens, uploads of pictures and licenses.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-27 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Security Analyst | §4 flags security impact | Covered by CTO | 2026-10-27 | Approved — wipe proven, cache owned |
 | Clinical Reviewer | — | N/A | — | — |
 | Compliance Officer | Data protection affected | Covered by CTO | 2026-10-27 | Approved |

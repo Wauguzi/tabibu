@@ -9,7 +9,7 @@
 | Date implemented | 2026-10-30 |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/auth`: 0207e33, fb28178, b3a5950, 4326963, 06b144b, d923ce5 |
+| Commit(s) / PR | `feat/auth`: 0207e33, fb28178, b3a5950, 4326963, 06b144b, d923ce5, 7189ba3 |
 
 ## 1. Description of change
 
@@ -131,7 +131,7 @@ rollout); deleting old-format uploads (§9).
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-30 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No clinical path |
 | Security Analyst | §4 flags security impact | Covered by CTO | 2026-10-30 | Approved — each control has a rules or functions test |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | 2026-10-30 | Approved — photos and cached records kept to their owners |
@@ -155,6 +155,23 @@ Accepted as risks, each with what would reopen it:
   resolves to an unfinished sign-up and is shown it again on resubmit.
 - **On the emulator only**, a Storage URL's `http://127.0.0.1` form is not
   the hosted form the rules accept.
+
+**What Greptile found past this pass** ([PR #6](https://github.com/Wauguzi/tabibu/pull/6), round 1), both fixed in
+7189ba3, each with a functions test that fails on the old handler:
+
+- **Two decisions racing.** A verification committed, a rejection committed
+  and removed the role, then the verification's late claim write granted it
+  again. `verifyPractitioner` now sets the claim from the stored decision and
+  reads it again after each write until the two agree (T-14).
+- **A linked patient's second profile.** Practitioner sign-up checked
+  `patients/{uid}` but not a clinic record linked under its own id, so a
+  pre-link token created `doctors/{uid}` too. The transaction now queries
+  `where('uid')`, as patient sign-up and linking do.
+
+The pass walked both classes, but only for client replies and query
+placement; the pre-review now interleaves two calls for any write made after a
+transaction, and checks that every handler guarding one profile per account
+looks in every place a profile can live.
 
 ## 10. Related records
 

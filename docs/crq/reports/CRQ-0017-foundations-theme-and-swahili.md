@@ -105,7 +105,7 @@ removes a crash that would have hit the first Swahili screen.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-27 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Security Analyst | — | N/A | — | — |
 | Clinical Reviewer | Draft versus signed | Covered by CTO | 2026-10-27 | Approved — frames differ in grayscale |
 | Compliance Officer | — | N/A | — | — |

@@ -111,7 +111,7 @@ Nairobi.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-27 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Security Analyst | — | N/A | — | — |
 | Clinical Reviewer | — | N/A | — | — |
 | Compliance Officer | — | N/A | — | — |

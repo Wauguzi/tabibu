@@ -9,7 +9,7 @@
 | Date implemented | 2026-10-30 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/auth`: 70c041b, 9a07c61, 78a8721, 7928f37 to 97e7762, 3a04a34 to a92d5c5, 63834d4, 084523d, f70ca47, f90e9ac, 6b8dbe7, 263383f, d6709f1, 270857c |
+| Commit(s) / PR | `feat/auth`: 70c041b, 9a07c61, 78a8721, 7928f37 to 97e7762, 3a04a34 to a92d5c5, 63834d4, 084523d, f70ca47, f90e9ac, 6b8dbe7, 263383f, d6709f1, 270857c; PR #6 review: 2f17b45, 5da6b2a, 300204d, 7cb8469, be2b11b, 73c2036 |
 
 ## 1. Description of change
 
@@ -112,7 +112,7 @@ are unchanged in behaviour.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-30 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No clinical path or wording |
 | Security Analyst | §4 flags security impact | N/A | — | None here (CRQ-0036) |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | 2026-10-30 | Approved — the draft stays in memory and is cleared |
@@ -124,6 +124,21 @@ are unchanged in behaviour.
   Kiswahili, in dark mode.
 - Accepted: E1's phone label reads "Phone number", shared with D3, where the
   E1 and F1 designs say "Phone".
+- **Greptile, [PR #6](https://github.com/Wauguzi/tabibu/pull/6)** (1/5, 4/5, then 5/5).
+  Round 1 found three defects in these screens, each fixed with a test:
+  - D4, E3 and F3 threw on a device before their lists loaded:
+    `FacilitiesHelper` asked getIt for an `AssetBundle` nothing registers, which
+    unit tests building the helper by hand never hit (2f17b45; a test now checks
+    that every type the generated config resolves is registered);
+  - E3 and F3 built all 1,447 facility cards on open and on every tap
+    (73c2036: `StepScaffold` takes slivers, the list is a `SliverList`);
+  - the pickers, the sex cards, the terms row and other taps could not be
+    used from a keyboard (5da6b2a, 7cb8469: one `Tappable` widget).
+
+  Alongside, from Theo's review: the title sheet's search reads "Search
+  titles"; the photo and document sheets' rows rest on a tinted container with
+  a chevron at its drawn size; choice sheets keep white cards, so the selected
+  mint stands out (300204d, be2b11b).
 
 ## 10. Related records
 

@@ -96,7 +96,7 @@ service; added the iOS strings; confirmed with `make ios-deps` that no
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-28 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Security Analyst | New dependencies and permissions | Covered by CTO | 2026-10-28 | Approved — two widely used plugins; camera and photos only on request |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
 | Compliance Officer | §4 flags data protection impact | N/A | — | No impact in §4 |

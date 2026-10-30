@@ -142,7 +142,7 @@ review.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-10-28 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | — |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-10-30 | Approved — [PR #6](https://github.com/Wauguzi/tabibu/pull/6), 5/5 at round 3 |
 | Security Analyst | A rules change | Covered by CTO | 2026-10-28 | Approved — no new public field; license files stay owner-only |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No impact in §4 |
 | Compliance Officer | Licence scans and the required photo are personal data | Covered by CTO | 2026-10-28 | Approved — owner and admin read licences; Storage rules bound them (CRQ-0036) |
