@@ -59,7 +59,9 @@ finding.
 
 ## Roles and data scope
 
-- **A case is readable only by its participants**: `patientUid`, `doctorUid`, `pathologistUid`.
+- **A case is readable only by its participants**: the uids in `participantUids` (the doctor,
+  the linked patient, the requested and the accepted pathologist, and viewers), each holding a
+  role claim; a signed report only by its `readerUids`, and a patient only once released.
   A query or helper method without that filter crosses the boundary. This is the most consequential
   class of defect here and it looks locally correct in a diff.
 - **Role and alert-approver permission are Firebase Auth custom claims**, set only by an admin
@@ -70,7 +72,9 @@ finding.
 
 ## Data layer and persistence
 
-- **Freezed model and Hive mirror keep the same field order**, and a Hive model imports another
+- **Freezed model and Hive mirror keep the same field order**, except fields added to a class
+  that has shipped: those take the next free `@HiveField` index with a `defaultValue`, and the
+  registry notes it. A Hive model imports another
   feature's Hive classes only inside `toModel()` / `fromModel()`.
 - **Hive typeIds are never reused**, and every new one is added to the registry table in
   `docs/architecture/reports/mobile_architecture.md` §6 in the same change.
@@ -152,7 +156,8 @@ finding.
 - **Resources looked up by name (the Android notification icon) are kept in `res/raw/keep.xml`**,
   and anything resolved by name is verified against a release build.
 - **Writes that must land together use a batch**; a transaction is only for writes whose values
-  depend on a read.
+  depend on a read, which includes every stage transition, signing, release, share redemption
+  and slot booking.
 - **Every release build passes `--obfuscate`.** freeRASP treats missing obfuscation as a critical
   threat and terminates a release binary; a build target or workflow without it ships an app that
   closes on launch.

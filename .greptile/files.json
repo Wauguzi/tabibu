@@ -10,13 +10,13 @@
     },
     {
       "path": "docs/security/reports/firebase_and_ai_service_threat_model.md",
-      "description": "The clinical-safety rules S-1 to S-7 and the security threats T-1 to T-16, each with its control and the test that proves it. Check any rules, functions, AI-service or result/alert change against these before treating it as self-contained.",
+      "description": "The clinical-safety rules S-1 to S-8 and the security threats T-1 to T-18, each with its control and the test that proves it. Check any rules, functions, AI-service or result/alert change against these before treating it as self-contained.",
       "scope": ["lib/**", "functions/**", "ai_service/**", "firestore.rules", "storage.rules", "test/firestore_rules/**"]
     },
     {
       "path": "docs/architecture/reports/ai_preread_service.md",
       "description": "The one service that calls a model: the pre-read pipeline (segment, classify, measure, draft, rank), the rule that every reported number is computed in code, confidence, signing, the Firestore contract for cases/{caseUid}/preread, the standard-endpoint-only policy and cost controls.",
-      "scope": ["ai_service/**", "functions/**", "lib/features/preread/**", "lib/features/worklist/**", "lib/features/orders/**", "lib/features/intake/**"]
+      "scope": ["ai_service/**", "functions/**", "lib/features/preread/**", "lib/features/worklist/**", "lib/features/orders/**", "lib/features/appointments/**", "lib/features/reports/**", "lib/features/cases/**", "lib/features/conversations/**"]
     },
     {
       "path": "docs/architecture/reports/outbreak_alert_engine.md",
@@ -26,7 +26,7 @@
     {
       "path": "docs/architecture/reports/notifications_engine.md",
       "description": "The Local-versus-Cloud rule, the notifications collection being server-written only, the three idempotency guards, lock-screen-safe push copy that never names a diagnosis, and template-based localisation.",
-      "scope": ["lib/features/notifications/**", "functions/**", "firestore.rules"]
+      "scope": ["lib/features/notifications/**", "lib/features/cases/**", "lib/features/reports/**", "lib/features/appointments/**", "lib/features/conversations/**", "functions/**", "firestore.rules"]
     },
     {
       "path": "docs/design/reports/mobile_design_system.md",
