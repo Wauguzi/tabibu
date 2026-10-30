@@ -44,6 +44,7 @@ patient reads, or the alert path.
 | [CRQ-0035](./CRQ-0035-role-shells-and-profile.md) | Each role lands on its own shell of four tabs under a floating menu, with a profile tab that signs out | 2026-10-30 | Implemented — device certification pending |
 | [CRQ-0036](./CRQ-0036-pre-review-hardening.md) | The pre-PR review: Storage, rules and functions hardened, and sign-out and session reads made safe | 2026-10-30 | Implemented — rules and functions to deploy with the build |
 | [CRQ-0037](./CRQ-0037-build-platform-and-repository.md) | Build and platform: AGP 9 and JVM 17, the native splash, iOS signing and icons, Hosting; the repository's community files | 2026-10-30 | Implemented |
+| [CRQ-0038](./CRQ-0038-merge-commits-and-kept-branches.md) | Pull requests merge with a merge commit, branches are kept, and a branch's records are completed on `main` after its merge | 2026-10-30 | Implemented |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

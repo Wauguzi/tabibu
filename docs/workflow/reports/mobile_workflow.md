@@ -15,7 +15,7 @@
 | Parent department | Technology |
 | Owner | Theo — CTO, Mobile Engineer |
 | Status | Living |
-| Last reviewed | 2026-10-26 |
+| Last reviewed | 2026-10-30 |
 
 ## 1. Mission & scope
 
@@ -136,6 +136,11 @@ The loop from idea to live demo:
       request, Dependabot's included. Labels come from the template's choices
       and from `.github/labeler.yml`, using the set defined in
       `scripts/labels.sh`.
+   5. The pull request merges with a merge commit, so every branch commit
+      reaches `main` with the hash its CRQs cite; no branch is deleted. Right
+      after the merge, the branch's CRQs record Greptile's rounds on `main`
+      (§8's reviewer row, §9's findings), so the next branch starts from
+      complete records (CRQ-0038).
 8. **CI.** Every pull request to `main` runs `prod_apk.yaml` on Flutter
    3.47.8: format, code generation, analyze, bloc lint and tests, then a
    signed release APK to Firebase App Distribution; beside it, the
@@ -258,6 +263,7 @@ the rest keep the build honest.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-10-30 | §4 step 7.5: pull requests merge with a merge commit, branches are kept, and a branch's CRQs record Greptile's rounds on `main` after the merge (CRQ-0038). | Theo |
 | 2026-10-27 | §4 step 9: a merge drafts the release; `make release-publish` marks it Latest (CRQ-0025). | Theo |
 | 2026-10-27 | §5 adds Muse Code (CRQ-0013). | Theo |
 | 2026-10-30 | §4 step 7: a CRQ for each change a branch carries, all listed in its pull request, instead of one per branch (`feat/auth` carries CRQ-0014 to CRQ-0037). | Theo |

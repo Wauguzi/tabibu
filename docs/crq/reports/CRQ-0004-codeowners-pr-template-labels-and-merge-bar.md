@@ -144,6 +144,9 @@ this workflow rather than enforced by GitHub, because GitHub does not let an
 author approve their own pull request. The code-owner approval does gate
 Dependabot's pull requests, which I can approve.
 
+Since 2026-10-30, merge commits replace squash and the linear-history rule
+is gone ([CRQ-0038](./CRQ-0038-merge-commits-and-kept-branches.md)).
+
 To check after the first feature pull request: that the labeler applied the
 expected `area/*` labels, that Greptile's score was recorded in the
 template, and whether the template's length helps or hinders.
