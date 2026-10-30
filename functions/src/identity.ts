@@ -408,9 +408,13 @@ export async function completePractitionerSignUpHandler(
   return db.runTransaction(async (tx) => {
     const existing = await tx.get(ref);
     if (existing.exists) return { status: existing.get('verificationStatus') as VerificationStatus };
-    if ((await tx.get(db.collection(PATIENTS).doc(c.uid))).exists) {
-      throw refuse('failed-precondition', 'roleAlreadySet');
-    }
+    // A clinic record linked to this account has its own id, and the token that let this call
+    // through may predate the link.
+    const [ownRecord, linked] = await Promise.all([
+      tx.get(db.collection(PATIENTS).doc(c.uid)),
+      tx.get(db.collection(PATIENTS).where('uid', '==', c.uid).limit(1)),
+    ]);
+    if (ownRecord.exists || !linked.empty) throw refuse('failed-precondition', 'roleAlreadySet');
     const taken = await tx.get(db.collection(DOCTORS).where('kmpdcNumber', '==', kmpdcNumber).limit(1));
     if (!taken.empty) throw refuse('already-exists', 'kmpdcNumberInUse');
     tx.create(ref, record);
@@ -432,7 +436,7 @@ export async function verifyPractitionerHandler(
   const { db } = deps;
   const now = (deps.now ?? (() => new Date()))();
 
-  const isPathologist = await db.runTransaction(async (tx) => {
+  await db.runTransaction(async (tx) => {
     const ref = db.collection(DOCTORS).doc(uid);
     const doc = await tx.get(ref);
     if (!doc.exists) throw refuse('not-found', 'invalidPractitioner');
@@ -444,11 +448,29 @@ export async function verifyPractitionerHandler(
       if (holders.docs.some((d) => d.id !== uid)) throw refuse('already-exists', 'kmpdcNumberInUse');
     }
     tx.update(ref, { verificationStatus: decision, lastUpdatedAt: timestamp(now) });
-    return doc.get('isPathologist') === true;
   });
 
-  await setRole(deps.auth, uid, decision === 'Verified' ? (isPathologist ? 'pathologist' : 'doctor') : null);
+  await settleRole(deps, uid);
   return { status: decision };
+}
+
+/**
+ * Sets the role claim from the stored decision rather than the caller's, and reads it again after
+ * each write: a decision committed while another call's claim write was in flight is then always
+ * the one the claim ends on, so a rejected practitioner never keeps the role (T-14).
+ */
+async function settleRole(deps: Deps, uid: string): Promise<void> {
+  const ref = deps.db.collection(DOCTORS).doc(uid);
+  let written: Role | null | undefined;
+  for (let attempt = 0; attempt < 5; attempt++) {
+    const doc = await ref.get();
+    const role: Role | null =
+      doc.get('verificationStatus') === 'Verified' ? (doc.get('isPathologist') === true ? 'pathologist' : 'doctor') : null;
+    if (role === written) return;
+    await setRole(deps.auth, uid, role);
+    written = role;
+  }
+  throw refuse('aborted', 'decisionsRacing');
 }
 
 const PUBLIC_FIELDS = [

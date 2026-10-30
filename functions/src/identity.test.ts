@@ -290,6 +290,20 @@ describe('identity', () => {
       assert.equal((await claimsOf(me.uid)).role, undefined);
     });
 
+    it('refuses an account linked to a clinic record since its token was issued', async () => {
+      const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+      const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+      const patient = await account(deps, 'amina@example.com');
+      await linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' });
+
+      // The caller's token is the role-less one from before the link.
+      await refusedWith(
+        completePractitionerSignUpHandler(deps, patient, practitionerInput(patient.uid)),
+        'roleAlreadySet',
+      );
+      assert.equal((await deps.db.collection(DOCTORS).doc(patient.uid).get()).exists, false);
+    });
+
     it('refuses an address nobody has confirmed', async () => {
       const me = await account(deps, 'wanjiru@example.com', {}, { emailVerified: false });
       await refusedWith(
@@ -427,6 +441,34 @@ describe('identity', () => {
 
       await verifyPractitionerHandler(deps, me, { uid: me.uid, decision: 'Rejected' });
       assert.deepEqual(await claimsOf(me.uid), { admin: true });
+      const doc = (await deps.db.collection(DOCTORS).doc(me.uid).get()).data()!;
+      assert.equal(doc.verificationStatus, 'Rejected');
+    });
+
+    it('a rejection committed while a verification sets the role leaves no role (T-14)', async () => {
+      const admin = await account(deps, 'admin@example.com', { admin: true });
+      const me = await account(deps, 'wanjiru@example.com');
+      await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid));
+      let raced = false;
+      const slow: Deps = {
+        ...deps,
+        auth: {
+          getUser: (uid) => deps.auth.getUser(uid),
+          getUserByEmail: (email) => deps.auth.getUserByEmail(email),
+          // The verification's claim write lands after a rejection has committed and set its own.
+          async setCustomUserClaims(uid, claims) {
+            if (!raced && claims?.role) {
+              raced = true;
+              await verifyPractitionerHandler(deps, admin, { uid, decision: 'Rejected' });
+            }
+            return deps.auth.setCustomUserClaims(uid, claims);
+          },
+        },
+      };
+
+      await verifyPractitionerHandler(slow, admin, { uid: me.uid, decision: 'Verified' });
+      assert.equal(raced, true);
+      assert.equal((await claimsOf(me.uid)).role, undefined);
       const doc = (await deps.db.collection(DOCTORS).doc(me.uid).get()).data()!;
       assert.equal(doc.verificationStatus, 'Rejected');
     });
