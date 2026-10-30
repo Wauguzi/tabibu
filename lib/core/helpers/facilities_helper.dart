@@ -11,7 +11,8 @@ import 'package:tabibu/features/facilities/data/models/sub_county_model.dart';
 /// the bundle and is cached in memory; the data never changes at runtime.
 @lazySingleton
 class FacilitiesHelper {
-  FacilitiesHelper({AssetBundle? bundle}) : _bundle = bundle ?? rootBundle;
+  FacilitiesHelper({@ignoreParam AssetBundle? bundle})
+    : _bundle = bundle ?? rootBundle;
 
   final AssetBundle _bundle;
 

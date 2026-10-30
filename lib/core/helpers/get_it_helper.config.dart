@@ -15,7 +15,6 @@ import 'package:cloud_functions/cloud_functions.dart' as _i809;
 import 'package:firebase_analytics/firebase_analytics.dart' as _i398;
 import 'package:firebase_auth/firebase_auth.dart' as _i59;
 import 'package:firebase_storage/firebase_storage.dart' as _i457;
-import 'package:flutter/services.dart' as _i281;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart' as _i558;
 import 'package:get_it/get_it.dart' as _i174;
 import 'package:injectable/injectable.dart' as _i526;
@@ -60,6 +59,7 @@ extension GetItInjectableX on _i174.GetIt {
       () => dIModule.notificationService,
     );
     gh.singleton<_i390.RaspService>(() => dIModule.raspService);
+    gh.lazySingleton<_i598.FacilitiesHelper>(() => _i598.FacilitiesHelper());
     gh.lazySingleton<_i75.AppUpdateService>(() => _i75.AppUpdateService());
     gh.lazySingleton<_i282.FilePickerService>(() => _i282.FilePickerService());
     gh.lazySingleton<_i76.InternetService>(() => _i76.InternetService());
@@ -76,9 +76,6 @@ extension GetItInjectableX on _i174.GetIt {
         firestore: gh<_i974.FirebaseFirestore>(),
         functions: gh<_i809.FirebaseFunctions>(),
       ),
-    );
-    gh.lazySingleton<_i598.FacilitiesHelper>(
-      () => _i598.FacilitiesHelper(bundle: gh<_i281.AssetBundle>()),
     );
     gh.lazySingleton<_i210.NotificationsHelper>(
       () => _i210.NotificationsHelper(
