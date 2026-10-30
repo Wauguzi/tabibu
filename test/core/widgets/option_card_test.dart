@@ -144,27 +144,47 @@ void main() {
       semantics.dispose();
     });
 
-    testWidgets('on a sheet, rests on a tinted container with no shadow', (
+    Material cardMaterial(WidgetTester tester) => tester.widget<Material>(
+      find.descendant(
+        of: find.byType(OptionCard),
+        matching: find.byType(Material),
+      ),
+    );
+
+    testWidgets('a chevron row rests on a tinted container with no shadow', (
       tester,
     ) async {
       await tester.pumpApp(
-        OptionCard(
-          title: 'Sheet',
-          selected: false,
-          onSheet: true,
-          onTap: () {},
-        ),
+        OptionCard(title: 'Row', selected: false, chevron: true, onTap: () {}),
       );
 
-      final material = tester.widget<Material>(
-        find.descendant(
-          of: find.byType(OptionCard),
-          matching: find.byType(Material),
-        ),
+      final scheme = Theme.of(
+        tester.element(find.byType(OptionCard)),
+      ).colorScheme;
+      expect(cardMaterial(tester).color, scheme.surfaceContainerLow);
+      expect(cardMaterial(tester).elevation, 0);
+    });
+
+    testWidgets('a choice on a sheet stays white in light, raised in dark', (
+      tester,
+    ) async {
+      Widget card() => OptionCard(
+        title: 'Dr.',
+        selected: false,
+        onSheet: true,
+        onTap: () {},
       );
-      final context = tester.element(find.byType(OptionCard));
-      expect(material.color, Theme.of(context).colorScheme.surfaceContainerLow);
-      expect(material.elevation, 0);
+
+      await tester.pumpApp(card(), themeMode: ThemeMode.light);
+      var scheme = Theme.of(
+        tester.element(find.byType(OptionCard)),
+      ).colorScheme;
+      expect(cardMaterial(tester).color, scheme.surfaceContainerLowest);
+      expect(cardMaterial(tester).elevation, 2);
+
+      await tester.pumpApp(card(), themeMode: ThemeMode.dark);
+      scheme = Theme.of(tester.element(find.byType(OptionCard))).colorScheme;
+      expect(cardMaterial(tester).color, scheme.surfaceContainerHigh);
     });
 
     testWidgets('activates with Enter and Space from the keyboard', (

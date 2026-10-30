@@ -36,12 +36,14 @@ class OptionCard extends StatelessWidget {
   /// Puts the selection mark first and drops the tile, for multi-select.
   final bool markLeading;
 
-  /// An action row rather than a choice: a chevron replaces the mark, and
-  /// nothing is announced as selected.
+  /// An action row rather than a choice: a chevron replaces the mark,
+  /// nothing is announced as selected, and it rests on a tinted container
+  /// with no shadow, as E2b draws it.
   final bool chevron;
 
-  /// On a sheet, which is the card's own white: a tinted container with no
-  /// shadow, as E2b and F2b draw it.
+  /// On a sheet, which in dark is the card's own tone: the card is raised by
+  /// a lighter one. In light it stays white with its shadow, so a selected
+  /// mint card stands out as it does on a page.
   final bool onSheet;
 
   @override
@@ -50,11 +52,11 @@ class OptionCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final isDark = scheme.brightness == .dark;
     final selectedFill = isDark ? AppColors.mintDark : AppColors.mintLight;
-    final restingFill = !onSheet
-        ? scheme.surfaceContainerLowest
-        : isDark
-        ? scheme.surfaceContainerHigh
-        : scheme.surfaceContainerLow;
+    final restingFill = chevron
+        ? (isDark ? scheme.surfaceContainerHigh : scheme.surfaceContainerLow)
+        : (onSheet && isDark
+              ? scheme.surfaceContainerHigh
+              : scheme.surfaceContainerLowest);
 
     final supporting = this.supporting;
     final onTap = this.onTap;
@@ -75,7 +77,7 @@ class OptionCard extends StatelessWidget {
           child: Material(
             color: selected ? selectedFill : restingFill,
             borderRadius: BorderRadius.circular(AppRadii.card),
-            elevation: onSheet ? 0 : 2,
+            elevation: chevron ? 0 : 2,
             shadowColor: AppShadows.cardColor,
             child: ConstrainedBox(
               constraints: const BoxConstraints(minHeight: 88),
