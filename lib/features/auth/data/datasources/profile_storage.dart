@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/constants/enums.dart';
-import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
 
 /// Uploads into the caller's own Storage folders (architecture §6.1). The
@@ -11,8 +10,7 @@ import 'package:tabibu/features/auth/data/models/upload_file.dart';
 /// clear message instead of as a permission error.
 @lazySingleton
 class ProfileStorage {
-  ProfileStorage({FirebaseStorage? storage})
-    : _storage = storage ?? getIt<FirebaseStorage>();
+  ProfileStorage({required this._storage});
 
   final FirebaseStorage _storage;
   final Logger _logger = Logger();

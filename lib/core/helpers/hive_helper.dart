@@ -9,7 +9,6 @@ import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/helpers/db_helper.dart';
-import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_hive.dart';
@@ -71,19 +70,17 @@ abstract class HiveHelper {
 
 @Singleton(as: HiveHelper)
 class HiveHelperImpl implements HiveHelper {
-  HiveHelperImpl({DBHelper? dbHelper, FlutterSecureStorage? secureStorage})
-    : _db = dbHelper ?? getIt<DBHelper>(),
-      _secureStorage = secureStorage ?? getIt<FlutterSecureStorage>(),
+  HiveHelperImpl({required DBHelper dbHelper, required this._secureStorage})
+    : _db = dbHelper,
       _initHive = Hive.initFlutter;
 
   /// Tests run Hive against a temporary directory instead.
   @visibleForTesting
   HiveHelperImpl.withInit({
     required this._initHive,
-    DBHelper? dbHelper,
-    FlutterSecureStorage? secureStorage,
-  }) : _db = dbHelper ?? getIt<DBHelper>(),
-       _secureStorage = secureStorage ?? getIt<FlutterSecureStorage>();
+    required DBHelper dbHelper,
+    required this._secureStorage,
+  }) : _db = dbHelper;
 
   final DBHelper _db;
   final FlutterSecureStorage _secureStorage;

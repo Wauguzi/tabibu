@@ -77,6 +77,15 @@ extension GetItInjectableX on _i174.GetIt {
         functions: gh<_i809.FirebaseFunctions>(),
       ),
     );
+    gh.singleton<_i418.HiveHelper>(
+      () => _i418.HiveHelperImpl(
+        dbHelper: gh<_i705.DBHelper>(),
+        secureStorage: gh<_i558.FlutterSecureStorage>(),
+      ),
+    );
+    gh.lazySingleton<_i275.ProfileStorage>(
+      () => _i275.ProfileStorage(storage: gh<_i457.FirebaseStorage>()),
+    );
     gh.lazySingleton<_i210.NotificationsHelper>(
       () => _i210.NotificationsHelper(
         notificationService: gh<_i1051.NotificationService>(),
@@ -90,15 +99,6 @@ extension GetItInjectableX on _i174.GetIt {
         profileStorage: gh<_i275.ProfileStorage>(),
         notificationService: gh<_i1051.NotificationService>(),
       ),
-    );
-    gh.singleton<_i418.HiveHelper>(
-      () => _i418.HiveHelperImpl(
-        dbHelper: gh<_i705.DBHelper>(),
-        secureStorage: gh<_i558.FlutterSecureStorage>(),
-      ),
-    );
-    gh.lazySingleton<_i275.ProfileStorage>(
-      () => _i275.ProfileStorage(storage: gh<_i457.FirebaseStorage>()),
     );
     return this;
   }

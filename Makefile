@@ -15,10 +15,10 @@ splash:
 		sed -i '' 's/, maximum-scale=1.0, user-scalable=no//' web/index.html
 
 gen:
-		dart run build_runner build --delete-conflicting-outputs
+		dart run build_runner build
 
 gen-watch:
-		dart run build_runner watch --delete-conflicting-outputs
+		dart run build_runner watch
 
 l10n:
 		flutter gen-l10n

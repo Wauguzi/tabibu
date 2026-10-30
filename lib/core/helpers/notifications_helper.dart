@@ -2,7 +2,6 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
-import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -16,10 +15,10 @@ import 'package:tabibu/l10n/l10n.dart';
 @lazySingleton
 class NotificationsHelper {
   NotificationsHelper({
-    NotificationService? notificationService,
-    HiveHelper? hiveHelper,
-  }) : _notifications = notificationService ?? getIt<NotificationService>(),
-       _cache = hiveHelper ?? getIt<HiveHelper>();
+    required NotificationService notificationService,
+    required HiveHelper hiveHelper,
+  }) : _notifications = notificationService,
+       _cache = hiveHelper;
 
   final NotificationService _notifications;
   final HiveHelper _cache;
