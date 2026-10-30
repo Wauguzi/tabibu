@@ -102,7 +102,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerDetailsScreen> {
     final picked = await showSingleSelectSheet<PractitionerTitle>(
       context: context,
       title: l10n.titleSheetTitle,
-      searchHint: l10n.titleSheetTitle,
+      searchHint: l10n.titleSearchHint,
       items: PractitionerTitle.values,
       label: (title) => title.value,
       selected: _title,

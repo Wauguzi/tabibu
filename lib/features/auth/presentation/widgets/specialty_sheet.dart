@@ -107,6 +107,7 @@ class _SpecialtyBodyState extends State<_SpecialtyBody> {
                 final specialty = matches[index];
                 final selected = _selected.contains(specialty);
                 return OptionCard(
+                  onSheet: true,
                   title: specialty.description(l10n),
                   supporting: specialty.hint(l10n),
                   selected: selected,

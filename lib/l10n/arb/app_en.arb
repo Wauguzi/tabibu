@@ -1047,6 +1047,10 @@
     "@titleSheetTitle": {
         "description": "Title sheet"
     },
+    "titleSearchHint": "Search titles",
+    "@titleSearchHint": {
+        "description": "Title sheet search hint"
+    },
     "workEmailLabel": "Work email",
     "@workEmailLabel": {
         "description": "E1/F1 email label"

@@ -114,17 +114,57 @@ void main() {
       expect(find.byType(StatusMark), findsOneWidget);
     });
 
-    testWidgets('trailing overrides the mark', (tester) async {
+    testWidgets('a chevron row replaces the mark and is not a choice', (
+      tester,
+    ) async {
+      final semantics = tester.ensureSemantics();
       await tester.pumpApp(
         OptionCard(
-          title: 'Chevron',
+          title: 'Take a photo',
           selected: false,
-          trailing: const Text('>'),
+          chevron: true,
+          onTap: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.byType(StatusMark), findsNothing);
+      expect(
+        tester.getSemantics(find.text('Take a photo')),
+        matchesSemantics(
+          label: 'Take a photo',
+          isButton: true,
+          hasEnabledState: true,
+          isEnabled: true,
+          hasTapAction: true,
+          hasFocusAction: true,
+          isFocusable: true,
+        ),
+      );
+      semantics.dispose();
+    });
+
+    testWidgets('on a sheet, rests on a tinted container with no shadow', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        OptionCard(
+          title: 'Sheet',
+          selected: false,
+          onSheet: true,
           onTap: () {},
         ),
       );
 
-      expect(find.byType(StatusMark), findsNothing);
+      final material = tester.widget<Material>(
+        find.descendant(
+          of: find.byType(OptionCard),
+          matching: find.byType(Material),
+        ),
+      );
+      final context = tester.element(find.byType(OptionCard));
+      expect(material.color, Theme.of(context).colorScheme.surfaceContainerLow);
+      expect(material.elevation, 0);
     });
 
     testWidgets('activates with Enter and Space from the keyboard', (

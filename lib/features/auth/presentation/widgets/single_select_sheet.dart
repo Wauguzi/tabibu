@@ -80,6 +80,7 @@ class _SingleSelectBodyState<T extends Object>
               itemBuilder: (context, index) {
                 final item = matches[index];
                 return OptionCard(
+                  onSheet: true,
                   title: widget.label(item),
                   selected: item == widget.selected,
                   onTap: () => Navigator.of(context).pop(item),
