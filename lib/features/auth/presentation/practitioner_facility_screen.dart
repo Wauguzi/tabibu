@@ -220,156 +220,166 @@ class _PractitionerFacilityScreenState
             label: l10n.commonContinue,
             onTap: _continue,
           ),
-          child: Column(
-            crossAxisAlignment: .start,
-            children: [
-              SearchField(
-                hint: isPathologist
-                    ? l10n.labSearchHint
-                    : l10n.facilitySearchHint,
-                clearLabel: MaterialLocalizations.of(
-                  context,
-                ).deleteButtonTooltip,
-                onChanged: (query) {
-                  setState(() {
-                    _error = null;
-                    _query = query;
-                  });
-                  context.read<FacilitiesBloc>().add(
-                    FacilitiesSearchRequested(query),
+          slivers: [
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: .start,
+                children: [
+                  SearchField(
+                    hint: isPathologist
+                        ? l10n.labSearchHint
+                        : l10n.facilitySearchHint,
+                    clearLabel: MaterialLocalizations.of(
+                      context,
+                    ).deleteButtonTooltip,
+                    onChanged: (query) {
+                      setState(() {
+                        _error = null;
+                        _query = query;
+                      });
+                      context.read<FacilitiesBloc>().add(
+                        FacilitiesSearchRequested(query),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  SingleChildScrollView(
+                    scrollDirection: .horizontal,
+                    child: Row(
+                      children: [
+                        TabibuFilterChip(
+                          label: l10n.filterAll,
+                          selected: _typeFilter == null && _levelFilter == null,
+                          onTap: () => setState(() {
+                            _typeFilter = null;
+                            _levelFilter = null;
+                          }),
+                        ),
+                        for (final (group, label) in groupChips) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          TabibuFilterChip(
+                            label: label,
+                            selected: _typeFilter == group,
+                            onTap: () => setState(
+                              () => _typeFilter = _typeFilter == group
+                                  ? null
+                                  : group,
+                            ),
+                          ),
+                        ],
+                        for (final level in _levels) ...[
+                          const SizedBox(width: AppSpacing.xs),
+                          TabibuFilterChip(
+                            label: level,
+                            selected: _levelFilter == level,
+                            onTap: () => setState(
+                              () => _levelFilter = _levelFilter == level
+                                  ? null
+                                  : level,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.sm),
+                  if (visible == null && _error == null)
+                    Center(
+                      child: SpinKitCircle(
+                        color: Theme.of(context).colorScheme.primary,
+                        size: 30,
+                      ),
+                    )
+                  else if (visible == null)
+                    const SizedBox.shrink()
+                  else if (visible.isEmpty)
+                    _EmptyResults(),
+                ],
+              ),
+            ),
+            if (visible != null && visible.isNotEmpty)
+              SliverList.builder(
+                itemCount: visible.length,
+                itemBuilder: (context, index) {
+                  final facility = visible[index];
+                  final ownership = _isPublicOwner(facility.owner)
+                      ? l10n.ownerPublic
+                      : l10n.ownerPrivate;
+                  final supporting = isPathologist
+                      ? '$ownership · ${facility.kephLevel} · '
+                            '${facility.subCounty}'
+                      : '${facility.kephLevel} · ${facility.ward}, '
+                            '${facility.subCounty} · '
+                            '${l10n.facilityMfl(facility.mflCode)}';
+                  final card = OptionCard(
+                    icon: isPathologist
+                        ? Assets.icons.testTubeIcon
+                        : Assets.icons.facilityIcon,
+                    tone: isPathologist ? .lavender : .mint,
+                    title: facility.name,
+                    supporting: supporting,
+                    selected: _facilityId == facility.facilityId,
+                    onTap: facility.isOperational
+                        ? () => setState(() {
+                            _facilityId = facility.facilityId;
+                            _error = null;
+                          })
+                        : null,
+                  );
+                  return Padding(
+                    padding: const EdgeInsets.only(bottom: AppSpacing.sm),
+                    child: facility.isOperational
+                        ? card
+                        : Opacity(opacity: 0.5, child: card),
                   );
                 },
               ),
-              const SizedBox(height: AppSpacing.sm),
-              SingleChildScrollView(
-                scrollDirection: .horizontal,
-                child: Row(
-                  children: [
-                    TabibuFilterChip(
-                      label: l10n.filterAll,
-                      selected: _typeFilter == null && _levelFilter == null,
-                      onTap: () => setState(() {
-                        _typeFilter = null;
-                        _levelFilter = null;
-                      }),
-                    ),
-                    for (final (group, label) in groupChips) ...[
-                      const SizedBox(width: AppSpacing.xs),
-                      TabibuFilterChip(
-                        label: label,
-                        selected: _typeFilter == group,
-                        onTap: () => setState(
-                          () =>
-                              _typeFilter = _typeFilter == group ? null : group,
-                        ),
-                      ),
-                    ],
-                    for (final level in _levels) ...[
-                      const SizedBox(width: AppSpacing.xs),
-                      TabibuFilterChip(
-                        label: level,
-                        selected: _levelFilter == level,
-                        onTap: () => setState(
-                          () => _levelFilter = _levelFilter == level
-                              ? null
-                              : level,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-              const SizedBox(height: AppSpacing.sm),
-              if (visible == null && _error == null)
-                Center(
-                  child: SpinKitCircle(
-                    color: Theme.of(context).colorScheme.primary,
-                    size: 30,
+            SliverToBoxAdapter(
+              child: Column(
+                crossAxisAlignment: .start,
+                children: [
+                  const SizedBox(height: AppSpacing.sm),
+                  NoticeCard(
+                    variant: NoticeVariant.info,
+                    icon: Assets.icons.infoIcon,
+                    body: l10n.facilityPilotNotice,
                   ),
-                )
-              else if (visible == null)
-                const SizedBox.shrink()
-              else if (visible.isEmpty)
-                _EmptyResults()
-              else
-                ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: visible.length,
-                  itemBuilder: (context, index) {
-                    final facility = visible[index];
-                    final ownership = _isPublicOwner(facility.owner)
-                        ? l10n.ownerPublic
-                        : l10n.ownerPrivate;
-                    final supporting = isPathologist
-                        ? '$ownership · ${facility.kephLevel} · '
-                              '${facility.subCounty}'
-                        : '${facility.kephLevel} · ${facility.ward}, '
-                              '${facility.subCounty} · '
-                              '${l10n.facilityMfl(facility.mflCode)}';
-                    final card = OptionCard(
-                      icon: isPathologist
-                          ? Assets.icons.testTubeIcon
-                          : Assets.icons.facilityIcon,
-                      tone: isPathologist ? .lavender : .mint,
-                      title: facility.name,
-                      supporting: supporting,
-                      selected: _facilityId == facility.facilityId,
-                      onTap: facility.isOperational
-                          ? () => setState(() {
-                              _facilityId = facility.facilityId;
-                              _error = null;
-                            })
-                          : null,
-                    );
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: AppSpacing.sm),
-                      child: facility.isOperational
-                          ? card
-                          : Opacity(opacity: 0.5, child: card),
-                    );
-                  },
-                ),
-              const SizedBox(height: AppSpacing.sm),
-              NoticeCard(
-                variant: NoticeVariant.info,
-                icon: Assets.icons.infoIcon,
-                body: l10n.facilityPilotNotice,
+                  if (isPathologist) ...[
+                    const SizedBox(height: AppSpacing.sm),
+                    NoticeCard(
+                      variant: NoticeVariant.info,
+                      icon: Assets.icons.infoIcon,
+                      body: l10n.multiLabNotice,
+                    ),
+                  ],
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(l10n.profileSectionTitle, style: textTheme.titleLarge),
+                  const SizedBox(height: AppSpacing.sm),
+                  TabibuTextField(
+                    label: l10n.bioLabel,
+                    hint: l10n.bioHint,
+                    controller: _bioController,
+                    maxLines: 4,
+                    maxLength: 300,
+                    textInputAction: TextInputAction.done,
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  SettingToggleCard(
+                    icon: Assets.icons.calendarIcon,
+                    tone: .mint,
+                    title: isPathologist
+                        ? l10n.availabilityPathologistTitle
+                        : l10n.availabilityDoctorTitle,
+                    supporting: isPathologist
+                        ? l10n.availabilityPathologistBody
+                        : l10n.availabilityDoctorBody,
+                    value: _isAvailable,
+                    onChanged: (value) => setState(() => _isAvailable = value),
+                  ),
+                ],
               ),
-              if (isPathologist) ...[
-                const SizedBox(height: AppSpacing.sm),
-                NoticeCard(
-                  variant: NoticeVariant.info,
-                  icon: Assets.icons.infoIcon,
-                  body: l10n.multiLabNotice,
-                ),
-              ],
-              const SizedBox(height: AppSpacing.lg),
-              Text(l10n.profileSectionTitle, style: textTheme.titleLarge),
-              const SizedBox(height: AppSpacing.sm),
-              TabibuTextField(
-                label: l10n.bioLabel,
-                hint: l10n.bioHint,
-                controller: _bioController,
-                maxLines: 4,
-                maxLength: 300,
-                textInputAction: TextInputAction.done,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              SettingToggleCard(
-                icon: Assets.icons.calendarIcon,
-                tone: .mint,
-                title: isPathologist
-                    ? l10n.availabilityPathologistTitle
-                    : l10n.availabilityDoctorTitle,
-                supporting: isPathologist
-                    ? l10n.availabilityPathologistBody
-                    : l10n.availabilityDoctorBody,
-                value: _isAvailable,
-                onChanged: (value) => setState(() => _isAvailable = value),
-              ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

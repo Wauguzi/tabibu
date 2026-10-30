@@ -6,7 +6,7 @@ import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// The sign-up step frame: back plus progress, title, an optional failure,
-/// the fields, and a pinned footer. Steps 1–4 of the patient's or
+/// the fields or slivers, and a pinned footer. Steps 1–4 of the patient's or
 /// practitioner's flow.
 class StepScaffold extends StatelessWidget {
   const StepScaffold({
@@ -16,12 +16,16 @@ class StepScaffold extends StatelessWidget {
     required this.onBack,
     required this.title,
     required this.footer,
-    required this.child,
+    this.child,
+    this.slivers,
     this.subtitle,
     this.error,
     this.role,
     super.key,
-  });
+  }) : assert(
+         (child == null) != (slivers == null),
+         'Give exactly one of child and slivers.',
+       );
 
   final int step;
   final int total;
@@ -34,7 +38,8 @@ class StepScaffold extends StatelessWidget {
   final AppError? error;
   final Role? role;
   final Widget footer;
-  final Widget child;
+  final Widget? child;
+  final List<Widget>? slivers;
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +47,25 @@ class StepScaffold extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final error = this.error;
     final subtitle = this.subtitle;
+    final child = this.child;
+    final slivers = this.slivers;
+
+    final header = <Widget>[
+      Text(title, style: textTheme.headlineMedium),
+      if (subtitle != null) ...[
+        const SizedBox(height: AppSpacing.xs),
+        Text(subtitle, style: textTheme.bodyLarge),
+      ],
+      if (error != null) ...[
+        const SizedBox(height: AppSpacing.md),
+        NoticeCard(
+          variant: .error,
+          icon: Assets.icons.cancelIcon,
+          body: error.description(l10n),
+        ),
+      ],
+      const SizedBox(height: AppSpacing.lg),
+    ];
 
     final scaffold = Scaffold(
       backgroundColor: Colors.transparent,
@@ -59,28 +83,24 @@ class StepScaffold extends StatelessWidget {
               ),
               const SizedBox(height: AppSpacing.md),
               Expanded(
-                child: SingleChildScrollView(
-                  child: Column(
-                    crossAxisAlignment: .start,
-                    children: [
-                      Text(title, style: textTheme.headlineMedium),
-                      if (subtitle != null) ...[
-                        const SizedBox(height: AppSpacing.xs),
-                        Text(subtitle, style: textTheme.bodyLarge),
-                      ],
-                      if (error != null) ...[
-                        const SizedBox(height: AppSpacing.md),
-                        NoticeCard(
-                          variant: .error,
-                          icon: Assets.icons.cancelIcon,
-                          body: error.description(l10n),
+                child: child != null
+                    ? SingleChildScrollView(
+                        child: Column(
+                          crossAxisAlignment: .start,
+                          children: [...header, child],
                         ),
-                      ],
-                      const SizedBox(height: AppSpacing.lg),
-                      child,
-                    ],
-                  ),
-                ),
+                      )
+                    : CustomScrollView(
+                        slivers: [
+                          SliverToBoxAdapter(
+                            child: Column(
+                              crossAxisAlignment: .start,
+                              children: header,
+                            ),
+                          ),
+                          ...slivers!,
+                        ],
+                      ),
               ),
               const SizedBox(height: AppSpacing.md),
               footer,

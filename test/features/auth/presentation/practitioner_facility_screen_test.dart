@@ -172,6 +172,12 @@ void main() {
       await tester.pumpAndSettle();
     }
 
+    // The outer list's Scrollable: the chips and the bio field scroll too.
+    Finder listScrollable() => find.ancestor(
+      of: find.byType(SliverList),
+      matching: find.byType(Scrollable),
+    );
+
     void asPathologist() {
       when(() => signUpBloc.state).thenReturn(
         const SignUpState(draft: SignUpDraft(role: Role.pathologist)),
@@ -250,6 +256,11 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Embakasi Clinic'),
+        200,
+        scrollable: listScrollable(),
+      );
       final rows = [
         'Aga Khan University Hospital',
         'Dandora Health Centre',
@@ -273,13 +284,22 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      await tester.ensureVisible(find.text('Closed Clinic'));
+      await tester.scrollUntilVisible(
+        find.text('Closed Clinic'),
+        200,
+        scrollable: listScrollable(),
+      );
       await tester.pumpAndSettle();
       await tester.tap(find.text('Closed Clinic'), warnIfMissed: false);
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Select a valid facility.'),
+        -200,
+        scrollable: listScrollable(),
+      );
       expect(find.text('Select a valid facility.'), findsOneWidget);
     });
 
@@ -312,7 +332,16 @@ void main() {
 
       await tester.tap(find.text('Aga Khan University Hospital'));
       await tester.pumpAndSettle();
-      await tester.enterText(find.byType(TextField).at(1), 'Surgeon');
+      final bioField = find.descendant(
+        of: find.byType(TabibuTextField),
+        matching: find.byType(TextField),
+      );
+      await tester.scrollUntilVisible(
+        bioField,
+        200,
+        scrollable: listScrollable(),
+      );
+      await tester.enterText(bioField, 'Surgeon');
       await tester.pumpAndSettle();
       await tester.tap(find.text('Continue'));
       await tester.pumpAndSettle();
@@ -374,6 +403,11 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Pumwani Hospital'),
+        200,
+        scrollable: listScrollable(),
+      );
       expect(find.text('Lancet Pathologists'), findsOneWidget);
       expect(find.text('Metropolis Lab'), findsOneWidget);
       expect(find.text('Aga Khan University Hospital'), findsOneWidget);
@@ -428,6 +462,11 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
+      await tester.scrollUntilVisible(
+        find.text('Pumwani Hospital'),
+        200,
+        scrollable: listScrollable(),
+      );
       final rows = [
         'Metropolis Lab',
         'Lancet Pathologists',
@@ -447,6 +486,30 @@ void main() {
 
       expect(find.text('Previous step'), findsOneWidget);
       expect(committedDraft(signUpBloc).facilityId, 'h1');
+    });
+
+    testWidgets('builds only the facility cards on screen', (tester) async {
+      stubResults([
+        for (var i = 0; i < 200; i++)
+          _facility(
+            id: 'f$i',
+            name: 'Facility ${i.toString().padLeft(3, '0')}',
+            type: 'Hospital',
+            level: 'Level 4',
+          ),
+      ]);
+
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.byType(OptionCard).evaluate().length, lessThan(200));
+
+      await tester.scrollUntilVisible(
+        find.text('Facility 199'),
+        500,
+        scrollable: listScrollable(),
+      );
+      expect(find.text('Facility 199'), findsOneWidget);
     });
   });
 }
