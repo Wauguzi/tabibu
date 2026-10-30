@@ -146,6 +146,13 @@ and `deploy-storage` from the previous commit restore the rules;
 - After deploy, confirm the claim on a real sign-up in each role. Confirm the
   directory entry appears on verification and disappears on rejection.
 - Add the case rules with cases, and re-run RT-1 to RT-31 alongside them.
+- **Deployed 2026-10-30**, after PR #6 merged, with the rules and functions
+  tests green on `main` (44 and 47): `firestore.rules`, `storage.rules` (with
+  the IAM role Storage needs to read Firestore for the care-team check), and
+  the six functions in `europe-west1`. `syncPractitioner`, the project's first
+  2nd-gen event trigger, failed on the first deploy until the new Eventarc
+  service agent's permissions spread; a retry minutes later created it. Old
+  container images are deleted after one day.
 
 ## 10. Related records
 

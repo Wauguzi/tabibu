@@ -8,7 +8,7 @@ patient reads, or the alert path.
 | CRQ | Title | Date | Status |
 |---|---|---|---|
 | [CRQ-0001](./CRQ-0001-bootstrap-and-engineering-docs-baseline.md) | Project bootstrap, dependency baseline, and the engineering documentation baseline | 2026-10-27 | Implemented |
-| [CRQ-0002](./CRQ-0002-firebase-connection-and-greptile-review-context.md) | Connect Firebase for Android and iOS, and give Greptile the repository's review context | 2026-10-27 | Implemented — rules must deploy before the first seeded record |
+| [CRQ-0002](./CRQ-0002-firebase-connection-and-greptile-review-context.md) | Connect Firebase for Android and iOS, and give Greptile the repository's review context | 2026-10-27 | Implemented — rules deployed 2026-10-30 (CRQ-0016) |
 | [CRQ-0003](./CRQ-0003-interim-ci-license-check-fix-and-main-workflow-removal.md) | Interim CI: fix the license check for Flutter, and remove the scaffold's main workflow | 2026-10-27 | Implemented — replacement workflows due with the auth work |
 | [CRQ-0004](./CRQ-0004-codeowners-pr-template-labels-and-merge-bar.md) | CODEOWNERS, the pull request template, the label taxonomy, and a 5/5 Greptile merge bar | 2026-10-27 | Implemented — labels and rulesets applied and verified |
 | [CRQ-0005](./CRQ-0005-fastlane-release-lanes.md) | Fastlane release lanes for TestFlight and the Play Store internal track | 2026-10-27 | Implemented — first runs wait on store accounts |
@@ -22,7 +22,7 @@ patient reads, or the alert path.
 | [CRQ-0013](./CRQ-0013-muse-code-agent.md) | Muse Code as a second coding agent: `make muse`, `AGENTS.md`, and a credit floor | 2026-10-27 | Implemented |
 | [CRQ-0014](./CRQ-0014-identity-data-model.md) | Identity data model: patients, practitioners, the public directory and the bundled Nairobi facility list | 2026-10-27 | Implemented — across `feat/auth` (CRQ-0015 to CRQ-0036) |
 | [CRQ-0015](./CRQ-0015-nairobi-facility-data.md) | Nairobi facility data: the Ministry of Health's 1,447 facilities, 17 sub-counties and 47 counties as app assets, with a geohash service | 2026-10-27 | Implemented |
-| [CRQ-0016](./CRQ-0016-identity-functions-and-rules.md) | Identity functions, Firestore and Storage rules, and their emulator tests | 2026-10-27 | Implemented — deploy after review |
+| [CRQ-0016](./CRQ-0016-identity-functions-and-rules.md) | Identity functions, Firestore and Storage rules, and their emulator tests | 2026-10-27 | Implemented — deployed 2026-10-30 with PR #6's build |
 | [CRQ-0017](./CRQ-0017-foundations-theme-and-swahili.md) | Foundations: counter removed, Swahili replaces Spanish with the localizations-delegates fix, and the design-system theme | 2026-10-27 | Implemented — palette provisional |
 | [CRQ-0018](./CRQ-0018-demo-seed-and-google-sign-in-on-ios.md) | Demo seed (one account per role, an alert approver, clinic patients) and the iOS URL scheme for Google sign-in | 2026-10-27 | Implemented on the emulators — live seed pending |
 | [CRQ-0019](./CRQ-0019-identity-models-errors-and-di.md) | Identity models, facility reference data, enums, translated errors, and dependency injection | 2026-10-27 | Implemented |
