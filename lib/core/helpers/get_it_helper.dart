@@ -2,6 +2,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:cloud_functions/cloud_functions.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:get_it/get_it.dart';
@@ -42,6 +43,9 @@ abstract class DIModule {
 
   @singleton
   FirebaseStorage get firebaseStorage => FirebaseStorage.instance;
+
+  @singleton
+  FirebaseMessaging get firebaseMessaging => FirebaseMessaging.instance;
 
   @singleton
   FirebaseAnalytics get firebaseAnalytics => FirebaseAnalytics.instance;
