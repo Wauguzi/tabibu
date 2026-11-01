@@ -17,7 +17,7 @@ Map<String, dynamic> _$PdfLineToJson(_PdfLine instance) => <String, dynamic>{
 };
 
 _PdfBlock _$PdfBlockFromJson(Map<String, dynamic> json) => _PdfBlock(
-  title: json['title'] as String? ?? '',
+  sectionKey: json['sectionKey'] as String? ?? '',
   lines:
       (json['lines'] as List<dynamic>?)
           ?.map((e) => PdfLine.fromJson(e as Map<String, dynamic>))
@@ -26,9 +26,26 @@ _PdfBlock _$PdfBlockFromJson(Map<String, dynamic> json) => _PdfBlock(
 );
 
 Map<String, dynamic> _$PdfBlockToJson(_PdfBlock instance) => <String, dynamic>{
-  'title': instance.title,
+  'sectionKey': instance.sectionKey,
   'lines': instance.lines.map((e) => e.toJson()).toList(),
 };
+
+_PdfMeasurement _$PdfMeasurementFromJson(Map<String, dynamic> json) =>
+    _PdfMeasurement(
+      key: json['key'] as String? ?? '',
+      value: json['value'] as String? ?? '',
+    );
+
+Map<String, dynamic> _$PdfMeasurementToJson(_PdfMeasurement instance) =>
+    <String, dynamic>{'key': instance.key, 'value': instance.value};
+
+_PdfAddendum _$PdfAddendumFromJson(Map<String, dynamic> json) => _PdfAddendum(
+  text: json['text'] as String? ?? '',
+  signedAt: json['signedAt'] as String? ?? '',
+);
+
+Map<String, dynamic> _$PdfAddendumToJson(_PdfAddendum instance) =>
+    <String, dynamic>{'text': instance.text, 'signedAt': instance.signedAt};
 
 _PdfHeader _$PdfHeaderFromJson(Map<String, dynamic> json) => _PdfHeader(
   orderNumber: json['orderNumber'] as String? ?? '',
@@ -63,7 +80,8 @@ Map<String, dynamic> _$PdfHeaderToJson(_PdfHeader instance) =>
 
 _PdfSubject _$PdfSubjectFromJson(Map<String, dynamic> json) => _PdfSubject(
   displayName: json['displayName'] as String? ?? '',
-  ageLabel: json['ageLabel'] as String? ?? '',
+  ageYears: (json['ageYears'] as num?)?.toInt() ?? -1,
+  ageMonths: (json['ageMonths'] as num?)?.toInt() ?? -1,
   sex: json['sex'] as String? ?? '',
   residence: json['residence'] as String? ?? '',
 );
@@ -71,7 +89,8 @@ _PdfSubject _$PdfSubjectFromJson(Map<String, dynamic> json) => _PdfSubject(
 Map<String, dynamic> _$PdfSubjectToJson(_PdfSubject instance) =>
     <String, dynamic>{
       'displayName': instance.displayName,
-      'ageLabel': instance.ageLabel,
+      'ageYears': instance.ageYears,
+      'ageMonths': instance.ageMonths,
       'sex': instance.sex,
       'residence': instance.residence,
     };
@@ -103,7 +122,6 @@ Map<String, dynamic> _$PdfSignatureToJson(_PdfSignature instance) =>
 _PdfFooter _$PdfFooterFromJson(Map<String, dynamic> json) => _PdfFooter(
   patientName: json['patientName'] as String? ?? '',
   labAccessionNo: json['labAccessionNo'] as String? ?? '',
-  pageLabel: json['pageLabel'] as String? ?? '',
   disclaimer: json['disclaimer'] as String? ?? '',
   supportContact: json['supportContact'] as String? ?? '',
 );
@@ -112,7 +130,6 @@ Map<String, dynamic> _$PdfFooterToJson(_PdfFooter instance) =>
     <String, dynamic>{
       'patientName': instance.patientName,
       'labAccessionNo': instance.labAccessionNo,
-      'pageLabel': instance.pageLabel,
       'disclaimer': instance.disclaimer,
       'supportContact': instance.supportContact,
     };
@@ -134,14 +151,14 @@ _ReportPdfInput _$ReportPdfInputFromJson(Map<String, dynamic> json) =>
           const <PdfBlock>[],
       measurements:
           (json['measurements'] as List<dynamic>?)
-              ?.map((e) => e as String)
+              ?.map((e) => PdfMeasurement.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          const <String>[],
+          const <PdfMeasurement>[],
       addenda:
           (json['addenda'] as List<dynamic>?)
-              ?.map((e) => e as String)
+              ?.map((e) => PdfAddendum.fromJson(e as Map<String, dynamic>))
               .toList() ??
-          const <String>[],
+          const <PdfAddendum>[],
       amendmentReason: json['amendmentReason'] as String? ?? '',
       isCritical: json['isCritical'] as bool? ?? false,
       signature: json['signature'] == null
@@ -152,6 +169,8 @@ _ReportPdfInput _$ReportPdfInputFromJson(Map<String, dynamic> json) =>
             (k, e) => MapEntry(k, e as String),
           ) ??
           const <String, String>{},
+      translationApproverName: json['translationApproverName'] as String? ?? '',
+      translationLanguage: json['translationLanguage'] as String? ?? '',
       watermark: json['watermark'] as String? ?? '',
       footer: json['footer'] == null
           ? const PdfFooter()
@@ -166,12 +185,14 @@ Map<String, dynamic> _$ReportPdfInputToJson(_ReportPdfInput instance) =>
       'header': instance.header.toJson(),
       'subject': instance.subject.toJson(),
       'blocks': instance.blocks.map((e) => e.toJson()).toList(),
-      'measurements': instance.measurements,
-      'addenda': instance.addenda,
+      'measurements': instance.measurements.map((e) => e.toJson()).toList(),
+      'addenda': instance.addenda.map((e) => e.toJson()).toList(),
       'amendmentReason': instance.amendmentReason,
       'isCritical': instance.isCritical,
       'signature': instance.signature.toJson(),
       'translation': instance.translation,
+      'translationApproverName': instance.translationApproverName,
+      'translationLanguage': instance.translationLanguage,
       'watermark': instance.watermark,
       'footer': instance.footer.toJson(),
       'generatedAtLabel': instance.generatedAtLabel,

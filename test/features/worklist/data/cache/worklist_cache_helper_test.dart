@@ -65,7 +65,7 @@ void main() {
       'a 3-day routine case (172) ranks below a new priority case (200)',
       () {
         final now = DateTime.parse('2026-11-04T10:00:00.000Z');
-      final routine = _entry('c1');
+        final routine = _entry('c1');
         final priority = _entry(
           'c2',
           basePriority: 200,

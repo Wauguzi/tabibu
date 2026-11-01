@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/data/models/report_pdf_input.dart';
+import 'package:tabibu/features/reports/data/models/report_response_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
 
 import 'pathology_report_model_test.dart' show reportJson;
@@ -49,9 +50,107 @@ void main() {
       final pdf = build();
       expect(pdf.header.orderNumber, 'ODR-1');
       expect(pdf.subject.displayName, 'Patient One');
-      expect(pdf.subject.ageLabel, isNotEmpty);
+      expect(pdf.subject.ageYears, 36);
+      expect(pdf.subject.ageMonths, 9);
       expect(pdf.blocks, isNotEmpty);
-      expect(pdf.measurements, ['3 mm']);
+      expect(pdf.measurements, [
+        const PdfMeasurement(key: 'size', value: '3 mm'),
+      ]);
+    });
+
+    test('blocks carry wire keys, not display text', () {
+      final pdf = build();
+      expect(pdf.blocks[0].sectionKey, 'Diagnosis');
+      expect(pdf.blocks[0].lines.single.label, 'Final');
+      expect(pdf.blocks[1].sectionKey, 'Comments');
+      expect(pdf.blocks[2].sectionKey, 'ClinicalNotes');
+      expect(pdf.blocks[3].sectionKey, 'Macroscopic');
+      expect(pdf.blocks[3].lines.single.label, 'specimen');
+    });
+
+    test('orders sections and lines by response order', () {
+      final pdf = build(
+        reportOverride: report.copyWith(
+          responses: const [
+            ReportResponseModel(
+              section: 'Microscopic',
+              question: 'margins',
+              answer: 'M',
+              order: 3,
+            ),
+            ReportResponseModel(
+              section: 'Macroscopic',
+              question: 'specimenSize',
+              answer: 'S',
+              order: 1,
+            ),
+            ReportResponseModel(
+              section: 'Macroscopic',
+              question: 'specimenDescription',
+              answer: 'D',
+            ),
+          ],
+        ),
+      );
+      expect(pdf.blocks[3].sectionKey, 'Macroscopic');
+      expect(pdf.blocks[3].lines.map((l) => l.label), [
+        'specimenDescription',
+        'specimenSize',
+      ]);
+      expect(pdf.blocks[4].sectionKey, 'Microscopic');
+    });
+
+    test('keeps template section order when question order restarts', () {
+      final pdf = build(
+        reportOverride: report.copyWith(
+          responses: const [
+            ReportResponseModel(
+              section: 'Ancillary',
+              question: 'immunohistochemistry',
+              answer: 'I',
+              order: 1,
+            ),
+            ReportResponseModel(
+              section: 'Microscopic',
+              question: 'microscopicDescription',
+              answer: 'M',
+              order: 1,
+            ),
+            ReportResponseModel(
+              section: 'Unlisted',
+              question: 'extra',
+              answer: 'E',
+              order: 1,
+            ),
+            ReportResponseModel(
+              section: 'Macroscopic',
+              question: 'specimenDescription',
+              answer: 'D',
+              order: 1,
+            ),
+          ],
+        ),
+      );
+      expect(pdf.blocks.skip(3).map((b) => b.sectionKey), [
+        'Macroscopic',
+        'Microscopic',
+        'Ancillary',
+        'Unlisted',
+      ]);
+    });
+
+    test('carries the translation approver and language', () {
+      final pdf = build(
+        translation: const ReportTextApprovedModel(
+          sourceSha256: 'contenthash',
+          approvedText: {'diagnosis': 'Translated.'},
+          approverName: 'Path One',
+          language: 'sw',
+        ),
+      );
+      expect(pdf.translation, {'diagnosis': 'Translated.'});
+      expect(pdf.translationApproverName, 'Path One');
+      expect(pdf.translationLanguage, 'sw');
     });
 
     test('refuses a draft', () {
@@ -112,16 +211,43 @@ void main() {
     });
   });
 
-  group('PdfSubject.ageLabelFromDateOfBirth', () {
+  group('PdfSubject.ageFromDateOfBirth', () {
     test('computes years and months', () {
       expect(
-        PdfSubject.ageLabelFromDateOfBirth(
+        PdfSubject.ageFromDateOfBirth(
           '1990-01-15T00:00:00.000Z',
           DateTime.utc(2026, 11),
         ),
-        '36 years 9 months',
+        (years: 36, months: 9),
       );
-      expect(PdfSubject.ageLabelFromDateOfBirth('', now), '');
+    });
+
+    test('counts a birthday not yet reached this year', () {
+      expect(
+        PdfSubject.ageFromDateOfBirth(
+          '1990-12-15T00:00:00.000Z',
+          DateTime.utc(2026, 11, 1, 12),
+        ),
+        (years: 35, months: 10),
+      );
+    });
+
+    test('reads an unknown date as -1', () {
+      expect(PdfSubject.ageFromDateOfBirth('', now), (years: -1, months: -1));
+      expect(PdfSubject.ageFromDateOfBirth('not-a-date', now), (
+        years: -1,
+        months: -1,
+      ));
+    });
+
+    test('reads a future date as -1', () {
+      expect(
+        PdfSubject.ageFromDateOfBirth(
+          '2027-01-15T00:00:00.000Z',
+          DateTime.utc(2026, 11, 1, 12),
+        ),
+        (years: -1, months: -1),
+      );
     });
   });
 }

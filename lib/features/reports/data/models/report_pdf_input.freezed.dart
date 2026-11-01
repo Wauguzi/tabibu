@@ -281,7 +281,7 @@ as String,
 /// @nodoc
 mixin _$PdfBlock {
 
-@JsonKey(name: 'title') String get title;@JsonKey(name: 'lines') List<PdfLine> get lines;
+@JsonKey(name: 'sectionKey') String get sectionKey;@JsonKey(name: 'lines') List<PdfLine> get lines;
 /// Create a copy of PdfBlock
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -294,16 +294,16 @@ $PdfBlockCopyWith<PdfBlock> get copyWith => _$PdfBlockCopyWithImpl<PdfBlock>(thi
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfBlock&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other.lines, lines));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfBlock&&(identical(other.sectionKey, sectionKey) || other.sectionKey == sectionKey)&&const DeepCollectionEquality().equals(other.lines, lines));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,const DeepCollectionEquality().hash(lines));
+int get hashCode => Object.hash(runtimeType,sectionKey,const DeepCollectionEquality().hash(lines));
 
 @override
 String toString() {
-  return 'PdfBlock(title: $title, lines: $lines)';
+  return 'PdfBlock(sectionKey: $sectionKey, lines: $lines)';
 }
 
 
@@ -314,7 +314,7 @@ abstract mixin class $PdfBlockCopyWith<$Res>  {
   factory $PdfBlockCopyWith(PdfBlock value, $Res Function(PdfBlock) _then) = _$PdfBlockCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'title') String title,@JsonKey(name: 'lines') List<PdfLine> lines
+@JsonKey(name: 'sectionKey') String sectionKey,@JsonKey(name: 'lines') List<PdfLine> lines
 });
 
 
@@ -331,9 +331,9 @@ class _$PdfBlockCopyWithImpl<$Res>
 
 /// Create a copy of PdfBlock
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? title = null,Object? lines = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? sectionKey = null,Object? lines = null,}) {
   return _then(_self.copyWith(
-title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+sectionKey: null == sectionKey ? _self.sectionKey : sectionKey // ignore: cast_nullable_to_non_nullable
 as String,lines: null == lines ? _self.lines : lines // ignore: cast_nullable_to_non_nullable
 as List<PdfLine>,
   ));
@@ -420,10 +420,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'title')  String title, @JsonKey(name: 'lines')  List<PdfLine> lines)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'sectionKey')  String sectionKey, @JsonKey(name: 'lines')  List<PdfLine> lines)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PdfBlock() when $default != null:
-return $default(_that.title,_that.lines);case _:
+return $default(_that.sectionKey,_that.lines);case _:
   return orElse();
 
 }
@@ -441,10 +441,10 @@ return $default(_that.title,_that.lines);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'title')  String title, @JsonKey(name: 'lines')  List<PdfLine> lines)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'sectionKey')  String sectionKey, @JsonKey(name: 'lines')  List<PdfLine> lines)  $default,) {final _that = this;
 switch (_that) {
 case _PdfBlock():
-return $default(_that.title,_that.lines);case _:
+return $default(_that.sectionKey,_that.lines);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -461,10 +461,10 @@ return $default(_that.title,_that.lines);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'title')  String title, @JsonKey(name: 'lines')  List<PdfLine> lines)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'sectionKey')  String sectionKey, @JsonKey(name: 'lines')  List<PdfLine> lines)?  $default,) {final _that = this;
 switch (_that) {
 case _PdfBlock() when $default != null:
-return $default(_that.title,_that.lines);case _:
+return $default(_that.sectionKey,_that.lines);case _:
   return null;
 
 }
@@ -476,10 +476,10 @@ return $default(_that.title,_that.lines);case _:
 
 @JsonSerializable(explicitToJson: true)
 class _PdfBlock extends PdfBlock {
-  const _PdfBlock({@JsonKey(name: 'title') this.title = '', @JsonKey(name: 'lines') final  List<PdfLine> lines = const <PdfLine>[]}): _lines = lines,super._();
+  const _PdfBlock({@JsonKey(name: 'sectionKey') this.sectionKey = '', @JsonKey(name: 'lines') final  List<PdfLine> lines = const <PdfLine>[]}): _lines = lines,super._();
   factory _PdfBlock.fromJson(Map<String, dynamic> json) => _$PdfBlockFromJson(json);
 
-@override@JsonKey(name: 'title') final  String title;
+@override@JsonKey(name: 'sectionKey') final  String sectionKey;
  final  List<PdfLine> _lines;
 @override@JsonKey(name: 'lines') List<PdfLine> get lines {
   if (_lines is EqualUnmodifiableListView) return _lines;
@@ -501,16 +501,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfBlock&&(identical(other.title, title) || other.title == title)&&const DeepCollectionEquality().equals(other._lines, _lines));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfBlock&&(identical(other.sectionKey, sectionKey) || other.sectionKey == sectionKey)&&const DeepCollectionEquality().equals(other._lines, _lines));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,title,const DeepCollectionEquality().hash(_lines));
+int get hashCode => Object.hash(runtimeType,sectionKey,const DeepCollectionEquality().hash(_lines));
 
 @override
 String toString() {
-  return 'PdfBlock(title: $title, lines: $lines)';
+  return 'PdfBlock(sectionKey: $sectionKey, lines: $lines)';
 }
 
 
@@ -521,7 +521,7 @@ abstract mixin class _$PdfBlockCopyWith<$Res> implements $PdfBlockCopyWith<$Res>
   factory _$PdfBlockCopyWith(_PdfBlock value, $Res Function(_PdfBlock) _then) = __$PdfBlockCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'title') String title,@JsonKey(name: 'lines') List<PdfLine> lines
+@JsonKey(name: 'sectionKey') String sectionKey,@JsonKey(name: 'lines') List<PdfLine> lines
 });
 
 
@@ -538,11 +538,543 @@ class __$PdfBlockCopyWithImpl<$Res>
 
 /// Create a copy of PdfBlock
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? title = null,Object? lines = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? sectionKey = null,Object? lines = null,}) {
   return _then(_PdfBlock(
-title: null == title ? _self.title : title // ignore: cast_nullable_to_non_nullable
+sectionKey: null == sectionKey ? _self.sectionKey : sectionKey // ignore: cast_nullable_to_non_nullable
 as String,lines: null == lines ? _self._lines : lines // ignore: cast_nullable_to_non_nullable
 as List<PdfLine>,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$PdfMeasurement {
+
+@JsonKey(name: 'key') String get key;@JsonKey(name: 'value') String get value;
+/// Create a copy of PdfMeasurement
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PdfMeasurementCopyWith<PdfMeasurement> get copyWith => _$PdfMeasurementCopyWithImpl<PdfMeasurement>(this as PdfMeasurement, _$identity);
+
+  /// Serializes this PdfMeasurement to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfMeasurement&&(identical(other.key, key) || other.key == key)&&(identical(other.value, value) || other.value == value));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,key,value);
+
+@override
+String toString() {
+  return 'PdfMeasurement(key: $key, value: $value)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PdfMeasurementCopyWith<$Res>  {
+  factory $PdfMeasurementCopyWith(PdfMeasurement value, $Res Function(PdfMeasurement) _then) = _$PdfMeasurementCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'key') String key,@JsonKey(name: 'value') String value
+});
+
+
+
+
+}
+/// @nodoc
+class _$PdfMeasurementCopyWithImpl<$Res>
+    implements $PdfMeasurementCopyWith<$Res> {
+  _$PdfMeasurementCopyWithImpl(this._self, this._then);
+
+  final PdfMeasurement _self;
+  final $Res Function(PdfMeasurement) _then;
+
+/// Create a copy of PdfMeasurement
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? key = null,Object? value = null,}) {
+  return _then(_self.copyWith(
+key: null == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
+as String,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PdfMeasurement].
+extension PdfMeasurementPatterns on PdfMeasurement {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PdfMeasurement value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PdfMeasurement() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PdfMeasurement value)  $default,){
+final _that = this;
+switch (_that) {
+case _PdfMeasurement():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PdfMeasurement value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PdfMeasurement() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'key')  String key, @JsonKey(name: 'value')  String value)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PdfMeasurement() when $default != null:
+return $default(_that.key,_that.value);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'key')  String key, @JsonKey(name: 'value')  String value)  $default,) {final _that = this;
+switch (_that) {
+case _PdfMeasurement():
+return $default(_that.key,_that.value);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'key')  String key, @JsonKey(name: 'value')  String value)?  $default,) {final _that = this;
+switch (_that) {
+case _PdfMeasurement() when $default != null:
+return $default(_that.key,_that.value);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _PdfMeasurement extends PdfMeasurement {
+  const _PdfMeasurement({@JsonKey(name: 'key') this.key = '', @JsonKey(name: 'value') this.value = ''}): super._();
+  factory _PdfMeasurement.fromJson(Map<String, dynamic> json) => _$PdfMeasurementFromJson(json);
+
+@override@JsonKey(name: 'key') final  String key;
+@override@JsonKey(name: 'value') final  String value;
+
+/// Create a copy of PdfMeasurement
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PdfMeasurementCopyWith<_PdfMeasurement> get copyWith => __$PdfMeasurementCopyWithImpl<_PdfMeasurement>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PdfMeasurementToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfMeasurement&&(identical(other.key, key) || other.key == key)&&(identical(other.value, value) || other.value == value));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,key,value);
+
+@override
+String toString() {
+  return 'PdfMeasurement(key: $key, value: $value)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PdfMeasurementCopyWith<$Res> implements $PdfMeasurementCopyWith<$Res> {
+  factory _$PdfMeasurementCopyWith(_PdfMeasurement value, $Res Function(_PdfMeasurement) _then) = __$PdfMeasurementCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'key') String key,@JsonKey(name: 'value') String value
+});
+
+
+
+
+}
+/// @nodoc
+class __$PdfMeasurementCopyWithImpl<$Res>
+    implements _$PdfMeasurementCopyWith<$Res> {
+  __$PdfMeasurementCopyWithImpl(this._self, this._then);
+
+  final _PdfMeasurement _self;
+  final $Res Function(_PdfMeasurement) _then;
+
+/// Create a copy of PdfMeasurement
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? key = null,Object? value = null,}) {
+  return _then(_PdfMeasurement(
+key: null == key ? _self.key : key // ignore: cast_nullable_to_non_nullable
+as String,value: null == value ? _self.value : value // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+
+}
+
+
+/// @nodoc
+mixin _$PdfAddendum {
+
+@JsonKey(name: 'text') String get text;@JsonKey(name: 'signedAt') String get signedAt;
+/// Create a copy of PdfAddendum
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$PdfAddendumCopyWith<PdfAddendum> get copyWith => _$PdfAddendumCopyWithImpl<PdfAddendum>(this as PdfAddendum, _$identity);
+
+  /// Serializes this PdfAddendum to a JSON map.
+  Map<String, dynamic> toJson();
+
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfAddendum&&(identical(other.text, text) || other.text == text)&&(identical(other.signedAt, signedAt) || other.signedAt == signedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,text,signedAt);
+
+@override
+String toString() {
+  return 'PdfAddendum(text: $text, signedAt: $signedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $PdfAddendumCopyWith<$Res>  {
+  factory $PdfAddendumCopyWith(PdfAddendum value, $Res Function(PdfAddendum) _then) = _$PdfAddendumCopyWithImpl;
+@useResult
+$Res call({
+@JsonKey(name: 'text') String text,@JsonKey(name: 'signedAt') String signedAt
+});
+
+
+
+
+}
+/// @nodoc
+class _$PdfAddendumCopyWithImpl<$Res>
+    implements $PdfAddendumCopyWith<$Res> {
+  _$PdfAddendumCopyWithImpl(this._self, this._then);
+
+  final PdfAddendum _self;
+  final $Res Function(PdfAddendum) _then;
+
+/// Create a copy of PdfAddendum
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') @override $Res call({Object? text = null,Object? signedAt = null,}) {
+  return _then(_self.copyWith(
+text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String,signedAt: null == signedAt ? _self.signedAt : signedAt // ignore: cast_nullable_to_non_nullable
+as String,
+  ));
+}
+
+}
+
+
+/// Adds pattern-matching-related methods to [PdfAddendum].
+extension PdfAddendumPatterns on PdfAddendum {
+/// A variant of `map` that fallback to returning `orElse`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _PdfAddendum value)?  $default,{required TResult orElse(),}){
+final _that = this;
+switch (_that) {
+case _PdfAddendum() when $default != null:
+return $default(_that);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// Callbacks receives the raw object, upcasted.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case final Subclass2 value:
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _PdfAddendum value)  $default,){
+final _that = this;
+switch (_that) {
+case _PdfAddendum():
+return $default(_that);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `map` that fallback to returning `null`.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case final Subclass value:
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _PdfAddendum value)?  $default,){
+final _that = this;
+switch (_that) {
+case _PdfAddendum() when $default != null:
+return $default(_that);case _:
+  return null;
+
+}
+}
+/// A variant of `when` that fallback to an `orElse` callback.
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return orElse();
+/// }
+/// ```
+
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'text')  String text, @JsonKey(name: 'signedAt')  String signedAt)?  $default,{required TResult orElse(),}) {final _that = this;
+switch (_that) {
+case _PdfAddendum() when $default != null:
+return $default(_that.text,_that.signedAt);case _:
+  return orElse();
+
+}
+}
+/// A `switch`-like method, using callbacks.
+///
+/// As opposed to `map`, this offers destructuring.
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case Subclass2(:final field2):
+///     return ...;
+/// }
+/// ```
+
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'text')  String text, @JsonKey(name: 'signedAt')  String signedAt)  $default,) {final _that = this;
+switch (_that) {
+case _PdfAddendum():
+return $default(_that.text,_that.signedAt);case _:
+  throw StateError('Unexpected subclass');
+
+}
+}
+/// A variant of `when` that fallback to returning `null`
+///
+/// It is equivalent to doing:
+/// ```dart
+/// switch (sealedClass) {
+///   case Subclass(:final field):
+///     return ...;
+///   case _:
+///     return null;
+/// }
+/// ```
+
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'text')  String text, @JsonKey(name: 'signedAt')  String signedAt)?  $default,) {final _that = this;
+switch (_that) {
+case _PdfAddendum() when $default != null:
+return $default(_that.text,_that.signedAt);case _:
+  return null;
+
+}
+}
+
+}
+
+/// @nodoc
+@JsonSerializable()
+
+class _PdfAddendum extends PdfAddendum {
+  const _PdfAddendum({@JsonKey(name: 'text') this.text = '', @JsonKey(name: 'signedAt') this.signedAt = ''}): super._();
+  factory _PdfAddendum.fromJson(Map<String, dynamic> json) => _$PdfAddendumFromJson(json);
+
+@override@JsonKey(name: 'text') final  String text;
+@override@JsonKey(name: 'signedAt') final  String signedAt;
+
+/// Create a copy of PdfAddendum
+/// with the given fields replaced by the non-null parameter values.
+@override @JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+_$PdfAddendumCopyWith<_PdfAddendum> get copyWith => __$PdfAddendumCopyWithImpl<_PdfAddendum>(this, _$identity);
+
+@override
+Map<String, dynamic> toJson() {
+  return _$PdfAddendumToJson(this, );
+}
+
+@override
+bool operator ==(Object other) {
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfAddendum&&(identical(other.text, text) || other.text == text)&&(identical(other.signedAt, signedAt) || other.signedAt == signedAt));
+}
+
+@JsonKey(includeFromJson: false, includeToJson: false)
+@override
+int get hashCode => Object.hash(runtimeType,text,signedAt);
+
+@override
+String toString() {
+  return 'PdfAddendum(text: $text, signedAt: $signedAt)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class _$PdfAddendumCopyWith<$Res> implements $PdfAddendumCopyWith<$Res> {
+  factory _$PdfAddendumCopyWith(_PdfAddendum value, $Res Function(_PdfAddendum) _then) = __$PdfAddendumCopyWithImpl;
+@override @useResult
+$Res call({
+@JsonKey(name: 'text') String text,@JsonKey(name: 'signedAt') String signedAt
+});
+
+
+
+
+}
+/// @nodoc
+class __$PdfAddendumCopyWithImpl<$Res>
+    implements _$PdfAddendumCopyWith<$Res> {
+  __$PdfAddendumCopyWithImpl(this._self, this._then);
+
+  final _PdfAddendum _self;
+  final $Res Function(_PdfAddendum) _then;
+
+/// Create a copy of PdfAddendum
+/// with the given fields replaced by the non-null parameter values.
+@override @pragma('vm:prefer-inline') $Res call({Object? text = null,Object? signedAt = null,}) {
+  return _then(_PdfAddendum(
+text: null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String,signedAt: null == signedAt ? _self.signedAt : signedAt // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 
@@ -853,7 +1385,9 @@ as String,
 /// @nodoc
 mixin _$PdfSubject {
 
-@JsonKey(name: 'displayName') String get displayName;@JsonKey(name: 'ageLabel') String get ageLabel;@JsonKey(name: 'sex') String get sex;@JsonKey(name: 'residence') String get residence;
+@JsonKey(name: 'displayName') String get displayName;/// Completed years and leftover months at report time; both -1 when the
+/// date of birth is unknown or in the future.
+@JsonKey(name: 'ageYears') int get ageYears;@JsonKey(name: 'ageMonths') int get ageMonths;@JsonKey(name: 'sex') String get sex;@JsonKey(name: 'residence') String get residence;
 /// Create a copy of PdfSubject
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -866,16 +1400,16 @@ $PdfSubjectCopyWith<PdfSubject> get copyWith => _$PdfSubjectCopyWithImpl<PdfSubj
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfSubject&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.ageLabel, ageLabel) || other.ageLabel == ageLabel)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.residence, residence) || other.residence == residence));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfSubject&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.ageYears, ageYears) || other.ageYears == ageYears)&&(identical(other.ageMonths, ageMonths) || other.ageMonths == ageMonths)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.residence, residence) || other.residence == residence));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,displayName,ageLabel,sex,residence);
+int get hashCode => Object.hash(runtimeType,displayName,ageYears,ageMonths,sex,residence);
 
 @override
 String toString() {
-  return 'PdfSubject(displayName: $displayName, ageLabel: $ageLabel, sex: $sex, residence: $residence)';
+  return 'PdfSubject(displayName: $displayName, ageYears: $ageYears, ageMonths: $ageMonths, sex: $sex, residence: $residence)';
 }
 
 
@@ -886,7 +1420,7 @@ abstract mixin class $PdfSubjectCopyWith<$Res>  {
   factory $PdfSubjectCopyWith(PdfSubject value, $Res Function(PdfSubject) _then) = _$PdfSubjectCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'displayName') String displayName,@JsonKey(name: 'ageLabel') String ageLabel,@JsonKey(name: 'sex') String sex,@JsonKey(name: 'residence') String residence
+@JsonKey(name: 'displayName') String displayName,@JsonKey(name: 'ageYears') int ageYears,@JsonKey(name: 'ageMonths') int ageMonths,@JsonKey(name: 'sex') String sex,@JsonKey(name: 'residence') String residence
 });
 
 
@@ -903,11 +1437,12 @@ class _$PdfSubjectCopyWithImpl<$Res>
 
 /// Create a copy of PdfSubject
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? displayName = null,Object? ageLabel = null,Object? sex = null,Object? residence = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? displayName = null,Object? ageYears = null,Object? ageMonths = null,Object? sex = null,Object? residence = null,}) {
   return _then(_self.copyWith(
 displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,ageLabel: null == ageLabel ? _self.ageLabel : ageLabel // ignore: cast_nullable_to_non_nullable
-as String,sex: null == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable
+as String,ageYears: null == ageYears ? _self.ageYears : ageYears // ignore: cast_nullable_to_non_nullable
+as int,ageMonths: null == ageMonths ? _self.ageMonths : ageMonths // ignore: cast_nullable_to_non_nullable
+as int,sex: null == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable
 as String,residence: null == residence ? _self.residence : residence // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -994,10 +1529,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'displayName')  String displayName, @JsonKey(name: 'ageLabel')  String ageLabel, @JsonKey(name: 'sex')  String sex, @JsonKey(name: 'residence')  String residence)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'displayName')  String displayName, @JsonKey(name: 'ageYears')  int ageYears, @JsonKey(name: 'ageMonths')  int ageMonths, @JsonKey(name: 'sex')  String sex, @JsonKey(name: 'residence')  String residence)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PdfSubject() when $default != null:
-return $default(_that.displayName,_that.ageLabel,_that.sex,_that.residence);case _:
+return $default(_that.displayName,_that.ageYears,_that.ageMonths,_that.sex,_that.residence);case _:
   return orElse();
 
 }
@@ -1015,10 +1550,10 @@ return $default(_that.displayName,_that.ageLabel,_that.sex,_that.residence);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'displayName')  String displayName, @JsonKey(name: 'ageLabel')  String ageLabel, @JsonKey(name: 'sex')  String sex, @JsonKey(name: 'residence')  String residence)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'displayName')  String displayName, @JsonKey(name: 'ageYears')  int ageYears, @JsonKey(name: 'ageMonths')  int ageMonths, @JsonKey(name: 'sex')  String sex, @JsonKey(name: 'residence')  String residence)  $default,) {final _that = this;
 switch (_that) {
 case _PdfSubject():
-return $default(_that.displayName,_that.ageLabel,_that.sex,_that.residence);case _:
+return $default(_that.displayName,_that.ageYears,_that.ageMonths,_that.sex,_that.residence);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1035,10 +1570,10 @@ return $default(_that.displayName,_that.ageLabel,_that.sex,_that.residence);case
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'displayName')  String displayName, @JsonKey(name: 'ageLabel')  String ageLabel, @JsonKey(name: 'sex')  String sex, @JsonKey(name: 'residence')  String residence)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'displayName')  String displayName, @JsonKey(name: 'ageYears')  int ageYears, @JsonKey(name: 'ageMonths')  int ageMonths, @JsonKey(name: 'sex')  String sex, @JsonKey(name: 'residence')  String residence)?  $default,) {final _that = this;
 switch (_that) {
 case _PdfSubject() when $default != null:
-return $default(_that.displayName,_that.ageLabel,_that.sex,_that.residence);case _:
+return $default(_that.displayName,_that.ageYears,_that.ageMonths,_that.sex,_that.residence);case _:
   return null;
 
 }
@@ -1050,11 +1585,14 @@ return $default(_that.displayName,_that.ageLabel,_that.sex,_that.residence);case
 @JsonSerializable()
 
 class _PdfSubject extends PdfSubject {
-  const _PdfSubject({@JsonKey(name: 'displayName') this.displayName = '', @JsonKey(name: 'ageLabel') this.ageLabel = '', @JsonKey(name: 'sex') this.sex = '', @JsonKey(name: 'residence') this.residence = ''}): super._();
+  const _PdfSubject({@JsonKey(name: 'displayName') this.displayName = '', @JsonKey(name: 'ageYears') this.ageYears = -1, @JsonKey(name: 'ageMonths') this.ageMonths = -1, @JsonKey(name: 'sex') this.sex = '', @JsonKey(name: 'residence') this.residence = ''}): super._();
   factory _PdfSubject.fromJson(Map<String, dynamic> json) => _$PdfSubjectFromJson(json);
 
 @override@JsonKey(name: 'displayName') final  String displayName;
-@override@JsonKey(name: 'ageLabel') final  String ageLabel;
+/// Completed years and leftover months at report time; both -1 when the
+/// date of birth is unknown or in the future.
+@override@JsonKey(name: 'ageYears') final  int ageYears;
+@override@JsonKey(name: 'ageMonths') final  int ageMonths;
 @override@JsonKey(name: 'sex') final  String sex;
 @override@JsonKey(name: 'residence') final  String residence;
 
@@ -1071,16 +1609,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfSubject&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.ageLabel, ageLabel) || other.ageLabel == ageLabel)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.residence, residence) || other.residence == residence));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfSubject&&(identical(other.displayName, displayName) || other.displayName == displayName)&&(identical(other.ageYears, ageYears) || other.ageYears == ageYears)&&(identical(other.ageMonths, ageMonths) || other.ageMonths == ageMonths)&&(identical(other.sex, sex) || other.sex == sex)&&(identical(other.residence, residence) || other.residence == residence));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,displayName,ageLabel,sex,residence);
+int get hashCode => Object.hash(runtimeType,displayName,ageYears,ageMonths,sex,residence);
 
 @override
 String toString() {
-  return 'PdfSubject(displayName: $displayName, ageLabel: $ageLabel, sex: $sex, residence: $residence)';
+  return 'PdfSubject(displayName: $displayName, ageYears: $ageYears, ageMonths: $ageMonths, sex: $sex, residence: $residence)';
 }
 
 
@@ -1091,7 +1629,7 @@ abstract mixin class _$PdfSubjectCopyWith<$Res> implements $PdfSubjectCopyWith<$
   factory _$PdfSubjectCopyWith(_PdfSubject value, $Res Function(_PdfSubject) _then) = __$PdfSubjectCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'displayName') String displayName,@JsonKey(name: 'ageLabel') String ageLabel,@JsonKey(name: 'sex') String sex,@JsonKey(name: 'residence') String residence
+@JsonKey(name: 'displayName') String displayName,@JsonKey(name: 'ageYears') int ageYears,@JsonKey(name: 'ageMonths') int ageMonths,@JsonKey(name: 'sex') String sex,@JsonKey(name: 'residence') String residence
 });
 
 
@@ -1108,11 +1646,12 @@ class __$PdfSubjectCopyWithImpl<$Res>
 
 /// Create a copy of PdfSubject
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? displayName = null,Object? ageLabel = null,Object? sex = null,Object? residence = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? displayName = null,Object? ageYears = null,Object? ageMonths = null,Object? sex = null,Object? residence = null,}) {
   return _then(_PdfSubject(
 displayName: null == displayName ? _self.displayName : displayName // ignore: cast_nullable_to_non_nullable
-as String,ageLabel: null == ageLabel ? _self.ageLabel : ageLabel // ignore: cast_nullable_to_non_nullable
-as String,sex: null == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable
+as String,ageYears: null == ageYears ? _self.ageYears : ageYears // ignore: cast_nullable_to_non_nullable
+as int,ageMonths: null == ageMonths ? _self.ageMonths : ageMonths // ignore: cast_nullable_to_non_nullable
+as int,sex: null == sex ? _self.sex : sex // ignore: cast_nullable_to_non_nullable
 as String,residence: null == residence ? _self.residence : residence // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -1409,7 +1948,7 @@ as List<int>,
 /// @nodoc
 mixin _$PdfFooter {
 
-@JsonKey(name: 'patientName') String get patientName;@JsonKey(name: 'labAccessionNo') String get labAccessionNo;@JsonKey(name: 'pageLabel') String get pageLabel;@JsonKey(name: 'disclaimer') String get disclaimer;@JsonKey(name: 'supportContact') String get supportContact;
+@JsonKey(name: 'patientName') String get patientName;@JsonKey(name: 'labAccessionNo') String get labAccessionNo;@JsonKey(name: 'disclaimer') String get disclaimer;@JsonKey(name: 'supportContact') String get supportContact;
 /// Create a copy of PdfFooter
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1422,16 +1961,16 @@ $PdfFooterCopyWith<PdfFooter> get copyWith => _$PdfFooterCopyWithImpl<PdfFooter>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.pageLabel, pageLabel) || other.pageLabel == pageLabel)&&(identical(other.disclaimer, disclaimer) || other.disclaimer == disclaimer)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.disclaimer, disclaimer) || other.disclaimer == disclaimer)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,pageLabel,disclaimer,supportContact);
+int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,disclaimer,supportContact);
 
 @override
 String toString() {
-  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, pageLabel: $pageLabel, disclaimer: $disclaimer, supportContact: $supportContact)';
+  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, disclaimer: $disclaimer, supportContact: $supportContact)';
 }
 
 
@@ -1442,7 +1981,7 @@ abstract mixin class $PdfFooterCopyWith<$Res>  {
   factory $PdfFooterCopyWith(PdfFooter value, $Res Function(PdfFooter) _then) = _$PdfFooterCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'pageLabel') String pageLabel,@JsonKey(name: 'disclaimer') String disclaimer,@JsonKey(name: 'supportContact') String supportContact
+@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'disclaimer') String disclaimer,@JsonKey(name: 'supportContact') String supportContact
 });
 
 
@@ -1459,11 +1998,10 @@ class _$PdfFooterCopyWithImpl<$Res>
 
 /// Create a copy of PdfFooter
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? pageLabel = null,Object? disclaimer = null,Object? supportContact = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? disclaimer = null,Object? supportContact = null,}) {
   return _then(_self.copyWith(
 patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
 as String,labAccessionNo: null == labAccessionNo ? _self.labAccessionNo : labAccessionNo // ignore: cast_nullable_to_non_nullable
-as String,pageLabel: null == pageLabel ? _self.pageLabel : pageLabel // ignore: cast_nullable_to_non_nullable
 as String,disclaimer: null == disclaimer ? _self.disclaimer : disclaimer // ignore: cast_nullable_to_non_nullable
 as String,supportContact: null == supportContact ? _self.supportContact : supportContact // ignore: cast_nullable_to_non_nullable
 as String,
@@ -1551,10 +2089,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'pageLabel')  String pageLabel, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PdfFooter() when $default != null:
-return $default(_that.patientName,_that.labAccessionNo,_that.pageLabel,_that.disclaimer,_that.supportContact);case _:
+return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.supportContact);case _:
   return orElse();
 
 }
@@ -1572,10 +2110,10 @@ return $default(_that.patientName,_that.labAccessionNo,_that.pageLabel,_that.dis
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'pageLabel')  String pageLabel, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)  $default,) {final _that = this;
 switch (_that) {
 case _PdfFooter():
-return $default(_that.patientName,_that.labAccessionNo,_that.pageLabel,_that.disclaimer,_that.supportContact);case _:
+return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.supportContact);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1592,10 +2130,10 @@ return $default(_that.patientName,_that.labAccessionNo,_that.pageLabel,_that.dis
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'pageLabel')  String pageLabel, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)?  $default,) {final _that = this;
 switch (_that) {
 case _PdfFooter() when $default != null:
-return $default(_that.patientName,_that.labAccessionNo,_that.pageLabel,_that.disclaimer,_that.supportContact);case _:
+return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.supportContact);case _:
   return null;
 
 }
@@ -1607,12 +2145,11 @@ return $default(_that.patientName,_that.labAccessionNo,_that.pageLabel,_that.dis
 @JsonSerializable()
 
 class _PdfFooter extends PdfFooter {
-  const _PdfFooter({@JsonKey(name: 'patientName') this.patientName = '', @JsonKey(name: 'labAccessionNo') this.labAccessionNo = '', @JsonKey(name: 'pageLabel') this.pageLabel = '', @JsonKey(name: 'disclaimer') this.disclaimer = '', @JsonKey(name: 'supportContact') this.supportContact = ''}): super._();
+  const _PdfFooter({@JsonKey(name: 'patientName') this.patientName = '', @JsonKey(name: 'labAccessionNo') this.labAccessionNo = '', @JsonKey(name: 'disclaimer') this.disclaimer = '', @JsonKey(name: 'supportContact') this.supportContact = ''}): super._();
   factory _PdfFooter.fromJson(Map<String, dynamic> json) => _$PdfFooterFromJson(json);
 
 @override@JsonKey(name: 'patientName') final  String patientName;
 @override@JsonKey(name: 'labAccessionNo') final  String labAccessionNo;
-@override@JsonKey(name: 'pageLabel') final  String pageLabel;
 @override@JsonKey(name: 'disclaimer') final  String disclaimer;
 @override@JsonKey(name: 'supportContact') final  String supportContact;
 
@@ -1629,16 +2166,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.pageLabel, pageLabel) || other.pageLabel == pageLabel)&&(identical(other.disclaimer, disclaimer) || other.disclaimer == disclaimer)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.disclaimer, disclaimer) || other.disclaimer == disclaimer)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,pageLabel,disclaimer,supportContact);
+int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,disclaimer,supportContact);
 
 @override
 String toString() {
-  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, pageLabel: $pageLabel, disclaimer: $disclaimer, supportContact: $supportContact)';
+  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, disclaimer: $disclaimer, supportContact: $supportContact)';
 }
 
 
@@ -1649,7 +2186,7 @@ abstract mixin class _$PdfFooterCopyWith<$Res> implements $PdfFooterCopyWith<$Re
   factory _$PdfFooterCopyWith(_PdfFooter value, $Res Function(_PdfFooter) _then) = __$PdfFooterCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'pageLabel') String pageLabel,@JsonKey(name: 'disclaimer') String disclaimer,@JsonKey(name: 'supportContact') String supportContact
+@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'disclaimer') String disclaimer,@JsonKey(name: 'supportContact') String supportContact
 });
 
 
@@ -1666,11 +2203,10 @@ class __$PdfFooterCopyWithImpl<$Res>
 
 /// Create a copy of PdfFooter
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? pageLabel = null,Object? disclaimer = null,Object? supportContact = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? disclaimer = null,Object? supportContact = null,}) {
   return _then(_PdfFooter(
 patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
 as String,labAccessionNo: null == labAccessionNo ? _self.labAccessionNo : labAccessionNo // ignore: cast_nullable_to_non_nullable
-as String,pageLabel: null == pageLabel ? _self.pageLabel : pageLabel // ignore: cast_nullable_to_non_nullable
 as String,disclaimer: null == disclaimer ? _self.disclaimer : disclaimer // ignore: cast_nullable_to_non_nullable
 as String,supportContact: null == supportContact ? _self.supportContact : supportContact // ignore: cast_nullable_to_non_nullable
 as String,
@@ -1684,7 +2220,7 @@ as String,
 /// @nodoc
 mixin _$ReportPdfInput {
 
-@JsonKey(name: 'locale') String get locale;@JsonKey(name: 'viewerRole') String get viewerRole;@JsonKey(name: 'header') PdfHeader get header;@JsonKey(name: 'subject') PdfSubject get subject;@JsonKey(name: 'blocks') List<PdfBlock> get blocks;@JsonKey(name: 'measurements') List<String> get measurements;@JsonKey(name: 'addenda') List<String> get addenda;@JsonKey(name: 'amendmentReason') String get amendmentReason;@JsonKey(name: 'isCritical') bool get isCritical;@JsonKey(name: 'signature') PdfSignature get signature;@JsonKey(name: 'translation') Map<String, String> get translation;@JsonKey(name: 'watermark') String get watermark;@JsonKey(name: 'footer') PdfFooter get footer;@JsonKey(name: 'generatedAtLabel') String get generatedAtLabel;
+@JsonKey(name: 'locale') String get locale;@JsonKey(name: 'viewerRole') String get viewerRole;@JsonKey(name: 'header') PdfHeader get header;@JsonKey(name: 'subject') PdfSubject get subject;@JsonKey(name: 'blocks') List<PdfBlock> get blocks;@JsonKey(name: 'measurements') List<PdfMeasurement> get measurements;@JsonKey(name: 'addenda') List<PdfAddendum> get addenda;@JsonKey(name: 'amendmentReason') String get amendmentReason;@JsonKey(name: 'isCritical') bool get isCritical;@JsonKey(name: 'signature') PdfSignature get signature;@JsonKey(name: 'translation') Map<String, String> get translation;@JsonKey(name: 'translationApproverName') String get translationApproverName;@JsonKey(name: 'translationLanguage') String get translationLanguage;@JsonKey(name: 'watermark') String get watermark;@JsonKey(name: 'footer') PdfFooter get footer;@JsonKey(name: 'generatedAtLabel') String get generatedAtLabel;
 /// Create a copy of ReportPdfInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1697,16 +2233,16 @@ $ReportPdfInputCopyWith<ReportPdfInput> get copyWith => _$ReportPdfInputCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportPdfInput&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other.blocks, blocks)&&const DeepCollectionEquality().equals(other.measurements, measurements)&&const DeepCollectionEquality().equals(other.addenda, addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other.translation, translation)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer)&&(identical(other.generatedAtLabel, generatedAtLabel) || other.generatedAtLabel == generatedAtLabel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportPdfInput&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other.blocks, blocks)&&const DeepCollectionEquality().equals(other.measurements, measurements)&&const DeepCollectionEquality().equals(other.addenda, addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other.translation, translation)&&(identical(other.translationApproverName, translationApproverName) || other.translationApproverName == translationApproverName)&&(identical(other.translationLanguage, translationLanguage) || other.translationLanguage == translationLanguage)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer)&&(identical(other.generatedAtLabel, generatedAtLabel) || other.generatedAtLabel == generatedAtLabel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,locale,viewerRole,header,subject,const DeepCollectionEquality().hash(blocks),const DeepCollectionEquality().hash(measurements),const DeepCollectionEquality().hash(addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(translation),watermark,footer,generatedAtLabel);
+int get hashCode => Object.hash(runtimeType,locale,viewerRole,header,subject,const DeepCollectionEquality().hash(blocks),const DeepCollectionEquality().hash(measurements),const DeepCollectionEquality().hash(addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(translation),translationApproverName,translationLanguage,watermark,footer,generatedAtLabel);
 
 @override
 String toString() {
-  return 'ReportPdfInput(locale: $locale, viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, watermark: $watermark, footer: $footer, generatedAtLabel: $generatedAtLabel)';
+  return 'ReportPdfInput(locale: $locale, viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, translationApproverName: $translationApproverName, translationLanguage: $translationLanguage, watermark: $watermark, footer: $footer, generatedAtLabel: $generatedAtLabel)';
 }
 
 
@@ -1717,7 +2253,7 @@ abstract mixin class $ReportPdfInputCopyWith<$Res>  {
   factory $ReportPdfInputCopyWith(ReportPdfInput value, $Res Function(ReportPdfInput) _then) = _$ReportPdfInputCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'locale') String locale,@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<String> measurements,@JsonKey(name: 'addenda') List<String> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer,@JsonKey(name: 'generatedAtLabel') String generatedAtLabel
+@JsonKey(name: 'locale') String locale,@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<PdfMeasurement> measurements,@JsonKey(name: 'addenda') List<PdfAddendum> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'translationApproverName') String translationApproverName,@JsonKey(name: 'translationLanguage') String translationLanguage,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer,@JsonKey(name: 'generatedAtLabel') String generatedAtLabel
 });
 
 
@@ -1734,7 +2270,7 @@ class _$ReportPdfInputCopyWithImpl<$Res>
 
 /// Create a copy of ReportPdfInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? locale = null,Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? watermark = null,Object? footer = null,Object? generatedAtLabel = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? locale = null,Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? translationApproverName = null,Object? translationLanguage = null,Object? watermark = null,Object? footer = null,Object? generatedAtLabel = null,}) {
   return _then(_self.copyWith(
 locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
 as String,viewerRole: null == viewerRole ? _self.viewerRole : viewerRole // ignore: cast_nullable_to_non_nullable
@@ -1742,12 +2278,14 @@ as String,header: null == header ? _self.header : header // ignore: cast_nullabl
 as PdfHeader,subject: null == subject ? _self.subject : subject // ignore: cast_nullable_to_non_nullable
 as PdfSubject,blocks: null == blocks ? _self.blocks : blocks // ignore: cast_nullable_to_non_nullable
 as List<PdfBlock>,measurements: null == measurements ? _self.measurements : measurements // ignore: cast_nullable_to_non_nullable
-as List<String>,addenda: null == addenda ? _self.addenda : addenda // ignore: cast_nullable_to_non_nullable
-as List<String>,amendmentReason: null == amendmentReason ? _self.amendmentReason : amendmentReason // ignore: cast_nullable_to_non_nullable
+as List<PdfMeasurement>,addenda: null == addenda ? _self.addenda : addenda // ignore: cast_nullable_to_non_nullable
+as List<PdfAddendum>,amendmentReason: null == amendmentReason ? _self.amendmentReason : amendmentReason // ignore: cast_nullable_to_non_nullable
 as String,isCritical: null == isCritical ? _self.isCritical : isCritical // ignore: cast_nullable_to_non_nullable
 as bool,signature: null == signature ? _self.signature : signature // ignore: cast_nullable_to_non_nullable
 as PdfSignature,translation: null == translation ? _self.translation : translation // ignore: cast_nullable_to_non_nullable
-as Map<String, String>,watermark: null == watermark ? _self.watermark : watermark // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,translationApproverName: null == translationApproverName ? _self.translationApproverName : translationApproverName // ignore: cast_nullable_to_non_nullable
+as String,translationLanguage: null == translationLanguage ? _self.translationLanguage : translationLanguage // ignore: cast_nullable_to_non_nullable
+as String,watermark: null == watermark ? _self.watermark : watermark // ignore: cast_nullable_to_non_nullable
 as String,footer: null == footer ? _self.footer : footer // ignore: cast_nullable_to_non_nullable
 as PdfFooter,generatedAtLabel: null == generatedAtLabel ? _self.generatedAtLabel : generatedAtLabel // ignore: cast_nullable_to_non_nullable
 as String,
@@ -1871,10 +2409,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<String> measurements, @JsonKey(name: 'addenda')  List<String> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportPdfInput() when $default != null:
-return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
+return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
   return orElse();
 
 }
@@ -1892,10 +2430,10 @@ return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<String> measurements, @JsonKey(name: 'addenda')  List<String> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)  $default,) {final _that = this;
 switch (_that) {
 case _ReportPdfInput():
-return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
+return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -1912,10 +2450,10 @@ return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<String> measurements, @JsonKey(name: 'addenda')  List<String> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportPdfInput() when $default != null:
-return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
+return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
   return null;
 
 }
@@ -1927,7 +2465,7 @@ return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.b
 
 @JsonSerializable(explicitToJson: true)
 class _ReportPdfInput extends ReportPdfInput {
-  const _ReportPdfInput({@JsonKey(name: 'locale') this.locale = 'en', @JsonKey(name: 'viewerRole') this.viewerRole = '', @JsonKey(name: 'header') this.header = const PdfHeader(), @JsonKey(name: 'subject') this.subject = const PdfSubject(), @JsonKey(name: 'blocks') final  List<PdfBlock> blocks = const <PdfBlock>[], @JsonKey(name: 'measurements') final  List<String> measurements = const <String>[], @JsonKey(name: 'addenda') final  List<String> addenda = const <String>[], @JsonKey(name: 'amendmentReason') this.amendmentReason = '', @JsonKey(name: 'isCritical') this.isCritical = false, @JsonKey(name: 'signature') this.signature = const PdfSignature(), @JsonKey(name: 'translation') final  Map<String, String> translation = const <String, String>{}, @JsonKey(name: 'watermark') this.watermark = '', @JsonKey(name: 'footer') this.footer = const PdfFooter(), @JsonKey(name: 'generatedAtLabel') this.generatedAtLabel = ''}): _blocks = blocks,_measurements = measurements,_addenda = addenda,_translation = translation,super._();
+  const _ReportPdfInput({@JsonKey(name: 'locale') this.locale = 'en', @JsonKey(name: 'viewerRole') this.viewerRole = '', @JsonKey(name: 'header') this.header = const PdfHeader(), @JsonKey(name: 'subject') this.subject = const PdfSubject(), @JsonKey(name: 'blocks') final  List<PdfBlock> blocks = const <PdfBlock>[], @JsonKey(name: 'measurements') final  List<PdfMeasurement> measurements = const <PdfMeasurement>[], @JsonKey(name: 'addenda') final  List<PdfAddendum> addenda = const <PdfAddendum>[], @JsonKey(name: 'amendmentReason') this.amendmentReason = '', @JsonKey(name: 'isCritical') this.isCritical = false, @JsonKey(name: 'signature') this.signature = const PdfSignature(), @JsonKey(name: 'translation') final  Map<String, String> translation = const <String, String>{}, @JsonKey(name: 'translationApproverName') this.translationApproverName = '', @JsonKey(name: 'translationLanguage') this.translationLanguage = '', @JsonKey(name: 'watermark') this.watermark = '', @JsonKey(name: 'footer') this.footer = const PdfFooter(), @JsonKey(name: 'generatedAtLabel') this.generatedAtLabel = ''}): _blocks = blocks,_measurements = measurements,_addenda = addenda,_translation = translation,super._();
   factory _ReportPdfInput.fromJson(Map<String, dynamic> json) => _$ReportPdfInputFromJson(json);
 
 @override@JsonKey(name: 'locale') final  String locale;
@@ -1941,15 +2479,15 @@ class _ReportPdfInput extends ReportPdfInput {
   return EqualUnmodifiableListView(_blocks);
 }
 
- final  List<String> _measurements;
-@override@JsonKey(name: 'measurements') List<String> get measurements {
+ final  List<PdfMeasurement> _measurements;
+@override@JsonKey(name: 'measurements') List<PdfMeasurement> get measurements {
   if (_measurements is EqualUnmodifiableListView) return _measurements;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_measurements);
 }
 
- final  List<String> _addenda;
-@override@JsonKey(name: 'addenda') List<String> get addenda {
+ final  List<PdfAddendum> _addenda;
+@override@JsonKey(name: 'addenda') List<PdfAddendum> get addenda {
   if (_addenda is EqualUnmodifiableListView) return _addenda;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_addenda);
@@ -1965,6 +2503,8 @@ class _ReportPdfInput extends ReportPdfInput {
   return EqualUnmodifiableMapView(_translation);
 }
 
+@override@JsonKey(name: 'translationApproverName') final  String translationApproverName;
+@override@JsonKey(name: 'translationLanguage') final  String translationLanguage;
 @override@JsonKey(name: 'watermark') final  String watermark;
 @override@JsonKey(name: 'footer') final  PdfFooter footer;
 @override@JsonKey(name: 'generatedAtLabel') final  String generatedAtLabel;
@@ -1982,16 +2522,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportPdfInput&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other._blocks, _blocks)&&const DeepCollectionEquality().equals(other._measurements, _measurements)&&const DeepCollectionEquality().equals(other._addenda, _addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other._translation, _translation)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer)&&(identical(other.generatedAtLabel, generatedAtLabel) || other.generatedAtLabel == generatedAtLabel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportPdfInput&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other._blocks, _blocks)&&const DeepCollectionEquality().equals(other._measurements, _measurements)&&const DeepCollectionEquality().equals(other._addenda, _addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other._translation, _translation)&&(identical(other.translationApproverName, translationApproverName) || other.translationApproverName == translationApproverName)&&(identical(other.translationLanguage, translationLanguage) || other.translationLanguage == translationLanguage)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer)&&(identical(other.generatedAtLabel, generatedAtLabel) || other.generatedAtLabel == generatedAtLabel));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,locale,viewerRole,header,subject,const DeepCollectionEquality().hash(_blocks),const DeepCollectionEquality().hash(_measurements),const DeepCollectionEquality().hash(_addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(_translation),watermark,footer,generatedAtLabel);
+int get hashCode => Object.hash(runtimeType,locale,viewerRole,header,subject,const DeepCollectionEquality().hash(_blocks),const DeepCollectionEquality().hash(_measurements),const DeepCollectionEquality().hash(_addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(_translation),translationApproverName,translationLanguage,watermark,footer,generatedAtLabel);
 
 @override
 String toString() {
-  return 'ReportPdfInput(locale: $locale, viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, watermark: $watermark, footer: $footer, generatedAtLabel: $generatedAtLabel)';
+  return 'ReportPdfInput(locale: $locale, viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, translationApproverName: $translationApproverName, translationLanguage: $translationLanguage, watermark: $watermark, footer: $footer, generatedAtLabel: $generatedAtLabel)';
 }
 
 
@@ -2002,7 +2542,7 @@ abstract mixin class _$ReportPdfInputCopyWith<$Res> implements $ReportPdfInputCo
   factory _$ReportPdfInputCopyWith(_ReportPdfInput value, $Res Function(_ReportPdfInput) _then) = __$ReportPdfInputCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'locale') String locale,@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<String> measurements,@JsonKey(name: 'addenda') List<String> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer,@JsonKey(name: 'generatedAtLabel') String generatedAtLabel
+@JsonKey(name: 'locale') String locale,@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<PdfMeasurement> measurements,@JsonKey(name: 'addenda') List<PdfAddendum> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'translationApproverName') String translationApproverName,@JsonKey(name: 'translationLanguage') String translationLanguage,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer,@JsonKey(name: 'generatedAtLabel') String generatedAtLabel
 });
 
 
@@ -2019,7 +2559,7 @@ class __$ReportPdfInputCopyWithImpl<$Res>
 
 /// Create a copy of ReportPdfInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? locale = null,Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? watermark = null,Object? footer = null,Object? generatedAtLabel = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? locale = null,Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? translationApproverName = null,Object? translationLanguage = null,Object? watermark = null,Object? footer = null,Object? generatedAtLabel = null,}) {
   return _then(_ReportPdfInput(
 locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
 as String,viewerRole: null == viewerRole ? _self.viewerRole : viewerRole // ignore: cast_nullable_to_non_nullable
@@ -2027,12 +2567,14 @@ as String,header: null == header ? _self.header : header // ignore: cast_nullabl
 as PdfHeader,subject: null == subject ? _self.subject : subject // ignore: cast_nullable_to_non_nullable
 as PdfSubject,blocks: null == blocks ? _self._blocks : blocks // ignore: cast_nullable_to_non_nullable
 as List<PdfBlock>,measurements: null == measurements ? _self._measurements : measurements // ignore: cast_nullable_to_non_nullable
-as List<String>,addenda: null == addenda ? _self._addenda : addenda // ignore: cast_nullable_to_non_nullable
-as List<String>,amendmentReason: null == amendmentReason ? _self.amendmentReason : amendmentReason // ignore: cast_nullable_to_non_nullable
+as List<PdfMeasurement>,addenda: null == addenda ? _self._addenda : addenda // ignore: cast_nullable_to_non_nullable
+as List<PdfAddendum>,amendmentReason: null == amendmentReason ? _self.amendmentReason : amendmentReason // ignore: cast_nullable_to_non_nullable
 as String,isCritical: null == isCritical ? _self.isCritical : isCritical // ignore: cast_nullable_to_non_nullable
 as bool,signature: null == signature ? _self.signature : signature // ignore: cast_nullable_to_non_nullable
 as PdfSignature,translation: null == translation ? _self._translation : translation // ignore: cast_nullable_to_non_nullable
-as Map<String, String>,watermark: null == watermark ? _self.watermark : watermark // ignore: cast_nullable_to_non_nullable
+as Map<String, String>,translationApproverName: null == translationApproverName ? _self.translationApproverName : translationApproverName // ignore: cast_nullable_to_non_nullable
+as String,translationLanguage: null == translationLanguage ? _self.translationLanguage : translationLanguage // ignore: cast_nullable_to_non_nullable
+as String,watermark: null == watermark ? _self.watermark : watermark // ignore: cast_nullable_to_non_nullable
 as String,footer: null == footer ? _self.footer : footer // ignore: cast_nullable_to_non_nullable
 as PdfFooter,generatedAtLabel: null == generatedAtLabel ? _self.generatedAtLabel : generatedAtLabel // ignore: cast_nullable_to_non_nullable
 as String,

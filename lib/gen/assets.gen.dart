@@ -56,6 +56,12 @@ class $AssetsDataGen {
   /// File path: assets/data/lab_tests.json
   String get labTests => 'assets/data/lab_tests.json';
 
+  /// File path: assets/data/notifiable_diseases.json
+  String get notifiableDiseases => 'assets/data/notifiable_diseases.json';
+
+  /// File path: assets/data/public_health_guidance.json
+  String get publicHealthGuidance => 'assets/data/public_health_guidance.json';
+
   /// File path: assets/data/report_templates.json
   String get reportTemplates => 'assets/data/report_templates.json';
 
@@ -69,6 +75,8 @@ class $AssetsDataGen {
     insurers,
     labTestTypes,
     labTests,
+    notifiableDiseases,
+    publicHealthGuidance,
     reportTemplates,
     subCountiesNairobi,
   ];

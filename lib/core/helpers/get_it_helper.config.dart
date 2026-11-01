@@ -66,6 +66,8 @@ import 'package:tabibu/features/reports/data/cache/report_cache_helper.dart'
     as _i726;
 import 'package:tabibu/features/reports/data/datasources/report_firebase.dart'
     as _i1004;
+import 'package:tabibu/features/reports/data/services/report_pdf_builder.dart'
+    as _i251;
 import 'package:tabibu/features/worklist/data/cache/worklist_cache_helper.dart'
     as _i407;
 import 'package:tabibu/features/worklist/data/datasources/worklist_firebase.dart'
@@ -101,6 +103,7 @@ extension GetItInjectableX on _i174.GetIt {
     gh.lazySingleton<_i75.AppUpdateService>(() => _i75.AppUpdateService());
     gh.lazySingleton<_i282.FilePickerService>(() => _i282.FilePickerService());
     gh.lazySingleton<_i76.InternetService>(() => _i76.InternetService());
+    gh.lazySingleton<_i251.ReportPdfBuilder>(() => _i251.ReportPdfBuilder());
     gh.lazySingleton<_i265.AlertTopicService>(
       () => _i265.AlertTopicService(
         messaging: gh<_i892.FirebaseMessaging>(),

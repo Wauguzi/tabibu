@@ -23,14 +23,15 @@ abstract class PdfLine with _$PdfLine {
   factory PdfLine.empty() => const PdfLine();
 }
 
-/// A titled block of lines on the PDF body.
+/// One section block on the PDF body. [sectionKey] is a [ReportSection]
+/// wire value; the builder localises it, falling back to the key itself.
 @freezed
 abstract class PdfBlock with _$PdfBlock {
   // Nested lines must call toJson(); freezed puts this on the factory.
   // ignore: invalid_annotation_target
   @JsonSerializable(explicitToJson: true)
   const factory PdfBlock({
-    @JsonKey(name: 'title') @Default('') String title,
+    @JsonKey(name: 'sectionKey') @Default('') String sectionKey,
     @JsonKey(name: 'lines') @Default(<PdfLine>[]) List<PdfLine> lines,
   }) = _PdfBlock;
 
@@ -40,6 +41,39 @@ abstract class PdfBlock with _$PdfBlock {
       _$PdfBlockFromJson(json);
 
   factory PdfBlock.empty() => const PdfBlock();
+}
+
+/// One measurement row: the measure key as stored, and the formatted
+/// value with its unit.
+@freezed
+abstract class PdfMeasurement with _$PdfMeasurement {
+  const factory PdfMeasurement({
+    @JsonKey(name: 'key') @Default('') String key,
+    @JsonKey(name: 'value') @Default('') String value,
+  }) = _PdfMeasurement;
+
+  const PdfMeasurement._();
+
+  factory PdfMeasurement.fromJson(Map<String, dynamic> json) =>
+      _$PdfMeasurementFromJson(json);
+
+  factory PdfMeasurement.empty() => const PdfMeasurement();
+}
+
+/// One signed addendum: its text and the ISO signing timestamp.
+@freezed
+abstract class PdfAddendum with _$PdfAddendum {
+  const factory PdfAddendum({
+    @JsonKey(name: 'text') @Default('') String text,
+    @JsonKey(name: 'signedAt') @Default('') String signedAt,
+  }) = _PdfAddendum;
+
+  const PdfAddendum._();
+
+  factory PdfAddendum.fromJson(Map<String, dynamic> json) =>
+      _$PdfAddendumFromJson(json);
+
+  factory PdfAddendum.empty() => const PdfAddendum();
 }
 
 /// Header fields shown at the top of a signed report PDF.
@@ -78,7 +112,11 @@ abstract class PdfHeader with _$PdfHeader {
 abstract class PdfSubject with _$PdfSubject {
   const factory PdfSubject({
     @JsonKey(name: 'displayName') @Default('') String displayName,
-    @JsonKey(name: 'ageLabel') @Default('') String ageLabel,
+
+    /// Completed years and leftover months at report time; both -1 when the
+    /// date of birth is unknown or in the future.
+    @JsonKey(name: 'ageYears') @Default(-1) int ageYears,
+    @JsonKey(name: 'ageMonths') @Default(-1) int ageMonths,
     @JsonKey(name: 'sex') @Default('') String sex,
     @JsonKey(name: 'residence') @Default('') String residence,
   }) = _PdfSubject;
@@ -90,10 +128,15 @@ abstract class PdfSubject with _$PdfSubject {
 
   factory PdfSubject.empty() => const PdfSubject();
 
-  /// Years and months from [dateOfBirth] ISO string to [now].
-  static String ageLabelFromDateOfBirth(String dateOfBirth, DateTime now) {
+  /// Completed years and leftover months from [dateOfBirth] ISO string to
+  /// [now]; (-1, -1) when the string is invalid or in the future.
+  static ({int years, int months}) ageFromDateOfBirth(
+    String dateOfBirth,
+    DateTime now,
+  ) {
+    const unknown = (years: -1, months: -1);
     final born = DateTime.tryParse(dateOfBirth);
-    if (born == null) return '';
+    if (born == null) return unknown;
     var years = now.year - born.year;
     var months = now.month - born.month;
     if (now.day < born.day) months -= 1;
@@ -101,8 +144,8 @@ abstract class PdfSubject with _$PdfSubject {
       years -= 1;
       months += 12;
     }
-    if (years < 0) return '';
-    return '$years years $months months';
+    if (years < 0) return unknown;
+    return (years: years, months: months);
   }
 }
 
@@ -132,7 +175,6 @@ abstract class PdfFooter with _$PdfFooter {
   const factory PdfFooter({
     @JsonKey(name: 'patientName') @Default('') String patientName,
     @JsonKey(name: 'labAccessionNo') @Default('') String labAccessionNo,
-    @JsonKey(name: 'pageLabel') @Default('') String pageLabel,
     @JsonKey(name: 'disclaimer') @Default('') String disclaimer,
     @JsonKey(name: 'supportContact') @Default('') String supportContact,
   }) = _PdfFooter;
@@ -158,15 +200,23 @@ abstract class ReportPdfInput with _$ReportPdfInput {
     @JsonKey(name: 'subject') @Default(PdfSubject()) PdfSubject subject,
     @JsonKey(name: 'blocks') @Default(<PdfBlock>[]) List<PdfBlock> blocks,
     @JsonKey(name: 'measurements')
-    @Default(<String>[])
-    List<String> measurements,
-    @JsonKey(name: 'addenda') @Default(<String>[]) List<String> addenda,
+    @Default(<PdfMeasurement>[])
+    List<PdfMeasurement> measurements,
+    @JsonKey(name: 'addenda')
+    @Default(<PdfAddendum>[])
+    List<PdfAddendum> addenda,
     @JsonKey(name: 'amendmentReason') @Default('') String amendmentReason,
     @JsonKey(name: 'isCritical') @Default(false) bool isCritical,
     @JsonKey(name: 'signature') @Default(PdfSignature()) PdfSignature signature,
     @JsonKey(name: 'translation')
     @Default(<String, String>{})
     Map<String, String> translation,
+    @JsonKey(name: 'translationApproverName')
+    @Default('')
+    String translationApproverName,
+    @JsonKey(name: 'translationLanguage')
+    @Default('')
+    String translationLanguage,
     @JsonKey(name: 'watermark') @Default('') String watermark,
     @JsonKey(name: 'footer') @Default(PdfFooter()) PdfFooter footer,
     @JsonKey(name: 'generatedAtLabel') @Default('') String generatedAtLabel,
@@ -237,19 +287,20 @@ abstract class ReportPdfInput with _$ReportPdfInput {
 
     final blocks = <PdfBlock>[
       PdfBlock(
-        title: 'Diagnosis',
+        sectionKey: ReportSection.diagnosis.value,
         lines: [PdfLine(label: report.diagnosisType, value: report.diagnosis)],
       ),
       PdfBlock(
-        title: 'Comments',
+        sectionKey: ReportSection.comments.value,
         lines: [PdfLine(value: report.comments)],
       ),
       PdfBlock(
-        title: 'Clinical notes',
+        sectionKey: ReportSection.clinicalNotes.value,
         lines: [PdfLine(value: clinicalNotes)],
       ),
       ..._blocksFromResponses(report.responses),
     ];
+    final age = PdfSubject.ageFromDateOfBirth(dateOfBirth, now);
 
     return ReportPdfInput(
       locale: locale,
@@ -270,13 +321,18 @@ abstract class ReportPdfInput with _$ReportPdfInput {
       ),
       subject: PdfSubject(
         displayName: patientDisplayName,
-        ageLabel: PdfSubject.ageLabelFromDateOfBirth(dateOfBirth, now),
+        ageYears: age.years,
+        ageMonths: age.months,
         sex: sex,
         residence: residence,
       ),
       blocks: blocks,
-      measurements: report.measurements.map((m) => m.formatted).toList(),
-      addenda: report.addenda.map((a) => a.text).toList(),
+      measurements: report.measurements
+          .map((m) => PdfMeasurement(key: m.key, value: m.formatted))
+          .toList(),
+      addenda: report.addenda
+          .map((a) => PdfAddendum(text: a.text, signedAt: a.signedAt))
+          .toList(),
       amendmentReason: report.amendmentReason,
       isCritical: report.isCritical,
       signature: PdfSignature(
@@ -288,6 +344,8 @@ abstract class ReportPdfInput with _$ReportPdfInput {
         png: signaturePng,
       ),
       translation: translation?.approvedText ?? const {},
+      translationApproverName: translation?.approverName ?? '',
+      translationLanguage: translation?.language ?? '',
       footer: PdfFooter(
         patientName: patientDisplayName,
         labAccessionNo: report.labAccessionNo,
@@ -300,9 +358,22 @@ abstract class ReportPdfInput with _$ReportPdfInput {
 }
 
 List<PdfBlock> _blocksFromResponses(List<ReportResponseModel> responses) {
+  // Question order restarts in every section, so sections sort by their
+  // enum position (every template lists them in that order) and only then
+  // by question order; an unknown section goes last.
+  int rank(String section) {
+    final known = ReportSection.values.where((s) => s.value == section);
+    return known.isEmpty ? ReportSection.values.length : known.first.index;
+  }
+
+  final sorted = responses.toList()
+    ..sort((a, b) {
+      final bySection = rank(a.section).compareTo(rank(b.section));
+      return bySection != 0 ? bySection : a.order.compareTo(b.order);
+    });
   final bySection = <String, List<PdfLine>>{};
   final order = <String>[];
-  for (final response in responses) {
+  for (final response in sorted) {
     final key = response.section.isEmpty ? 'Other' : response.section;
     if (!bySection.containsKey(key)) {
       order.add(key);
@@ -313,6 +384,6 @@ List<PdfBlock> _blocksFromResponses(List<ReportResponseModel> responses) {
     );
   }
   return [
-    for (final key in order) PdfBlock(title: key, lines: bySection[key]!),
+    for (final key in order) PdfBlock(sectionKey: key, lines: bySection[key]!),
   ];
 }

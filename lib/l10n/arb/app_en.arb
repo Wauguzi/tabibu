@@ -2363,5 +2363,270 @@
     "notificationUnknownBody": "You have a new notification in Tabibu.",
     "@notificationUnknownBody": {
         "description": "Inbox body for an unrecognised template key"
+    },
+    "reportPdfTitle": "Pathology report",
+    "@reportPdfTitle": {
+        "description": "PDF report header: document kind under the wordmark"
+    },
+    "reportPdfOrderNumber": "Order number",
+    "@reportPdfOrderNumber": {
+        "description": "PDF report header: label above the order number"
+    },
+    "reportPdfVersionReleased": "Version {version} · Released {date}",
+    "@reportPdfVersionReleased": {
+        "description": "PDF report header: version and release date line",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfCompactTitle": "{order} · Version {version}",
+    "@reportPdfCompactTitle": {
+        "description": "PDF report compact header on pages after the first",
+        "placeholders": {
+            "order": {
+                "type": "String"
+            },
+            "version": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfStageAmended": "Amended",
+    "@reportPdfStageAmended": {
+        "description": "PDF report stage banner label for an amended report"
+    },
+    "reportPdfStageAddended": "Addended",
+    "@reportPdfStageAddended": {
+        "description": "PDF report stage banner label for an addended report"
+    },
+    "reportPdfSupersedes": "Supersedes version {version}.",
+    "@reportPdfSupersedes": {
+        "description": "PDF report stage banner body without a reason",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfSupersedesReason": "Supersedes version {version}. Reason: {reason}.",
+    "@reportPdfSupersedesReason": {
+        "description": "PDF report stage banner body with the amendment reason",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            },
+            "reason": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfCritical": "Critical result. Act on it today.",
+    "@reportPdfCritical": {
+        "description": "PDF report critical banner text"
+    },
+    "reportPdfTemplateCancer": "Cancer template",
+    "@reportPdfTemplateCancer": {
+        "description": "PDF report subtitle: the cancer report template"
+    },
+    "reportPdfTemplateMalaria": "Malaria template",
+    "@reportPdfTemplateMalaria": {
+        "description": "PDF report subtitle: the malaria report template"
+    },
+    "reportPdfTemplateGeneral": "General template",
+    "@reportPdfTemplateGeneral": {
+        "description": "PDF report subtitle: the general report template"
+    },
+    "reportPdfReportedBy": "reported by {facility}",
+    "@reportPdfReportedBy": {
+        "description": "PDF report subtitle: the reporting lab facility",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfPatient": "Patient",
+    "@reportPdfPatient": {
+        "description": "PDF report patient card title"
+    },
+    "reportPdfRequest": "Request",
+    "@reportPdfRequest": {
+        "description": "PDF report request card title"
+    },
+    "reportPdfName": "Name",
+    "@reportPdfName": {
+        "description": "PDF report patient card: name row label"
+    },
+    "reportPdfAgeLabel": "Age",
+    "@reportPdfAgeLabel": {
+        "description": "PDF report patient card: age row label"
+    },
+    "reportPdfSex": "Sex",
+    "@reportPdfSex": {
+        "description": "PDF report patient card: sex row label"
+    },
+    "reportPdfResidence": "Residence",
+    "@reportPdfResidence": {
+        "description": "PDF report patient card: residence row label"
+    },
+    "reportPdfRequestedBy": "Requested by",
+    "@reportPdfRequestedBy": {
+        "description": "PDF report request card: ordering doctor row label"
+    },
+    "reportPdfFacility": "Facility",
+    "@reportPdfFacility": {
+        "description": "PDF report request card: ordering facility row label"
+    },
+    "reportPdfCollected": "Collected",
+    "@reportPdfCollected": {
+        "description": "PDF report request card: sample collected row label"
+    },
+    "reportPdfReceived": "Received",
+    "@reportPdfReceived": {
+        "description": "PDF report request card: sample received row label"
+    },
+    "reportPdfAccessionNo": "Accession no.",
+    "@reportPdfAccessionNo": {
+        "description": "PDF report request card: accession number row label"
+    },
+    "reportPdfDiagnosisTypeFinal": "Final",
+    "@reportPdfDiagnosisTypeFinal": {
+        "description": "PDF report diagnosis panel: final diagnosis type"
+    },
+    "reportPdfDiagnosisTypeProvisional": "Provisional",
+    "@reportPdfDiagnosisTypeProvisional": {
+        "description": "PDF report diagnosis panel: provisional diagnosis type"
+    },
+    "reportPdfDiagnosisTypeInconclusive": "Inconclusive",
+    "@reportPdfDiagnosisTypeInconclusive": {
+        "description": "PDF report diagnosis panel: inconclusive diagnosis type"
+    },
+    "reportPdfMeasurements": "Measurements",
+    "@reportPdfMeasurements": {
+        "description": "PDF report measurements block title"
+    },
+    "reportPdfMeasure": "Measure",
+    "@reportPdfMeasure": {
+        "description": "PDF report measurements table: name column header"
+    },
+    "reportPdfValue": "Value",
+    "@reportPdfValue": {
+        "description": "PDF report measurements table: value column header"
+    },
+    "reportPdfMeasurementsCaption": "Computed by Tabibu from the signed findings.",
+    "@reportPdfMeasurementsCaption": {
+        "description": "PDF report measurements block caption"
+    },
+    "reportPdfAddendum": "Addendum · {date}",
+    "@reportPdfAddendum": {
+        "description": "PDF report addendum card title with its signing date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfTranslation": "Translation",
+    "@reportPdfTranslation": {
+        "description": "PDF report translation block eyebrow"
+    },
+    "reportPdfTranslationBy": "Translation by AI, approved by {name}",
+    "@reportPdfTranslationBy": {
+        "description": "PDF report translation block attribution",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfSignedReport": "Signed report",
+    "@reportPdfSignedReport": {
+        "description": "PDF report signed block eyebrow"
+    },
+    "reportPdfConsultantLine": "Consultant pathologist · KMPDC Reg. No. {kmpdc}",
+    "@reportPdfConsultantLine": {
+        "description": "PDF report signed block: role and registration line",
+        "placeholders": {
+            "kmpdc": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfSignedAt": "Signed {date} EAT",
+    "@reportPdfSignedAt": {
+        "description": "PDF report signed block: signing timestamp in Nairobi time",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfContentRef": "Content reference {ref}",
+    "@reportPdfContentRef": {
+        "description": "PDF report signed block: content hash reference",
+        "placeholders": {
+            "ref": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfSignature": "Signature",
+    "@reportPdfSignature": {
+        "description": "PDF report signed block: signature caption"
+    },
+    "reportPdfEndOfReport": "End of report",
+    "@reportPdfEndOfReport": {
+        "description": "PDF report closing line"
+    },
+    "reportPdfAccession": "Accession {no}",
+    "@reportPdfAccession": {
+        "description": "PDF report footer: accession number",
+        "placeholders": {
+            "no": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfPage": "Page {page} of {pages}",
+    "@reportPdfPage": {
+        "description": "PDF report footer: page numbering",
+        "placeholders": {
+            "page": {
+                "type": "int"
+            },
+            "pages": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfDisclaimer": "For the named patient and their care team. Read it with the clinical picture. Questions: {contact}.",
+    "@reportPdfDisclaimer": {
+        "description": "PDF report footer disclaimer with the support contact",
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfAge": "{years, plural, =0{{months, plural, =1{1 month} other{{months} months}}} =1{1 year {months, plural, =1{1 month} other{{months} months}}} other{{years} years {months, plural, =1{1 month} other{{months} months}}}}",
+    "@reportPdfAge": {
+        "description": "PDF report patient card: age in years and months",
+        "placeholders": {
+            "years": {
+                "type": "int"
+            },
+            "months": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfMissingValue": "—",
+    "@reportPdfMissingValue": {
+        "description": "PDF report: shown where a date or age is unknown"
     }
 }
