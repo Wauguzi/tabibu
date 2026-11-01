@@ -147,3 +147,6 @@ test/firestore_rules/node_modules/
 
 # Coding-agent briefs; outside build/ so flutter clean keeps them.
 .briefs/
+
+# The share-code HMAC key for the emulator; production reads Secret Manager.
+functions/.secret.local
