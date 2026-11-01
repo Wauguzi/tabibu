@@ -1730,3 +1730,205 @@ enum NotificationStatus {
     _ => .unread,
   };
 }
+
+// Alerts and the notifiable-disease bundle
+
+/// Kenya's reporting category for a notifiable disease.
+/// Unknown reads as [notListed].
+enum ReportingCategory {
+  immediate,
+  weekly,
+  monthly,
+  notListed;
+
+  String get value => switch (this) {
+    .immediate => 'Immediate',
+    .weekly => 'Weekly',
+    .monthly => 'Monthly',
+    .notListed => 'NotListed',
+  };
+
+  static ReportingCategory fromValue(String value) => switch (value) {
+    'Immediate' => .immediate,
+    'Weekly' => .weekly,
+    'Monthly' => .monthly,
+    'NotListed' => .notListed,
+    _ => .notListed,
+  };
+}
+
+/// A disease's place in the International Health Regulations, Annex 2.
+/// Unknown reads as [notListed].
+enum IhrStatus {
+  alwaysNotifiable,
+  alwaysAssessed,
+  eventAssessed,
+  notListed;
+
+  String get value => switch (this) {
+    .alwaysNotifiable => 'AlwaysNotifiable',
+    .alwaysAssessed => 'AlwaysAssessed',
+    .eventAssessed => 'EventAssessed',
+    .notListed => 'None',
+  };
+
+  static IhrStatus fromValue(String value) => switch (value) {
+    'AlwaysNotifiable' => .alwaysNotifiable,
+    'AlwaysAssessed' => .alwaysAssessed,
+    'EventAssessed' => .eventAssessed,
+    'None' => .notListed,
+    _ => .notListed,
+  };
+}
+
+/// A disease's group in Kenya's surveillance list.
+/// Unknown reads as [notListed].
+enum KenyaGroup {
+  epidemicProne,
+  elimination,
+  publicHealthImportance,
+  notListed;
+
+  String get value => switch (this) {
+    .epidemicProne => 'EpidemicProne',
+    .elimination => 'Elimination',
+    .publicHealthImportance => 'PublicHealthImportance',
+    .notListed => 'NotListed',
+  };
+
+  static KenyaGroup fromValue(String value) => switch (value) {
+    'EpidemicProne' => .epidemicProne,
+    'Elimination' => .elimination,
+    'PublicHealthImportance' => .publicHealthImportance,
+    'NotListed' => .notListed,
+    _ => .notListed,
+  };
+}
+
+/// How strongly a lab test confirms a disease. Unknown reads as [uncertain].
+enum TestStrength {
+  confirms,
+  presumptive,
+  supportive,
+  uncertain;
+
+  String get value => switch (this) {
+    .confirms => 'Confirms',
+    .presumptive => 'Presumptive',
+    .supportive => 'Supportive',
+    .uncertain => 'Uncertain',
+  };
+
+  static TestStrength fromValue(String value) => switch (value) {
+    'Confirms' => .confirms,
+    'Presumptive' => .presumptive,
+    'Supportive' => .supportive,
+    'Uncertain' => .uncertain,
+    _ => .uncertain,
+  };
+}
+
+/// Who a guidance bullet is written for. Unknown reads as [patient].
+enum GuidanceAudience {
+  patient,
+  clinician;
+
+  String get value => switch (this) {
+    .patient => 'Patient',
+    .clinician => 'Clinician',
+  };
+
+  static GuidanceAudience fromValue(String value) => switch (value) {
+    'Patient' => .patient,
+    'Clinician' => .clinician,
+    _ => .patient,
+  };
+}
+
+/// The detector rule that raised an alert signal. Unknown reads as [manual].
+enum AlertRule {
+  immediate,
+  baseline,
+  manual;
+
+  String get value => switch (this) {
+    .immediate => 'Immediate',
+    .baseline => 'Baseline',
+    .manual => 'Manual',
+  };
+
+  static AlertRule fromValue(String value) => switch (value) {
+    'Immediate' => .immediate,
+    'Baseline' => .baseline,
+    'Manual' => .manual,
+    _ => .manual,
+  };
+}
+
+/// Where an alert is in its approval and delivery.
+/// Unknown reads as [withdrawn].
+enum AlertStatus {
+  drafting,
+  draft,
+  approved,
+  delivered,
+  rejected,
+  expired,
+  withdrawn;
+
+  String get value => switch (this) {
+    .drafting => 'Drafting',
+    .draft => 'Draft',
+    .approved => 'Approved',
+    .delivered => 'Delivered',
+    .rejected => 'Rejected',
+    .expired => 'Expired',
+    .withdrawn => 'Withdrawn',
+  };
+
+  static AlertStatus fromValue(String value) => switch (value) {
+    'Drafting' => .drafting,
+    'Draft' => .draft,
+    'Approved' => .approved,
+    'Delivered' => .delivered,
+    'Rejected' => .rejected,
+    'Expired' => .expired,
+    'Withdrawn' => .withdrawn,
+    _ => .withdrawn,
+  };
+}
+
+/// Whether an alert's draft text came from the model or the template.
+/// Unknown reads as [template].
+enum AlertDraftSource {
+  model,
+  template;
+
+  String get value => switch (this) {
+    .model => 'Model',
+    .template => 'Template',
+  };
+
+  static AlertDraftSource fromValue(String value) => switch (value) {
+    'Model' => .model,
+    'Template' => .template,
+    _ => .template,
+  };
+}
+
+/// Who an approved alert reaches. Unknown reads as [cliniciansOnly].
+enum AlertAudience {
+  cliniciansThenPatients,
+  cliniciansOnly;
+
+  String get value => switch (this) {
+    .cliniciansThenPatients => 'CliniciansThenPatients',
+    .cliniciansOnly => 'CliniciansOnly',
+  };
+
+  static AlertAudience fromValue(String value) => switch (value) {
+    'CliniciansThenPatients' => .cliniciansThenPatients,
+    'CliniciansOnly' => .cliniciansOnly,
+    _ => .cliniciansOnly,
+  };
+}

@@ -1318,4 +1318,120 @@ void main() {
       expect(ReportSection.fromValue(''), ReportSection.comments);
     });
   });
+
+  group('alert and disease-bundle enums', () {
+    test('ReportingCategory round-trips its wire values', () {
+      expect(ReportingCategory.values.map((e) => e.value), [
+        'Immediate',
+        'Weekly',
+        'Monthly',
+        'NotListed',
+      ]);
+      for (final v in ReportingCategory.values) {
+        expect(ReportingCategory.fromValue(v.value), v);
+      }
+      expect(ReportingCategory.fromValue('nope').value, 'NotListed');
+      expect(ReportingCategory.fromValue('').value, 'NotListed');
+    });
+    test('IhrStatus round-trips its wire values', () {
+      expect(IhrStatus.values.map((e) => e.value), [
+        'AlwaysNotifiable',
+        'AlwaysAssessed',
+        'EventAssessed',
+        'None',
+      ]);
+      for (final v in IhrStatus.values) {
+        expect(IhrStatus.fromValue(v.value), v);
+      }
+      expect(IhrStatus.fromValue('nope').value, 'None');
+      expect(IhrStatus.fromValue('').value, 'None');
+    });
+    test('KenyaGroup round-trips its wire values', () {
+      expect(KenyaGroup.values.map((e) => e.value), [
+        'EpidemicProne',
+        'Elimination',
+        'PublicHealthImportance',
+        'NotListed',
+      ]);
+      for (final v in KenyaGroup.values) {
+        expect(KenyaGroup.fromValue(v.value), v);
+      }
+      expect(KenyaGroup.fromValue('nope').value, 'NotListed');
+      expect(KenyaGroup.fromValue('').value, 'NotListed');
+    });
+    test('TestStrength round-trips its wire values', () {
+      expect(TestStrength.values.map((e) => e.value), [
+        'Confirms',
+        'Presumptive',
+        'Supportive',
+        'Uncertain',
+      ]);
+      for (final v in TestStrength.values) {
+        expect(TestStrength.fromValue(v.value), v);
+      }
+      expect(TestStrength.fromValue('nope').value, 'Uncertain');
+      expect(TestStrength.fromValue('').value, 'Uncertain');
+    });
+    test('GuidanceAudience round-trips its wire values', () {
+      expect(GuidanceAudience.values.map((e) => e.value), [
+        'Patient',
+        'Clinician',
+      ]);
+      for (final v in GuidanceAudience.values) {
+        expect(GuidanceAudience.fromValue(v.value), v);
+      }
+      expect(GuidanceAudience.fromValue('nope').value, 'Patient');
+      expect(GuidanceAudience.fromValue('').value, 'Patient');
+    });
+    test('AlertRule round-trips its wire values', () {
+      expect(AlertRule.values.map((e) => e.value), [
+        'Immediate',
+        'Baseline',
+        'Manual',
+      ]);
+      for (final v in AlertRule.values) {
+        expect(AlertRule.fromValue(v.value), v);
+      }
+      expect(AlertRule.fromValue('nope').value, 'Manual');
+      expect(AlertRule.fromValue('').value, 'Manual');
+    });
+    test('AlertStatus round-trips its wire values', () {
+      expect(AlertStatus.values.map((e) => e.value), [
+        'Drafting',
+        'Draft',
+        'Approved',
+        'Delivered',
+        'Rejected',
+        'Expired',
+        'Withdrawn',
+      ]);
+      for (final v in AlertStatus.values) {
+        expect(AlertStatus.fromValue(v.value), v);
+      }
+      expect(AlertStatus.fromValue('nope').value, 'Withdrawn');
+      expect(AlertStatus.fromValue('').value, 'Withdrawn');
+    });
+    test('AlertDraftSource round-trips its wire values', () {
+      expect(AlertDraftSource.values.map((e) => e.value), [
+        'Model',
+        'Template',
+      ]);
+      for (final v in AlertDraftSource.values) {
+        expect(AlertDraftSource.fromValue(v.value), v);
+      }
+      expect(AlertDraftSource.fromValue('nope').value, 'Template');
+      expect(AlertDraftSource.fromValue('').value, 'Template');
+    });
+    test('AlertAudience round-trips its wire values', () {
+      expect(AlertAudience.values.map((e) => e.value), [
+        'CliniciansThenPatients',
+        'CliniciansOnly',
+      ]);
+      for (final v in AlertAudience.values) {
+        expect(AlertAudience.fromValue(v.value), v);
+      }
+      expect(AlertAudience.fromValue('nope').value, 'CliniciansOnly');
+      expect(AlertAudience.fromValue('').value, 'CliniciansOnly');
+    });
+  });
 }
