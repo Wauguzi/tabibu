@@ -1731,6 +1731,185 @@ enum NotificationStatus {
   };
 }
 
+/// A push/inbox template key, shared with the functions copy. Unknown reads as [unknown].
+enum NotificationTemplate {
+  orderCreated,
+  pathologistRequested,
+  pathologistAccepted,
+  pathologistAcceptedPatient,
+  pathologistRejected,
+  pathologistRequestExpired,
+  caseWithdrawn,
+  prereadReady,
+  prereadFailed,
+  orderCancelled,
+  caseShared,
+  shareRedeemed,
+  reportSigned,
+  reportUpdated,
+  shareCodeReissued,
+  criticalReportUnopened,
+  criticalReportUnopenedSigner,
+  resultsWithDoctor,
+  resultUpdateWithDoctor,
+  resultReleased,
+  translationReady,
+  explanationReady,
+  appointmentRequested,
+  caseDiscussionRequested,
+  appointmentAccepted,
+  appointmentDeclined,
+  appointmentExpired,
+  appointmentCancelledByPatient,
+  appointmentCancelledByDoctor,
+  mdtInvited,
+  mdtInviteAccepted,
+  mdtInviteDeclined,
+  messageReceived,
+  mdtMessageReceived,
+  alertDrafted,
+  alertDraftReminder,
+  alertExpired,
+  alertWithdrawn,
+  alertEvidenceChanged,
+  alertDeliveredClinician,
+  alertDeliveredPatient,
+  confirmatoryTestRequested,
+  alertDeliveryHeld,
+  alertDeliveryStopped,
+  alertDeliveredClinicianDemo,
+  alertDeliveredPatientDemo,
+  appointmentRequestSent,
+  appointmentCompleted,
+  orderSubmitted,
+  draftSaved,
+  prereadScored,
+  reportSignedSelf,
+  shareCodeSent,
+  mdtOpened,
+  messagesQueued,
+  queuedMessagesSent,
+  notifiableRecorded,
+  alertDecisionSaved,
+  unknown;
+
+  String get value => this == .unknown ? '' : name;
+
+  static NotificationTemplate fromValue(String value) {
+    for (final template in values) {
+      if (template.value == value) return template;
+    }
+    return .unknown;
+  }
+
+  String title(AppLocalizations l10n, Map<String, String> args) =>
+      switch (this) {
+        .appointmentRequested => l10n.notificationAppointmentRequestedTitle,
+        .caseDiscussionRequested =>
+          l10n.notificationCaseDiscussionRequestedTitle,
+        .appointmentAccepted => l10n.notificationAppointmentAcceptedTitle,
+        .appointmentDeclined => l10n.notificationAppointmentDeclinedTitle,
+        .appointmentExpired => l10n.notificationAppointmentExpiredTitle,
+        .appointmentCancelledByPatient =>
+          l10n.notificationAppointmentCancelledByPatientTitle,
+        .appointmentCancelledByDoctor =>
+          l10n.notificationAppointmentCancelledByDoctorTitle,
+        _ => '',
+      };
+
+  String body(
+    AppLocalizations l10n,
+    Map<String, String> args,
+  ) => switch (this) {
+    .orderCreated => l10n.notificationOrderCreatedBody,
+    .pathologistRequested => l10n.notificationPathologistRequestedBody,
+    .pathologistAccepted => l10n.notificationPathologistAcceptedBody,
+    .pathologistAcceptedPatient =>
+      l10n.notificationPathologistAcceptedPatientBody,
+    .pathologistRejected => l10n.notificationPathologistRejectedBody,
+    .pathologistRequestExpired =>
+      l10n.notificationPathologistRequestExpiredBody,
+    .caseWithdrawn => l10n.notificationCaseWithdrawnBody,
+    .prereadReady => l10n.notificationPrereadReadyBody,
+    .prereadFailed => l10n.notificationPrereadFailedBody,
+    .orderCancelled => l10n.notificationOrderCancelledBody,
+    .caseShared => l10n.notificationCaseSharedBody,
+    .shareRedeemed => l10n.notificationShareRedeemedBody,
+    .reportSigned => l10n.notificationReportSignedBody,
+    .reportUpdated => l10n.notificationReportUpdatedBody,
+    .shareCodeReissued => l10n.notificationShareCodeReissuedBody,
+    .criticalReportUnopened => l10n.notificationCriticalReportUnopenedBody,
+    .criticalReportUnopenedSigner =>
+      l10n.notificationCriticalReportUnopenedSignerBody,
+    .resultsWithDoctor => l10n.notificationResultsWithDoctorBody,
+    .resultUpdateWithDoctor => l10n.notificationResultUpdateWithDoctorBody,
+    .resultReleased => l10n.notificationResultReleasedBody,
+    .translationReady => l10n.notificationTranslationReadyBody,
+    .explanationReady => l10n.notificationExplanationReadyBody,
+    .appointmentRequested => l10n.notificationAppointmentRequestedBody,
+    .caseDiscussionRequested => l10n.notificationCaseDiscussionRequestedBody,
+    .appointmentAccepted => l10n.notificationAppointmentAcceptedBody,
+    .appointmentDeclined => l10n.notificationAppointmentDeclinedBody,
+    .appointmentExpired => l10n.notificationAppointmentExpiredBody,
+    .appointmentCancelledByPatient =>
+      l10n.notificationAppointmentCancelledByPatientBody,
+    .appointmentCancelledByDoctor =>
+      l10n.notificationAppointmentCancelledByDoctorBody,
+    .mdtInvited => l10n.notificationMdtInvitedBody,
+    .mdtInviteAccepted => l10n.notificationMdtInviteAcceptedBody,
+    .mdtInviteDeclined => l10n.notificationMdtInviteDeclinedBody,
+    .messageReceived => l10n.notificationMessageReceivedBody(_count(args)),
+    .mdtMessageReceived => l10n.notificationMdtMessageReceivedBody(
+      _count(args),
+    ),
+    .alertDrafted => l10n.notificationAlertDraftedBody,
+    .alertDraftReminder => l10n.notificationAlertDraftReminderBody,
+    .alertExpired => l10n.notificationAlertExpiredBody,
+    .alertWithdrawn => l10n.notificationAlertWithdrawnBody,
+    .alertEvidenceChanged => l10n.notificationAlertEvidenceChangedBody,
+    .alertDeliveredClinician => l10n.notificationAlertDeliveredClinicianBody(
+      args['disease'] ?? '',
+      args['county'] ?? '',
+    ),
+    .alertDeliveredPatient => l10n.notificationAlertDeliveredPatientBody(
+      args['disease'] ?? '',
+      args['county'] ?? '',
+    ),
+    .confirmatoryTestRequested =>
+      l10n.notificationConfirmatoryTestRequestedBody,
+    .alertDeliveryHeld => l10n.notificationAlertDeliveryHeldBody,
+    .alertDeliveryStopped => l10n.notificationAlertDeliveryStoppedBody,
+    .alertDeliveredClinicianDemo =>
+      l10n.notificationAlertDeliveredClinicianDemoBody(
+        args['disease'] ?? '',
+        args['county'] ?? '',
+      ),
+    .alertDeliveredPatientDemo =>
+      l10n.notificationAlertDeliveredPatientDemoBody(
+        args['disease'] ?? '',
+        args['county'] ?? '',
+      ),
+    .appointmentRequestSent => l10n.notificationAppointmentRequestSentBody,
+    .appointmentCompleted => l10n.notificationAppointmentCompletedBody,
+    .orderSubmitted => l10n.notificationOrderSubmittedBody,
+    .draftSaved => l10n.notificationDraftSavedBody,
+    .prereadScored => l10n.notificationPrereadScoredBody,
+    .reportSignedSelf => l10n.notificationReportSignedSelfBody,
+    .shareCodeSent => l10n.notificationShareCodeSentBody,
+    .mdtOpened => l10n.notificationMdtOpenedBody,
+    .messagesQueued => l10n.notificationMessagesQueuedBody,
+    .queuedMessagesSent => l10n.notificationQueuedMessagesSentBody,
+    .notifiableRecorded => l10n.notificationNotifiableRecordedBody,
+    .alertDecisionSaved => l10n.notificationAlertDecisionSavedBody,
+    .unknown => l10n.notificationUnknownBody,
+  };
+
+  /// The plural count for the collapsed message rows; missing or invalid
+  /// reads as one, the singular line.
+  static int _count(Map<String, String> args) =>
+      int.tryParse(args['newCount'] ?? '') ?? 1;
+}
+
 // Alerts and the notifiable-disease bundle
 
 /// Kenya's reporting category for a notifiable disease.

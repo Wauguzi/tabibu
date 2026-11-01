@@ -2057,5 +2057,311 @@
     "reportQuestionMethodNotes": "Method notes",
     "@reportQuestionMethodNotes": {
         "description": "Report template question: how the test was run"
+    },
+    "notificationOrderCreatedBody": "Your doctor has ordered tests for you.",
+    "@notificationOrderCreatedBody": {
+        "description": "Inbox body for the `orderCreated` push"
+    },
+    "notificationPathologistRequestedBody": "A new case is waiting.",
+    "@notificationPathologistRequestedBody": {
+        "description": "Inbox body for the `pathologistRequested` push"
+    },
+    "notificationPathologistAcceptedBody": "A pathologist accepted your case.",
+    "@notificationPathologistAcceptedBody": {
+        "description": "Inbox body for the `pathologistAccepted` push"
+    },
+    "notificationPathologistAcceptedPatientBody": "A pathologist is working on your tests.",
+    "@notificationPathologistAcceptedPatientBody": {
+        "description": "Inbox body for the `pathologistAcceptedPatient` push"
+    },
+    "notificationPathologistRejectedBody": "A pathologist could not take your case.",
+    "@notificationPathologistRejectedBody": {
+        "description": "Inbox body for the `pathologistRejected` push"
+    },
+    "notificationPathologistRequestExpiredBody": "A pathologist could not take your case.",
+    "@notificationPathologistRequestExpiredBody": {
+        "description": "Inbox body for the `pathologistRequestExpired` push"
+    },
+    "notificationCaseWithdrawnBody": "A case was reassigned.",
+    "@notificationCaseWithdrawnBody": {
+        "description": "Inbox body for the `caseWithdrawn` push"
+    },
+    "notificationPrereadReadyBody": "A case is ready to review.",
+    "@notificationPrereadReadyBody": {
+        "description": "Inbox body for the `prereadReady` push"
+    },
+    "notificationPrereadFailedBody": "A case needs a manual read.",
+    "@notificationPrereadFailedBody": {
+        "description": "Inbox body for the `prereadFailed` push"
+    },
+    "notificationOrderCancelledBody": "An order was cancelled.",
+    "@notificationOrderCancelledBody": {
+        "description": "Inbox body for the `orderCancelled` push"
+    },
+    "notificationCaseSharedBody": "A case was shared with you. Open Tabibu to see your access code.",
+    "@notificationCaseSharedBody": {
+        "description": "Inbox body for the `caseShared` push"
+    },
+    "notificationShareRedeemedBody": "Your shared case was opened.",
+    "@notificationShareRedeemedBody": {
+        "description": "Inbox body for the `shareRedeemed` push"
+    },
+    "notificationReportSignedBody": "A signed report is ready.",
+    "@notificationReportSignedBody": {
+        "description": "Inbox body for the `reportSigned` push"
+    },
+    "notificationReportUpdatedBody": "A report has been updated.",
+    "@notificationReportUpdatedBody": {
+        "description": "Inbox body for the `reportUpdated` push"
+    },
+    "notificationShareCodeReissuedBody": "A new code is ready for a report.",
+    "@notificationShareCodeReissuedBody": {
+        "description": "Inbox body for the `shareCodeReissued` push"
+    },
+    "notificationCriticalReportUnopenedBody": "A signed report is still waiting for you.",
+    "@notificationCriticalReportUnopenedBody": {
+        "description": "Inbox body for the `criticalReportUnopened` push"
+    },
+    "notificationCriticalReportUnopenedSignerBody": "A report you signed has not been opened yet.",
+    "@notificationCriticalReportUnopenedSignerBody": {
+        "description": "Inbox body for the `criticalReportUnopenedSigner` push"
+    },
+    "notificationResultsWithDoctorBody": "Your results are with your doctor. Book a time to discuss them.",
+    "@notificationResultsWithDoctorBody": {
+        "description": "Inbox body for the `resultsWithDoctor` push"
+    },
+    "notificationResultUpdateWithDoctorBody": "There is an update to your results with your doctor.",
+    "@notificationResultUpdateWithDoctorBody": {
+        "description": "Inbox body for the `resultUpdateWithDoctor` push"
+    },
+    "notificationResultReleasedBody": "Your result is ready in Tabibu.",
+    "@notificationResultReleasedBody": {
+        "description": "Inbox body for the `resultReleased` push"
+    },
+    "notificationTranslationReadyBody": "A translation is ready to review.",
+    "@notificationTranslationReadyBody": {
+        "description": "Inbox body for the `translationReady` push"
+    },
+    "notificationExplanationReadyBody": "An explanation is ready to review.",
+    "@notificationExplanationReadyBody": {
+        "description": "Inbox body for the `explanationReady` push"
+    },
+    "notificationAppointmentRequestedTitle": "New appointment request",
+    "@notificationAppointmentRequestedTitle": {
+        "description": "Inbox title for the `appointmentRequested` push"
+    },
+    "notificationAppointmentRequestedBody": "A patient has asked to see you. Reply before the request expires.",
+    "@notificationAppointmentRequestedBody": {
+        "description": "Inbox body for the `appointmentRequested` push"
+    },
+    "notificationCaseDiscussionRequestedTitle": "New discussion request",
+    "@notificationCaseDiscussionRequestedTitle": {
+        "description": "Inbox title for the `caseDiscussionRequested` push"
+    },
+    "notificationCaseDiscussionRequestedBody": "A patient has asked for time to discuss a result.",
+    "@notificationCaseDiscussionRequestedBody": {
+        "description": "Inbox body for the `caseDiscussionRequested` push"
+    },
+    "notificationAppointmentAcceptedTitle": "Appointment confirmed",
+    "@notificationAppointmentAcceptedTitle": {
+        "description": "Inbox title for the `appointmentAccepted` push"
+    },
+    "notificationAppointmentAcceptedBody": "Your appointment request was accepted.",
+    "@notificationAppointmentAcceptedBody": {
+        "description": "Inbox body for the `appointmentAccepted` push"
+    },
+    "notificationAppointmentDeclinedTitle": "Appointment request declined",
+    "@notificationAppointmentDeclinedTitle": {
+        "description": "Inbox title for the `appointmentDeclined` push"
+    },
+    "notificationAppointmentDeclinedBody": "You can choose another time or another doctor.",
+    "@notificationAppointmentDeclinedBody": {
+        "description": "Inbox body for the `appointmentDeclined` push"
+    },
+    "notificationAppointmentExpiredTitle": "Appointment request expired",
+    "@notificationAppointmentExpiredTitle": {
+        "description": "Inbox title for the `appointmentExpired` push"
+    },
+    "notificationAppointmentExpiredBody": "Your request had no reply in time. You can choose another time.",
+    "@notificationAppointmentExpiredBody": {
+        "description": "Inbox body for the `appointmentExpired` push"
+    },
+    "notificationAppointmentCancelledByPatientTitle": "Appointment cancelled",
+    "@notificationAppointmentCancelledByPatientTitle": {
+        "description": "Inbox title for the `appointmentCancelledByPatient` push"
+    },
+    "notificationAppointmentCancelledByPatientBody": "A patient cancelled an appointment.",
+    "@notificationAppointmentCancelledByPatientBody": {
+        "description": "Inbox body for the `appointmentCancelledByPatient` push"
+    },
+    "notificationAppointmentCancelledByDoctorTitle": "Appointment cancelled",
+    "@notificationAppointmentCancelledByDoctorTitle": {
+        "description": "Inbox title for the `appointmentCancelledByDoctor` push"
+    },
+    "notificationAppointmentCancelledByDoctorBody": "Your doctor cancelled your appointment. You can book another time.",
+    "@notificationAppointmentCancelledByDoctorBody": {
+        "description": "Inbox body for the `appointmentCancelledByDoctor` push"
+    },
+    "notificationMdtInvitedBody": "You have been invited to an MDT discussion.",
+    "@notificationMdtInvitedBody": {
+        "description": "Inbox body for the `mdtInvited` push"
+    },
+    "notificationMdtInviteAcceptedBody": "A colleague has joined your MDT discussion.",
+    "@notificationMdtInviteAcceptedBody": {
+        "description": "Inbox body for the `mdtInviteAccepted` push"
+    },
+    "notificationMdtInviteDeclinedBody": "A colleague declined your MDT invitation.",
+    "@notificationMdtInviteDeclinedBody": {
+        "description": "Inbox body for the `mdtInviteDeclined` push"
+    },
+    "notificationMessageReceivedBody": "{newCount, plural, =1{You have a new message in Tabibu.} other{You have {newCount} new messages in Tabibu.}}",
+    "@notificationMessageReceivedBody": {
+        "description": "Inbox body for the `messageReceived` push, singular or plural by count",
+        "placeholders": {
+            "newCount": {
+                "type": "int"
+            }
+        }
+    },
+    "notificationMdtMessageReceivedBody": "{newCount, plural, =1{There is a new message in an MDT discussion.} other{{newCount} new messages in an MDT discussion.}}",
+    "@notificationMdtMessageReceivedBody": {
+        "description": "Inbox body for the `mdtMessageReceived` push, singular or plural by count",
+        "placeholders": {
+            "newCount": {
+                "type": "int"
+            }
+        }
+    },
+    "notificationAlertDraftedBody": "An alert is waiting for approval.",
+    "@notificationAlertDraftedBody": {
+        "description": "Inbox body for the `alertDrafted` push"
+    },
+    "notificationAlertDraftReminderBody": "An urgent alert is still waiting for approval.",
+    "@notificationAlertDraftReminderBody": {
+        "description": "Inbox body for the `alertDraftReminder` push"
+    },
+    "notificationAlertExpiredBody": "An alert expired without a decision.",
+    "@notificationAlertExpiredBody": {
+        "description": "Inbox body for the `alertExpired` push"
+    },
+    "notificationAlertWithdrawnBody": "An alert draft was withdrawn after a report was amended.",
+    "@notificationAlertWithdrawnBody": {
+        "description": "Inbox body for the `alertWithdrawn` push"
+    },
+    "notificationAlertEvidenceChangedBody": "The results behind an approved alert have changed. Review it in Tabibu.",
+    "@notificationAlertEvidenceChangedBody": {
+        "description": "Inbox body for the `alertEvidenceChanged` push"
+    },
+    "notificationAlertDeliveredClinicianBody": "Health alert: {disease} in {county} County. Open Tabibu for guidance.",
+    "@notificationAlertDeliveredClinicianBody": {
+        "description": "Inbox body for the `alertDeliveredClinician` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationAlertDeliveredPatientBody": "Health alert: {disease} in {county} County. Open Tabibu for guidance.",
+    "@notificationAlertDeliveredPatientBody": {
+        "description": "Inbox body for the `alertDeliveredPatient` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationConfirmatoryTestRequestedBody": "A pathologist recommends a further test for a case.",
+    "@notificationConfirmatoryTestRequestedBody": {
+        "description": "Inbox body for the `confirmatoryTestRequested` push"
+    },
+    "notificationAlertDeliveryHeldBody": "Alert delivery is paused. Open Tabibu to review.",
+    "@notificationAlertDeliveryHeldBody": {
+        "description": "Inbox body for the `alertDeliveryHeld` push"
+    },
+    "notificationAlertDeliveryStoppedBody": "An alert went to clinicians only and was not released to patients.",
+    "@notificationAlertDeliveryStoppedBody": {
+        "description": "Inbox body for the `alertDeliveryStopped` push"
+    },
+    "notificationAlertDeliveredClinicianDemoBody": "Demo: Health alert: {disease} in {county} County. This is a test, not a real alert.",
+    "@notificationAlertDeliveredClinicianDemoBody": {
+        "description": "Inbox body for the `alertDeliveredClinicianDemo` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationAlertDeliveredPatientDemoBody": "Demo: Health alert: {disease} in {county} County. This is a test, not a real alert.",
+    "@notificationAlertDeliveredPatientDemoBody": {
+        "description": "Inbox body for the `alertDeliveredPatientDemo` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationAppointmentRequestSentBody": "Your appointment request was sent.",
+    "@notificationAppointmentRequestSentBody": {
+        "description": "Inbox body for the local `appointmentRequestSent` row"
+    },
+    "notificationAppointmentCompletedBody": "Your appointment has finished.",
+    "@notificationAppointmentCompletedBody": {
+        "description": "Inbox body for the local `appointmentCompleted` row"
+    },
+    "notificationOrderSubmittedBody": "Your tests were ordered.",
+    "@notificationOrderSubmittedBody": {
+        "description": "Inbox body for the local `orderSubmitted` row"
+    },
+    "notificationDraftSavedBody": "Your draft was saved.",
+    "@notificationDraftSavedBody": {
+        "description": "Inbox body for the local `draftSaved` row"
+    },
+    "notificationPrereadScoredBody": "Your score was saved.",
+    "@notificationPrereadScoredBody": {
+        "description": "Inbox body for the local `prereadScored` row"
+    },
+    "notificationReportSignedSelfBody": "You signed the report.",
+    "@notificationReportSignedSelfBody": {
+        "description": "Inbox body for the local `reportSignedSelf` row"
+    },
+    "notificationShareCodeSentBody": "Your access code was sent.",
+    "@notificationShareCodeSentBody": {
+        "description": "Inbox body for the local `shareCodeSent` row"
+    },
+    "notificationMdtOpenedBody": "You opened an MDT discussion.",
+    "@notificationMdtOpenedBody": {
+        "description": "Inbox body for the local `mdtOpened` row"
+    },
+    "notificationMessagesQueuedBody": "Your messages will send when you are back online.",
+    "@notificationMessagesQueuedBody": {
+        "description": "Inbox body for the local `messagesQueued` row"
+    },
+    "notificationQueuedMessagesSentBody": "Your queued messages were sent.",
+    "@notificationQueuedMessagesSentBody": {
+        "description": "Inbox body for the local `queuedMessagesSent` row"
+    },
+    "notificationNotifiableRecordedBody": "The case was recorded for reporting.",
+    "@notificationNotifiableRecordedBody": {
+        "description": "Inbox body for the local `notifiableRecorded` row"
+    },
+    "notificationAlertDecisionSavedBody": "Your decision was saved.",
+    "@notificationAlertDecisionSavedBody": {
+        "description": "Inbox body for the local `alertDecisionSaved` row"
+    },
+    "notificationUnknownBody": "You have a new notification in Tabibu.",
+    "@notificationUnknownBody": {
+        "description": "Inbox body for an unrecognised template key"
     }
 }
