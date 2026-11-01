@@ -553,8 +553,8 @@ as List<PdfLine>,
 /// @nodoc
 mixin _$PdfHeader {
 
-@JsonKey(name: 'orderNumber') String get orderNumber;@JsonKey(name: 'testName') String get testName;@JsonKey(name: 'templateLabel') String get templateLabel;@JsonKey(name: 'version') int get version;/// The report's stage wire value (`Initial`, `Addended`, `Amended`); the PDF
-/// builder localises it, so no display text is fixed here.
+@JsonKey(name: 'orderNumber') String get orderNumber;@JsonKey(name: 'testName') String get testName;@JsonKey(name: 'templateLabel') String get templateLabel;@JsonKey(name: 'version') int get version;/// The stage's wire value (`Initial`, `Addended`, `Amended`); the PDF
+/// builder localises it.
 @JsonKey(name: 'stage') String get stage;@JsonKey(name: 'doctorName') String get doctorName;@JsonKey(name: 'doctorFacilityName') String get doctorFacilityName;@JsonKey(name: 'signedByFacilityName') String get signedByFacilityName;@JsonKey(name: 'sampleCollectedAt') String get sampleCollectedAt;@JsonKey(name: 'sampleReceivedAt') String get sampleReceivedAt;@JsonKey(name: 'labAccessionNo') String get labAccessionNo;@JsonKey(name: 'releasedAtLabel') String get releasedAtLabel;
 /// Create a copy of PdfHeader
 /// with the given fields replaced by the non-null parameter values.
@@ -767,8 +767,8 @@ class _PdfHeader extends PdfHeader {
 @override@JsonKey(name: 'testName') final  String testName;
 @override@JsonKey(name: 'templateLabel') final  String templateLabel;
 @override@JsonKey(name: 'version') final  int version;
-/// The report's stage wire value (`Initial`, `Addended`, `Amended`); the PDF
-/// builder localises it, so no display text is fixed here.
+/// The stage's wire value (`Initial`, `Addended`, `Amended`); the PDF
+/// builder localises it.
 @override@JsonKey(name: 'stage') final  String stage;
 @override@JsonKey(name: 'doctorName') final  String doctorName;
 @override@JsonKey(name: 'doctorFacilityName') final  String doctorFacilityName;

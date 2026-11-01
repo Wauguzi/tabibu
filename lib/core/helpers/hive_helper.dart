@@ -14,6 +14,21 @@ import 'package:tabibu/features/appointments/data/models/appointment_hive.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_intake_hive.dart';
 import 'package:tabibu/features/appointments/data/models/intake_draft_hive.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_log_entry_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_payment_hive.dart';
+import 'package:tabibu/features/cases/data/models/notes_translation_hive.dart';
+import 'package:tabibu/features/cases/data/models/ordered_test_hive.dart';
+import 'package:tabibu/features/cases/data/models/risk_check_hive.dart';
+import 'package:tabibu/features/cases/data/models/share_code_hive.dart';
+import 'package:tabibu/features/cases/data/models/slide_image_hive.dart';
+import 'package:tabibu/features/conversations/data/models/case_summary_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_cursor_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_member_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_preview_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_transcript_hive.dart';
 import 'package:tabibu/features/notifications/data/models/notification_hive.dart';
 import 'package:tabibu/features/notifications/data/models/notification_metadata_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_hive.dart';
@@ -173,6 +188,51 @@ class HiveHelperImpl implements HiveHelper {
       Hive.registerAdapter(NotificationHiveAdapter());
     }
     // Nested types first: each before the type that holds it.
+    if (!Hive.isAdapterRegistered(5)) {
+      Hive.registerAdapter(OrderedTestHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(6)) {
+      Hive.registerAdapter(SlideImageHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(8)) {
+      Hive.registerAdapter(CasePaymentHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(9)) {
+      Hive.registerAdapter(ShareCodeHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(10)) {
+      Hive.registerAdapter(RiskCheckHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(11)) {
+      Hive.registerAdapter(NotesTranslationHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(7)) {
+      Hive.registerAdapter(CaseLogEntryHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(CaseHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(33)) {
+      Hive.registerAdapter(ConversationMemberHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(34)) {
+      Hive.registerAdapter(CaseSummaryHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(36)) {
+      Hive.registerAdapter(MessagePreviewHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(37)) {
+      Hive.registerAdapter(ConversationCursorHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(38)) {
+      Hive.registerAdapter(MessageTranscriptHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(35)) {
+      Hive.registerAdapter(MessageHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(32)) {
+      Hive.registerAdapter(ConversationHiveAdapter());
+    }
     if (!Hive.isAdapterRegistered(17)) {
       Hive.registerAdapter(ReportResponseHiveAdapter());
     }
