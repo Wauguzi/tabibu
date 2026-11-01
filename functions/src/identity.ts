@@ -27,6 +27,7 @@ import {
   storageUrl,
   timestamp,
 } from './common';
+import { buildQuery, queryById } from './queries';
 import { NAIROBI_COUNTY_ID, countyById, facilityById, nairobiSubCountyById } from './reference-data';
 
 export interface Deps {
@@ -133,11 +134,20 @@ async function setRole(auth: AuthLike, uid: string, role: Role | null): Promise<
 }
 
 function duplicateQuery(db: Firestore, phoneNumber: string, dob: string) {
-  return db
-    .collection(PATIENTS)
-    .where('phoneNumber', '==', phoneNumber)
-    .where('dateOfBirth', '==', dob)
-    .limit(10);
+  return buildQuery(db, queryById('patients.byPhoneAndDob'), [
+    phoneNumber,
+    dob,
+  ]).limit(10);
+}
+
+function patientsByUid(db: Firestore, uid: string) {
+  return buildQuery(db, queryById('patients.byUid'), [uid]).limit(1);
+}
+
+function doctorsByKmpdc(db: Firestore, kmpdcNumber: string, limit: number) {
+  return buildQuery(db, queryById('doctors.byKmpdcNumber'), [kmpdcNumber]).limit(
+    limit,
+  );
 }
 
 export type PatientSignUpResult =
@@ -161,7 +171,7 @@ export async function completePatientSignUpHandler(
     if ((await tx.get(ref)).exists) return { status: 'registered', patientId: c.uid };
     // A record a doctor linked to this account has its own id: it is theirs already, and a
     // second record under the same uid would make their own record ambiguous.
-    const linked = await tx.get(db.collection(PATIENTS).where('uid', '==', c.uid).limit(1));
+    const linked = await tx.get(patientsByUid(db, c.uid));
     if (!linked.empty) return { status: 'registered', patientId: linked.docs[0].id };
     if ((await tx.get(db.collection(DOCTORS).doc(c.uid))).exists) {
       throw refuse('failed-precondition', 'roleAlreadySet');
@@ -267,7 +277,7 @@ export async function linkPatientAccountHandler(
     }
     const [ownRecord, linked, doctor] = await Promise.all([
       tx.get(db.collection(PATIENTS).doc(account.uid)),
-      tx.get(db.collection(PATIENTS).where('uid', '==', account.uid).limit(1)),
+      tx.get(patientsByUid(db, account.uid)),
       tx.get(db.collection(DOCTORS).doc(account.uid)),
     ]);
     if (ownRecord.exists || !linked.empty || doctor.exists) {
@@ -412,10 +422,10 @@ export async function completePractitionerSignUpHandler(
     // through may predate the link.
     const [ownRecord, linked] = await Promise.all([
       tx.get(db.collection(PATIENTS).doc(c.uid)),
-      tx.get(db.collection(PATIENTS).where('uid', '==', c.uid).limit(1)),
+      tx.get(patientsByUid(db, c.uid)),
     ]);
     if (ownRecord.exists || !linked.empty) throw refuse('failed-precondition', 'roleAlreadySet');
-    const taken = await tx.get(db.collection(DOCTORS).where('kmpdcNumber', '==', kmpdcNumber).limit(1));
+    const taken = await tx.get(doctorsByKmpdc(db, kmpdcNumber, 1));
     if (!taken.empty) throw refuse('already-exists', 'kmpdcNumberInUse');
     tx.create(ref, record);
     return { status: 'Pending' as const };
@@ -443,7 +453,7 @@ export async function verifyPractitionerHandler(
     // The number stays editable until verified, so uniqueness is checked again here.
     if (decision === 'Verified') {
       const holders = await tx.get(
-        db.collection(DOCTORS).where('kmpdcNumber', '==', doc.get('kmpdcNumber')).limit(2),
+        doctorsByKmpdc(db, doc.get('kmpdcNumber') as string, 2),
       );
       if (holders.docs.some((d) => d.id !== uid)) throw refuse('already-exists', 'kmpdcNumberInUse');
     }

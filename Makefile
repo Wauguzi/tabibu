@@ -376,6 +376,11 @@ deploy-functions:
 deploy-indexes:
 		$(FIREBASE) deploy --only firestore:indexes --project $(PROJECT)
 
+# After deploy-indexes: one limit(1) per registry query; fails on FAILED_PRECONDITION.
+smoke-indexes:
+		cd functions && npm install --silent && ./node_modules/.bin/tsc -p tsconfig.build.json
+		node scripts/smoke-indexes.cjs $(PROJECT)
+
 deploy-storage:
 		$(FIREBASE) deploy --only storage --project $(PROJECT)
 
@@ -387,4 +392,4 @@ deploy-hosting:
 	clean-pods ios-deps pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities lab-tests test test-randomize test-watch coverage \
 	emulators rules-test functions-test seed-password seed-emulator seed-live \
 	release-next release-check release-publish \
-	deploy-rules deploy-functions deploy-indexes deploy-storage deploy-hosting
+	deploy-rules deploy-functions deploy-indexes smoke-indexes deploy-storage deploy-hosting
