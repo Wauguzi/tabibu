@@ -10,7 +10,7 @@
     },
     {
       "path": "docs/security/reports/firebase_and_ai_service_threat_model.md",
-      "description": "The clinical-safety rules S-1 to S-8 and the security threats T-1 to T-18, each with its control and the test that proves it. Check any rules, functions, AI-service or result/alert change against these before treating it as self-contained.",
+      "description": "The clinical-safety rules S-1 to S-8 and the security threats T-1 to T-20, each with its control and the test that proves it. Check any rules, functions, AI-service or result/alert change against these before treating it as self-contained.",
       "scope": ["lib/**", "functions/**", "ai_service/**", "firestore.rules", "storage.rules", "test/firestore_rules/**"]
     },
     {
@@ -21,7 +21,7 @@
     {
       "path": "docs/architecture/reports/outbreak_alert_engine.md",
       "description": "Tag, record, detect, draft, approve, deliver. What a notifiable event may contain (and what must never leave a case), the immediate and baseline detector rules, approval as a callable, two-phase delivery, and the rule that patients choose a county and are never located.",
-      "scope": ["ai_service/**", "functions/**", "lib/features/alerts/**", "firestore.rules"]
+      "scope": ["ai_service/**", "functions/**", "lib/features/alerts/**", "lib/features/reports/**", "lib/features/notifications/**", "firestore.rules"]
     },
     {
       "path": "docs/architecture/reports/notifications_engine.md",

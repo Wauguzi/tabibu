@@ -26,15 +26,24 @@ finding.
   function. A client write path to a report is a defect, not missing plumbing.
 - **A patient never sees a cancer result before the doctor marks it discussed** (S-3). Push and
   notification copy for a result is generic and never names a diagnosis, because lock screens are
-  public.
+  public. A public outbreak alert is addressed to an area, not a person: its push may name the
+  disease and the county, taken from the bundled names, and never a count, a date, a facility or a
+  person.
 - **No alert is delivered without approval** (S-4). Nothing on the client may set an alert's
   status.
 - **Nothing that identifies a patient leaves a case** (S-5). A notifiable event carries disease,
-  county, date, epi-week, age band, category and the synthetic flag, and nothing else. A new field
-  on that shape needs a CRQ.
+  county, date, epi-week, age band, category, the alert request, its status and the synthetic
+  flag, and nothing else; the link back to its case lives only in the server-only
+  `notifiableEventLinks`. A new field on that shape needs a CRQ.
 - **Every number in a report is computed in code** (S-6). A report field, chart or label whose
   number is parsed out of model prose is a defect.
 - **The risk check never confirms or rules out a disease** (S-7). Its advisory is a fixed template.
+- **AI output used without an approval is limited to the readers S-8 names** (S-8): the symptom
+  summary and the risk advice to the doctor, the notes translation to the doctor and the
+  pathologist, a speaker's own transcript, and a clinician's voice-note transcript to clinicians
+  who also hear the audio. Each is labelled as AI, and its input is de-identified. A patient reads
+  a clinician's transcript only after the sender shares it. Any other path from model output to a
+  person without an approval is the P1 above.
 
 ## Architecture boundaries
 
