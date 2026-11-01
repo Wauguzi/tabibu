@@ -11,7 +11,7 @@
 | Platform | Flutter: web demo, Android, iOS |
 | Owner | Theo — CTO, Mobile Engineer (covering Lead Designer) |
 | Status | Draft — foundations defined; color values set in the first design CRQ |
-| Last reviewed | 2026-10-27 |
+| Last reviewed | 2026-11-01 |
 | Reviewed by | Theo |
 
 ## 1. Purpose
@@ -189,10 +189,23 @@ enforces it, so no screen implements it on its own.
 - Any unsigned AI output sits inside an `AiDraftFrame`: the `aiDraft`
   surface, a persistent "AI draft — not signed" label in the header, and the
   model names on expansion. The frame **cannot be scrolled away** from its
-  content.
-- A signed report renders in a `SignedReportView`: the `signed` surface,
-  "Signed by {name}, {date}", and a link to the original AI draft and the
-  diff.
+  content. Besides the pre-read, it also wraps the symptom summary (under the
+  patient's own words), the risk advisory, the notes translation (with the
+  original beside it), the machine text on every approval screen, the
+  symptom transcript the patient reviews ("Transcribed by AI: check and
+  edit"), voice-note transcripts ("Transcribed by AI", under the player), the
+  pre-read's notifiable hint, and the alert draft on the review screen.
+- **The primary action on an approval screen is Approve as is**; Edit is
+  secondary. Approved text then carries its attribution: "Translation by AI,
+  approved by {name}" beside the signed original, "Explanation prepared with
+  AI and approved by your doctor", and, for a patient, "Transcript shared by
+  {sender}".
+- A signed report renders in a `SignedReportView`: the `signed` surface and
+  "Signed by {name}, {date}". Its link to the original AI draft and the diff
+  is shown **to the signer and admins only**, never to a doctor or a patient.
+- **The report PDF is Tabibu's own layout**: its header, block order and
+  footer come from this design system. It is mocked up and approved before
+  it is built.
 - The two never share a layout. Someone who glances at a screen must be
   able to tell which one they are looking at in under a second, including
   in grayscale.
@@ -220,11 +233,28 @@ enforces it, so no screen implements it on its own.
 
 - Plain language at a primary-school reading level, in English and Swahili,
   with medical terms explained the first time they appear.
-- A result explanation is unavailable until the doctor marks it discussed.
-  The patient sees "Your doctor will go through this result with you", not
-  a locked or blurred version of it.
+- A result explanation is unavailable until the doctor marks it discussed
+  **and approves it**. Until then, the patient sees "Your doctor will share
+  an explanation.", not a locked or blurred version of it.
+- After an amendment, the patient sees the released version with a "There is
+  an update with your doctor" banner.
 - Outbreak notices use `alertNotice`, a calm layout, and always end with a
   button to the official guidance.
+
+### 4.5 Alerts
+
+- Every delivered alert ends with its attribution: "Approved for release by
+  an authorised public-health officer. Guidance: {source}". The guidance is
+  shown verbatim, each bullet linked to its source.
+- Kiswahili guidance carries "Kiswahili translation by Tabibu" ("Tafsiri ya
+  Kiswahili na Tabibu"), because no official Kiswahili version exists.
+- The pathologist's notifiable mark and the clinician brief both carry the
+  statutory-report reminder: the in-app alert does not replace the
+  facility's report to the medical officer of health.
+- The approver's review screen shows the draft in an `AiDraftFrame`, with an
+  "unverified category" line while the disease's reporting category is
+  unverified.
+- A demo alert begins "Demo:" ("Majaribio:") and carries a banner.
 
 ## 5. Motion & interaction
 
@@ -336,6 +366,7 @@ Quotation marks are straight double quotes in both languages.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-01 | For the `feat/infra` data layer: §4.1 the surfaces `AiDraftFrame` wraps, Approve as is first, the approval attributions, the draft-and-diff link for the signer and admins only, the PDF's own layout; §4.4 the explanation approved by the doctor and the update banner; §4.5 the alert screens (CRQ-0043, CRQ-0047, CRQ-0049). | Theo |
 | 2026-10-28 | §2.1, §6 and §8 item 6: draft versus signed made structural (CRQ-0030). | Theo |
 | 2026-10-28 | §2 rewritten to the sheet's tokens (colour, Manrope type, spacing, radii, iconography); sheet rules added to §5 and §6; §8 items 1, 5 and 6 (brief 03). | Theo |
 | 2026-10-27 | §2.1 provisional palette and the draft-versus-signed panel; §8 items 1, 2 and 4 updated (CRQ-0017). | Theo |

@@ -16,7 +16,7 @@
 | Platform | Flutter: web demo, Android, iOS; 3 build flavors |
 | Owner | Theo — CTO, Mobile Engineer |
 | Status | Draft — the target architecture; §4 and §16 say what exists today |
-| Last reviewed | 2026-10-26 |
+| Last reviewed | 2026-11-01 |
 | Reviewed by | Theo |
 
 ## 1. Purpose
@@ -85,12 +85,13 @@ Two halves, joined only through Firebase:
                                 │ Auth · Firestore · Storage · FCM
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │ Firebase: rules are the data boundary; Cloud Functions own every      │
-│ privileged write (signing, approval, alert fan-out, role claims)      │
+│ privileged write (signing, approval, alert fan-out, role claims) and  │
+│ run the outbreak detector                                             │
 └───────────────────────────────┬───────────────────────────────────────┘
                                 │ trigger: case opened / result signed
 ┌───────────────────────────────▼───────────────────────────────────────┐
 │ Tabibu AI service (Modal): pre-read, order risk check, intake,        │
-│ outbreak detector, alert drafts → writes drafts back to Firestore     │
+│ transcription, translation, alert drafts → drafts back to Firestore   │
 │   ├─ Meta Model API: Muse Spark 1.3, SAM 3.1, Muse Voice Transcribe   │
 │   └─ Open weights: Muse Spark Open on Baseten; Glimmer on Modal       │
 └───────────────────────────────────────────────────────────────────────┘
@@ -111,10 +112,12 @@ Three rules follow from the diagram and are not negotiable:
 
 ## 4. Folder structure
 
-**Today** the app has `lib/app/` (a placeholder home until the router
-lands), `lib/core/constants/` (the theme), `lib/core/services/`
-(`GeohashService`), `lib/l10n/` (`en`, `sw`), `bootstrap.dart` and three
-flavor entrypoints. No feature folder exists yet.
+**Today** the app has `lib/app/`, `lib/core/` (constants, helpers, routing,
+services, utils, widgets), `lib/l10n/` (`en`, `sw`), `bootstrap.dart`, three
+flavor entrypoints, and the identity features: `auth`, `onboarding`, `home`,
+`profile`, `patients`, `practitioners`, `facilities` and `themes`. The
+clinical features below are the `feat/infra` data layer, still to be built
+(§16 item 11).
 
 **Target** layout, which every feature is built to:
 
@@ -150,13 +153,18 @@ lib/
 │   ├── practitioners/         # The directory; nearest-first by geohash
 │   ├── facilities/            # The bundled facility, county and
 │   │                          # sub-county lists (§6.2)
-│   ├── cases/                 # The shared case record and its timeline
-│   ├── intake/                # Patient symptoms by voice or text
-│   ├── orders/                # Test catalogue, ordering, risk-check banner
+│   ├── cases/                 # The order is the case: the record, its stage
+│   │                          # log, payment, share codes, risk check
+│   ├── orders/                # Test catalogue, insurers, ordering
+│   ├── appointments/          # Booking, availability, symptom intake by
+│   │                          # voice or text (absorbs the planned intake/)
 │   ├── worklist/              # Pathologist's ranked case list
-│   ├── preread/               # Image viewer, overlays, draft editor, signing
-│   ├── results/               # Signed report (doctor), explanation (patient)
-│   ├── alerts/                # Approval queue (approver), area alerts
+│   ├── preread/               # Image viewer, overlays, the pre-read and its score
+│   ├── reports/               # Drafts, signed versions, approved texts, the PDF
+│   ├── results/               # Presentation only: the doctor's and the
+│   │                          # patient's view of a signed report
+│   ├── conversations/         # Direct threads and MDTs, images, voice notes
+│   ├── alerts/                # Approval queue (approver), public alerts
 │   ├── notifications/         # Inbox, push handling
 │   └── themes/                # Theme bloc
 ├── gen/                       # flutter_gen output; never edited by hand
@@ -236,7 +244,12 @@ feature's Hive classes except inside `toModel`/`fromModel`.
 
 That holds only until the first release. Once a build has shipped, a field
 whose type changes takes a new index and its old one is retired, because an
-older cache still holds the old type at that index.
+older cache still holds the old type at that index. A field **added** to a
+shipped class takes the next free index with a default,
+`@HiveField(n, defaultValue: …)`, and the registry notes it: a cached row
+from an older build lacks the field, and without the default the generated
+cast throws. The Freezed field goes just before `lastUpdatedAt`, so the two
+orders differ only by these appended fields.
 
 **Hive typeIds are allocated once and never reused.** A reused id lets an
 old install decode bytes written for a different class without any error.
@@ -245,12 +258,56 @@ The registry below is the record. Add a row in the same commit as the model.
 | typeId | Class | Feature | Added |
 |---|---|---|---|
 | 0 | `PatientHive` | `patients` | Added 2026-10-27 (CRQ-0019) |
-| 1 | `DoctorHive` | `profile` | Added 2026-10-27 (CRQ-0019) |
-| 2 | `PractitionerHive` | `practitioners` | Added 2026-10-27 (CRQ-0019) |
+| 1 | `DoctorHive` | `profile` | Added 2026-10-27 (CRQ-0019). Fields 30-33 (availability) reserved for `feat/infra`, appended with `defaultValue`; they land in CRQ-0039 |
+| 2 | `PractitionerHive` | `practitioners` | Added 2026-10-27 (CRQ-0019). Fields 20-23 (availability) reserved for `feat/infra`, appended with `defaultValue`; they land in CRQ-0039 |
 | 3 | `OnboardingHive` | `auth` | Added 2026-10-27 (CRQ-0020) |
+| 4 | `CaseHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 5 | `OrderedTestHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 6 | `SlideImageHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 7 | `CaseLogEntryHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 8 | `CasePaymentHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 9 | `ShareCodeHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 10 | `RiskCheckHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 11 | `NotesTranslationHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 12-15 | none | `cases` | Reserved, unused |
+| 16 | `PathologyReportHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 17 | `ReportResponseHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 18 | `ReportAddendumHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 19 | `ReportMeasurementHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 20 | `ReportDraftHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 21 | `PrereadScoreHive` | `preread` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 22 | `WorklistEntryHive` | `worklist` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 23 | `ReportTextApprovedHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 24 | `AppointmentHive` | `appointments` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 25 | `AppointmentIntakeHive` | `appointments` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 26 | `IntakeDraftHive` | `appointments` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 27-31 | none | `appointments` | Reserved, unused |
+| 32 | `ConversationHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 33 | `ConversationMemberHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 34 | `CaseSummaryHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 35 | `MessageHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 36 | `MessagePreviewHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 37 | `ConversationCursorHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 38 | `MessageTranscriptHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 39 | none | `conversations` | Reserved, unused |
+| 40 | `NotificationHive` | `notifications` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 41 | `NotificationMetadataHive` | `notifications` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 42-45 | none | `notifications` | Reserved, unused |
+| 46 | `PublicAlertHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
+| 47 | `AlertTextHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
+| 48 | `GuidanceBulletHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
+| 49 | `GuidanceSourceHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
+| 50 | `AlertClinicianBriefHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
+| 51 | `AlertReceiptHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 (local only) |
+| 52 | `NotifiableFindingHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0049 |
+| 53-55 | none | `alerts` | Reserved, unused |
 
 A reserved row becomes "Added" in the commit that creates the class. Reserving
-ahead stops two agents working in parallel from taking the same id.
+ahead stops two agents working in parallel from taking the same id. Some
+models deliberately have **no** Hive mirror: the working report text, the
+report provenance, the pre-read and its values, and the working alert records,
+because unapproved model text is never cached (S-1); the PDF input, because it
+lives in memory only; and the bundled reference models.
 
 **Adapters register in one hand-maintained cascade in `hive_helper.dart`**,
 and `test/core/helpers/hive_adapter_registration_test.dart` asserts that
@@ -273,10 +330,12 @@ from a cursor derived from the newest cached row (with a small overlap for
 clock skew). A cloud row never overwrites a cached row that is still
 unsynced; otherwise the newer `lastUpdatedAt` wins.
 
-**Case scoping replaces tenant scoping.** Tabibu's boundary is the case. Every
-case-bearing record carries `patientUid`, `doctorUid` and `pathologistUid`,
-and every helper method that reads or writes one takes the signed-in user's
-uid and role and filters on them. There is **no unscoped `getAll*` method**.
+**Case scoping replaces tenant scoping.** Tabibu's boundary is the case.
+Case-bearing records are scoped by `participantUids` (the case) or
+`readerUids` (a signed version); records under a case inherit its scope;
+every helper takes the signed-in uid and role. Both lists are recomputed by
+the server from their sources on every change, never edited piecemeal. There
+is **no unscoped `getAll*` method**.
 The rules enforce the same scope server-side (§11); the client filter keeps
 the cache honest, and the rules are what actually protect the data.
 
@@ -376,10 +435,22 @@ KMPDC number, license or tokens.
 search widens by truncating the prefix. Characters that were never stored
 cannot be recovered.
 
-**Counters** are incremented only by triggers, with `FieldValue.increment`.
-Triggers are delivered at least once, so each records its event id before
-incrementing, and a redelivered event counts nothing. A counter added later
-is `@Default(0)` in its model, so older documents still parse.
+**Counters** are incremented only by triggers, with `FieldValue.increment`,
+and only on the **edge**: the document before the write lacks the fact and
+the document after has it (an appointment's `acceptedAt` going from `''` to
+set, say). Triggers are delivered at least once, so each records a fact key,
+`counterMarks/{counter}:{resourceUid}`, and a redelivered event counts
+nothing; a later, unrelated write is not an edge, so it never re-counts. A
+counter added later is `@Default(0)` in its model, so older documents still
+parse.
+
+**Availability (`feat/infra`, planned).** `doctors` gains `workingDays`
+(default Monday to Friday), `dayStartMinute` (480) and `dayEndMinute` (1020),
+which the owner writes and the rules validate only when one of them changes,
+and `busySlots`, which only the server writes, as appointments are accepted
+and cancelled. `practitioners` projects all four, dropping past slots, so a
+patient sees busy times on the profile. A one-off admin callable,
+`backfillAvailability`, writes the defaults onto existing documents.
 
 **How each document is created.** Clients never create a `patients`,
 `doctors` or `practitioners` document; callables do, and set the role claim
@@ -391,9 +462,11 @@ in the same step.
 | `completePractitionerSignUp` | A new account | Checks the KMPDC number is unused and the facility exists, then creates `doctors/{uid}` as `Pending`. **No role claim is set**, so a pending account reaches no clinical route |
 | `verifyPractitioner` | Admin only (seed script for the pilot) | Sets `Verified` or `Rejected`; on `Verified`, sets `role: doctor` or `role: pathologist` |
 | `addPatient` | A verified doctor | Same duplicate check, then creates the record with `uid: ''` and the doctor in `doctorUids` |
-| `linkPatientAccount` | A doctor on the record's care team | Attaches a registered account to a doctor-added record, with the patient present |
-| `inviteToCase` | The patient | Adds a verified practitioner to a case's participants and to `doctorUids` |
+| `linkPatientAccount` | A doctor on the record's care team | Attaches a registered account to a doctor-added record, with the patient present. Planned: it then links the record's cases through a resumable job (`linkJobs/{patientId}`), in pages of per-case transactions, which the sweep resumes if it stalls |
+| A patient's `Join` share (planned; replaces `inviteToCase`) | The patient, once their result is released | Shares a case with a verified practitioner through an addressed code (§6.3); redeeming it adds the practitioner to the case's viewers and to `doctorUids` |
 
+`doctorUids` has three server writers: `addPatient`, a patient's `Join`
+share, and a doctor accepting the patient's appointment (planned).
 Being in `doctorUids` grants the patient's profile, not their cases. Each
 case's own participant list (§11) still decides who reads which case. A
 second-opinion doctor sees the shared case only. The patient may remove a
@@ -479,6 +552,88 @@ and will price an order, against its own lists rather than trusting a
 client; a test compares them. A patient outside Nairobi can still sign up: they see a pilot notice,
 and the directory lists every practitioner rather than the nearest.
 
+**Planned in `feat/infra`** (CRQ-0039, CRQ-0049), in both `assets/data` and
+`functions/data`, byte-identical:
+
+| Asset | Holds | Source |
+|---|---|---|
+| `insurers.json` | `insurerId`, `name`, `type`: SHA first, then the insurers that report medical premium and are licensed, then `other` (free text) | The IRA's licensed-insurers notice ([Kenya Gazette, 30 April 2026](https://new.kenyalaw.org/akn/ke/officialGazette/2026-04-30/76/eng@2026-04-30)), the IRA's Q4 2025 industry release, for medical premium by insurer ([a reproduction](https://tulinde.co.ke/largest-insurance-companies/)), and [SHA](https://www.sha.go.ke/aboutus/). Insurers under statutory management are left out ([report](https://thekenyatimes.com/business/ira-bars-three-insurance-companies-from-issuing-further-contracts-holders-to-seek-alternatives/)). The list was built from reproductions of the IRA documents; the CRQ cites the primary notice and release |
+| `report_templates.json` | Per template (`Cancer`, `Malaria`, `General`): the test types it covers and its sections (`Macroscopic`, `Microscopic`, `Ancillary` and others), each with ordered questions and a `required` flag. Labels live in the ARB files, en and sw, and a test resolves every key in both | Tabibu's own. A clinical pass on the templates follows the demo build; it does not gate it |
+| `notifiable_diseases.json` | 38 diseases with their IHR status, Kenyan reporting category, the lab tests that confirm, presume or support each, and whether a public alert is allowed | [`outbreak_alert_engine.md` §2](./outbreak_alert_engine.md#2-tag), with every source linked |
+| `public_health_guidance.json` | Patient and clinician guidance for each disease that may raise a public alert, every bullet with its source | The same |
+| `functions/data/county_adjacency.json` (functions only) | Each county's neighbours, for the clinician audience | Not yet sourced. Until it is, an alert reaches clinicians in its own county only |
+
+### 6.3 The clinical collections (`feat/infra`, planned)
+
+None of this is built yet (§16 item 11). The order **is** the case: one
+`cases/{caseUid}` record carries a patient from order to result, its user-facing
+name stays "order", and its number `ODR-…`. Clients write almost nothing;
+Cloud Functions write the rest. "Role" below means the role claim, which
+every case-bearing rule pairs with participation, so an account that has lost
+its role reads nothing.
+
+**Firestore.**
+
+| Path | Holds | Read by | Client writes |
+|---|---|---|---|
+| `cases/{caseUid}` | The order and case: tests, prices, priority, lab fields, stage, location and step | Role patient, doctor or pathologist, in `participantUids` | The doctor, before a pathologist accepts: the clinical and sample notes, and when the sample was collected |
+| `cases/{c}/log/{seq}` | The append-only stage log | The doctor and pathologist; others only rows marked `patientVisible` | None |
+| `cases/{c}/private/payment` | Payment method, insurer, policy number | The case's doctor and patient | None |
+| `cases/{c}/riskCheck/current` | The order risk check (AI, direct use) | The case's doctor | None |
+| `cases/{c}/notesTranslation/current` | The doctor's notes in the other language (AI, direct use) | The case's doctor and pathologist | None |
+| `cases/{c}/preread/{runUid}` | The pre-read (AI draft) | The case's pathologist only (S-1) | None |
+| `cases/{c}/reportDrafts/{pathologistUid}` | The working draft | The case's pathologist only | That pathologist, a whitelist of fields, while `Editing` |
+| `cases/{c}/prereadScores/{runUid}` | The pathologist's score of a run | That pathologist; admins | None |
+| `cases/{c}/reports/{v}` | One signed version (`v1`, `v2`, …) | Its `readerUids`; a patient only once released (S-3) | None (S-2) |
+| `cases/{c}/reportProvenance/{v}` | The untouched AI draft, the diff, the edit rate | The signer; admins | None |
+| `cases/{c}/reportTexts/{id}` | A working translation or explanation: machine text and signals | Its approver only, by id | None |
+| `cases/{c}/reportTextsApproved/{id}` | The approved text, the only shape a reader gets | The version's readers, by id; a patient once released | None |
+| `worklist/{caseUid}` | The pathologist's desk entry | That pathologist; cleared when they leave the case | None |
+| `shareCodes/{shareUid}`, `shareSecrets/{shareUid}` | An addressed share code (`Join` or `ReportUnlock`) and its HMAC | The creator and the recipient; the secret by nobody | None |
+| `appointments/{a}` | A consultation or a case discussion | Its patient and its doctor | None |
+| `appointments/{a}/intake/summary` | The symptom summary, en and sw (AI, direct use) | The appointment's doctor | None |
+| `transcriptions/{id}` | A symptom transcript, held until the booking compares it (1 day TTL) | Nobody | None |
+| `conversations/{cid}` | A direct thread (`appt_{a}`, `case_{c}_{pathologistUid}`) or an MDT | Role patient, doctor or pathologist, in `participantUids` | None |
+| `conversations/{cid}/cursors/{uid}` | A member's read cursor | The conversation's participants | Its owner, forward only |
+| `conversations/{cid}/messages/{m}` | A text, image or voice message | The participants | The sender creates it |
+| `conversations/{cid}/messages/{m}/transcript/machine` | A voice note's machine transcript | The sender, and doctors and pathologists in the thread | None |
+| `conversations/{cid}/messages/{m}/transcript/shared` | The transcript the sender chose to share | Every participant | None |
+| `notifications/{key}` | One inbox row; the id is its `idempotencyKey` | Its recipient | The recipient: read state only |
+| `modelSignals/{YYYYMMDD}` | Daily model performance counts and rates, no uid or text | Admins | None |
+| `notifiableEvents/{e}`, `notifiableEventLinks/{caseUid}_{diseaseId}`, `epiCounts/{…}` | Anonymous events, their server-only link to a case, weekly counts | Nobody | None |
+| `alertSignals/{diseaseId}_{countyId}_{epiWeek}`, `alerts/{a}` | The detector's signal, and the working alert | Alert approvers | None (S-4) |
+| `publicAlerts/{a}`, `publicAlerts/{a}/doctor/brief` | The approved patient notice; the clinician brief | Approvers and clinicians; a patient once released to patients. The brief: approvers, doctors and pathologists | None |
+| `alertDeliveries/{a}`, `alertApprovers/{uid}`, `demoAccounts/{uid}` | The delivery job, the approver registry (and its push tokens), the demo accounts | Nobody | None |
+| `rateCounters/{key}`, `messageQuotas/{uid}` | Race-safe caps on shares, MDTs, reissues and transcriptions; message and voice-note quotas | Nobody | None |
+| `orderCounters/…`, `orderNumbers/{n}`, `counterMarks/{…}`, `linkJobs/{patientId}` | Order-number minting, the counter guard, account-link progress | Nobody | None |
+
+Existing documents gain fields: `doctors` and `practitioners` the
+availability fields (§6.1), and `patients` new writers of `doctorUids` and a
+county that changes only through `updatePatientArea`, which the app follows by
+moving its alert topic. Server-only `expireAt` fields are Firestore
+Timestamps, because TTL ignores strings, and never appear in a Dart model.
+
+**Storage.** Stored values are paths, never download URLs; the one exception
+stays `profilePictureUrl`.
+
+| Path | Written by | Read by | Limit |
+|---|---|---|---|
+| `slides/{c}/{imageUid}.jpg` or `.png` | The doctor before acceptance, or the pathologist, under a name reserved by a callable | The case's doctor and pathologist | 20 MB |
+| `preread/{c}/{r}/segmentation.json`, `labels.json` | The AI service | The case's pathologist | none |
+| `reports/{c}/{r}/signature-{sha256}.png` | `signReport` only, content-addressed | The version's readers | 256 KB |
+| `conversations/{cid}/images/{m}/image.jpg` or `.png` | A participant, before the message exists | Participants, as bytes through the SDK | 3 MB |
+| `conversations/{cid}/voice/{m}.m4a` | A participant, once, before the message exists | Participants, as bytes through the SDK into a private cache wiped at sign-out | 512 KB (about 2 minutes) |
+| `speechAudio/{uid}/{audioUid}.m4a` | The patient | Nobody: the server transcribes it and deletes it | 512 KB |
+
+**Boxes.** The data layer adds 21 encrypted boxes, wiped at sign-out with the
+cached audio and image files: `cases`, `caseLogs`, `casePayments`,
+`shareCodes`, `riskChecks`, `notesTranslations`, `pathologyReports`,
+`reportDrafts`, `prereadScores`, `worklist`, `reportTexts` (approved texts
+only), `appointments`, `appointmentIntakes`, `conversations`,
+`conversationCursors`, `messages` (a `LazyBox` pruned to the newest 200 per
+conversation and never opened before `runApp`), `messageTranscripts`,
+`notifications`, `publicAlerts`, `alertClinicianBriefs` and `alertReceipts`.
+
 ## 7. Dependency injection
 
 `injectable` + `get_it`, generated via `@InjectableInit()` in
@@ -554,8 +709,19 @@ cost are controlled:
 | `paused` | Set `_hasBeenBackgrounded`. Stop the Firestore listeners: the inbox, the pathologist's worklist, the pre-read status of an open case. Nothing listens while nobody is looking. |
 | `resumed` **after a real background** | Re-fetch Remote Config (kill switches, §10) and re-run the force-update gate; re-resolve a signed-in session, so a verification granted meanwhile is picked up; reopen the listeners from the cache's cursor so nothing is missed; refresh the worklist. |
 | `inactive → resumed` on cold start | Ignored. The `DecisionRoute` already ran these checks, and only the one-way `_hasBeenBackgrounded` flag can tell a cold start from a real resume. |
-| Sign-out | Stop every listener, flush any queued writes while the credentials are still valid, then wipe the case-bearing boxes and rotate the key (§6). |
-| Notification tapped (cold or warm) | Local and push taps share one stream, and `launchPayload` covers both on a cold launch. The payload is a case or alert uid in `data.payload`; it is routed once the case and alert screens exist. |
+| Sign-out | Stop every listener, flush any queued writes while the credentials are still valid, unsubscribe the patient's alert topic before the push token is deleted, then wipe the case-bearing boxes and the cached audio and image files, and rotate the key (§6). |
+| Notification tapped (cold or warm) | Local and push taps share one stream, and `launchPayload` covers both on a cold launch. The payload is the `notificationUid`, and the row's `metadata.deepLink` is the route; it is routed once the case and alert screens exist. |
+
+**The listeners the data layer adds** (planned). Each restarts from its
+cursor on resume.
+
+| Listener | Starts | Stops |
+|---|---|---|
+| Inbox, and the conversation list | The role shell | `paused`, sign-out |
+| An open thread | The thread opens | It closes, `paused`, sign-out |
+| The pathologist's worklist | The desk opens | `paused`, sign-out |
+| The pre-read of an open case | The case opens | It closes, `paused` |
+| The symptom summary | The doctor opens an appointment whose summary is `Queued` | The summary is ready, the screen closes, `paused` |
 
 ## 10. Security
 
@@ -595,10 +761,21 @@ In summary:
   local development from the macOS Keychain through `make ai-dev`. Remote
   Config carries non-secret settings only: model ids, base URLs, thresholds,
   kill switches. Release signing material lives in CI secrets (CRQ-0007, T-13).
-- **Kill switches**: Remote Config flags (`preread_enabled`,
-  `alerts_delivery_enabled`, `patient_explanations_enabled`) let me take a
-  misbehaving AI path offline without a release. This is the first step of a
-  P1 response.
+- **Kill switches**: eight Remote Config flags (`preread_enabled`,
+  `risk_check_enabled`, `patient_explanations_enabled`,
+  `alerts_delivery_enabled`, `symptom_intake_enabled`,
+  `report_translation_enabled`, `voice_input_enabled`,
+  `alert_drafting_enabled`) let me take a misbehaving AI path offline without
+  a release. There are **two templates**: the client template decides which
+  surfaces the app shows, and the server template gates the jobs and the
+  delivery, with defaults in `functions/src/config.ts` for when it cannot
+  load. On the server, every AI-job switch fails closed (no new job; the
+  human path continues), alert delivery fails closed to `Held`, and alert
+  drafting fails open to a template draft, so the approver still gets one.
+  The P1 runbook flips **both** templates, server first. This is the first
+  step of a P1 response. The app's defaults for all eight live in
+  `lib/core/constants/remote_config_defaults.dart`, passed to `setDefaults`
+  in `bootstrap.dart`, with a test that lists all eight (planned).
 - **Remote Config at startup** (CRQ-0011): `bootstrap` sets in-app defaults,
   then fetches and activates within the bootstrap timeout; on any failure
   the defaults stand. Every parameter the app reads has a default there.
@@ -624,15 +801,17 @@ In summary:
 
 | Role / permission | Can | Cannot |
 |---|---|---|
-| Patient | Describe symptoms; see their own cases; read a signed result's explanation once released; choose a county and sub-county; browse the practitioner directory; invite a practitioner to a case | See any other patient's case; see an AI draft; see a cancer result before the doctor marks it discussed |
+| Patient | Describe symptoms; see their own cases; read an explanation once released **and approved by their doctor**; choose a county and sub-county; browse the practitioner directory; share a released case with a practitioner (a `Join` code) | See any other patient's case; see an AI draft; see a cancer result before the doctor marks it discussed |
 | Pending practitioner (no role claim) | Edit their own `doctors` profile, KMPDC number and license | Reach any clinical route or read any patient |
 | Doctor | Add a patient; read the profiles of patients whose care team they are on; accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
 | Pathologist | Work the ranked list of cases assigned to them; review, edit and sign reports; mark a result notifiable | Release a result to a patient |
-| Alert approver (a permission on a doctor) | Read, edit and approve a drafted alert | Approve an alert they drafted by hand without the draft being recorded |
+| Alert approver (a permission on an admin, held by an authorised public-health officer: MoH or a county health department) | Read a drafted alert and its evidence; approve it as is in one tap, edit it, or reject it; choose clinicians only | Approve an alert raised from their own finding; grant or revoke their own permission; write an alert's status |
 
-**Scope is participation.** A user reads a case only if their uid is the
-case's `patientUid`, `doctorUid` or `pathologistUid`. The rules check this
-on every read and write. **AI drafts are invisible to anyone but the case's
+**Scope is participation.** Participation is `participantUids` (the doctor,
+the linked patient, the requested and the accepted pathologist, and viewers),
+each holding a role claim; a signed report is read only by its `readerUids`,
+and a patient only once it is released. The rules check this on every read
+and write. **AI drafts are invisible to anyone but the case's
 pathologist** until signed, and that is enforced by the rules, not by the
 UI hiding them. `RoleHelper` wraps the claims and exposes typed checks
 (`canSign(case)`, `canApproveAlerts`), so no screen ever compares a role
@@ -754,7 +933,9 @@ to see. Greptile is pointed at this section.
    builds do not shrink.
 4. **Writes that must land together use a batch; a transaction is only for
    writes whose values depend on a read.** Signing (report status, signed
-   copy, audit row) is a batch inside the Cloud Function.
+   copy, audit row) is a **transaction** inside the Cloud Function, because
+   its writes depend on the draft's state and the version's existence. So are
+   every stage transition, release, share redemption and slot booking.
 5. **No test tooling that registers dev-only plugins into the release plugin
    registrant.** A dev dependency missing from the release classpath breaks
    every release build.
@@ -823,11 +1004,31 @@ to see. Greptile is pointed at this section.
     install presents Google's certificate, and without its hash every Play
     install terminates. Add it before the first Play build. The Apple
     Developer Team ID is set (`Z5GNM65VQN`, the project's signing team).
+11. **The clinical data layer is designed, not built** (`feat/infra`). What
+    this document describes as planned, and where it stands on 2026-11-01:
+
+    | Piece | Status |
+    |---|---|
+    | The shared enums (`core/constants/enums.dart`) | In progress |
+    | The models, the reference assets (§6.2) and the typeId rows (§6) | Planned (CRQ-0039, CRQ-0049) |
+    | The 21 encrypted boxes and the feature cache helpers (§6.3) | Planned (CRQ-0040) |
+    | The Firebase data sources and the query registry | Planned (CRQ-0048) |
+    | Rules, indexes and TTL for the §6.3 collections | Planned. Until they land, every collection outside identity stays closed (item 5) |
+    | The case, share-code, report, appointment, conversation, notification and alert functions | Planned (CRQ-0041 to CRQ-0047, CRQ-0049) |
+    | The eight client kill-switch defaults (§10) | Planned (CRQ-0047) |
+    | The AI service's new jobs (translation, explanation, intake, notes translation, risk check, speech to text, alert drafting) | The next branch, `feat/ai-service`. Until then, function tests inject a fake AI client |
+    | Voice recording and playback | The voice UI bundle; its two packages are approved and added with it |
+    | The feature screens | Later branches |
+
+    The deploy order is fixed: indexes (once `READY`), the index smoke check,
+    functions, the availability backfill, Firestore rules, Storage rules, the
+    server Remote Config template, then the app.
 
 ## 17. Change log
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-01 | The `feat/infra` data layer, as planned: §4 the clinical features; §6 the append rule for shipped classes, typeIds 4-55 reserved, scoping by `participantUids` and `readerUids`, counters on the edge; §6.1 availability, the link job, the patient's `Join` share; §6.2 the four new assets with their sources; §6.3 the collections, Storage paths and boxes; §9 the tap payload and the listeners; §10 eight kill switches and two templates; §11 the patient's rights and the alert approver; §15 rule 4 signing as a transaction; §16 item 11 (CRQ-0039 to CRQ-0049). | Theo |
 | 2026-10-29 | §6.2: the lab test catalogue, with benchmark prices (CRQ-0033). | Theo |
 | 2026-10-29 | §8: email verification in the landing order (CRQ-0032). | Theo |
 | 2026-10-28 | §5 rule 8: `BlocsHelper` in bootstrap; §8 rewritten as built: decision route, `resolveLanding`, the role-claim guard, the sign-up draft, theme and language; §9 push taps and resume; §10 force-update rule (CRQ-0027). | Theo |
