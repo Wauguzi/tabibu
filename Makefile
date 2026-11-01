@@ -323,7 +323,7 @@ functions-test:
 		$(require_java21)
 		cd functions && npm install --silent && ./node_modules/.bin/eslint src \
 		    && ./node_modules/.bin/tsc -p tsconfig.build.json
-		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,auth --project demo-tabibu \
+		PATH="$(JDK21_BIN):$$PATH" $(FIREBASE) emulators:exec --only firestore,auth,storage --project demo-tabibu \
 		    "cd functions && npm test"
 
 # Demo accounts, one per role (CRQ-0018). The password lives in the Keychain only.

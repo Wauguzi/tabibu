@@ -100,7 +100,23 @@ export function oneOf<T extends string>(raw: unknown, allowed: readonly T[], rea
 }
 
 /** Nairobi is UTC+3 all year: there is no daylight saving to follow. */
-const NAIROBI_OFFSET_MS = 3 * 60 * 60 * 1000;
+export const NAIROBI_OFFSET_MS = 3 * 60 * 60 * 1000;
+
+/** Calendar date in Nairobi, `YYYY-MM-DD`. */
+export function nairobiDate(now: Date): string {
+  return new Date(now.getTime() + NAIROBI_OFFSET_MS).toISOString().slice(0, 10);
+}
+
+/** Compact Nairobi day key, `YYYYMMDD`, for counters and modelSignals. */
+export function nairobiDayKey(now: Date): string {
+  return nairobiDate(now).replace(/-/g, '');
+}
+
+/** Nairobi hour key, `YYYYMMDDHH`, for reissue throttles. */
+export function nairobiHourKey(now: Date): string {
+  const shifted = new Date(now.getTime() + NAIROBI_OFFSET_MS).toISOString();
+  return `${shifted.slice(0, 4)}${shifted.slice(5, 7)}${shifted.slice(8, 10)}${shifted.slice(11, 13)}`;
+}
 
 /**
  * A calendar date, `YYYY-MM-DD`, not in the future and at most 130 years ago, both by Nairobi's
