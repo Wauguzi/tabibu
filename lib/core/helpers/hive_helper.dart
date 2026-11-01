@@ -11,6 +11,8 @@ import 'package:logger/logger.dart';
 import 'package:tabibu/core/helpers/db_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
+import 'package:tabibu/features/notifications/data/models/notification_hive.dart';
+import 'package:tabibu/features/notifications/data/models/notification_metadata_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_hive.dart';
@@ -151,6 +153,12 @@ class HiveHelperImpl implements HiveHelper {
     }
     if (!Hive.isAdapterRegistered(3)) {
       Hive.registerAdapter(OnboardingHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(41)) {
+      Hive.registerAdapter(NotificationMetadataHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(40)) {
+      Hive.registerAdapter(NotificationHiveAdapter());
     }
   }
 
