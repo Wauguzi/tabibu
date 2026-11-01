@@ -45,6 +45,17 @@ patient reads, or the alert path.
 | [CRQ-0036](./CRQ-0036-pre-review-hardening.md) | The pre-PR review: Storage, rules and functions hardened, and sign-out and session reads made safe | 2026-10-30 | Implemented — rules and functions to deploy with the build |
 | [CRQ-0037](./CRQ-0037-build-platform-and-repository.md) | Build and platform: AGP 9 and JVM 17, the native splash, iOS signing and icons, Hosting; the repository's community files | 2026-10-30 | Implemented |
 | [CRQ-0038](./CRQ-0038-merge-commits-and-kept-branches.md) | Pull requests merge with a merge commit, branches are kept, and a branch's records are completed on `main` after its merge | 2026-10-30 | Implemented |
+| [CRQ-0039](./CRQ-0039-data-layer-models-and-reference-data.md) | Data-layer models and bundled reference data | 2026-11-01 | Implemented — across `feat/infra` (CRQ-0039 to CRQ-0049) |
+| [CRQ-0040](./CRQ-0040-encrypted-cache-boxes-and-helpers.md) | Encrypted cache boxes and feature cache helpers | 2026-11-01 | Implemented |
+| [CRQ-0041](./CRQ-0041-case-orchestrator-orders-and-payment.md) | Case orchestrator, order number, lab fields and payment | 2026-11-01 | Implemented — pipeline core; order and payment callables planned |
+| [CRQ-0042](./CRQ-0042-share-codes.md) | Share codes | 2026-11-01 | Implemented |
+| [CRQ-0043](./CRQ-0043-signed-reports-release-and-pdf.md) | Signed reports, release, approvals and the PDF | 2026-11-01 | Implemented — shapes, reads and rules; signing and PDF builder planned |
+| [CRQ-0044](./CRQ-0044-appointments-availability-and-voice-input.md) | Appointments, availability and symptom voice input | 2026-11-01 | Implemented — shapes, reads and rules; booking and transcription planned |
+| [CRQ-0045](./CRQ-0045-conversations-mdt-and-voice-notes.md) | Conversations, MDT and voice notes | 2026-11-01 | Implemented — shapes, reads and rules; membership and flag callables planned |
+| [CRQ-0046](./CRQ-0046-notification-model-v2-and-push.md) | Notification model v2 and the push trigger | 2026-11-01 | Implemented |
+| [CRQ-0047](./CRQ-0047-model-performance-signals.md) | Model performance signals | 2026-11-01 | Implemented |
+| [CRQ-0048](./CRQ-0048-feature-data-sources-and-indexes.md) | Firebase feature data sources and the index check | 2026-11-01 | Implemented |
+| [CRQ-0049](./CRQ-0049-outbreak-alerts.md) | Outbreak alerts | 2026-11-01 | Implemented — bundle and reads; detector and delivery planned; source urls to re-verify |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.
