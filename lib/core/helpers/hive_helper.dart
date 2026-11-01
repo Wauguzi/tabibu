@@ -60,6 +60,9 @@ import 'package:tabibu/features/worklist/data/models/worklist_entry_hive.dart';
 abstract class HiveHelper {
   Future<void> initBoxes();
 
+  /// The messages box, opened on first use rather than before runApp.
+  Future<LazyBox<MessageHive>> messagesBox();
+
   /// Deletes every encrypted box and rotates the key, because a clinic phone
   /// is often shared (§6, T-11). Device preferences survive.
   Future<void> clearOnSignOut();
@@ -454,8 +457,7 @@ class HiveHelperImpl implements HiveHelper {
     }
   }
 
-  /// The messages box, opened lazily: chats can be large, so it opens on
-  /// first use instead of before runApp.
+  @override
   Future<LazyBox<MessageHive>> messagesBox() =>
       _messagesBox ??= _openMessagesBox();
 
