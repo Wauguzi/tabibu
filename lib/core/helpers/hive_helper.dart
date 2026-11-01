@@ -10,6 +10,12 @@ import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/helpers/db_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
+import 'package:tabibu/features/alerts/data/models/alert_clinician_brief_hive.dart';
+import 'package:tabibu/features/alerts/data/models/alert_receipt_hive.dart';
+import 'package:tabibu/features/alerts/data/models/alert_text_hive.dart';
+import 'package:tabibu/features/alerts/data/models/guidance_bullet_hive.dart';
+import 'package:tabibu/features/alerts/data/models/guidance_source_hive.dart';
+import 'package:tabibu/features/alerts/data/models/public_alert_hive.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_hive.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_intake_hive.dart';
 import 'package:tabibu/features/appointments/data/models/intake_draft_hive.dart';
@@ -188,6 +194,24 @@ class HiveHelperImpl implements HiveHelper {
       Hive.registerAdapter(NotificationHiveAdapter());
     }
     // Nested types first: each before the type that holds it.
+    if (!Hive.isAdapterRegistered(47)) {
+      Hive.registerAdapter(AlertTextHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(48)) {
+      Hive.registerAdapter(GuidanceBulletHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(49)) {
+      Hive.registerAdapter(GuidanceSourceHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(50)) {
+      Hive.registerAdapter(AlertClinicianBriefHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(46)) {
+      Hive.registerAdapter(PublicAlertHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(51)) {
+      Hive.registerAdapter(AlertReceiptHiveAdapter());
+    }
     if (!Hive.isAdapterRegistered(5)) {
       Hive.registerAdapter(OrderedTestHiveAdapter());
     }
