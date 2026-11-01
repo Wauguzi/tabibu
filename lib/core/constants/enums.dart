@@ -99,10 +99,11 @@ enum ThemePreference {
 
   String get value => name;
 
+  /// Nothing saved starts in light, not the device's setting.
   static ThemePreference fromValue(String? value) => switch (value) {
-    'light' => .light,
     'dark' => .dark,
-    _ => .system,
+    'system' => .system,
+    _ => .light,
   };
 
   String description(AppLocalizations l10n) => switch (this) {
