@@ -115,4 +115,10 @@ const queryRegistry = <QuerySpec>[
     ],
     orderBy: ['lastUpdatedAt ASC'],
   ),
+  QuerySpec(
+    id: 'worklist.pathologistDelta',
+    collection: 'worklist',
+    filters: ['pathologistUid ==', 'lastUpdatedAt >='],
+    orderBy: ['lastUpdatedAt'],
+  ),
 ];
