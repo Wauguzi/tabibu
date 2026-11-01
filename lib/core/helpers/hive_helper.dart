@@ -10,6 +10,9 @@ import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/helpers/db_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_hive.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_intake_hive.dart';
+import 'package:tabibu/features/appointments/data/models/intake_draft_hive.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
 import 'package:tabibu/features/notifications/data/models/notification_hive.dart';
 import 'package:tabibu/features/notifications/data/models/notification_metadata_hive.dart';
@@ -19,6 +22,15 @@ import 'package:tabibu/features/practitioners/data/models/practitioner_hive.dart
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_hive.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
+import 'package:tabibu/features/reports/data/models/notifiable_finding_hive.dart';
+import 'package:tabibu/features/reports/data/models/pathology_report_hive.dart';
+import 'package:tabibu/features/reports/data/models/preread_score_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_addendum_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_draft_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_measurement_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_response_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_text_approved_hive.dart';
+import 'package:tabibu/features/worklist/data/models/worklist_entry_hive.dart';
 
 /// The offline cache (architecture §6). Reads are scoped to the signed-in
 /// person; there is no unscoped read of patients.
@@ -159,6 +171,43 @@ class HiveHelperImpl implements HiveHelper {
     }
     if (!Hive.isAdapterRegistered(40)) {
       Hive.registerAdapter(NotificationHiveAdapter());
+    }
+    // Nested types first: each before the type that holds it.
+    if (!Hive.isAdapterRegistered(17)) {
+      Hive.registerAdapter(ReportResponseHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(18)) {
+      Hive.registerAdapter(ReportAddendumHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(19)) {
+      Hive.registerAdapter(ReportMeasurementHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(52)) {
+      Hive.registerAdapter(NotifiableFindingHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(16)) {
+      Hive.registerAdapter(PathologyReportHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(20)) {
+      Hive.registerAdapter(ReportDraftHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(21)) {
+      Hive.registerAdapter(PrereadScoreHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(22)) {
+      Hive.registerAdapter(WorklistEntryHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(23)) {
+      Hive.registerAdapter(ReportTextApprovedHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(26)) {
+      Hive.registerAdapter(IntakeDraftHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(25)) {
+      Hive.registerAdapter(AppointmentIntakeHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(24)) {
+      Hive.registerAdapter(AppointmentHiveAdapter());
     }
   }
 
