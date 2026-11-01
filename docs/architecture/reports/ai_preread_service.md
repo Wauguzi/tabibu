@@ -36,8 +36,8 @@ sender), and an alert (an authorised public-health officer). **Where the
 threat model's S-8 names the reader as the qualified person who acts on the
 output, it is used directly**: the symptom summary and risk advice to the
 doctor, the notes translation to the doctor and pathologist, the speaker's
-own transcript, and a clinician's voice-note transcript to clinicians who
-also hear the audio. Either way the output is labelled as AI, its input is
+own transcript, and any voice-note transcript to the clinicians in that
+conversation, who also hear the audio. Either way the output is labelled as AI, its input is
 de-identified, and it records its signals (§6).
 
 The jobs this document did not describe before are built in the

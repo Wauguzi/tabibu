@@ -40,10 +40,10 @@ finding.
 - **The risk check never confirms or rules out a disease** (S-7). Its advisory is a fixed template.
 - **AI output used without an approval is limited to the readers S-8 names** (S-8): the symptom
   summary and the risk advice to the doctor, the notes translation to the doctor and the
-  pathologist, a speaker's own transcript, and a clinician's voice-note transcript to clinicians
-  who also hear the audio. Each is labelled as AI, and its input is de-identified. A patient reads
-  a clinician's transcript only after the sender shares it. Any other path from model output to a
-  person without an approval is the P1 above.
+  pathologist, a speaker's own transcript, and any voice-note transcript to the clinicians in that
+  conversation, who also hear the audio. Each is labelled as AI, and its input is de-identified. A
+  patient reads a clinician's transcript only after the sender shares it. Any other path from model
+  output to a person without an approval is the P1 above.
 
 ## Architecture boundaries
 
