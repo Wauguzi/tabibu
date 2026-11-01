@@ -42,6 +42,16 @@ _DoctorModel _$DoctorModelFromJson(Map<String, dynamic> json) => _DoctorModel(
   termsAcceptedAt: json['termsAcceptedAt'] as String,
   createdAt: json['createdAt'] as String,
   lastUpdatedAt: json['lastUpdatedAt'] as String,
+  workingDays:
+      (json['workingDays'] as List<dynamic>?)
+          ?.map((e) => (e as num).toInt())
+          .toList() ??
+      const [1, 2, 3, 4, 5],
+  dayStartMinute: (json['dayStartMinute'] as num?)?.toInt() ?? 480,
+  dayEndMinute: (json['dayEndMinute'] as num?)?.toInt() ?? 1020,
+  busySlots:
+      (json['busySlots'] as List<dynamic>?)?.map((e) => e as String).toList() ??
+      const <String>[],
 );
 
 Map<String, dynamic> _$DoctorModelToJson(_DoctorModel instance) =>
@@ -75,4 +85,8 @@ Map<String, dynamic> _$DoctorModelToJson(_DoctorModel instance) =>
       'termsAcceptedAt': instance.termsAcceptedAt,
       'createdAt': instance.createdAt,
       'lastUpdatedAt': instance.lastUpdatedAt,
+      'workingDays': instance.workingDays,
+      'dayStartMinute': instance.dayStartMinute,
+      'dayEndMinute': instance.dayEndMinute,
+      'busySlots': instance.busySlots,
     };

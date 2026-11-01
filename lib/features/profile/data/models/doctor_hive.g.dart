@@ -47,13 +47,19 @@ class DoctorHiveAdapter extends TypeAdapter<DoctorHive> {
       createdAt: fields[27] as String,
       lastUpdatedAt: fields[28] as String,
       synced: fields[29] as bool,
+      workingDays: fields[30] == null
+          ? [1, 2, 3, 4, 5]
+          : (fields[30] as List).cast<int>(),
+      dayStartMinute: fields[31] == null ? 480 : (fields[31] as num).toInt(),
+      dayEndMinute: fields[32] == null ? 1020 : (fields[32] as num).toInt(),
+      busySlots: fields[33] == null ? [] : (fields[33] as List).cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, DoctorHive obj) {
     writer
-      ..writeByte(30)
+      ..writeByte(34)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -113,7 +119,15 @@ class DoctorHiveAdapter extends TypeAdapter<DoctorHive> {
       ..writeByte(28)
       ..write(obj.lastUpdatedAt)
       ..writeByte(29)
-      ..write(obj.synced);
+      ..write(obj.synced)
+      ..writeByte(30)
+      ..write(obj.workingDays)
+      ..writeByte(31)
+      ..write(obj.dayStartMinute)
+      ..writeByte(32)
+      ..write(obj.dayEndMinute)
+      ..writeByte(33)
+      ..write(obj.busySlots);
   }
 
   @override

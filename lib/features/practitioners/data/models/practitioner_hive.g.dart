@@ -37,13 +37,19 @@ class PractitionerHiveAdapter extends TypeAdapter<PractitionerHive> {
       reportsSigned: (fields[17] as num).toInt(),
       lastUpdatedAt: fields[18] as String,
       synced: fields[19] as bool,
+      workingDays: fields[20] == null
+          ? [1, 2, 3, 4, 5]
+          : (fields[20] as List).cast<int>(),
+      dayStartMinute: fields[21] == null ? 480 : (fields[21] as num).toInt(),
+      dayEndMinute: fields[22] == null ? 1020 : (fields[22] as num).toInt(),
+      busySlots: fields[23] == null ? [] : (fields[23] as List).cast<String>(),
     );
   }
 
   @override
   void write(BinaryWriter writer, PractitionerHive obj) {
     writer
-      ..writeByte(20)
+      ..writeByte(24)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -83,7 +89,15 @@ class PractitionerHiveAdapter extends TypeAdapter<PractitionerHive> {
       ..writeByte(18)
       ..write(obj.lastUpdatedAt)
       ..writeByte(19)
-      ..write(obj.synced);
+      ..write(obj.synced)
+      ..writeByte(20)
+      ..write(obj.workingDays)
+      ..writeByte(21)
+      ..write(obj.dayStartMinute)
+      ..writeByte(22)
+      ..write(obj.dayEndMinute)
+      ..writeByte(23)
+      ..write(obj.busySlots);
   }
 
   @override

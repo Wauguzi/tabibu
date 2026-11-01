@@ -29,6 +29,18 @@ _PractitionerModel _$PractitionerModelFromJson(Map<String, dynamic> json) =>
       ordersCreated: (json['ordersCreated'] as num).toInt(),
       reportsSigned: (json['reportsSigned'] as num).toInt(),
       lastUpdatedAt: json['lastUpdatedAt'] as String,
+      workingDays:
+          (json['workingDays'] as List<dynamic>?)
+              ?.map((e) => (e as num).toInt())
+              .toList() ??
+          const [1, 2, 3, 4, 5],
+      dayStartMinute: (json['dayStartMinute'] as num?)?.toInt() ?? 480,
+      dayEndMinute: (json['dayEndMinute'] as num?)?.toInt() ?? 1020,
+      busySlots:
+          (json['busySlots'] as List<dynamic>?)
+              ?.map((e) => e as String)
+              .toList() ??
+          const <String>[],
     );
 
 Map<String, dynamic> _$PractitionerModelToJson(_PractitionerModel instance) =>
@@ -52,4 +64,8 @@ Map<String, dynamic> _$PractitionerModelToJson(_PractitionerModel instance) =>
       'ordersCreated': instance.ordersCreated,
       'reportsSigned': instance.reportsSigned,
       'lastUpdatedAt': instance.lastUpdatedAt,
+      'workingDays': instance.workingDays,
+      'dayStartMinute': instance.dayStartMinute,
+      'dayEndMinute': instance.dayEndMinute,
+      'busySlots': instance.busySlots,
     };
