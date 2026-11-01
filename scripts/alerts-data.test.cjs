@@ -215,3 +215,14 @@ test('rebuilding is byte-identical', () => {
     assert.ok(fs.readFileSync(file).equals(before[index]), `${file} changed on rebuild`);
   }
 });
+
+test('no source links to social media; every source is a published document', () => {
+  const guidance = JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'assets', 'data', 'public_health_guidance.json'), 'utf8'));
+  for (const entry of guidance) {
+    for (const source of entry.sources) {
+      assert.match(source.url, /^https:\/\//, `${source.sourceId} must be https`);
+      assert.doesNotMatch(source.url, /facebook\.com|twitter\.com|x\.com\/|instagram\.com/, `${source.sourceId} links to social media`);
+    }
+  }
+});
+

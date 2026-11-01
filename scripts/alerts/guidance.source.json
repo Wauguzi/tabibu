@@ -10,7 +10,9 @@
         "textSw": "Tafuta matibabu haraka ukiwa na homa, kuumwa na kichwa kali, kutapika au kutokwa na damu kusikoeleweka, hasa baada ya kusafiri kwenda maeneo yaliyoathirika.",
         "swIsOfficial": false,
         "sourceId": "S15",
-        "alsoCites": ["S13"]
+        "alsoCites": [
+          "S13"
+        ]
       },
       {
         "bulletId": "ebola_virus_disease-p2",
@@ -28,7 +30,9 @@
         "textSw": "Nawa mikono kwa sabuni, epuka kugusa majimaji ya wagonjwa na wanyama wagonjwa au waliokufa, na epuka nyama ya porini.",
         "swIsOfficial": false,
         "sourceId": "S15",
-        "alsoCites": ["S12"]
+        "alsoCites": [
+          "S12"
+        ]
       },
       {
         "bulletId": "ebola_virus_disease-p4",
@@ -46,7 +50,9 @@
         "textSw": "Piga simu bure 719 (au *719#).",
         "swIsOfficial": false,
         "sourceId": "S13",
-        "alsoCites": ["S14"],
+        "alsoCites": [
+          "S14"
+        ],
         "sourceCheck": "Ocr"
       },
       {
@@ -69,41 +75,41 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S12",
-        "title": "Ministry of Health confirms Ebola virus disease case in Nairobi (press release)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-confirms-ebola-virus-disease-case-nairobi",
+        "title": "CS press release on the confirmed case of Bundibugyo Ebola virus",
+        "publisher": "MoH Kenya, Office of the Cabinet Secretary",
+        "url": "https://www.health.go.ke/sites/default/files/2026-10/CS%20PRESS%20RELEASE-%201ST%20EBOLA%20CASE.pdf",
         "publishedOn": "2026-10-06",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S13",
-        "title": "Ministry of Health issues update on Ebola virus disease outbreak (press release)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-issues-update-ebola-virus-disease-outbreak",
+        "title": "Press release: \"Second Ebola case detected early: contact tracing and quarantine working\"",
+        "publisher": "MoH Kenya, Office of the Director General for Health",
+        "url": "https://health.go.ke/sites/default/files/2026-10/Press%20statement_Ebola_13%20October%202026.pdf",
         "publishedOn": "2026-10-14",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S14",
-        "title": "Ministry of Health statement on Mpox, Marburg and Ebola in the DRC (press statement)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-statement-mpox-marburg-and-ebola-drc",
+        "title": "Press statement on EVD preparedness status in Kenya",
+        "publisher": "MoH Kenya, Cabinet Secretary",
+        "url": "https://health.go.ke/sites/default/files/2026-05/PRESS%20STATEMENT%20ON%20EBOLA%20VIRUS%20DISEASE_19TH%20MAY%202026.pdf",
         "publishedOn": "2026-05-19",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S15",
-        "title": "Key health updates on Mpox, Marburg and Ebola in the Democratic Republic of Congo",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.facebook.com/MOHKenya/posts/1292928032795174",
+        "title": "EVD outbreak in Ituri Province, DRC: public health advisory",
+        "publisher": "MoH Kenya, Director General",
+        "url": "https://health.go.ke/sites/default/files/2026-05/PRESS%20RELEASE_EVD_DRC_Final.pdf",
         "publishedOn": "2026-05-18",
         "accessedOn": "2026-10-30"
       }
@@ -165,9 +171,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -229,9 +235,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -293,9 +299,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -336,7 +342,9 @@
         "textSw": "Lala chini ya chandarua chenye dawa na tumia dawa za kufukuza mbu.",
         "swIsOfficial": false,
         "sourceId": "S17",
-        "alsoCites": ["who-rvf-2024-12-20"]
+        "alsoCites": [
+          "who-rvf-2024-12-20"
+        ]
       },
       {
         "bulletId": "rift_valley_fever-c1",
@@ -358,17 +366,17 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S17",
-        "title": "Ministry of Health response to various disease outbreaks (press statement)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "title": "Press release: advisory on health risks amid ongoing heavy rains",
+        "publisher": "MoH Kenya, PS for Public Health and Professional Standards",
+        "url": "https://health.go.ke/sites/default/files/2023-11/PRESS%20RELEASE-%20ADVISORY%20ON%20HEALTH%20RISKS%20AMID%20ONGOING%20HEAVY%20RAINS%20.pdf",
         "publishedOn": "2023-11-22",
         "accessedOn": "2026-10-30"
       },
@@ -430,9 +438,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -486,17 +494,17 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S17",
-        "title": "Ministry of Health response to various disease outbreaks (press statement)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "title": "Press release: advisory on health risks amid ongoing heavy rains",
+        "publisher": "MoH Kenya, PS for Public Health and Professional Standards",
+        "url": "https://health.go.ke/sites/default/files/2023-11/PRESS%20RELEASE-%20ADVISORY%20ON%20HEALTH%20RISKS%20AMID%20ONGOING%20HEAVY%20RAINS%20.pdf",
         "publishedOn": "2023-11-22",
         "accessedOn": "2026-10-30"
       },
@@ -542,9 +550,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -627,17 +635,17 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S16",
-        "title": "Cholera situation report",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.facebook.com/MOHKenya/posts/9876543210987654",
+        "title": "Press statement: cholera outbreak in parts of the country",
+        "publisher": "MoH Kenya, Cabinet Secretary",
+        "url": "https://www.health.go.ke/sites/default/files/2025-04/Press%20Release-%20Cholera-8.4.2025.pdf",
         "publishedOn": "2025-04-08",
         "accessedOn": "2026-10-30"
       }
@@ -691,9 +699,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -755,17 +763,17 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S21",
-        "title": "Siaya cautions residents of anthrax outbreak (news relay of Siaya County advisory)",
-        "publisher": "The Star (Kenya)",
-        "url": "https://www.the-star.co.ke/news/counties/nyanza/2026-04-17-siaya-cautions-residents-of-anthrax-outbreak",
+        "title": "\"Siaya cautions residents of anthrax outbreak\" (relays a joint statement by the county chief officers for health and agriculture)",
+        "publisher": "The Star (Kenya), reporting a Siaya County Government advisory",
+        "url": "https://www.the-star.co.ke/news/2026-04-17-siaya-cautions-residents-of-anthrax-outbreak",
         "publishedOn": "2026-04-17",
         "accessedOn": "2026-10-30"
       }
@@ -819,9 +827,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -854,7 +862,9 @@
         "textSw": "Anza kutumia chumvi za kurejesha maji mwilini mapema.",
         "swIsOfficial": false,
         "sourceId": "who-diarrhoeal-2024-03-07",
-        "alsoCites": ["S16"]
+        "alsoCites": [
+          "S16"
+        ]
       },
       {
         "bulletId": "shigella_dysentery-p3",
@@ -863,7 +873,9 @@
         "textSw": "Nawa mikono kwa sabuni na tumia maji salama.",
         "swIsOfficial": false,
         "sourceId": "who-diarrhoeal-2024-03-07",
-        "alsoCites": ["S16"]
+        "alsoCites": [
+          "S16"
+        ]
       },
       {
         "bulletId": "shigella_dysentery-c1",
@@ -885,17 +897,17 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S16",
-        "title": "Cholera situation report",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.facebook.com/MOHKenya/posts/9876543210987654",
+        "title": "Press statement: cholera outbreak in parts of the country",
+        "publisher": "MoH Kenya, Cabinet Secretary",
+        "url": "https://www.health.go.ke/sites/default/files/2025-04/Press%20Release-%20Cholera-8.4.2025.pdf",
         "publishedOn": "2025-04-08",
         "accessedOn": "2026-10-30"
       },
@@ -957,9 +969,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -984,7 +996,9 @@
         "textSw": "Lala chini ya chandarua chenye dawa kila usiku.",
         "swIsOfficial": false,
         "sourceId": "S17",
-        "alsoCites": ["S20"]
+        "alsoCites": [
+          "S20"
+        ]
       },
       {
         "bulletId": "malaria-p2",
@@ -1031,25 +1045,25 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S17",
-        "title": "Ministry of Health response to various disease outbreaks (press statement)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "title": "Press release: advisory on health risks amid ongoing heavy rains",
+        "publisher": "MoH Kenya, PS for Public Health and Professional Standards",
+        "url": "https://health.go.ke/sites/default/files/2023-11/PRESS%20RELEASE-%20ADVISORY%20ON%20HEALTH%20RISKS%20AMID%20ONGOING%20HEAVY%20RAINS%20.pdf",
         "publishedOn": "2023-11-22",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S20",
-        "title": "World Malaria Day message",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.facebook.com/MOHKenya/posts/6677889900112233",
+        "title": "Press statement on indoor residual spraying in Busia and seasonal malaria chemoprevention in Turkana",
+        "publisher": "MoH Kenya, PS",
+        "url": "https://health.go.ke/sites/default/files/2025-03/PRESS%20RELEASE-MALARIA%20CONTROL%20UPDATE-8.3.25.pdf",
         "publishedOn": "2025-03-08",
         "accessedOn": "2026-10-30"
       },
@@ -1119,17 +1133,17 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S17",
-        "title": "Ministry of Health response to various disease outbreaks (press statement)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "title": "Press release: advisory on health risks amid ongoing heavy rains",
+        "publisher": "MoH Kenya, PS for Public Health and Professional Standards",
+        "url": "https://health.go.ke/sites/default/files/2023-11/PRESS%20RELEASE-%20ADVISORY%20ON%20HEALTH%20RISKS%20AMID%20ONGOING%20HEAVY%20RAINS%20.pdf",
         "publishedOn": "2023-11-22",
         "accessedOn": "2026-10-30"
       },
@@ -1191,9 +1205,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -1255,9 +1269,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -1303,9 +1317,9 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
@@ -1367,18 +1381,18 @@
     "sources": [
       {
         "sourceId": "S1",
-        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "title": "Clinician's Handbook for IDSR Priority Diseases, Conditions and Events (reporting requirements, standard and lay case definitions, reporting forms MOH 502/503/504/505)",
+        "publisher": "Ministry of Health, Disease Surveillance and Response Unit (foreword by the unit head); now hosted by the Kenya National Public Health Institute (KNPHI)",
+        "url": "https://www.nphi.go.ke/sites/default/files/2024-02/IDSR%20Clinicians%20Handbook.pdf",
         "publishedOn": "",
         "accessedOn": "2026-10-30"
       },
       {
         "sourceId": "S18",
-        "title": "Mpox key messages (social media posts)",
-        "publisher": "Ministry of Health (Kenya)",
-        "url": "https://www.facebook.com/MOHKenya/posts/5544332211667788",
-        "publishedOn": "2024",
+        "title": "Mpox social media posts (key messages)",
+        "publisher": "MoH Kenya",
+        "url": "https://health.go.ke/sites/default/files/MPOX%20SOCIAL%20MEDIA%20POSTS%202024%20FINAL.pdf",
+        "publishedOn": "2025-01-21",
         "accessedOn": "2026-10-30"
       }
     ]
