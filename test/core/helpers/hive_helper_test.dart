@@ -7,9 +7,31 @@ import 'package:hive_ce/hive.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/helpers/db_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
+import 'package:tabibu/features/alerts/data/models/alert_clinician_brief_hive.dart';
+import 'package:tabibu/features/alerts/data/models/alert_receipt_hive.dart';
+import 'package:tabibu/features/alerts/data/models/public_alert_hive.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_hive.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_intake_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_log_entry_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_payment_hive.dart';
+import 'package:tabibu/features/cases/data/models/notes_translation_hive.dart';
+import 'package:tabibu/features/cases/data/models/risk_check_hive.dart';
+import 'package:tabibu/features/cases/data/models/share_code_hive.dart';
+import 'package:tabibu/features/cases/data/models/share_code_model.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_cursor_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_transcript_hive.dart';
+import 'package:tabibu/features/notifications/data/models/notification_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
+import 'package:tabibu/features/reports/data/models/pathology_report_hive.dart';
+import 'package:tabibu/features/reports/data/models/preread_score_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_draft_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_text_approved_hive.dart';
+import 'package:tabibu/features/worklist/data/models/worklist_entry_hive.dart';
 
 class _MockSecureStorage extends Mock implements FlutterSecureStorage {}
 
@@ -51,6 +73,8 @@ PatientModel _patient(
 );
 
 void main() {
+  TestWidgetsFlutterBinding.ensureInitialized();
+
   late Directory dir;
   late Map<String, String> secrets;
 
@@ -273,6 +297,162 @@ void main() {
     test('the care-list cursor starts a day before the newest row', () async {
       expect(await hive.carePatientsCursor('d1'), '2026-10-26T09:00:00.000Z');
       expect(await hive.carePatientsCursor('d3'), isNull);
+    });
+  });
+
+  group('record boxes', () {
+    const eagerOpens = <Type, String>{
+      // Cases.
+      CaseHive: HiveHelperImpl.casesBox,
+      CaseLogEntryHive: HiveHelperImpl.caseLogsBox,
+      CasePaymentHive: HiveHelperImpl.casePaymentsBox,
+      ShareCodeHive: HiveHelperImpl.shareCodesBox,
+      RiskCheckHive: HiveHelperImpl.riskChecksBox,
+      NotesTranslationHive: HiveHelperImpl.notesTranslationsBox,
+      // Reports.
+      PathologyReportHive: HiveHelperImpl.pathologyReportsBox,
+      ReportDraftHive: HiveHelperImpl.reportDraftsBox,
+      PrereadScoreHive: HiveHelperImpl.prereadScoresBox,
+      WorklistEntryHive: HiveHelperImpl.worklistBox,
+      ReportTextApprovedHive: HiveHelperImpl.reportTextsBox,
+      // Appointments.
+      AppointmentHive: HiveHelperImpl.appointmentsBox,
+      AppointmentIntakeHive: HiveHelperImpl.appointmentIntakesBox,
+      // Conversations.
+      ConversationHive: HiveHelperImpl.conversationsBox,
+      ConversationCursorHive: HiveHelperImpl.conversationCursorsBox,
+      MessageTranscriptHive: HiveHelperImpl.messageTranscriptsBox,
+      // Notifications.
+      NotificationHive: HiveHelperImpl.notificationsBox,
+      // Alerts.
+      PublicAlertHive: HiveHelperImpl.publicAlertsBox,
+      AlertClinicianBriefHive: HiveHelperImpl.alertClinicianBriefsBox,
+      AlertReceiptHive: HiveHelperImpl.alertReceiptsBox,
+    };
+
+    test('opens all 20 record boxes eagerly, messages stays lazy', () async {
+      await helper().initBoxes();
+      for (final name in eagerOpens.values) {
+        expect(Hive.isBoxOpen(name), isTrue, reason: name);
+      }
+      expect(Hive.isBoxOpen(HiveHelperImpl.messagesBoxName), isFalse);
+    });
+
+    test('record box contents are unreadable without the cipher', () async {
+      await helper().initBoxes();
+      await Hive.box<ShareCodeHive>(
+        HiveHelperImpl.shareCodesBox,
+      ).put('code-1', ShareCodeHive.fromModel(ShareCodeModel.empty()));
+      await Hive.close();
+
+      await expectLater(
+        Hive.openBox<ShareCodeHive>(HiveHelperImpl.shareCodesBox),
+        throwsA(isA<HiveError>()),
+      );
+    });
+
+    test('messagesBox() opens lazily and caches the future', () async {
+      final hive = helper();
+      await hive.initBoxes();
+      final first = hive.messagesBox();
+      expect(identical(first, hive.messagesBox()), isTrue);
+      final box = await first;
+      expect(box.name, HiveHelperImpl.messagesBoxName);
+      expect(Hive.isBoxOpen(HiveHelperImpl.messagesBoxName), isTrue);
+    });
+
+    test('clearOnSignOut deletes every record box, opened or not', () async {
+      final hive = helper();
+      await hive.initBoxes();
+      // Open messages lazily but close one eager box again: deletion must
+      // reach boxes whatever their open state.
+      await hive.messagesBox();
+      await Hive.box<CaseHive>(HiveHelperImpl.casesBox).close();
+      expect(Hive.isBoxOpen(HiveHelperImpl.casesBox), isFalse);
+
+      await hive.clearOnSignOut();
+
+      const messages = HiveHelperImpl.messagesBoxName;
+      final names = [...eagerOpens.values, messages];
+      for (final name in names) {
+        // clearOnSignOut reopens the eager boxes empty under a fresh key.
+        final reopened = name != messages;
+        expect(Hive.isBoxOpen(name), reopened, reason: name);
+        expect(await Hive.boxExists(name), reopened, reason: name);
+      }
+      expect(Hive.box<CaseHive>(HiveHelperImpl.casesBox), isEmpty);
+    });
+
+    test('DBHelper.deleteAll deletes each record box from disk', () async {
+      await helper().initBoxes();
+      final db = DBHelperImpl();
+      for (final entry in eagerOpens.entries) {
+        await db.deleteAll({entry.key: entry.value});
+        expect(await Hive.boxExists(entry.value), isFalse, reason: entry.value);
+      }
+      await db.deleteAll({MessageHive: HiveHelperImpl.messagesBoxName});
+      expect(await Hive.boxExists(HiveHelperImpl.messagesBoxName), isFalse);
+    });
+
+    test('DBHelper.deleteAll closes an opened lazy messages box', () async {
+      final hive = helper();
+      await hive.initBoxes();
+      await hive.messagesBox();
+      expect(Hive.isBoxOpen(HiveHelperImpl.messagesBoxName), isTrue);
+
+      await DBHelperImpl().deleteAll({
+        MessageHive: HiveHelperImpl.messagesBoxName,
+      });
+
+      expect(Hive.isBoxOpen(HiveHelperImpl.messagesBoxName), isFalse);
+      expect(await Hive.boxExists(HiveHelperImpl.messagesBoxName), isFalse);
+    });
+
+    test('DBHelper.deleteAll of an unknown type throws StateError', () async {
+      await helper().initBoxes();
+      await expectLater(
+        DBHelperImpl().deleteAll({Object: 'someBox'}),
+        throwsA(isA<StateError>()),
+      );
+    });
+
+    group('media cache', () {
+      const channel = MethodChannel('plugins.flutter.io/path_provider');
+      late Directory fakeCache;
+
+      setUp(() {
+        fakeCache = Directory.systemTemp.createTempSync('tabibu_cache_');
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              if (call.method == 'getApplicationCacheDirectory') {
+                return fakeCache.path;
+              }
+              return null;
+            });
+      });
+
+      tearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+        fakeCache.deleteSync(recursive: true);
+      });
+
+      test('clearOnSignOut deletes the tabibu_media directory', () async {
+        final media = Directory('${fakeCache.path}/tabibu_media')
+          ..createSync(recursive: true);
+        File('${media.path}/clip.mp4').writeAsStringSync('bytes');
+
+        await helper().initBoxes();
+        await helper().clearOnSignOut();
+
+        expect(media.existsSync(), isFalse);
+        expect(fakeCache.existsSync(), isTrue);
+      });
+
+      test('clearOnSignOut succeeds when tabibu_media is missing', () async {
+        await helper().initBoxes();
+        await helper().clearOnSignOut();
+      });
     });
   });
 }

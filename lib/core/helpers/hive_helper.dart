@@ -2,12 +2,14 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tabibu/core/helpers/db_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
 import 'package:tabibu/features/alerts/data/models/alert_clinician_brief_hive.dart';
@@ -121,6 +123,7 @@ class HiveHelperImpl implements HiveHelper {
   final FlutterSecureStorage _secureStorage;
   final Future<void> Function() _initHive;
   final Logger _logger = Logger();
+  Future<LazyBox<MessageHive>>? _messagesBox;
 
   static const patientsBox = 'patients';
   static const doctorProfileBox = 'doctorProfile';
@@ -128,12 +131,75 @@ class HiveHelperImpl implements HiveHelper {
   static const onboardingBox = 'onboarding';
   static const _onboardingKey = 'device';
 
+  // Cases.
+  static const casesBox = 'cases';
+  static const caseLogsBox = 'caseLogs';
+  static const casePaymentsBox = 'casePayments';
+  static const shareCodesBox = 'shareCodes';
+  static const riskChecksBox = 'riskChecks';
+  static const notesTranslationsBox = 'notesTranslations';
+
+  // Reports.
+  static const pathologyReportsBox = 'pathologyReports';
+  static const reportDraftsBox = 'reportDrafts';
+  static const prereadScoresBox = 'prereadScores';
+  static const worklistBox = 'worklist';
+  static const reportTextsBox = 'reportTexts';
+
+  // Appointments.
+  static const appointmentsBox = 'appointments';
+  static const appointmentIntakesBox = 'appointmentIntakes';
+
+  // Conversations.
+  static const conversationsBox = 'conversations';
+  static const conversationCursorsBox = 'conversationCursors';
+  static const messagesBoxName = 'messages';
+  static const messageTranscriptsBox = 'messageTranscripts';
+
+  // Notifications.
+  static const notificationsBox = 'notifications';
+
+  // Alerts.
+  static const publicAlertsBox = 'publicAlerts';
+  static const alertClinicianBriefsBox = 'alertClinicianBriefs';
+  static const alertReceiptsBox = 'alertReceipts';
+
+  /// Voice notes and images cached as files; wiped on sign-out (T-11).
+  static const _mediaCacheDirName = 'tabibu_media';
+
   /// Everything holding a person's data. A box added here needs its case in
   /// `DBHelper.deleteAll`, or deleting it throws.
   static const Map<Type, String> _encryptedBoxes = {
     PatientHive: patientsBox,
     DoctorHive: doctorProfileBox,
     PractitionerHive: practitionersBox,
+    // Cases.
+    CaseHive: casesBox,
+    CaseLogEntryHive: caseLogsBox,
+    CasePaymentHive: casePaymentsBox,
+    ShareCodeHive: shareCodesBox,
+    RiskCheckHive: riskChecksBox,
+    NotesTranslationHive: notesTranslationsBox,
+    // Reports.
+    PathologyReportHive: pathologyReportsBox,
+    ReportDraftHive: reportDraftsBox,
+    PrereadScoreHive: prereadScoresBox,
+    WorklistEntryHive: worklistBox,
+    ReportTextApprovedHive: reportTextsBox,
+    // Appointments.
+    AppointmentHive: appointmentsBox,
+    AppointmentIntakeHive: appointmentIntakesBox,
+    // Conversations.
+    ConversationHive: conversationsBox,
+    ConversationCursorHive: conversationCursorsBox,
+    MessageHive: messagesBoxName,
+    MessageTranscriptHive: messageTranscriptsBox,
+    // Notifications.
+    NotificationHive: notificationsBox,
+    // Alerts.
+    PublicAlertHive: publicAlertsBox,
+    AlertClinicianBriefHive: alertClinicianBriefsBox,
+    AlertReceiptHive: alertReceiptsBox,
   };
 
   static const _keyName = 'hiveKey';
@@ -149,6 +215,7 @@ class HiveHelperImpl implements HiveHelper {
 
   @override
   Future<void> initBoxes() async {
+    _messagesBox = null;
     await _initHive();
     _registerAdapters();
     await Hive.openBox<OnboardingHive>(onboardingBox);
@@ -296,11 +363,109 @@ class HiveHelperImpl implements HiveHelper {
   }
 
   Future<void> _openEncryptedBoxes(HiveAesCipher cipher) async {
+    final stopwatch = Stopwatch()..start();
     await Hive.openBox<PatientHive>(patientsBox, encryptionCipher: cipher);
     await Hive.openBox<DoctorHive>(doctorProfileBox, encryptionCipher: cipher);
     await Hive.openBox<PractitionerHive>(
       practitionersBox,
       encryptionCipher: cipher,
+    );
+    // Cases.
+    await Hive.openBox<CaseHive>(casesBox, encryptionCipher: cipher);
+    await Hive.openBox<CaseLogEntryHive>(caseLogsBox, encryptionCipher: cipher);
+    await Hive.openBox<CasePaymentHive>(
+      casePaymentsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ShareCodeHive>(shareCodesBox, encryptionCipher: cipher);
+    await Hive.openBox<RiskCheckHive>(riskChecksBox, encryptionCipher: cipher);
+    await Hive.openBox<NotesTranslationHive>(
+      notesTranslationsBox,
+      encryptionCipher: cipher,
+    );
+    // Reports.
+    await Hive.openBox<PathologyReportHive>(
+      pathologyReportsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ReportDraftHive>(
+      reportDraftsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<PrereadScoreHive>(
+      prereadScoresBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<WorklistEntryHive>(
+      worklistBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ReportTextApprovedHive>(
+      reportTextsBox,
+      encryptionCipher: cipher,
+    );
+    // Appointments.
+    await Hive.openBox<AppointmentHive>(
+      appointmentsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<AppointmentIntakeHive>(
+      appointmentIntakesBox,
+      encryptionCipher: cipher,
+    );
+    // Conversations.
+    await Hive.openBox<ConversationHive>(
+      conversationsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ConversationCursorHive>(
+      conversationCursorsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<MessageTranscriptHive>(
+      messageTranscriptsBox,
+      encryptionCipher: cipher,
+    );
+    // Notifications.
+    await Hive.openBox<NotificationHive>(
+      notificationsBox,
+      encryptionCipher: cipher,
+    );
+    // Alerts.
+    await Hive.openBox<PublicAlertHive>(
+      publicAlertsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<AlertClinicianBriefHive>(
+      alertClinicianBriefsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<AlertReceiptHive>(
+      alertReceiptsBox,
+      encryptionCipher: cipher,
+    );
+    stopwatch.stop();
+    // One less than the map: messages opens lazily through messagesBox().
+    if (kDebugMode) {
+      _logger.i(
+        'Hive opened ${_encryptedBoxes.length - 1} encrypted boxes '
+        'in ${stopwatch.elapsedMilliseconds}ms',
+      );
+    }
+  }
+
+  /// The messages box, opened lazily: chats can be large, so it opens on
+  /// first use instead of before runApp.
+  Future<LazyBox<MessageHive>> messagesBox() =>
+      _messagesBox ??= _openMessagesBox();
+
+  Future<LazyBox<MessageHive>> _openMessagesBox() async {
+    if (Hive.isBoxOpen(messagesBoxName)) {
+      return Hive.lazyBox<MessageHive>(messagesBoxName);
+    }
+    return await Hive.openLazyBox<MessageHive>(
+      messagesBoxName,
+      encryptionCipher: await _cipher(rotate: false),
     );
   }
 
@@ -335,8 +500,24 @@ class HiveHelperImpl implements HiveHelper {
     // A box cleared but kept would still be encrypted with the old key, so
     // the boxes are deleted, not cleared, before the key rotates.
     await _db.deleteAll(_encryptedBoxes);
+    _messagesBox = null;
+    await _clearMediaCache();
     await _openEncryptedBoxes(await _cipher(rotate: true));
     await _secureStorage.delete(key: _ownerName).timeout(_secureStorageTimeout);
+  }
+
+  /// Deletes the cached voice notes and images, best effort: a failure is
+  /// logged in debug and never blocks sign-out.
+  Future<void> _clearMediaCache() async {
+    try {
+      final cache = await getApplicationCacheDirectory();
+      final dir = Directory('${cache.path}/$_mediaCacheDirName');
+      if (dir.existsSync()) {
+        dir.deleteSync(recursive: true);
+      }
+    } catch (e) {
+      if (kDebugMode) _logger.w('Media cache delete failed: $e');
+    }
   }
 
   @override
