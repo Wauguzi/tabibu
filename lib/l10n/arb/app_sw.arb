@@ -455,5 +455,19 @@
     "signOutTitle": "Uondoke kwenye Tabibu?",
     "signOutPatientBody": "Miadi na majibu yako yatabaki salama. Ingia tena wakati wowote kwa barua pepe au Google.",
     "signOutPractitionerBody": "Kesi na ripoti zako zitabaki salama. Ingia tena wakati wowote kwa barua pepe au Google.",
-    "accountCreatedNotice": "Akaunti yako imeundwa kwa barua pepe hii. Endelea na hatua inayofuata."
+    "accountCreatedNotice": "Akaunti yako imeundwa kwa barua pepe hii. Endelea na hatua inayofuata.",
+    "reportQuestionSpecimenDescription": "Maelezo ya sampuli",
+    "reportQuestionSpecimenSize": "Ukubwa wa sampuli",
+    "reportQuestionRepresentativeSections": "Sehemu wakilishi",
+    "reportQuestionMicroscopicDescription": "Maelezo ya hadubini",
+    "reportQuestionTumourGrade": "Daraja la uvimbe",
+    "reportQuestionMargins": "Kingo",
+    "reportQuestionLymphNodes": "Tezi za limfu",
+    "reportQuestionImmunohistochemistry": "Uchunguzi wa tishu kwa kingamwili",
+    "reportQuestionParasiteSpecies": "Aina ya vimelea",
+    "reportQuestionParasiteDensity": "Msongamano wa vimelea",
+    "reportQuestionParasiteStages": "Hatua za vimelea",
+    "reportQuestionRapidTestResult": "Matokeo ya kipimo cha haraka",
+    "reportQuestionFindings": "Matokeo",
+    "reportQuestionMethodNotes": "Maelezo ya mbinu"
 }

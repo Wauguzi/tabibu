@@ -1,0 +1,16 @@
+[
+{"insurerId":"sha","name":"SHA (Social Health Authority)","type":"publicScheme"},
+{"insurerId":"jubilee-health","name":"Jubilee Health Insurance","type":"insurer"},
+{"insurerId":"aar","name":"AAR Insurance","type":"insurer"},
+{"insurerId":"old-mutual","name":"Old Mutual General Insurance","type":"insurer"},
+{"insurerId":"cic","name":"CIC General Insurance","type":"insurer"},
+{"insurerId":"apa","name":"APA Insurance","type":"insurer"},
+{"insurerId":"britam","name":"Britam General Insurance","type":"insurer"},
+{"insurerId":"bupa-global","name":"Bupa Global","type":"insurer"},
+{"insurerId":"ga-insurance","name":"GA Insurance","type":"insurer"},
+{"insurerId":"first-assurance","name":"First Assurance","type":"insurer"},
+{"insurerId":"heritage","name":"Heritage Insurance","type":"insurer"},
+{"insurerId":"madison","name":"Madison General Insurance","type":"insurer"},
+{"insurerId":"star-discover","name":"Star Discover Insurance","type":"insurer"},
+{"insurerId":"other","name":"Other","type":"other"}
+]

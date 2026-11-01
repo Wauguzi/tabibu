@@ -2001,5 +2001,61 @@
     "accountCreatedNotice": "Your account is set up with this email. Continue to the next step.",
     "@accountCreatedNotice": {
         "description": "D2 and E1 once the account exists: why the email cannot change"
+    },
+    "reportQuestionSpecimenDescription": "Specimen description",
+    "@reportQuestionSpecimenDescription": {
+        "description": "Report template question: what the specimen is"
+    },
+    "reportQuestionSpecimenSize": "Specimen size",
+    "@reportQuestionSpecimenSize": {
+        "description": "Report template question: the specimen's dimensions"
+    },
+    "reportQuestionRepresentativeSections": "Representative sections",
+    "@reportQuestionRepresentativeSections": {
+        "description": "Report template question: which sections were taken"
+    },
+    "reportQuestionMicroscopicDescription": "Microscopic description",
+    "@reportQuestionMicroscopicDescription": {
+        "description": "Report template question: what the microscope shows"
+    },
+    "reportQuestionTumourGrade": "Tumour grade",
+    "@reportQuestionTumourGrade": {
+        "description": "Report template question: how aggressive the tumour looks"
+    },
+    "reportQuestionMargins": "Margins",
+    "@reportQuestionMargins": {
+        "description": "Report template question: whether the edges are clear"
+    },
+    "reportQuestionLymphNodes": "Lymph nodes",
+    "@reportQuestionLymphNodes": {
+        "description": "Report template question: lymph node involvement"
+    },
+    "reportQuestionImmunohistochemistry": "Immunohistochemistry",
+    "@reportQuestionImmunohistochemistry": {
+        "description": "Report template question: antibody stain results"
+    },
+    "reportQuestionParasiteSpecies": "Parasite species",
+    "@reportQuestionParasiteSpecies": {
+        "description": "Report template question: which malaria parasite"
+    },
+    "reportQuestionParasiteDensity": "Parasite density",
+    "@reportQuestionParasiteDensity": {
+        "description": "Report template question: parasites per microlitre"
+    },
+    "reportQuestionParasiteStages": "Parasite stages",
+    "@reportQuestionParasiteStages": {
+        "description": "Report template question: life stages seen"
+    },
+    "reportQuestionRapidTestResult": "Rapid test result",
+    "@reportQuestionRapidTestResult": {
+        "description": "Report template question: the rapid test outcome"
+    },
+    "reportQuestionFindings": "Findings",
+    "@reportQuestionFindings": {
+        "description": "Report template question: what was found"
+    },
+    "reportQuestionMethodNotes": "Method notes",
+    "@reportQuestionMethodNotes": {
+        "description": "Report template question: how the test was run"
     }
 }
