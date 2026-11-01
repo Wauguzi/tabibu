@@ -282,8 +282,8 @@
     "**/*.config.dart",
     "**/pubspec.lock",
     "**/Gemfile.lock",
-    "functions/src/copy/*.sw.ts",
-    "scripts/alerts/*.json"
+    "**/functions/src/copy/*.sw.ts",
+    "**/scripts/alerts/*.json"
   ],
   "ignoreRegExpList": [
     "/\\b[0-9A-Fa-f]{6}\\b/",

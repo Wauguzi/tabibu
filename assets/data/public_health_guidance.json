@@ -1,0 +1,1242 @@
+[
+  {
+    "diseaseId": "ebola_virus_disease",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "ebola_virus_disease-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for fever, severe headache, vomiting or unexplained bleeding, especially after travel to affected areas.",
+        "textSw": "Tafuta matibabu haraka ukiwa na homa, kuumwa na kichwa kali, kutapika au kutokwa na damu kusikoeleweka, hasa baada ya kusafiri kwenda maeneo yaliyoathirika.",
+        "swIsOfficial": false,
+        "sourceId": "S15"
+      },
+      {
+        "bulletId": "ebola_virus_disease-p3",
+        "audience": "Patient",
+        "textEn": "Wash hands with soap, avoid contact with sick people's body fluids and with sick or dead animals, and avoid bushmeat.",
+        "textSw": "Nawa mikono kwa sabuni, epuka kugusa majimaji ya wagonjwa na wanyama wagonjwa au waliokufa, na epuka nyama ya porini.",
+        "swIsOfficial": false,
+        "sourceId": "S15"
+      },
+      {
+        "bulletId": "ebola_virus_disease-c1",
+        "audience": "Clinician",
+        "textEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+        "textSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "ebola_virus_disease-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "S15",
+        "title": "Key health updates on Mpox, Marburg and Ebola in the Democratic Republic of Congo",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.facebook.com/MOHKenya/posts/1292928032795174",
+        "publishedOn": "2026-05-18",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "marburg_virus_disease",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "marburg_virus_disease-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for sudden fever, severe headache or unexplained bleeding.",
+        "textSw": "Tafuta matibabu haraka ukiwa na homa ya ghafla, kuumwa na kichwa kali au kutokwa na damu kusikoeleweka.",
+        "swIsOfficial": false,
+        "sourceId": "who-marburg-2025-01-20"
+      },
+      {
+        "bulletId": "marburg_virus_disease-p2",
+        "audience": "Patient",
+        "textEn": "Marburg spreads through contact with body fluids; it is not airborne.",
+        "textSw": "Marburg unaenea kwa kugusa majimaji ya mwili; hauenei hewani.",
+        "swIsOfficial": false,
+        "sourceId": "who-marburg-2025-01-20"
+      },
+      {
+        "bulletId": "marburg_virus_disease-p3",
+        "audience": "Patient",
+        "textEn": "Avoid contact with fruit bats and sick primates, and do not eat bushmeat.",
+        "textSw": "Epuka kugusa popo wa matunda na nyani wagonjwa, wala usile nyama ya porini.",
+        "swIsOfficial": false,
+        "sourceId": "who-marburg-2025-01-20"
+      },
+      {
+        "bulletId": "marburg_virus_disease-p4",
+        "audience": "Patient",
+        "textEn": "Burials need trained teams; do not wash the body at home.",
+        "textSw": "Mazishi yanahitaji timu iliyofunzwa; usioshe mwili nyumbani.",
+        "swIsOfficial": false,
+        "sourceId": "who-marburg-2025-01-20"
+      },
+      {
+        "bulletId": "marburg_virus_disease-c1",
+        "audience": "Clinician",
+        "textEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+        "textSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "marburg_virus_disease-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-marburg-2025-01-20",
+        "title": "Marburg virus disease (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/marburg-virus-disease",
+        "publishedOn": "2025-01-20",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "lassa_fever",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "lassa_fever-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for fever that does not improve, especially with sore throat, vomiting or bleeding.",
+        "textSw": "Tafuta matibabu haraka kwa homa isiyopona, hasa pamoja na koo kuuma, kutapika au kutokwa na damu.",
+        "swIsOfficial": false,
+        "sourceId": "who-lassa-2024-12-05"
+      },
+      {
+        "bulletId": "lassa_fever-p2",
+        "audience": "Patient",
+        "textEn": "Store food in sealed containers and keep rats out of the home.",
+        "textSw": "Hifadhi chakula kwenye vyombo vilivyofungwa na zuia panya kuingia nyumbani.",
+        "swIsOfficial": false,
+        "sourceId": "who-lassa-2024-12-05"
+      },
+      {
+        "bulletId": "lassa_fever-p3",
+        "audience": "Patient",
+        "textEn": "Lassa spreads through contact with rat urine or droppings, and with sick people's body fluids.",
+        "textSw": "Lassa unaenea kwa kugusa mkojo au kinyesi cha panya, na majimaji ya wagonjwa.",
+        "swIsOfficial": false,
+        "sourceId": "who-lassa-2024-12-05"
+      },
+      {
+        "bulletId": "lassa_fever-c1",
+        "audience": "Clinician",
+        "textEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+        "textSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "lassa_fever-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-lassa-2024-12-05",
+        "title": "Lassa fever (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/lassa-fever",
+        "publishedOn": "2024-12-05",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "crimean_congo_haemorrhagic_fever",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "crimean_congo_haemorrhagic_fever-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for sudden fever with headache, vomiting or bleeding.",
+        "textSw": "Tafuta matibabu haraka kwa homa ya ghafla pamoja na kuumwa na kichwa, kutapika au kutokwa na damu.",
+        "swIsOfficial": false,
+        "sourceId": "who-cchf-2025-02-20"
+      },
+      {
+        "bulletId": "crimean_congo_haemorrhagic_fever-p2",
+        "audience": "Patient",
+        "textEn": "Use tick repellent, wear protective clothing around livestock, and check for ticks.",
+        "textSw": "Tumia dawa ya kufukuza kupe, vaa nguo za kujikinga karibu na mifugo, na jikague kupe.",
+        "swIsOfficial": false,
+        "sourceId": "who-cchf-2025-02-20"
+      },
+      {
+        "bulletId": "crimean_congo_haemorrhagic_fever-p3",
+        "audience": "Patient",
+        "textEn": "CCHF spreads through tick bites and contact with infected blood.",
+        "textSw": "CCHF unaenea kwa kuumwa na kupe na kugusa damu iliyoambukizwa.",
+        "swIsOfficial": false,
+        "sourceId": "who-cchf-2025-02-20"
+      },
+      {
+        "bulletId": "crimean_congo_haemorrhagic_fever-c1",
+        "audience": "Clinician",
+        "textEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+        "textSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "crimean_congo_haemorrhagic_fever-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-cchf-2025-02-20",
+        "title": "Crimean-Congo haemorrhagic fever (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/crimean-congo-haemorrhagic-fever",
+        "publishedOn": "2025-02-20",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "rift_valley_fever",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "rift_valley_fever-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for fever with headache, muscle pain or blurred vision.",
+        "textSw": "Tafuta matibabu haraka kwa homa pamoja na kuumwa na kichwa, maumivu ya misuli au kuona vibaya.",
+        "swIsOfficial": false,
+        "sourceId": "S17"
+      },
+      {
+        "bulletId": "rift_valley_fever-p2",
+        "audience": "Patient",
+        "textEn": "Avoid contact with sick animals and do not handle raw meat or milk from them.",
+        "textSw": "Epuka kugusa wanyama wagonjwa wala kushika nyama mbichi au maziwa yao.",
+        "swIsOfficial": false,
+        "sourceId": "S17"
+      },
+      {
+        "bulletId": "rift_valley_fever-p3",
+        "audience": "Patient",
+        "textEn": "Sleep under insecticide-treated nets and use insect repellents.",
+        "textSw": "Lala chini ya chandarua chenye dawa na tumia dawa za kufukuza mbu.",
+        "swIsOfficial": false,
+        "sourceId": "S17"
+      },
+      {
+        "bulletId": "rift_valley_fever-c1",
+        "audience": "Clinician",
+        "textEn": "Febrile illness over 48 h not responding to antimalarials or antibiotics, plus animal contact or an RVF area, ± haemorrhage, jaundice or renal signs. Confirmed: anti-RVF IgM ELISA or RT-PCR.",
+        "textSw": "Homa zaidi ya saa 48 isiyoitikia dawa za malaria au antibiotiki, pamoja na kugusana na wanyama au eneo la RVF, pamoja na kutokwa na damu, manjano au dalili za figo au bila hivyo. Iliyothibitishwa: kipimo cha anti-RVF IgM ELISA au RT-PCR.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "rift_valley_fever-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "S17",
+        "title": "Ministry of Health response to various disease outbreaks (press statement)",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "publishedOn": "2023-11-22",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "yellow_fever",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "yellow_fever-p1",
+        "audience": "Patient",
+        "textEn": "Vaccination is the best protection; one dose gives lifelong cover in most people.",
+        "textSw": "Chanjo ni kinga bora; dozi moja hulinda maisha kwa watu wengi.",
+        "swIsOfficial": false,
+        "sourceId": "who-yellow-fever-2025-10-20"
+      },
+      {
+        "bulletId": "yellow_fever-p2",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for fever with jaundice, dark urine or vomiting.",
+        "textSw": "Tafuta matibabu haraka kwa homa pamoja na manjano, mkojo mweusi au kutapika.",
+        "swIsOfficial": false,
+        "sourceId": "who-yellow-fever-2025-10-20"
+      },
+      {
+        "bulletId": "yellow_fever-p3",
+        "audience": "Patient",
+        "textEn": "Sleep under nets and clear stagnant water where mosquitoes breed.",
+        "textSw": "Lala chini ya chandarua na ondoa maji yaliyotuama mbu wanakozaliana.",
+        "swIsOfficial": false,
+        "sourceId": "who-yellow-fever-2025-10-20"
+      },
+      {
+        "bulletId": "yellow_fever-c1",
+        "audience": "Clinician",
+        "textEn": "Acute fever then jaundice within 2 weeks. Confirmed: IgM or viral isolation, or epidemiological link.",
+        "textSw": "Homa ya ghafla kisha manjano ndani ya wiki 2. Iliyothibitishwa: IgM au kutenga virusi, au uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "yellow_fever-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-yellow-fever-2025-10-20",
+        "title": "Yellow fever (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/yellow-fever",
+        "publishedOn": "2025-10-20",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "dengue",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "dengue-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for high fever with severe headache, pain behind the eyes, rash or bleeding.",
+        "textSw": "Tafuta matibabu haraka kwa homa kali pamoja na kuumwa na kichwa kali, maumivu nyuma ya macho, vipele au kutokwa na damu.",
+        "swIsOfficial": false,
+        "sourceId": "who-dengue-2025-08-21"
+      },
+      {
+        "bulletId": "dengue-p2",
+        "audience": "Patient",
+        "textEn": "Clear stagnant water around the home and sleep under nets.",
+        "textSw": "Ondoa maji yaliyotuama karibu na nyumba na lala chini ya chandarua.",
+        "swIsOfficial": false,
+        "sourceId": "S17"
+      },
+      {
+        "bulletId": "dengue-c1",
+        "audience": "Clinician",
+        "textEn": "Fever 2–7 days plus 2 or more of headache, retro-orbital pain, myalgia, arthralgia, rash, bleeding, leucopenia. Confirmed: IgM, rising IgG, PCR or isolation.",
+        "textSw": "Homa siku 2–7 pamoja na dalili 2 au zaidi kati ya kuumwa na kichwa, maumivu nyuma ya macho, maumivu ya misuli, maumivu ya viungo, vipele, kutokwa na damu, seli nyeupe chache. Iliyothibitishwa: IgM, IgG inayopanda, PCR au kutenga virusi.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "dengue-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "S17",
+        "title": "Ministry of Health response to various disease outbreaks (press statement)",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "publishedOn": "2023-11-22",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-dengue-2025-08-21",
+        "title": "Dengue and severe dengue (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/dengue-and-severe-dengue",
+        "publishedOn": "2025-08-21",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "chikungunya",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "chikungunya-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for fever with severe joint pain or rash.",
+        "textSw": "Tafuta matibabu haraka kwa homa pamoja na maumivu makali ya viungo au vipele.",
+        "swIsOfficial": false,
+        "sourceId": "who-chikungunya-2025-04-14"
+      },
+      {
+        "bulletId": "chikungunya-p2",
+        "audience": "Patient",
+        "textEn": "Rest, drink fluids and use paracetamol; avoid aspirin until dengue is ruled out.",
+        "textSw": "Pumzika, kunywa maji mengi na tumia paracetamol; epuka aspirini hadi dengi iondolewe.",
+        "swIsOfficial": false,
+        "sourceId": "who-chikungunya-2025-04-14"
+      },
+      {
+        "bulletId": "chikungunya-c1",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: weekly, on MOH 505",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: kila wiki, kwa fomu MOH 505",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-chikungunya-2025-04-14",
+        "title": "Chikungunya (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/chikungunya",
+        "publishedOn": "2025-04-14",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "cholera",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "cholera-c1",
+        "audience": "Clinician",
+        "textEn": "Suspected: age 5 or over with acute profuse watery diarrhoea (3 or more times in 24 h); in an epidemic, age 2 or over. Confirmed: V. cholerae O1/O139 isolated from stool, or epidemiological link.",
+        "textSw": "Inayoshukiwa: umri wa miaka 5 au zaidi na kuhara maji mengi ya ghafla (mara 3 au zaidi kwa saa 24); wakati wa mlipuko, umri wa miaka 2 au zaidi. Iliyothibitishwa: V. cholerae O1/O139 imetengwa kutoka choo, au uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "cholera-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "plague",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "plague-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for sudden fever with painful swollen glands, or cough with bloody sputum.",
+        "textSw": "Tafuta matibabu haraka kwa homa ya ghafla pamoja na tezi kuvimba na kuuma, au kikohozi chenye makohozi ya damu.",
+        "swIsOfficial": false,
+        "sourceId": "who-plague-2026-09-29"
+      },
+      {
+        "bulletId": "plague-p2",
+        "audience": "Patient",
+        "textEn": "Avoid contact with sick or dead rodents and use flea control.",
+        "textSw": "Epuka kugusa panya wagonjwa au waliokufa na tumia njia za kuua viroboto.",
+        "swIsOfficial": false,
+        "sourceId": "who-plague-2026-09-29"
+      },
+      {
+        "bulletId": "plague-p3",
+        "audience": "Patient",
+        "textEn": "Plague is curable with antibiotics when treated early.",
+        "textSw": "Tauni inatibika kwa antibiotiki ukitibiwa mapema.",
+        "swIsOfficial": false,
+        "sourceId": "who-plague-2026-09-29"
+      },
+      {
+        "bulletId": "plague-c1",
+        "audience": "Clinician",
+        "textEn": "Sudden fever, chills, prostration, painful lymph nodes, or bloody sputum and dyspnoea. Confirmed: Y. pestis isolated from blood or bubo aspirate, or epidemiological link.",
+        "textSw": "Homa ya ghafla, baridi, udhaifu mkubwa, tezi za limfu zinazouma, au makohozi ya damu na kupumua kwa shida. Iliyothibitishwa: Y. pestis imetengwa kutoka damu au usaha wa tezi, au uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "plague-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-plague-2026-09-29",
+        "title": "Plague (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/plague",
+        "publishedOn": "2026-09-29",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "anthrax",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "anthrax-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for a painless black skin sore, or severe illness after eating meat from a sick animal.",
+        "textSw": "Tafuta matibabu haraka kwa kidonda cheusi cha ngozi kisichouma, au ugonjwa mkali baada ya kula nyama ya mnyama mgonjwa.",
+        "swIsOfficial": false,
+        "sourceId": "S21"
+      },
+      {
+        "bulletId": "anthrax-p2",
+        "audience": "Patient",
+        "textEn": "Do not eat meat from animals that died suddenly; report such deaths.",
+        "textSw": "Usile nyama ya wanyama waliokufa ghafla; ripoti vifo hivyo.",
+        "swIsOfficial": false,
+        "sourceId": "S21"
+      },
+      {
+        "bulletId": "anthrax-p3",
+        "audience": "Patient",
+        "textEn": "Vaccinate livestock where the veterinary services advise.",
+        "textSw": "Chanjo mifugo pale ambapo huduma za mifugo zinashauri.",
+        "swIsOfficial": false,
+        "sourceId": "S21"
+      },
+      {
+        "bulletId": "anthrax-c1",
+        "audience": "Clinician",
+        "textEn": "Cutaneous eschar with oedema, or GI or inhalational forms, plus animal or animal-product link. Confirmed: B. anthracis isolated from the affected site.",
+        "textSw": "Kidonda cheusi cha ngozi pamoja na uvimbe, au aina ya tumbo au ya kuvuta pumzi, pamoja na uhusiano na mnyama au mazao ya mnyama. Iliyothibitishwa: B. anthracis imetengwa kutoka sehemu iliyoathirika.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "anthrax-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "S21",
+        "title": "Siaya cautions residents of anthrax outbreak (news relay of Siaya County advisory)",
+        "publisher": "The Star (Kenya)",
+        "url": "https://www.the-star.co.ke/news/counties/nyanza/2026-04-17-siaya-cautions-residents-of-anthrax-outbreak",
+        "publishedOn": "2026-04-17",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "typhoid_fever",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "typhoid_fever-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for persistent high fever with headache, stomach pain or constipation.",
+        "textSw": "Tafuta matibabu haraka kwa homa kali inayoendelea pamoja na kuumwa na kichwa, maumivu ya tumbo au choo kigumu.",
+        "swIsOfficial": false,
+        "sourceId": "who-typhoid-2023-03-30"
+      },
+      {
+        "bulletId": "typhoid_fever-p2",
+        "audience": "Patient",
+        "textEn": "Use safe water, wash hands with soap and eat food while hot.",
+        "textSw": "Tumia maji salama, nawa mikono kwa sabuni na kula chakula kikiwa moto.",
+        "swIsOfficial": false,
+        "sourceId": "who-typhoid-2023-03-30"
+      },
+      {
+        "bulletId": "typhoid_fever-p3",
+        "audience": "Patient",
+        "textEn": "Vaccination protects travellers and outbreak communities.",
+        "textSw": "Chanjo hulinda wasafiri na jamii zilizo kwenye mlipuko.",
+        "swIsOfficial": false,
+        "sourceId": "who-typhoid-2023-03-30"
+      },
+      {
+        "bulletId": "typhoid_fever-c1",
+        "audience": "Clinician",
+        "textEn": "Gradually rising, persistent high fever plus GI or constitutional symptoms. Confirmed: S. Typhi isolated from stool, blood, bone marrow or bowel fluid.",
+        "textSw": "Homa kali inayoongezeka taratibu na kudumu pamoja na dalili za tumbo au za mwili. Iliyothibitishwa: S. Typhi imetengwa kutoka choo, damu, uloto au maji ya utumbo.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "typhoid_fever-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: weekly, on MOH 505",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: kila wiki, kwa fomu MOH 505",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-typhoid-2023-03-30",
+        "title": "Typhoid (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/typhoid",
+        "publishedOn": "2023-03-30",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "shigella_dysentery",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "shigella_dysentery-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for bloody diarrhoea, especially in children.",
+        "textSw": "Tafuta matibabu haraka kwa kuhara damu, hasa kwa watoto.",
+        "swIsOfficial": false,
+        "sourceId": "who-diarrhoeal-2024-03-07"
+      },
+      {
+        "bulletId": "shigella_dysentery-p2",
+        "audience": "Patient",
+        "textEn": "Start oral rehydration salts early.",
+        "textSw": "Anza kutumia chumvi za kurejesha maji mwilini mapema.",
+        "swIsOfficial": false,
+        "sourceId": "who-diarrhoeal-2024-03-07"
+      },
+      {
+        "bulletId": "shigella_dysentery-p3",
+        "audience": "Patient",
+        "textEn": "Wash hands with soap and use safe water.",
+        "textSw": "Nawa mikono kwa sabuni na tumia maji salama.",
+        "swIsOfficial": false,
+        "sourceId": "who-diarrhoeal-2024-03-07"
+      },
+      {
+        "bulletId": "shigella_dysentery-c1",
+        "audience": "Clinician",
+        "textEn": "Diarrhoea with visible blood. Confirmed: stool culture positive for S. dysenteriae type 1.",
+        "textSw": "Kuhara na damu inayoonekana. Iliyothibitishwa: choo kimeotesha S. dysenteriae aina ya 1.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "shigella_dysentery-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: weekly, on MOH 505",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: kila wiki, kwa fomu MOH 505",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-diarrhoeal-2024-03-07",
+        "title": "Diarrhoeal disease (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/diarrhoeal-disease",
+        "publishedOn": "2024-03-07",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "meningococcal_meningitis",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "meningococcal_meningitis-p1",
+        "audience": "Patient",
+        "textEn": "Seek care urgently for sudden fever with stiff neck, confusion or rash.",
+        "textSw": "Tafuta matibabu haraka kwa homa ya ghafla pamoja na shingo kukakamaa, kuchanganyikiwa au vipele.",
+        "swIsOfficial": false,
+        "sourceId": "who-meningitis-2026-09-29"
+      },
+      {
+        "bulletId": "meningococcal_meningitis-p2",
+        "audience": "Patient",
+        "textEn": "Vaccination protects against the main epidemic strains.",
+        "textSw": "Chanjo hulinda dhidi ya aina kuu za milipuko.",
+        "swIsOfficial": false,
+        "sourceId": "who-meningitis-2026-09-29"
+      },
+      {
+        "bulletId": "meningococcal_meningitis-p3",
+        "audience": "Patient",
+        "textEn": "Close contacts may need preventive antibiotics; follow health worker advice.",
+        "textSw": "Watu wa karibu wanaweza kuhitaji antibiotiki za kujikinga; fuata ushauri wa wahudumu wa afya.",
+        "swIsOfficial": false,
+        "sourceId": "who-meningitis-2026-09-29"
+      },
+      {
+        "bulletId": "meningococcal_meningitis-c1",
+        "audience": "Clinician",
+        "textEn": "Sudden fever plus neck stiffness, altered consciousness or other meningeal signs. Confirmed: N. meningitidis isolated from CSF or blood.",
+        "textSw": "Homa ya ghafla pamoja na shingo kukakamaa, kupoteza fahamu au dalili nyingine za uti wa mgongo. Iliyothibitishwa: N. meningitidis imetengwa kutoka maji ya uti wa mgongo au damu.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "meningococcal_meningitis-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: weekly, on MOH 505",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: kila wiki, kwa fomu MOH 505",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-meningitis-2026-09-29",
+        "title": "Meningitis (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/meningitis",
+        "publishedOn": "2026-09-29",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "malaria",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "malaria-p1",
+        "audience": "Patient",
+        "textEn": "Sleep under an insecticide-treated net every night.",
+        "textSw": "Lala chini ya chandarua chenye dawa kila usiku.",
+        "swIsOfficial": false,
+        "sourceId": "S17"
+      },
+      {
+        "bulletId": "malaria-p2",
+        "audience": "Patient",
+        "textEn": "Test before treating: only confirmed malaria needs antimalarials.",
+        "textSw": "Pima kabla ya kutibu: ni malaria iliyothibitishwa ndiyo inayohitaji dawa.",
+        "swIsOfficial": false,
+        "sourceId": "who-malaria-2025-12-04"
+      },
+      {
+        "bulletId": "malaria-p3",
+        "audience": "Patient",
+        "textEn": "Children under 5 and pregnant women should seek care at the first fever.",
+        "textSw": "Watoto chini ya miaka 5 na wajawazito watafute matibabu homa inapoanza.",
+        "swIsOfficial": false,
+        "sourceId": "who-malaria-2025-12-04"
+      },
+      {
+        "bulletId": "malaria-c1",
+        "audience": "Clinician",
+        "textEn": "Confirmed uncomplicated: fever in the past 24 h plus blood film or other parasite test. Confirmed severe: parasitaemia plus vital-organ dysfunction.",
+        "textSw": "Iliyothibitishwa isiyo kali: homa saa 24 zilizopita pamoja na filamu ya damu au kipimo kingine cha vimelea. Iliyothibitishwa kali: vimelea damuni pamoja na kuharibika kwa kiungo muhimu.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "malaria-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: weekly, on MOH 505",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: kila wiki, kwa fomu MOH 505",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "S17",
+        "title": "Ministry of Health response to various disease outbreaks (press statement)",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "publishedOn": "2023-11-22",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-malaria-2025-12-04",
+        "title": "Malaria (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/malaria",
+        "publishedOn": "2025-12-04",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "measles",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "measles-p1",
+        "audience": "Patient",
+        "textEn": "Make sure children have two doses of measles vaccine.",
+        "textSw": "Hakikisha watoto wanapata dozi mbili za chanjo ya surua.",
+        "swIsOfficial": false,
+        "sourceId": "who-measles-2026-07-15"
+      },
+      {
+        "bulletId": "measles-p2",
+        "audience": "Patient",
+        "textEn": "Keep up with local vaccination programmes.",
+        "textSw": "Endelea na programu za chanjo za eneo lako.",
+        "swIsOfficial": false,
+        "sourceId": "S17"
+      },
+      {
+        "bulletId": "measles-p3",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for fever with rash, cough, runny nose or red eyes.",
+        "textSw": "Tafuta matibabu haraka kwa homa pamoja na vipele, kikohozi, mafua au macho mekundu.",
+        "swIsOfficial": false,
+        "sourceId": "who-measles-2026-07-15"
+      },
+      {
+        "bulletId": "measles-p4",
+        "audience": "Patient",
+        "textEn": "Vitamin A treatment helps recovery in severe cases.",
+        "textSw": "Matibabu ya vitamini A husaidia kupona kwenye kesi kali.",
+        "swIsOfficial": false,
+        "sourceId": "who-measles-2026-07-15"
+      },
+      {
+        "bulletId": "measles-c1",
+        "audience": "Clinician",
+        "textEn": "Fever plus maculopapular rash plus cough, coryza or conjunctivitis. Confirmed: measles IgM or epidemiological link.",
+        "textSw": "Homa pamoja na vipele vya mwili pamoja na kikohozi, mafua au macho mekundu. Iliyothibitishwa: IgM ya surua au uhusiano wa kiepidemiolojia.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "measles-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "S17",
+        "title": "Ministry of Health response to various disease outbreaks (press statement)",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/index.php/press-release/ministry-health-response-various-disease-outbreaks",
+        "publishedOn": "2023-11-22",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-measles-2026-07-15",
+        "title": "Measles (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/measles",
+        "publishedOn": "2026-07-15",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "poliomyelitis",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "poliomyelitis-p1",
+        "audience": "Patient",
+        "textEn": "Keep every child fully vaccinated, including campaigns.",
+        "textSw": "Hakikisha kila mtoto amechanjwa kikamilifu, pamoja na kampeni.",
+        "swIsOfficial": false,
+        "sourceId": "who-polio-2025-04-02"
+      },
+      {
+        "bulletId": "poliomyelitis-p2",
+        "audience": "Patient",
+        "textEn": "Polio has no cure; vaccination is the only protection.",
+        "textSw": "Polio haina tiba; chanjo ndiyo kinga pekee.",
+        "swIsOfficial": false,
+        "sourceId": "who-polio-2025-04-02"
+      },
+      {
+        "bulletId": "poliomyelitis-p3",
+        "audience": "Patient",
+        "textEn": "Any child with sudden floppy weakness needs urgent care.",
+        "textSw": "Mtoto yeyote mwenye udhaifu wa ghafla wa kiungo anahitaji matibabu ya haraka.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "poliomyelitis-c1",
+        "audience": "Clinician",
+        "textEn": "Suspected: sudden-onset flaccid weakness under 15 years, not traumatic, or clinician suspects polio. Confirmed: poliovirus isolated from stool.",
+        "textSw": "Inayoshukiwa: udhaifu wa ghafla wa kiungo kwa umri chini ya miaka 15, si kwa ajali, au daktari anashuku polio. Iliyothibitishwa: virusi vya polio vimetengwa kutoka choo.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "poliomyelitis-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-polio-2025-04-02",
+        "title": "Poliomyelitis (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/poliomyelitis",
+        "publishedOn": "2025-04-02",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "influenza_new_subtype",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "influenza_new_subtype-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for severe breathing difficulty after contact with sick birds.",
+        "textSw": "Tafuta matibabu haraka kwa kupumua kwa shida kali baada ya kugusana na ndege wagonjwa.",
+        "swIsOfficial": false,
+        "sourceId": "who-avian-flu-2026-01-21"
+      },
+      {
+        "bulletId": "influenza_new_subtype-p2",
+        "audience": "Patient",
+        "textEn": "Avoid sick or dead poultry and wash hands after handling birds.",
+        "textSw": "Epuka kuku wagonjwa au waliokufa na nawa mikono baada ya kushika ndege.",
+        "swIsOfficial": false,
+        "sourceId": "who-avian-flu-2026-01-21"
+      },
+      {
+        "bulletId": "influenza_new_subtype-p3",
+        "audience": "Patient",
+        "textEn": "Report unusual bird deaths to the veterinary services.",
+        "textSw": "Ripoti vifo vya ndege visivyo vya kawaida kwa huduma za mifugo.",
+        "swIsOfficial": false,
+        "sourceId": "who-avian-flu-2026-01-21"
+      },
+      {
+        "bulletId": "influenza_new_subtype-c1",
+        "audience": "Clinician",
+        "textEn": "Lab diagnosis of a novel subtype.",
+        "textSw": "Uchunguzi wa kimaabara wa aina mpya.",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      },
+      {
+        "bulletId": "influenza_new_subtype-c2",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-avian-flu-2026-01-21",
+        "title": "Influenza (avian and other zoonotic) (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/influenza-(avian-and-other-zoonotic)",
+        "publishedOn": "2026-01-21",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "sars_covid19",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "sars_covid19-p1",
+        "audience": "Patient",
+        "textEn": "Stay home when ill, wear a mask around others and seek care if breathing worsens.",
+        "textSw": "Kaa nyumbani ukiwa mgonjwa, vaa barakoa karibu na watu na tafuta matibabu kupumua kukizidi.",
+        "swIsOfficial": false,
+        "sourceId": "who-covid-2025-11-27"
+      },
+      {
+        "bulletId": "sars_covid19-p2",
+        "audience": "Patient",
+        "textEn": "Vaccination protects against severe disease.",
+        "textSw": "Chanjo hulinda dhidi ya ugonjwa mkali.",
+        "swIsOfficial": false,
+        "sourceId": "who-covid-2025-11-27"
+      },
+      {
+        "bulletId": "sars_covid19-c1",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "who-covid-2025-11-27",
+        "title": "Coronavirus disease (COVID-19) (fact sheet)",
+        "publisher": "World Health Organization",
+        "url": "https://www.who.int/news-room/fact-sheets/detail/coronavirus-disease-(covid-19)",
+        "publishedOn": "2025-11-27",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  },
+  {
+    "diseaseId": "mpox",
+    "reviewedOn": "2026-10-30",
+    "bullets": [
+      {
+        "bulletId": "mpox-p1",
+        "audience": "Patient",
+        "textEn": "Seek care promptly for rash with fever, swollen glands or sore throat.",
+        "textSw": "Tafuta matibabu haraka kwa vipele pamoja na homa, tezi kuvimba au koo kuuma.",
+        "swIsOfficial": false,
+        "sourceId": "S18"
+      },
+      {
+        "bulletId": "mpox-p2",
+        "audience": "Patient",
+        "textEn": "Avoid skin contact with rashes and do not share bedding or towels.",
+        "textSw": "Epuka kugusa ngozi yenye vipele wala kushirikiana matandiko au taulo.",
+        "swIsOfficial": false,
+        "sourceId": "S18"
+      },
+      {
+        "bulletId": "mpox-p3",
+        "audience": "Patient",
+        "textEn": "Isolate at home until every scab has fallen off.",
+        "textSw": "Jitenge nyumbani hadi ukoko wote uanguke.",
+        "swIsOfficial": false,
+        "sourceId": "S18"
+      },
+      {
+        "bulletId": "mpox-p4",
+        "audience": "Patient",
+        "textEn": "Hotlines: 719, 0729 471414, 0732 353535.",
+        "textSw": "Nambari za dharura: 719, 0729 471414, 0732 353535.",
+        "swIsOfficial": false,
+        "sourceId": "S18"
+      },
+      {
+        "bulletId": "mpox-c1",
+        "audience": "Clinician",
+        "textEn": "Report a suspected or confirmed case to the medical officer of health: immediately for this disease, on form MOH 502",
+        "textSw": "Ripoti kesi inayoshukiwa au iliyothibitishwa kwa afisa wa afya: mara moja kwa ugonjwa huu, kwa fomu MOH 502",
+        "swIsOfficial": false,
+        "sourceId": "S1"
+      }
+    ],
+    "sources": [
+      {
+        "sourceId": "S1",
+        "title": "IDSR Technical Guidelines (Clinician's Handbook), 2nd-edition era",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.health.go.ke/sites/default/files/2024-02/IDSR%20CLINICIANS%20BOOK%20-%202012.pdf",
+        "publishedOn": "",
+        "accessedOn": "2026-10-30"
+      },
+      {
+        "sourceId": "S18",
+        "title": "Mpox key messages (social media posts)",
+        "publisher": "Ministry of Health (Kenya)",
+        "url": "https://www.facebook.com/MOHKenya/posts/5544332211667788",
+        "publishedOn": "2024",
+        "accessedOn": "2026-10-30"
+      }
+    ]
+  }
+]

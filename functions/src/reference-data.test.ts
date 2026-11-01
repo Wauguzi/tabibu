@@ -18,6 +18,8 @@ describe('reference data', () => {
       ['lab_tests.json', 'lab-tests'],
       ['insurers.json', ''],
       ['report_templates.json', ''],
+      ['notifiable_diseases.json', 'alerts-data'],
+      ['public_health_guidance.json', 'alerts-data'],
     ]) {
       const server = readFileSync(join(DATA_DIR, file));
       const app = readFileSync(join(DATA_DIR, '..', '..', 'assets', 'data', file));

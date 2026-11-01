@@ -264,6 +264,11 @@ lab-tests:
 		dart run scripts/lab_tests/build_lab_test_assets.dart build/lab_tests/test_types.txt assets/data
 		cp assets/data/lab_test_types.json assets/data/lab_tests.json functions/data/
 
+# Rebuilds the notifiable-disease bundle in assets/data/ and functions/data/
+# from the reviewed source tables in scripts/alerts/.
+alerts-data:
+		node scripts/alerts/build.cjs
+
 test:
 		flutter test --coverage --reporter=expanded
 
@@ -389,7 +394,7 @@ deploy-hosting:
 
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
-	clean-pods ios-deps pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities lab-tests test test-randomize test-watch coverage \
+	clean-pods ios-deps pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities lab-tests alerts-data test test-randomize test-watch coverage \
 	emulators rules-test functions-test seed-password seed-emulator seed-live \
 	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes smoke-indexes deploy-storage deploy-hosting
