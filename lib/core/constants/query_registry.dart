@@ -21,8 +21,7 @@ class QuerySpec {
   final String scope;
 }
 
-/// Queries issued by the step-4 notification, appointment, conversation and
-/// alert data sources.
+/// Queries issued by the step-4 feature data sources.
 const queryRegistry = <QuerySpec>[
   QuerySpec(
     id: 'notifications.inboxDelta',
@@ -71,6 +70,49 @@ const queryRegistry = <QuerySpec>[
     id: 'publicAlerts.clinicianDelta',
     collection: 'publicAlerts',
     filters: ['clinicianCountyIds array-contains', 'lastUpdatedAt >='],
+    orderBy: ['lastUpdatedAt ASC'],
+  ),
+  QuerySpec(
+    id: 'cases.participantDelta',
+    collection: 'cases',
+    filters: ['participantUids array-contains', 'lastUpdatedAt >='],
+    orderBy: ['lastUpdatedAt ASC'],
+  ),
+  QuerySpec(
+    id: 'cases.logPatient',
+    collection: 'log',
+    scope: 'nested',
+    filters: ['patientVisible =='],
+    orderBy: ['seq ASC'],
+  ),
+  QuerySpec(
+    id: 'shareCodes.recipientDelta',
+    collection: 'shareCodes',
+    filters: ['recipientUid ==', 'lastUpdatedAt >='],
+    orderBy: ['lastUpdatedAt ASC'],
+  ),
+  QuerySpec(
+    id: 'shareCodes.creatorDelta',
+    collection: 'shareCodes',
+    filters: ['createdByUid ==', 'lastUpdatedAt >='],
+    orderBy: ['lastUpdatedAt ASC'],
+  ),
+  QuerySpec(
+    id: 'reports.readerDelta',
+    collection: 'reports',
+    scope: 'collectionGroup',
+    filters: ['readerUids array-contains', 'lastUpdatedAt >='],
+    orderBy: ['lastUpdatedAt ASC'],
+  ),
+  QuerySpec(
+    id: 'reports.patientDelta',
+    collection: 'reports',
+    scope: 'collectionGroup',
+    filters: [
+      'readerUids array-contains',
+      'releasedToPatient ==',
+      'lastUpdatedAt >=',
+    ],
     orderBy: ['lastUpdatedAt ASC'],
   ),
 ];

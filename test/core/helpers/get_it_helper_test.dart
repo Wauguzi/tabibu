@@ -32,6 +32,9 @@ void main() {
       'AlertFirebase',
       'AlertTopicService',
       'FirebaseMessaging',
+      'CaseFirebase',
+      'ShareCodeFirebase',
+      'ReportFirebase',
     ]) {
       expect(
         registeredNames,

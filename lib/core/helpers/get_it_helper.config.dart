@@ -43,10 +43,16 @@ import 'package:tabibu/features/auth/data/datasources/auth_firebase.dart'
     as _i82;
 import 'package:tabibu/features/auth/data/datasources/profile_storage.dart'
     as _i275;
+import 'package:tabibu/features/cases/data/datasources/case_firebase.dart'
+    as _i449;
+import 'package:tabibu/features/cases/data/datasources/share_code_firebase.dart'
+    as _i374;
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart'
     as _i746;
 import 'package:tabibu/features/notifications/data/datasources/notification_firebase.dart'
     as _i1063;
+import 'package:tabibu/features/reports/data/datasources/report_firebase.dart'
+    as _i1004;
 
 extension GetItInjectableX on _i174.GetIt {
   // initializes the registration of main-scope dependencies inside of GetIt
@@ -86,6 +92,24 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i113.AlertFirebase>(
       () => _i113.AlertFirebase(
+        firestore: gh<_i974.FirebaseFirestore>(),
+        functions: gh<_i809.FirebaseFunctions>(),
+      ),
+    );
+    gh.lazySingleton<_i449.CaseFirebase>(
+      () => _i449.CaseFirebase(
+        firestore: gh<_i974.FirebaseFirestore>(),
+        functions: gh<_i809.FirebaseFunctions>(),
+      ),
+    );
+    gh.lazySingleton<_i374.ShareCodeFirebase>(
+      () => _i374.ShareCodeFirebase(
+        firestore: gh<_i974.FirebaseFirestore>(),
+        functions: gh<_i809.FirebaseFunctions>(),
+      ),
+    );
+    gh.lazySingleton<_i1004.ReportFirebase>(
+      () => _i1004.ReportFirebase(
         firestore: gh<_i974.FirebaseFirestore>(),
         functions: gh<_i809.FirebaseFunctions>(),
       ),
