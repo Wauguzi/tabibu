@@ -203,6 +203,21 @@ void main() {
       }
     });
 
+    test('every reason and section has a description in en and sw', () {
+      for (final reason in DeclineReason.values) {
+        expect(reason.description(en), isNotEmpty, reason: '$reason en');
+        expect(reason.description(sw), isNotEmpty, reason: '$reason sw');
+      }
+      for (final reason in CancelReason.values) {
+        expect(reason.description(en), isNotEmpty, reason: '$reason en');
+        expect(reason.description(sw), isNotEmpty, reason: '$reason sw');
+      }
+      for (final section in ReportSection.values) {
+        expect(section.description(en), isNotEmpty, reason: '$section en');
+        expect(section.description(sw), isNotEmpty, reason: '$section sw');
+      }
+    });
+
     test('spot-checks', () {
       expect(
         AppError.kmpdcNumberInUse.description(en),
@@ -1241,6 +1256,66 @@ void main() {
     test('fromValue reads an unknown value as unread', () {
       expect(NotificationStatus.fromValue('Bogus'), NotificationStatus.unread);
       expect(NotificationStatus.fromValue(''), NotificationStatus.unread);
+    });
+  });
+
+  group('DeclineReason', () {
+    test('values round-trip with the exact wire strings', () {
+      for (final v in DeclineReason.values) {
+        expect(DeclineReason.fromValue(v.value), v);
+      }
+      expect(DeclineReason.values.map((e) => e.value), [
+        'SlotUnavailable',
+        'OutsidePractice',
+        'ReferredElsewhere',
+        'SlotTaken',
+        'Other',
+      ]);
+    });
+
+    test('fromValue reads an unknown value as other', () {
+      expect(DeclineReason.fromValue('Bogus'), DeclineReason.other);
+      expect(DeclineReason.fromValue(''), DeclineReason.other);
+    });
+  });
+
+  group('CancelReason', () {
+    test('values round-trip with the exact wire strings', () {
+      for (final v in CancelReason.values) {
+        expect(CancelReason.fromValue(v.value), v);
+      }
+      expect(CancelReason.values.map((e) => e.value), [
+        'OrderedInError',
+        'Duplicate',
+        'PatientDeclined',
+        'Other',
+      ]);
+    });
+
+    test('fromValue reads an unknown value as other', () {
+      expect(CancelReason.fromValue('Bogus'), CancelReason.other);
+      expect(CancelReason.fromValue(''), CancelReason.other);
+    });
+  });
+
+  group('ReportSection', () {
+    test('values round-trip with the exact wire strings', () {
+      for (final v in ReportSection.values) {
+        expect(ReportSection.fromValue(v.value), v);
+      }
+      expect(ReportSection.values.map((e) => e.value), [
+        'Diagnosis',
+        'Comments',
+        'ClinicalNotes',
+        'Macroscopic',
+        'Microscopic',
+        'Ancillary',
+      ]);
+    });
+
+    test('fromValue reads an unknown value as comments', () {
+      expect(ReportSection.fromValue('Bogus'), ReportSection.comments);
+      expect(ReportSection.fromValue(''), ReportSection.comments);
     });
   });
 }

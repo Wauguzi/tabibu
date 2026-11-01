@@ -1422,6 +1422,106 @@ enum SummaryReportStatus {
   };
 }
 
+/// Why an appointment was declined. Unknown reads as [other].
+enum DeclineReason {
+  slotUnavailable,
+  outsidePractice,
+  referredElsewhere,
+  slotTaken,
+  other;
+
+  String get value => switch (this) {
+    .slotUnavailable => 'SlotUnavailable',
+    .outsidePractice => 'OutsidePractice',
+    .referredElsewhere => 'ReferredElsewhere',
+    .slotTaken => 'SlotTaken',
+    .other => 'Other',
+  };
+
+  static DeclineReason fromValue(String value) => switch (value) {
+    'SlotUnavailable' => .slotUnavailable,
+    'OutsidePractice' => .outsidePractice,
+    'ReferredElsewhere' => .referredElsewhere,
+    'SlotTaken' => .slotTaken,
+    _ => .other,
+  };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .slotUnavailable => l10n.declineReasonSlotUnavailable,
+    .outsidePractice => l10n.declineReasonOutsidePractice,
+    .referredElsewhere => l10n.declineReasonReferredElsewhere,
+    .slotTaken => l10n.declineReasonSlotTaken,
+    .other => l10n.declineReasonOther,
+  };
+}
+
+/// Why an order was cancelled. Unknown reads as [other].
+enum CancelReason {
+  orderedInError,
+  duplicate,
+  patientDeclined,
+  other;
+
+  String get value => switch (this) {
+    .orderedInError => 'OrderedInError',
+    .duplicate => 'Duplicate',
+    .patientDeclined => 'PatientDeclined',
+    .other => 'Other',
+  };
+
+  static CancelReason fromValue(String value) => switch (value) {
+    'OrderedInError' => .orderedInError,
+    'Duplicate' => .duplicate,
+    'PatientDeclined' => .patientDeclined,
+    _ => .other,
+  };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .orderedInError => l10n.cancelReasonOrderedInError,
+    .duplicate => l10n.cancelReasonDuplicate,
+    .patientDeclined => l10n.cancelReasonPatientDeclined,
+    .other => l10n.cancelReasonOther,
+  };
+}
+
+/// A section of a pathology report. Unknown reads as [comments].
+enum ReportSection {
+  diagnosis,
+  comments,
+  clinicalNotes,
+  macroscopic,
+  microscopic,
+  ancillary;
+
+  String get value => switch (this) {
+    .diagnosis => 'Diagnosis',
+    .comments => 'Comments',
+    .clinicalNotes => 'ClinicalNotes',
+    .macroscopic => 'Macroscopic',
+    .microscopic => 'Microscopic',
+    .ancillary => 'Ancillary',
+  };
+
+  static ReportSection fromValue(String value) => switch (value) {
+    'Diagnosis' => .diagnosis,
+    'Comments' => .comments,
+    'ClinicalNotes' => .clinicalNotes,
+    'Macroscopic' => .macroscopic,
+    'Microscopic' => .microscopic,
+    'Ancillary' => .ancillary,
+    _ => .comments,
+  };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .diagnosis => l10n.reportSectionDiagnosis,
+    .comments => l10n.reportSectionComments,
+    .clinicalNotes => l10n.reportSectionClinicalNotes,
+    .macroscopic => l10n.reportSectionMacroscopic,
+    .microscopic => l10n.reportSectionMicroscopic,
+    .ancillary => l10n.reportSectionAncillary,
+  };
+}
+
 // Notification wire values.
 /// What a notification is about. Unknown reads as [patientCase].
 enum NotificationCategory {

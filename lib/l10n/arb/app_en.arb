@@ -284,6 +284,66 @@
     "@verificationStatusRejected": {
         "description": "Label for a practitioner whose verification was rejected"
     },
+    "declineReasonSlotUnavailable": "That time is no longer free",
+    "@declineReasonSlotUnavailable": {
+        "description": "Decline reason: the slot is no longer free"
+    },
+    "declineReasonOutsidePractice": "Outside my practice",
+    "@declineReasonOutsidePractice": {
+        "description": "Decline reason: outside the doctor's practice"
+    },
+    "declineReasonReferredElsewhere": "Referred to another doctor",
+    "@declineReasonReferredElsewhere": {
+        "description": "Decline reason: referred to another doctor"
+    },
+    "declineReasonSlotTaken": "Someone else booked that time",
+    "@declineReasonSlotTaken": {
+        "description": "Decline reason: someone else booked the slot"
+    },
+    "declineReasonOther": "Another reason",
+    "@declineReasonOther": {
+        "description": "Decline reason: another reason"
+    },
+    "cancelReasonOrderedInError": "Ordered in error",
+    "@cancelReasonOrderedInError": {
+        "description": "Cancel reason: ordered in error"
+    },
+    "cancelReasonDuplicate": "Duplicate order",
+    "@cancelReasonDuplicate": {
+        "description": "Cancel reason: duplicate order"
+    },
+    "cancelReasonPatientDeclined": "The patient declined",
+    "@cancelReasonPatientDeclined": {
+        "description": "Cancel reason: the patient declined"
+    },
+    "cancelReasonOther": "Another reason",
+    "@cancelReasonOther": {
+        "description": "Cancel reason: another reason"
+    },
+    "reportSectionDiagnosis": "Diagnosis",
+    "@reportSectionDiagnosis": {
+        "description": "Report section: diagnosis"
+    },
+    "reportSectionComments": "Comments",
+    "@reportSectionComments": {
+        "description": "Report section: comments"
+    },
+    "reportSectionClinicalNotes": "Clinical notes",
+    "@reportSectionClinicalNotes": {
+        "description": "Report section: clinical notes"
+    },
+    "reportSectionMacroscopic": "Macroscopic findings",
+    "@reportSectionMacroscopic": {
+        "description": "Report section: macroscopic findings"
+    },
+    "reportSectionMicroscopic": "Microscopic findings",
+    "@reportSectionMicroscopic": {
+        "description": "Report section: microscopic findings"
+    },
+    "reportSectionAncillary": "Ancillary tests",
+    "@reportSectionAncillary": {
+        "description": "Report section: ancillary tests"
+    },
     "languageEn": "English",
     "@languageEn": {
         "description": "Name of the English language option"
