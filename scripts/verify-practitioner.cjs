@@ -11,7 +11,8 @@
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const lib = (name) => require(path.join(ROOT, 'functions/node_modules', name));
+// Resolves firebase-admin's sub-paths the way the functions code does.
+const lib = require('node:module').createRequire(path.join(ROOT, 'functions/package.json'));
 
 async function main() {
   const [project, uid, flag, confirm] = process.argv.slice(2);
