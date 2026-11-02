@@ -63,7 +63,7 @@ password:
 | Role | Email | Who |
 |---|---|---|
 | Patient | `tabibu.demo+patient@gmail.com` | Amina Otieno, Nairobi |
-| Doctor | `tabibu.demo+doctor@gmail.com` | Dr. Achieng Odhiambo, Mbagathi District Hospital |
+| Doctor | `tabibu.demo+doctor@gmail.com` | Dr. Achieng Odhiambo, Mbagathi District Hospital; also the alert approver |
 | Pathologist | `tabibu.demo+pathologist@gmail.com` | Dr. Wanjiru Kamau, Kenyatta National Hospital |
 
 The password is shared with the judges alongside the submission, never in this repository. The
