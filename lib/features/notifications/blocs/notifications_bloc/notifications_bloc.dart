@@ -31,7 +31,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     .requestTimeout,
   };
 
-  AppError _toAppError(Object e) => e is AppError ? e : AppError.unknown;
+  AppError _toAppError(Object e) => e is AppError ? e : .unknown;
 
   NotificationsLoadInProgress _inProgress() => NotificationsLoadInProgress(
     items: state.items,
