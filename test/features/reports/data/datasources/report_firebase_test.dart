@@ -239,6 +239,47 @@ void main() {
     });
   });
 
+  group('fetchReportText', () {
+    test('reads with Source.server', () async {
+      final recording = RecordingFirestore();
+      final server = ReportFirebase(firestore: recording, functions: functions);
+      await server.fetchReportText(caseUid: 'c1', textUid: 'v1_Explanation_en');
+      recording.expectServerReads(1);
+    });
+
+    test('maps uid from the document id', () async {
+      await firestore
+          .collection('cases')
+          .doc('c1')
+          .collection('reportTexts')
+          .doc('v1_Explanation_en')
+          .set({
+            'caseUid': 'c1',
+            'reportUid': 'v1',
+            'kind': 'Explanation',
+            'language': 'en',
+            'status': 'Ready',
+            'machineText': {'body': 'Hello'},
+          });
+
+      final text = await remote.fetchReportText(
+        caseUid: 'c1',
+        textUid: 'v1_Explanation_en',
+      );
+      expect(text?.uid, 'v1_Explanation_en');
+      expect(text?.kind, 'Explanation');
+      expect(text?.machineText['body'], 'Hello');
+    });
+
+    test('missing document returns null', () async {
+      final text = await remote.fetchReportText(
+        caseUid: 'c1',
+        textUid: 'missing_Explanation_en',
+      );
+      expect(text, isNull);
+    });
+  });
+
   group('server reads', () {
     test('eviction reads reach the server, never the cache', () async {
       final recording = RecordingFirestore();
@@ -253,8 +294,9 @@ void main() {
         caseUid: 'c1',
         textUid: 'v1_Explanation_en',
       );
+      await server.fetchReportText(caseUid: 'c1', textUid: 'v1_Explanation_en');
 
-      recording.expectServerReads(6);
+      recording.expectServerReads(7);
     });
   });
 }

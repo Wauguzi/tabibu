@@ -10,6 +10,7 @@ import 'package:tabibu/features/reports/data/models/pathology_report_model.dart'
 import 'package:tabibu/features/reports/data/models/preread_score_model.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
+import 'package:tabibu/features/reports/data/models/report_text_model.dart';
 
 /// Signed reports, drafts, pre-reads and report callables. No caching.
 @lazySingleton
@@ -220,6 +221,20 @@ class ReportFirebase {
         .get(const GetOptions(source: Source.server));
     if (!snap.exists || snap.data() == null) return null;
     return ReportTextApprovedModel.fromJson({'uid': snap.id, ...snap.data()!});
+  });
+
+  /// Working (unapproved) report text by id. Never cached — AI text an
+  /// approver has not signed off must not land in Hive.
+  Future<ReportTextModel?> fetchReportText({
+    required String caseUid,
+    required String textUid,
+  }) => _guard('Fetch report text', () async {
+    final snap = await _case(caseUid)
+        .collection('reportTexts')
+        .doc(textUid)
+        .get(const GetOptions(source: Source.server));
+    if (!snap.exists || snap.data() == null) return null;
+    return ReportTextModel.fromJson({'uid': snap.id, ...snap.data()!});
   });
 
   Future<Map<String, dynamic>> startReport({
