@@ -352,6 +352,15 @@ seed-live:
 		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
 		  ./node_modules/.bin/ts-node src/seed.ts --live
 
+# Demo doctors and pathologists for the directory (functions/data/demo_directory.json), after
+# seed-live: e.g. make seed-directory CONFIRM=tabibu-86ea2 SEED_EMAIL_TEMPLATE='tabibu.demo+{role}@gmail.com'
+seed-directory:
+		@test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make seed-directory CONFIRM=$(PROJECT)"; exit 1; }
+		cd functions && npm install --silent && \
+		  SEED_CONFIRM=$(CONFIRM) SEED_EMAIL_TEMPLATE="$(SEED_EMAIL_TEMPLATE)" \
+		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
+		  ./node_modules/.bin/ts-node src/seed-directory.ts --live
+
 # Until the app has an approval screen: verifies one practitioner as verifyPractitioner does
 # (status, then role claim). Dry run unless CONFIRM names the project.
 # e.g. make verify-practitioner PRACTITIONER=<uid>, then again with CONFIRM=tabibu-86ea2
@@ -403,6 +412,6 @@ deploy-hosting:
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
 	clean-pods ios-deps pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities lab-tests alerts-data test test-randomize test-watch coverage \
-	emulators rules-test functions-test seed-password seed-emulator seed-live verify-practitioner \
+	emulators rules-test functions-test seed-password seed-emulator seed-live seed-directory verify-practitioner \
 	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes smoke-indexes deploy-storage deploy-hosting

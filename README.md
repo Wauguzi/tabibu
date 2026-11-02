@@ -70,6 +70,13 @@ The password is shared with the judges alongside the submission, never in this r
 accounts come from `make seed-live`, which also adds two clinic patients and an admin account for
 the Firebase console.
 
+So that a patient's search and a doctor's pathologist picker have people to show, `make
+seed-directory` adds 16 doctors and 6 pathologists from
+[`functions/data/demo_directory.json`](functions/data/demo_directory.json): fictional people at
+real Nairobi facilities, each with a `DEMO-` licence number. Their photos are stock models from
+[Pexels](https://www.pexels.com/license/), free to use, with each photographer recorded in the
+file; they are not pictures of the named people.
+
 ## Checking it
 
 ```sh

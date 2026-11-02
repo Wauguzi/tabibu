@@ -25,13 +25,13 @@ import {
   verifyPractitionerHandler,
 } from './identity';
 
-const PROJECT = 'tabibu-86ea2';
+export const PROJECT = 'tabibu-86ea2';
 const EMULATOR_HOSTS = ['FIRESTORE_EMULATOR_HOST', 'FIREBASE_AUTH_EMULATOR_HOST', 'FIREBASE_STORAGE_EMULATOR_HOST'];
 
 const KENYATTA_NATIONAL_HOSPITAL = '779bc5ec-701d-408f-84d5-b846b2edc45e';
 const MBAGATHI_DISTRICT_HOSPITAL = '88a63b52-4cc1-4db2-a73d-a88c2a9bb816';
 
-function config() {
+export function config() {
   const live = process.argv.includes('--live');
   if (live && process.env.SEED_CONFIRM !== PROJECT) {
     throw new Error(`Seeding the live project needs SEED_CONFIRM=${PROJECT}.`);
@@ -59,7 +59,7 @@ function config() {
  * The seeded account for [email]. An account the seed did not create is refused, never adopted:
  * anyone can sign up with a seeded address first, and the seed then grants roles and admin.
  */
-async function user(email: string, password: string, displayName: string): Promise<string> {
+export async function user(email: string, password: string, displayName: string): Promise<string> {
   const auth = getAuth();
   let existing: { uid: string; customClaims?: Record<string, unknown> } | undefined;
   try {
@@ -79,12 +79,12 @@ async function user(email: string, password: string, displayName: string): Promi
 }
 
 // The seed creates its accounts confirmed, as the sign-up callables require.
-function caller(uid: string, email: string, role = '', isAdmin = false): Caller {
+export function caller(uid: string, email: string, role = '', isAdmin = false): Caller {
   return { uid, email, emailVerified: true, role, isAdmin };
 }
 
 /** Marks a seeded account as demo content, keeping every claim it already holds. */
-async function markDemo(uid: string): Promise<void> {
+export async function markDemo(uid: string): Promise<void> {
   const auth = getAuth();
   const claims = (await auth.getUser(uid)).customClaims ?? {};
   await auth.setCustomUserClaims(uid, { ...claims, demo: true });
@@ -94,7 +94,7 @@ async function markDemo(uid: string): Promise<void> {
  * The demo-clinician row synthetic alerts page. County and language mirror the synced
  * profile, so the row pages exactly where the practitioner's own row does.
  */
-async function writeDemoAccount(uid: string, role: 'doctor' | 'pathologist'): Promise<void> {
+export async function writeDemoAccount(uid: string, role: 'doctor' | 'pathologist'): Promise<void> {
   const db = getFirestore();
   const practitioner = (await db.collection('practitioners').doc(uid).get()).data();
   const profile = (await db.collection('doctors').doc(uid).get()).data();
@@ -108,7 +108,7 @@ async function writeDemoAccount(uid: string, role: 'doctor' | 'pathologist'): Pr
 }
 
 /** A placeholder license, stored where the rules expect one, with its download URL. */
-async function license(uid: string, bucketName: string): Promise<string> {
+export async function license(uid: string, bucketName: string): Promise<string> {
   const token = randomUUID();
   const path = `licenses/${uid}/license_1.pdf`;
   await getStorage()
@@ -122,7 +122,7 @@ async function license(uid: string, bucketName: string): Promise<string> {
 }
 
 /** A placeholder photo where the rules expect one; the demo uses the app's own portraits. */
-async function picture(uid: string, bucketName: string): Promise<string> {
+export async function picture(uid: string, bucketName: string): Promise<string> {
   const token = randomUUID();
   const path = `profilePictures/${uid}/photo.png`;
   // A 1x1 PNG: the seed proves the path and the rules, not the picture.
@@ -137,7 +137,7 @@ async function picture(uid: string, bucketName: string): Promise<string> {
   return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
 }
 
-async function practitioner(
+export async function practitioner(
   deps: Deps,
   admin: Caller,
   input: { email: string; password: string; isPathologist: boolean; facilityId: string; fields: object },
@@ -279,7 +279,10 @@ async function main(): Promise<void> {
   console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin, doctor (approver), pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
 }
 
-main().catch((e: Error) => {
-  console.error(`Seed failed: ${e.message}`);
-  process.exit(1);
-});
+// seed-directory.ts imports the helpers above without running this seed.
+if (require.main === module) {
+  main().catch((e: Error) => {
+    console.error(`Seed failed: ${e.message}`);
+    process.exit(1);
+  });
+}

@@ -273,7 +273,9 @@
     "yaliyosainiwa",
     "zaidi",
     "ziara",
-    "Zote"
+    "Zote",
+    "pexels",
+    "unsplash"
   ],
   "ignorePaths": [
     "**/lib/firebase_options.dart",
