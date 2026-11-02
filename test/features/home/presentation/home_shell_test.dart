@@ -5,6 +5,12 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 
 import '../../../helpers/helpers.dart';
 
+/// A tab may show a spinner, which never settles: pump a bounded time.
+Future<void> _settle(WidgetTester tester) async {
+  await tester.pump();
+  await tester.pump(const Duration(milliseconds: 500));
+}
+
 void main() {
   group('HomeShell', () {
     List<String?> tabLabels(WidgetTester tester) => [
@@ -24,14 +30,14 @@ void main() {
       tester,
     ) async {
       await tester.pumpRoleApp(RoleSessions.patient, '/patient');
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(tabLabels(tester), ['Home', 'Appointments', 'Results', 'Profile']);
     });
 
     testWidgets('doctors get Today, Cases, MDT and Profile', (tester) async {
       await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor');
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(tabLabels(tester), ['Today', 'Cases', 'MDT', 'Profile']);
     });
@@ -40,7 +46,7 @@ void main() {
       tester,
     ) async {
       await tester.pumpRoleApp(RoleSessions.pathologist, '/pathologist');
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(tabLabels(tester), ['Desk', 'Signed', 'MDT', 'Profile']);
     });
@@ -50,58 +56,58 @@ void main() {
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
       await tester.pumpRoleApp(RoleSessions.patient, '/patient');
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(tabLabels(tester), ['Nyumbani', 'Miadi', 'Majibu', 'Wasifu']);
     });
 
     testWidgets('a tab opens its screen', (tester) async {
       await tester.pumpRoleApp(RoleSessions.patient, '/patient');
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       await tester.tap(find.bySemanticsLabel('Results'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
       expect(find.text('Your results'), findsOneWidget);
 
       await tester.tap(find.bySemanticsLabel('Profile'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
       expect(find.text('Your profile'), findsOneWidget);
     });
 
     testWidgets('each middle tab shows its title', (tester) async {
       await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor/cases');
-      await tester.pumpAndSettle();
+      await _settle(tester);
       expect(find.text('Cases'), findsWidgets);
 
       await tester.tap(find.bySemanticsLabel('MDT'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
       expect(find.text('MDT consults'), findsOneWidget);
     });
 
     testWidgets('back from another tab returns to the first', (tester) async {
       await tester.pumpRoleApp(RoleSessions.pathologist, '/pathologist/mdt');
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       await tester.binding.handlePopRoute();
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(find.text('Habari, Dr. Odhiambo'), findsOneWidget);
     });
 
     testWidgets('a tab keeps its state across a tab change', (tester) async {
       await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       final scrollable = find.byType(Scrollable).first;
       await tester.fling(scrollable, const Offset(0, -400), 1000);
-      await tester.pumpAndSettle();
+      await _settle(tester);
       final offset = tester.state<ScrollableState>(scrollable).position.pixels;
       expect(offset, greaterThan(0));
 
       await tester.tap(find.bySemanticsLabel('Home'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
       await tester.tap(find.bySemanticsLabel('Profile'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(tester.state<ScrollableState>(scrollable).position.pixels, offset);
     });
@@ -110,11 +116,11 @@ void main() {
       tester,
     ) async {
       await tester.pumpRoleApp(RoleSessions.patient, '/patient/results');
-      await tester.pumpAndSettle();
+      await _settle(tester);
       expect(find.text('Your results'), findsOneWidget);
 
       await tester.tap(find.bySemanticsLabel('Results'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(find.text('Your results'), findsOneWidget);
     });
@@ -125,7 +131,7 @@ void main() {
         '/patient/profile',
         states: [SignOutInProgress(session: RoleSessions.patient)],
       );
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       await tester.dragUntilVisible(
         find.text('Sign out'),
@@ -133,7 +139,7 @@ void main() {
         const Offset(0, -200),
       );
       await tester.tap(find.text('Sign out'));
-      await tester.pumpAndSettle();
+      await _settle(tester);
 
       expect(find.text('Sign out of Tabibu?'), findsNothing);
     });

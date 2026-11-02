@@ -1,6 +1,7 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
+import 'package:tabibu/core/constants/app_styles.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 
 /// The teal next-appointment / now hero. Lives inside a [PatternCard];
@@ -13,6 +14,7 @@ class AppointmentHeroCard extends StatelessWidget {
     required this.primary,
     this.secondary,
     this.subtitle,
+    this.figure,
     this.leading,
     this.progress,
     super.key,
@@ -24,6 +26,9 @@ class AppointmentHeroCard extends StatelessWidget {
   final Widget primary;
   final Widget? secondary;
   final String? subtitle;
+
+  /// The large figure under the title, e.g. the appointment's time.
+  final String? figure;
   final Widget? leading;
   final Widget? progress;
 
@@ -33,6 +38,7 @@ class AppointmentHeroCard extends StatelessWidget {
     final leading = this.leading;
     final secondary = this.secondary;
     final subtitle = this.subtitle;
+    final figure = this.figure;
     final progress = this.progress;
 
     return PatternCard(
@@ -88,6 +94,13 @@ class AppointmentHeroCard extends StatelessWidget {
                         color: Colors.white,
                       ),
                     ),
+                    if (figure != null)
+                      Text(
+                        figure,
+                        style: AppStyles.numericLarge.copyWith(
+                          color: Colors.white,
+                        ),
+                      ),
                     if (subtitle != null)
                       Text(
                         subtitle,
@@ -97,6 +110,8 @@ class AppointmentHeroCard extends StatelessWidget {
                       ),
                     Text(
                       body,
+                      maxLines: 2,
+                      overflow: .ellipsis,
                       style: textTheme.bodyMedium?.copyWith(
                         color: Colors.white.withValues(alpha: 0.85),
                       ),
