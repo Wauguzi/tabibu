@@ -47,14 +47,14 @@ void main() {
       await tester.pumpApp(screen(), themeMode: ThemeMode.light);
       await tester.pumpAndSettle();
       expect(
-        find.text('Trusted care, from your first visit to a signed result'),
+        find.text('Trusted care, from your first visit to a signed result.'),
         findsOneWidget,
       );
 
       await tester.pumpApp(screen(), themeMode: ThemeMode.dark);
       await tester.pumpAndSettle();
       expect(
-        find.text('Trusted care, from your first visit to a signed result'),
+        find.text('Trusted care, from your first visit to a signed result.'),
         findsOneWidget,
       );
     });
@@ -65,7 +65,7 @@ void main() {
       expect(
         find.text(
           'Huduma unayoiamini, kutoka ziara yako ya kwanza '
-          'hadi matokeo yaliyosainiwa',
+          'hadi matokeo yaliyosainiwa.',
         ),
         findsOneWidget,
       );
@@ -111,7 +111,11 @@ void main() {
       addTearDown(router.dispose);
       await tester.pumpRouterApp(router);
       await tester.pumpAndSettle();
+      // The tagline holds long enough to read before the person moves on.
+      expect(find.text('language stub'), findsNothing);
 
+      await tester.pump(DecisionScreen.minimumDwell);
+      await tester.pumpAndSettle();
       expect(find.text('language stub'), findsOneWidget);
     });
   });

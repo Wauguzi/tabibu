@@ -120,6 +120,7 @@ void main() {
     when(() => analytics.logLanguageChanged(any())).thenAnswer((_) async {});
     when(() => notices.notifyPatientRegistered()).thenAnswer((_) async {});
     when(() => notices.notifyLicenceReceived()).thenAnswer((_) async {});
+    when(() => notices.notifyWelcomeBack()).thenAnswer((_) async {});
   });
 
   tearDown(() => tokenRefreshes.close());
@@ -205,7 +206,27 @@ void main() {
           () => auth.signInWithEmail(email: 'a@example.com', password: 's'),
         ).called(1);
         verify(() => analytics.logLogin(SignInMethod.email)).called(1);
+        verify(() => notices.notifyWelcomeBack()).called(1);
       },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'no welcome back while a licence is pending',
+      setUp: () => when(
+        () => auth.signInWithEmail(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) async => _pending),
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      expect: () => [
+        const SignInInProgress(session: SignedOutSession()),
+        SignInSuccess(session: _pending),
+      ],
+      verify: (_) => verifyNever(() => notices.notifyWelcomeBack()),
     );
 
     blocTest<AuthBloc, AuthState>(
@@ -302,6 +323,19 @@ void main() {
         error: AppError.serviceUnavailable,
       ),
     ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'a Google sign-in welcomes the person back',
+    setUp: () =>
+        when(() => auth.signInWithGoogle()).thenAnswer((_) async => _patient),
+    build: build,
+    act: (bloc) => bloc.add(const GoogleSignInRequested()),
+    expect: () => [
+      const SignInInProgress(session: SignedOutSession()),
+      SignInSuccess(session: _patient),
+    ],
+    verify: (_) => verify(() => notices.notifyWelcomeBack()).called(1),
   );
 
   blocTest<AuthBloc, AuthState>(

@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:tabibu/core/constants/remote_config_defaults.dart';
 import 'package:tabibu/core/helpers/blocs_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
@@ -19,6 +20,7 @@ import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/core/services/rasp_service.dart';
 import 'package:tabibu/firebase_options.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 
 class AppBlocObserver extends BlocObserver {
   const AppBlocObserver();
@@ -217,6 +219,16 @@ Future<void> bootstrap(
         .timeout(_bootstrapStepTimeout);
   } catch (e) {
     if (kDebugMode) debugPrint('[Bootstrap] RASP init failed: $e');
+  }
+
+  // The splash's wordmark is parsed before its first frame, so the hand-off
+  // from the native splash never shows the tagline alone.
+  try {
+    await SvgAssetLoader(
+      Assets.icons.logoTransparentWhite.path,
+    ).loadBytes(null).timeout(_bootstrapStepTimeout);
+  } catch (e) {
+    if (kDebugMode) debugPrint('[Bootstrap] Logo precache failed: $e');
   }
 
   runApp(

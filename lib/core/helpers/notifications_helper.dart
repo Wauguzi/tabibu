@@ -28,6 +28,13 @@ class NotificationsHelper {
     (l10n) => (l10n.notificationWelcomeTitle, l10n.notificationWelcomeMessage),
   );
 
+  Future<void> notifyWelcomeBack() => _account(
+    (l10n) => (
+      l10n.notificationWelcomeBackTitle,
+      l10n.notificationWelcomeBackMessage,
+    ),
+  );
+
   Future<void> notifyLicenceReceived() => _account(
     (l10n) => (
       l10n.notificationLicenceReceivedTitle,

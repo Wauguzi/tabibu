@@ -68,6 +68,17 @@ void main() {
     expect(message, sw.notificationWelcomeMessage);
   });
 
+  test('welcomes back without a name, in the chosen language', () async {
+    onboardAs('sw');
+    final sw = lookupAppLocalizations(const Locale('sw'));
+
+    await helper.notifyWelcomeBack();
+
+    final (title, message) = await shownTitleAndMessage();
+    expect(title, sw.notificationWelcomeBackTitle);
+    expect(message, sw.notificationWelcomeBackMessage);
+  });
+
   test('falls back to the device language, then en', () async {
     onboardAs('');
     final dispatcher = TestWidgetsFlutterBinding.instance.platformDispatcher;

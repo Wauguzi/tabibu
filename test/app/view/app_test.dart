@@ -19,6 +19,7 @@ import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/core/services/rasp_service.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
+import 'package:tabibu/features/auth/presentation/decision_screen.dart';
 
 class _MockAuthHelper extends Mock implements AuthHelper {}
 
@@ -87,6 +88,11 @@ void main() {
         child: const App(),
       ),
     );
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    // Past the splash's hold, then the page transition.
+    await tester.pump(DecisionScreen.minimumDwell);
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }

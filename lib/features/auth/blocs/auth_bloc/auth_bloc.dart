@@ -122,6 +122,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       );
       _afterSignIn(session);
       unawaited(_analytics.logLogin(SignInMethod.email));
+      _welcomeBack(session);
       emit(SignInSuccess(session: session));
     } on Object catch (e) {
       emit(SignInFailure(session: state.session, error: _appErrorOf(e)));
@@ -142,6 +143,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       }
       _afterSignIn(session);
       unawaited(_analytics.logLogin(SignInMethod.google));
+      _welcomeBack(session);
       emit(SignInSuccess(session: session));
     } on Object catch (e) {
       emit(SignInFailure(session: state.session, error: _appErrorOf(e)));
@@ -339,6 +341,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   }
 
   /// Side effects of having a user: none of them may fail the sign-in.
+  // Only someone who lands in their app: a half-finished sign-up or a
+  // pending licence has nothing to come back to yet.
+  void _welcomeBack(AuthSession session) {
+    if (session is PatientSession || session is PractitionerSession) {
+      unawaited(_notices.notifyWelcomeBack());
+    }
+  }
+
   void _afterSignIn(AuthSession session) {
     final uid = _auth.currentUid;
     if (uid == null) return;

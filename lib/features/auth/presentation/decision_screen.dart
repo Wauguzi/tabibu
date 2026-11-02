@@ -29,6 +29,10 @@ class DecisionScreen extends StatefulWidget {
 
   final String? from;
 
+  /// Long enough to read the tagline: a fast session check otherwise moves
+  /// on a frame after the screen appears, and it reads as a flicker.
+  static const minimumDwell = Duration(milliseconds: 1500);
+
   @override
   State<DecisionScreen> createState() => _DecisionScreenState();
 }
@@ -40,14 +44,41 @@ class _DecisionScreenState extends State<DecisionScreen> {
       .isUpdateRequired()
       .catchError((Object _) => false);
 
+  final _dwell = Completer<void>();
+  late final Timer _dwellTimer;
+
   @override
   void initState() {
     super.initState();
+    _dwellTimer = Timer(DecisionScreen.minimumDwell, _dwell.complete);
     context.read<AuthBloc>().add(const SessionRequested());
+  }
+
+  /// The onboarding slides' portraits decode while the splash shows, so
+  /// none pops in when it's swiped to.
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    for (final portrait in _portraits) {
+      unawaited(precacheImage(portrait.provider(), context));
+    }
+  }
+
+  static final List<AssetGenImage> _portraits = [
+    Assets.images.portraits.portrait1,
+    Assets.images.portraits.portrait2,
+    Assets.images.portraits.portrait3,
+  ];
+
+  @override
+  void dispose() {
+    _dwellTimer.cancel();
+    super.dispose();
   }
 
   Future<void> _land(AuthState state) async {
     final updateRequired = await _updateRequired;
+    await _dwell.future;
     final onboarding = await getIt<HiveHelper>().getCachedOnboarding();
     // The native splash launches full screen; every screen after A1 has bars.
     unawaited(
@@ -80,7 +111,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: const SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
+        statusBarColor: AppColors.transparent,
         statusBarBrightness: Brightness.dark,
         statusBarIconBrightness: Brightness.light,
       ),
@@ -119,7 +150,7 @@ class _DecisionScreenState extends State<DecisionScreen> {
                         child: Text(
                           l10n.splashTagline,
                           style: textTheme.bodyLarge?.copyWith(
-                            color: Colors.white,
+                            color: AppColors.white,
                           ),
                           textAlign: .center,
                         ),
@@ -166,7 +197,7 @@ class _SplashScatter extends CustomPainter {
 
   @override
   void paint(Canvas canvas, Size size) {
-    final paint = Paint()..color = Colors.white.withValues(alpha: 0.12);
+    final paint = Paint()..color = AppColors.white.withValues(alpha: 0.12);
     for (var i = 0; i < _scatter.length; i++) {
       final (fx, fy, width, rotation) = _scatter[i];
       canvas
