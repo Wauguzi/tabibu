@@ -2,6 +2,7 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/utils/text_fold.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_event.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_state.dart';
 import 'package:tabibu/features/practitioners/data/cache/practitioner_cache_helper.dart';
@@ -146,7 +147,7 @@ List<PractitionerModel> visibleOf(
   required String query,
   Specialty? specialty,
 }) {
-  final needle = _fold(query);
+  final needle = foldForSearch(query);
   final rows = [
     for (final row in all)
       if (!row.isPathologist && row.isAvailable)
@@ -154,48 +155,19 @@ List<PractitionerModel> visibleOf(
           if (needle.isEmpty || _matches(row, needle)) row,
   ];
   return rows..sort((a, b) {
-    final byLast = _fold(a.lastName).compareTo(_fold(b.lastName));
+    final byLast = foldForSearch(
+      a.lastName,
+    ).compareTo(foldForSearch(b.lastName));
     if (byLast != 0) return byLast;
-    return _fold(a.firstName).compareTo(_fold(b.firstName));
+    return foldForSearch(a.firstName).compareTo(foldForSearch(b.firstName));
   });
 }
 
 bool _matches(PractitionerModel row, String needle) {
-  if (_fold(row.fullName).contains(needle)) return true;
-  if (_fold(row.facilityName).contains(needle)) return true;
+  if (foldForSearch(row.fullName).contains(needle)) return true;
+  if (foldForSearch(row.facilityName).contains(needle)) return true;
   for (final specialty in row.specialties) {
-    if (_fold(specialty).contains(needle)) return true;
+    if (foldForSearch(specialty).contains(needle)) return true;
   }
   return false;
 }
-
-/// Case- and accent-insensitive fold for directory search.
-String _fold(String raw) {
-  final lower = raw.trim().toLowerCase();
-  final out = StringBuffer();
-  for (final unit in lower.runes) {
-    final mapped = _latinFold[unit];
-    if (mapped != null) {
-      out.writeCharCode(mapped);
-    } else if (unit >= 0x0300 && unit <= 0x036F) {
-      // Combining mark after an NFD source — drop it.
-    } else {
-      out.writeCharCode(unit);
-    }
-  }
-  return out.toString();
-}
-
-/// Common Latin letters with diacritics → ASCII base.
-const _latinFold = <int, int>{
-  0x00E0: 0x61, 0x00E1: 0x61, 0x00E2: 0x61, 0x00E3: 0x61, 0x00E4: 0x61,
-  0x00E5: 0x61, 0x0101: 0x61, 0x0103: 0x61, 0x0105: 0x61, // a
-  0x00E8: 0x65, 0x00E9: 0x65, 0x00EA: 0x65, 0x00EB: 0x65, 0x0113: 0x65,
-  0x0117: 0x65, 0x0119: 0x65, 0x011B: 0x65, // e
-  0x00EC: 0x69, 0x00ED: 0x69, 0x00EE: 0x69, 0x00EF: 0x69, 0x012B: 0x69,
-  0x012F: 0x69, // i
-  0x00F2: 0x6F, 0x00F3: 0x6F, 0x00F4: 0x6F, 0x00F5: 0x6F, 0x00F6: 0x6F,
-  0x00F8: 0x6F, 0x014D: 0x6F, // o
-  0x00F9: 0x75, 0x00FA: 0x75, 0x00FB: 0x75, 0x00FC: 0x75, 0x016B: 0x75, // u
-  0x00F1: 0x6E, 0x00E7: 0x63, 0x00FD: 0x79, 0x00FF: 0x79,
-};
