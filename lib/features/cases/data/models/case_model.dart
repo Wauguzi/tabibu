@@ -135,4 +135,32 @@ abstract class CaseModel with _$CaseModel {
     .reportInProgress => .pathologistAccepted,
     final stage => stage,
   };
+
+  /// Where the case is on the doctor's five steps (seen, ordered,
+  /// pathologist, signed, discussed): the index of the current step, or 5
+  /// once all are done. A cancelled case reads as ordered; lists show it
+  /// as done ([isDone]).
+  int get doctorStep => switch (currentStageValue) {
+    .orderCreated || .pathologistRequested || .pathologistRejected => 1,
+    .pathologistAccepted ||
+    .sampleReceived ||
+    .slidesUploaded ||
+    .prereadQueued ||
+    .prereadReady ||
+    .prereadFailed ||
+    .reportInProgress => 2,
+    .reportSigned || .discussionRequested || .discussionBooked => 3,
+    .resultReleased || .completed => 5,
+    .cancelled => 1,
+  };
+
+  /// Signed and waiting for the doctor to discuss it with the patient.
+  bool get needsDoctor =>
+      resultStateValue == .withDoctor || resultStateValue == .updateWithDoctor;
+
+  /// Discussed, completed or cancelled: nothing left for the doctor.
+  bool get isDone =>
+      currentStageValue == .resultReleased ||
+      currentStageValue == .completed ||
+      currentStageValue == .cancelled;
 }
