@@ -69,11 +69,15 @@ class CaseCacheHelper {
   Future<List<CaseModel>> syncCases(String uid, {String? since}) async {
     if (uid.isEmpty) return const [];
     try {
+      final cursor = since ?? await casesCursor(uid);
       final remote = await _cases.fetchParticipantDelta(
         uid: uid,
-        cursor: since ?? await casesCursor(uid),
+        cursor: cursor,
       );
       await cacheCases(remote, fromCloud: true, viewerUid: uid);
+      await _evictUntoldCases(uid, {
+        for (final c in remote) c.uid,
+      }, fullPull: cursor == null || cursor.isEmpty);
     } on AppError catch (e) {
       if (!_offline.contains(e)) rethrow;
       final cached = await getCases(uid);
@@ -159,6 +163,42 @@ class CaseCacheHelper {
     }
   }
 
+  /// Evicts cached cases the sync did not return. A full pull is
+  /// authoritative, so untold rows go at once; after a delta each untold
+  /// row is fetched again, and only a denied, missing, or non-member
+  /// row goes.
+  /// Anything else — including every failure — keeps the row, and queued
+  /// rows stay for the replay queue.
+  Future<void> _evictUntoldCases(
+    String uid,
+    Set<String> told, {
+    required bool fullPull,
+  }) async {
+    for (final row in await _db.getAll<CaseHive>(HiveHelperImpl.casesBox)) {
+      if (!row.participantUids.contains(uid) ||
+          told.contains(row.uid) ||
+          !row.synced) {
+        continue;
+      }
+      if (fullPull) {
+        await evictCase(row.uid);
+        continue;
+      }
+      CaseModel? fresh;
+      try {
+        fresh = await _cases.fetchCase(row.uid);
+      } on AppError catch (e) {
+        if (_dropAndRefetch.contains(e)) await evictCase(row.uid);
+        continue;
+      }
+      if (fresh == null || !fresh.participantUids.contains(uid)) {
+        await evictCase(row.uid);
+      } else if (fresh.lastUpdatedAt.compareTo(row.lastUpdatedAt) > 0) {
+        await cacheCases([fresh], fromCloud: true, viewerUid: uid);
+      }
+    }
+  }
+
   String _logKey(String caseUid, int seq) => '${caseUid}_$seq';
 
   /// Syncs the case log for [role]: patients get only patient-visible rows.
@@ -173,6 +213,21 @@ class CaseCacheHelper {
           : await _cases.fetchClinicianLog(caseUid);
       await cacheLogEntries(remote, fromCloud: true, role: role);
     } on AppError catch (e) {
+      // A denied read evicts the rows this role could see; other scopes
+      // on the device stay untouched.
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        for (final row in await _db.getAll<CaseLogEntryHive>(
+          HiveHelperImpl.caseLogsBox,
+        )) {
+          if (row.caseUid == caseUid &&
+              (role != Role.patient || row.patientVisible)) {
+            await _db.delete<CaseLogEntryHive>(
+              HiveHelperImpl.caseLogsBox,
+              _logKey(row.caseUid, row.seq),
+            );
+          }
+        }
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getLog(caseUid, role: role);
       if (cached.isEmpty) rethrow;
@@ -248,14 +303,43 @@ class CaseCacheHelper {
           viewerUid: viewerUid,
           caseDoc: caseRow.toModel(),
         );
+      } else {
+        await _evictSyncedOnly<CasePaymentHive>(
+          HiveHelperImpl.casePaymentsBox,
+          caseUid,
+          (await getPayment(caseUid, viewerUid))?.synced ?? true,
+          'payment $caseUid gone server-side',
+        );
       }
     } on AppError catch (e) {
+      // A denied read evicts the synced row; unsent work stays queued.
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        await _evictSyncedOnly<CasePaymentHive>(
+          HiveHelperImpl.casePaymentsBox,
+          caseUid,
+          (await getPayment(caseUid, viewerUid))?.synced ?? true,
+          'payment $caseUid sync denied',
+        );
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getPayment(caseUid, viewerUid);
       if (cached == null) rethrow;
       return cached;
     }
     return await getPayment(caseUid, viewerUid);
+  }
+
+  /// Deletes the row at [key] unless it holds unsent work. A null row is
+  /// already gone, so [cachedSynced] defaults to evicting.
+  Future<void> _evictSyncedOnly<T>(
+    String box,
+    String key,
+    bool cachedSynced,
+    String reason,
+  ) async {
+    if (!cachedSynced) return;
+    if (kDebugMode) _logger.i('Evicting $reason.');
+    await _db.delete<T>(box, key);
   }
 
   /// Cached payment, only for the case's doctor or patient.
@@ -322,8 +406,24 @@ class CaseCacheHelper {
           doctorUid: doctorUid,
           caseDoc: caseRow.toModel(),
         );
+      } else {
+        await _evictSyncedOnly<RiskCheckHive>(
+          HiveHelperImpl.riskChecksBox,
+          caseUid,
+          (await getRiskCheck(caseUid, doctorUid))?.synced ?? true,
+          'risk check $caseUid gone server-side',
+        );
       }
     } on AppError catch (e) {
+      // A denied read evicts the synced row; unsent work stays queued.
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        await _evictSyncedOnly<RiskCheckHive>(
+          HiveHelperImpl.riskChecksBox,
+          caseUid,
+          (await getRiskCheck(caseUid, doctorUid))?.synced ?? true,
+          'risk check $caseUid sync denied',
+        );
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getRiskCheck(caseUid, doctorUid);
       if (cached == null) rethrow;
@@ -396,8 +496,24 @@ class CaseCacheHelper {
           viewerUid: viewerUid,
           caseDoc: caseRow.toModel(),
         );
+      } else {
+        await _evictSyncedOnly<NotesTranslationHive>(
+          HiveHelperImpl.notesTranslationsBox,
+          caseUid,
+          (await getNotesTranslation(caseUid, viewerUid))?.synced ?? true,
+          'notes translation $caseUid gone server-side',
+        );
       }
     } on AppError catch (e) {
+      // A denied read evicts the synced row; unsent work stays queued.
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        await _evictSyncedOnly<NotesTranslationHive>(
+          HiveHelperImpl.notesTranslationsBox,
+          caseUid,
+          (await getNotesTranslation(caseUid, viewerUid))?.synced ?? true,
+          'notes translation $caseUid sync denied',
+        );
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getNotesTranslation(caseUid, viewerUid);
       if (cached == null) rethrow;
@@ -466,16 +582,17 @@ class CaseCacheHelper {
   }) async {
     if (uid.isEmpty) return const [];
     try {
+      final cursor = since ?? await shareCodesCursor(uid, asCreator: asCreator);
       final remote = asCreator
-          ? await _shares.fetchCreatorDelta(
-              createdByUid: uid,
-              cursor: since ?? await shareCodesCursor(uid, asCreator: true),
-            )
+          ? await _shares.fetchCreatorDelta(createdByUid: uid, cursor: cursor)
           : await _shares.fetchRecipientDelta(
               recipientUid: uid,
-              cursor: since ?? await shareCodesCursor(uid, asCreator: false),
+              cursor: cursor,
             );
       await cacheShareCodes(remote, fromCloud: true);
+      await _evictUntoldShareCodes(uid, asCreator, {
+        for (final s in remote) s.uid,
+      }, fullPull: cursor == null || cursor.isEmpty);
     } on AppError catch (e) {
       if (!_offline.contains(e)) rethrow;
       final cached = await getShareCodes(uid, asCreator: asCreator);
@@ -531,6 +648,51 @@ class CaseCacheHelper {
             fromCloud ? s.copyWith(synced: true) : s,
           ),
     });
+  }
+
+  /// Evicts cached share codes the sync did not return, in the viewer's
+  /// scope only. A full pull is authoritative; after a delta each untold row is
+  /// fetched again, and only a denied, missing, or out-of-scope row
+  /// goes. Anything else keeps the row, and queued rows stay for replay.
+  Future<void> _evictUntoldShareCodes(
+    String uid,
+    bool asCreator,
+    Set<String> told, {
+    required bool fullPull,
+  }) async {
+    bool inScope(ShareCodeHive row) =>
+        asCreator ? row.createdByUid == uid : row.recipientUid == uid;
+    for (final row in await _db.getAll<ShareCodeHive>(
+      HiveHelperImpl.shareCodesBox,
+    )) {
+      if (!inScope(row) || told.contains(row.uid) || !row.synced) continue;
+      if (fullPull) {
+        await evictShareCode(row.uid);
+        continue;
+      }
+      ShareCodeModel? fresh;
+      try {
+        fresh = await _shares.fetchShareCode(row.uid);
+      } on AppError catch (e) {
+        if (_dropAndRefetch.contains(e)) await evictShareCode(row.uid);
+        continue;
+      }
+      final outOfScope =
+          fresh == null ||
+          (asCreator ? fresh.createdByUid != uid : fresh.recipientUid != uid);
+      if (outOfScope) {
+        await evictShareCode(row.uid);
+      } else if (fresh.lastUpdatedAt.compareTo(row.lastUpdatedAt) > 0) {
+        await cacheShareCodes([fresh], fromCloud: true);
+      }
+    }
+  }
+
+  /// Evicts one share code.
+  Future<void> evictShareCode(String shareUid) async {
+    if (shareUid.isEmpty) return;
+    if (kDebugMode) _logger.i('Evicting share code $shareUid.');
+    await _db.delete<ShareCodeHive>(HiveHelperImpl.shareCodesBox, shareUid);
   }
 
   /// Caches share-code maps from a callable or snapshot after stripping

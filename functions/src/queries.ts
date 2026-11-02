@@ -427,6 +427,43 @@ export const queryRegistry: QueryEntry[] = [
     filters: [],
     orderBy: [{ field: 'lastUpdatedAt', direction: 'asc' }],
   },
+  // Client deltas (matrix 15): pinned here so the index coverage test keeps the
+  // composite indexes the app needs. Cloud Functions do not call these.
+  {
+    id: 'publicAlerts.patientDelta',
+    collection: 'publicAlerts',
+    scope: 'collection',
+    filters: [
+      { field: 'countyId', op: '==' },
+      { field: 'patientsReleased', op: '==' },
+      { field: 'synthetic', op: '==' },
+    ],
+    orderBy: [{ field: 'lastUpdatedAt', direction: 'asc' }],
+  },
+  {
+    id: 'publicAlerts.clinicianDelta',
+    collection: 'publicAlerts',
+    scope: 'collection',
+    filters: [
+      { field: 'clinicianCountyIds', op: 'array-contains' },
+      { field: 'synthetic', op: '==' },
+    ],
+    orderBy: [{ field: 'lastUpdatedAt', direction: 'asc' }],
+  },
+  {
+    id: 'messages.readableByStatus',
+    collection: 'messages',
+    scope: 'collection',
+    filters: [{ field: 'status', op: 'in' }],
+    orderBy: [{ field: 'sentAt', direction: 'asc' }],
+  },
+  {
+    id: 'messages.ownBySender',
+    collection: 'messages',
+    scope: 'collection',
+    filters: [{ field: 'senderUid', op: '==' }],
+    orderBy: [{ field: 'sentAt', direction: 'asc' }],
+  },
 ];
 
 /** Typed slots for domains the reviewer adds later. Keep empty until then. */

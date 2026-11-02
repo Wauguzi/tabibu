@@ -6,7 +6,7 @@ rules_version = '2';
 // Last updated : 2026-11-02
 // Prepared by  : Engineering (Theo)
 // Review target: the pull request reviewer and Greptile, before each deploy
-// Emulator test: make rules-test → 201 passing (RT-1..RT-44 + RT-45..RT-201)
+// Emulator test: make rules-test → 248 passing (RT-1..RT-202 + matrix 15 client payloads)
 // Change records: CRQ-0016 (identity), CRQ-0026 (licences, specialties),
 //                 the feat/infra CRQs (data layer, rules, indexes)
 // Threat model  : docs/security/reports/firebase_and_ai_service_threat_model.md

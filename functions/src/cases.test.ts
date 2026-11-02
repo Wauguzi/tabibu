@@ -582,7 +582,9 @@ describe('cases', () => {
         const translation = await docData(w, `cases/${caseUid}/notesTranslation/current`);
         assert.equal(risk?.status, 'Failed');
         assert.equal(risk?.failureReason, 'Disabled');
+        assert.ok(typeof risk?.readyAt === 'string' && risk.readyAt !== '');
         assert.equal(translation?.status, 'Failed');
+        assert.ok(typeof translation?.readyAt === 'string' && translation.readyAt !== '');
       }
     });
 
@@ -598,7 +600,10 @@ describe('cases', () => {
       const risk = await docData(w, `cases/${caseUid}/riskCheck/current`);
       assert.equal(risk?.status, 'Failed');
       assert.equal(risk?.failureReason, 'Timeout');
-      assert.equal((await docData(w, `cases/${caseUid}/notesTranslation/current`))?.status, 'Failed');
+      assert.ok(typeof risk?.readyAt === 'string' && risk.readyAt !== '');
+      const translation = await docData(w, `cases/${caseUid}/notesTranslation/current`);
+      assert.equal(translation?.status, 'Failed');
+      assert.ok(typeof translation?.readyAt === 'string' && translation.readyAt !== '');
       assert.equal((await docData(w, 'modelSignals/20261027'))?.riskCheckFailed, 1);
 
       const crashing = { ...deps, ai: fakeAi([], new Error('socket hang up')) };
@@ -887,6 +892,7 @@ describe('cases', () => {
         const row = await docData(w, `cases/c1/${path}`);
         assert.equal(row?.status, 'Failed');
         assert.equal(row?.failureReason, 'Stale');
+        assert.equal(row?.readyAt, '2026-10-27T09:31:00.000Z');
         assert.equal(row?.lastUpdatedAt, '2026-10-27T09:31:00.000Z');
       }
       assert.equal((await docData(w, 'cases/c1/preread/fresh'))?.status, 'Queued');

@@ -55,7 +55,9 @@ export type CaseAction =
   | 'RemoveViewer'
   | 'Revise'
   | 'Receive'
-  | 'AddSlides';
+  | 'AddSlides'
+  | 'Complete'
+  | 'NoShow';
 
 export type ActorRole = 'Doctor' | 'Pathologist' | 'Patient' | 'System';
 
@@ -337,7 +339,8 @@ const RULES: TransitionRule[] = [
     to: 'ReportSigned',
     location: 'Doctor',
     step: 'ReadReport',
-    actions: ['Reject', 'Expire', 'Cancel'],
+    // Terminal appointment outcomes also return the case here without releasing the report.
+    actions: ['Reject', 'Expire', 'Cancel', 'Complete', 'NoShow'],
     patientVisible: true,
   },
   {
@@ -737,7 +740,7 @@ export function transition(s: CaseState, to: CaseStage, opts: TransitionOpts): C
 export function closeDiscussion(
   s: CaseState,
   appointmentUid: string,
-  opts: TransitionOpts & { action: 'Reject' | 'Expire' | 'Cancel' },
+  opts: TransitionOpts & { action: 'Reject' | 'Expire' | 'Cancel' | 'Complete' | 'NoShow' },
 ): CaseState {
   if (
     s.discussionAppointmentUid !== appointmentUid ||

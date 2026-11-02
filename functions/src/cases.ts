@@ -902,6 +902,7 @@ function writeAiFailure(
   signal: boolean,
 ): void {
   const at = timestamp(now);
+  // readyAt is the completion stamp: the daily aggregator queries by it for failures too.
   tx.set(caseRef.collection('riskCheck').doc('current'), {
     uid: 'current',
     caseUid,
@@ -914,7 +915,7 @@ function writeAiFailure(
     models: {},
     failureReason: reason,
     requestedAt: at,
-    readyAt: '',
+    readyAt: at,
     lastUpdatedAt: at,
   });
   tx.set(caseRef.collection('notesTranslation').doc('current'), {
@@ -928,7 +929,7 @@ function writeAiFailure(
     models: {},
     failureReason: reason,
     requestedAt: at,
-    readyAt: '',
+    readyAt: at,
     lastUpdatedAt: at,
   });
   if (signal) {
@@ -1239,7 +1240,8 @@ async function failStaleJob(deps: Deps, doc: QueryDocumentSnapshot, cutoff: stri
     const fresh = await tx.get(doc.ref);
     const status = str(fresh.get('status'));
     if ((status !== 'Queued' && status !== 'Running') || str(fresh.get('requestedAt')) > cutoff) return false;
-    tx.update(doc.ref, { status: 'Failed', failureReason: 'Stale', lastUpdatedAt: timestamp(now) });
+    const at = timestamp(now);
+    tx.update(doc.ref, { status: 'Failed', failureReason: 'Stale', readyAt: at, lastUpdatedAt: at });
     return true;
   });
 }

@@ -13,16 +13,19 @@ class MessageHive {
     required this.kind,
     required this.text,
     required this.transcriptStatus,
+    required this.transcriptShared,
+    required this.transcriptLanguage,
     required this.inputMode,
+    required this.identifierFlagged,
     required this.attachmentPath,
-    required this.attachmentContentType,
-    required this.attachmentDurationMs,
+    required this.attachmentType,
+    required this.attachmentSize,
+    required this.voiceDurationMs,
     required this.voicePeaks,
-    required this.voiceWaveformId,
-    required this.replyToMessageUid,
     required this.withheldReason,
     required this.status,
     required this.sentAt,
+    required this.deliveredAt,
     required this.localAttachmentPath,
     required this.lastUpdatedAt,
     required this.synced,
@@ -36,16 +39,19 @@ class MessageHive {
       kind: model.kind,
       text: model.text,
       transcriptStatus: model.transcriptStatus,
+      transcriptShared: model.transcriptShared,
+      transcriptLanguage: model.transcriptLanguage,
       inputMode: model.inputMode,
+      identifierFlagged: model.identifierFlagged,
       attachmentPath: model.attachmentPath,
-      attachmentContentType: model.attachmentContentType,
-      attachmentDurationMs: model.attachmentDurationMs,
+      attachmentType: model.attachmentType,
+      attachmentSize: model.attachmentSize,
+      voiceDurationMs: model.voiceDurationMs,
       voicePeaks: model.voicePeaks,
-      voiceWaveformId: model.voiceWaveformId,
-      replyToMessageUid: model.replyToMessageUid,
       withheldReason: model.withheldReason,
       status: model.status,
       sentAt: model.sentAt,
+      deliveredAt: model.deliveredAt,
       localAttachmentPath: model.localAttachmentPath,
       lastUpdatedAt: model.lastUpdatedAt,
       synced: model.synced,
@@ -60,16 +66,19 @@ class MessageHive {
       kind: kind,
       text: text,
       transcriptStatus: transcriptStatus,
+      transcriptShared: transcriptShared,
+      transcriptLanguage: transcriptLanguage,
       inputMode: inputMode,
+      identifierFlagged: identifierFlagged,
       attachmentPath: attachmentPath,
-      attachmentContentType: attachmentContentType,
-      attachmentDurationMs: attachmentDurationMs,
+      attachmentType: attachmentType,
+      attachmentSize: attachmentSize,
+      voiceDurationMs: voiceDurationMs,
       voicePeaks: voicePeaks,
-      voiceWaveformId: voiceWaveformId,
-      replyToMessageUid: replyToMessageUid,
       withheldReason: withheldReason,
       status: status,
       sentAt: sentAt,
+      deliveredAt: deliveredAt,
       localAttachmentPath: localAttachmentPath,
       lastUpdatedAt: lastUpdatedAt,
       synced: synced,
@@ -101,20 +110,15 @@ class MessageHive {
   final String attachmentPath;
 
   @HiveField(8)
-  final String attachmentContentType;
+  final String attachmentType;
 
   @HiveField(9)
-  final int attachmentDurationMs;
+  final int voiceDurationMs;
 
   @HiveField(10)
   final List<int> voicePeaks;
 
-  @HiveField(11)
-  final String voiceWaveformId;
-
-  @HiveField(12)
-  final String replyToMessageUid;
-
+  // Field numbers 11-12 are retired (server-rejected fields); never reuse.
   @HiveField(13)
   final String withheldReason;
 
@@ -132,4 +136,19 @@ class MessageHive {
 
   @HiveField(18)
   final bool synced;
+
+  @HiveField(19)
+  final bool transcriptShared;
+
+  @HiveField(20, defaultValue: '')
+  final String transcriptLanguage;
+
+  @HiveField(21)
+  final bool identifierFlagged;
+
+  @HiveField(22, defaultValue: 0)
+  final int attachmentSize;
+
+  @HiveField(23, defaultValue: '')
+  final String deliveredAt;
 }

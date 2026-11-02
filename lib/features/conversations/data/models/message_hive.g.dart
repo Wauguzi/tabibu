@@ -23,16 +23,19 @@ class MessageHiveAdapter extends TypeAdapter<MessageHive> {
       kind: fields[3] as String,
       text: fields[4] as String,
       transcriptStatus: fields[5] as String,
+      transcriptShared: fields[19] as bool,
+      transcriptLanguage: fields[20] == null ? '' : fields[20] as String,
       inputMode: fields[6] as String,
+      identifierFlagged: fields[21] as bool,
       attachmentPath: fields[7] as String,
-      attachmentContentType: fields[8] as String,
-      attachmentDurationMs: (fields[9] as num).toInt(),
+      attachmentType: fields[8] as String,
+      attachmentSize: fields[22] == null ? 0 : (fields[22] as num).toInt(),
+      voiceDurationMs: (fields[9] as num).toInt(),
       voicePeaks: (fields[10] as List).cast<int>(),
-      voiceWaveformId: fields[11] as String,
-      replyToMessageUid: fields[12] as String,
       withheldReason: fields[13] as String,
       status: fields[14] as String,
       sentAt: fields[15] as String,
+      deliveredAt: fields[23] == null ? '' : fields[23] as String,
       localAttachmentPath: fields[16] as String,
       lastUpdatedAt: fields[17] as String,
       synced: fields[18] as bool,
@@ -42,7 +45,7 @@ class MessageHiveAdapter extends TypeAdapter<MessageHive> {
   @override
   void write(BinaryWriter writer, MessageHive obj) {
     writer
-      ..writeByte(19)
+      ..writeByte(22)
       ..writeByte(0)
       ..write(obj.uid)
       ..writeByte(1)
@@ -60,15 +63,11 @@ class MessageHiveAdapter extends TypeAdapter<MessageHive> {
       ..writeByte(7)
       ..write(obj.attachmentPath)
       ..writeByte(8)
-      ..write(obj.attachmentContentType)
+      ..write(obj.attachmentType)
       ..writeByte(9)
-      ..write(obj.attachmentDurationMs)
+      ..write(obj.voiceDurationMs)
       ..writeByte(10)
       ..write(obj.voicePeaks)
-      ..writeByte(11)
-      ..write(obj.voiceWaveformId)
-      ..writeByte(12)
-      ..write(obj.replyToMessageUid)
       ..writeByte(13)
       ..write(obj.withheldReason)
       ..writeByte(14)
@@ -80,7 +79,17 @@ class MessageHiveAdapter extends TypeAdapter<MessageHive> {
       ..writeByte(17)
       ..write(obj.lastUpdatedAt)
       ..writeByte(18)
-      ..write(obj.synced);
+      ..write(obj.synced)
+      ..writeByte(19)
+      ..write(obj.transcriptShared)
+      ..writeByte(20)
+      ..write(obj.transcriptLanguage)
+      ..writeByte(21)
+      ..write(obj.identifierFlagged)
+      ..writeByte(22)
+      ..write(obj.attachmentSize)
+      ..writeByte(23)
+      ..write(obj.deliveredAt);
   }
 
   @override

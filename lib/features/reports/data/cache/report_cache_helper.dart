@@ -74,16 +74,14 @@ class ReportCacheHelper {
   }) async {
     if (uid.isEmpty) return const [];
     try {
+      final cursor = since ?? await reportsCursor(uid, role: role);
       final remote = role == Role.patient
-          ? await _remote.fetchPatientDelta(
-              uid: uid,
-              cursor: since ?? await reportsCursor(uid, role: role),
-            )
-          : await _remote.fetchReaderDelta(
-              uid: uid,
-              cursor: since ?? await reportsCursor(uid, role: role),
-            );
+          ? await _remote.fetchPatientDelta(uid: uid, cursor: cursor)
+          : await _remote.fetchReaderDelta(uid: uid, cursor: cursor);
       await cacheReports(remote, fromCloud: true, viewerUid: uid, role: role);
+      await _evictUntoldReports(uid, role, {
+        for (final r in remote) _reportKey(r.caseUid, r.uid),
+      }, fullPull: cursor == null || cursor.isEmpty);
     } on AppError catch (e) {
       if (!_offline.contains(e)) rethrow;
       final cached = await getReports(uid, role: role);
@@ -147,6 +145,70 @@ class ReportCacheHelper {
     });
   }
 
+  /// Evicts one report row. Scores and approved texts are keyed per case,
+  /// not per report, so they stay: each syncs and evicts on its own.
+  Future<void> evictReport(String caseUid, String reportUid) async {
+    if (caseUid.isEmpty || reportUid.isEmpty) return;
+    if (kDebugMode) _logger.i('Evicting report $caseUid/$reportUid.');
+    await _db.delete<PathologyReportHive>(
+      HiveHelperImpl.pathologyReportsBox,
+      _reportKey(caseUid, reportUid),
+    );
+  }
+
+  /// Evicts cached reports the sync did not return, in the viewer's scope
+  /// only. A full pull is authoritative, so untold rows go at once; after
+  /// a delta each untold row is fetched again, and only a denied,
+  /// missing, or out-of-scope row goes. Anything else keeps the row.
+  Future<void> _evictUntoldReports(
+    String uid,
+    Role role,
+    Set<String> told, {
+    required bool fullPull,
+  }) async {
+    bool inScope(PathologyReportHive row) =>
+        row.readerUids.contains(uid) &&
+        (role != Role.patient || row.releasedToPatient);
+    for (final row in await _db.getAll<PathologyReportHive>(
+      HiveHelperImpl.pathologyReportsBox,
+    )) {
+      if (!inScope(row) ||
+          told.contains(_reportKey(row.caseUid, row.uid)) ||
+          !row.synced) {
+        continue;
+      }
+      if (fullPull) {
+        await evictReport(row.caseUid, row.uid);
+        continue;
+      }
+      PathologyReportModel? fresh;
+      try {
+        fresh = await _remote.fetchReport(
+          caseUid: row.caseUid,
+          reportUid: row.uid,
+        );
+      } on AppError catch (e) {
+        // Denied or missing only: unknown stays, unlike draft replay.
+        if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+          await evictReport(row.caseUid, row.uid);
+        }
+        continue;
+      }
+      if (fresh == null ||
+          !fresh.readerUids.contains(uid) ||
+          (role == Role.patient && !fresh.releasedToPatient)) {
+        await evictReport(row.caseUid, row.uid);
+      } else if (fresh.lastUpdatedAt.compareTo(row.lastUpdatedAt) > 0) {
+        await cacheReports(
+          [fresh],
+          fromCloud: true,
+          viewerUid: uid,
+          role: role,
+        );
+      }
+    }
+  }
+
   /// Own draft for [pathologistUid] on [caseUid], remote first.
   Future<ReportDraftModel?> syncDraft({
     required String caseUid,
@@ -164,8 +226,21 @@ class ReportCacheHelper {
           fromCloud: true,
           pathologistUid: pathologistUid,
         );
+      } else if (remote == null) {
+        // The server deleted it (e.g. after signing); unsent work stays.
+        final cached = await getDraft(caseUid, pathologistUid);
+        if (cached != null && cached.synced) {
+          await _evictDraft(caseUid, pathologistUid, 'gone server-side');
+        }
       }
     } on AppError catch (e) {
+      // A denied read evicts the synced row; unsent work stays queued.
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        final cached = await getDraft(caseUid, pathologistUid);
+        if (cached != null && cached.synced) {
+          await _evictDraft(caseUid, pathologistUid, 'sync denied');
+        }
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getDraft(caseUid, pathologistUid);
       if (cached == null) rethrow;
@@ -428,14 +503,34 @@ class ReportCacheHelper {
           fromCloud: true,
           pathologistUid: pathologistUid,
         );
+      } else if (remote == null) {
+        final cached = await getPrereadScore(caseUid, runUid, pathologistUid);
+        if (cached != null && cached.synced) {
+          await _evictScore(caseUid, runUid, 'gone server-side');
+        }
       }
     } on AppError catch (e) {
+      // A denied read evicts the synced row; unsent work stays queued.
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        final cached = await getPrereadScore(caseUid, runUid, pathologistUid);
+        if (cached != null && cached.synced) {
+          await _evictScore(caseUid, runUid, 'sync denied');
+        }
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getPrereadScore(caseUid, runUid, pathologistUid);
       if (cached == null) rethrow;
       return cached;
     }
     return await getPrereadScore(caseUid, runUid, pathologistUid);
+  }
+
+  Future<void> _evictScore(String caseUid, String runUid, String reason) async {
+    if (kDebugMode) _logger.i('Evicting score $caseUid/$runUid: $reason.');
+    await _db.delete<PrereadScoreHive>(
+      HiveHelperImpl.prereadScoresBox,
+      _scoreKey(caseUid, runUid),
+    );
   }
 
   Future<PrereadScoreModel?> getPrereadScore(
@@ -496,14 +591,34 @@ class ReportCacheHelper {
       );
       if (remote != null) {
         await cacheApprovedText(remote, fromCloud: true);
+      } else {
+        final cached = await getApprovedText(caseUid, textUid);
+        if (cached != null && cached.synced) {
+          await _evictText(caseUid, textUid, 'gone server-side');
+        }
       }
     } on AppError catch (e) {
+      // A denied read evicts the synced row; unsent work stays queued.
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        final cached = await getApprovedText(caseUid, textUid);
+        if (cached != null && cached.synced) {
+          await _evictText(caseUid, textUid, 'sync denied');
+        }
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getApprovedText(caseUid, textUid);
       if (cached == null) rethrow;
       return cached;
     }
     return await getApprovedText(caseUid, textUid);
+  }
+
+  Future<void> _evictText(String caseUid, String textUid, String reason) async {
+    if (kDebugMode) _logger.i('Evicting text $caseUid/$textUid: $reason.');
+    await _db.delete<ReportTextApprovedHive>(
+      HiveHelperImpl.reportTextsBox,
+      _textKey(caseUid, textUid),
+    );
   }
 
   Future<ReportTextApprovedModel?> getApprovedText(

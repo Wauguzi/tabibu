@@ -10,16 +10,19 @@ Map<String, dynamic> messageJson() => {
   'kind': 'Voice',
   'text': 'Test message',
   'transcriptStatus': 'Ready',
+  'transcriptShared': false,
+  'transcriptLanguage': 'sw',
   'inputMode': 'Voice',
+  'identifierFlagged': false,
   'attachmentPath': 'conversations/uid-conversation-1/uid-message-1.m4a',
-  'attachmentContentType': 'audio/mp4',
-  'attachmentDurationMs': 5000,
+  'attachmentType': 'audio/mp4',
+  'attachmentSize': 42000,
+  'voiceDurationMs': 5000,
   'voicePeaks': [1, 2, 3],
-  'voiceWaveformId': 'uid-waveform-1',
-  'replyToMessageUid': '',
   'withheldReason': '',
   'status': 'Sent',
   'sentAt': '2030-05-01T10:00:00.000Z',
+  'deliveredAt': '',
   'lastUpdatedAt': '2030-05-01T10:00:00.000Z',
 };
 
@@ -89,19 +92,22 @@ void main() {
       expect(hive.kind, 'Voice');
       expect(hive.text, 'Test message');
       expect(hive.transcriptStatus, 'Ready');
+      expect(hive.transcriptShared, isFalse);
+      expect(hive.transcriptLanguage, 'sw');
       expect(hive.inputMode, 'Voice');
+      expect(hive.identifierFlagged, isFalse);
       expect(
         hive.attachmentPath,
         'conversations/uid-conversation-1/uid-message-1.m4a',
       );
-      expect(hive.attachmentContentType, 'audio/mp4');
-      expect(hive.attachmentDurationMs, 5000);
+      expect(hive.attachmentType, 'audio/mp4');
+      expect(hive.attachmentSize, 42000);
+      expect(hive.voiceDurationMs, 5000);
       expect(hive.voicePeaks, [1, 2, 3]);
-      expect(hive.voiceWaveformId, 'uid-waveform-1');
-      expect(hive.replyToMessageUid, '');
       expect(hive.withheldReason, '');
       expect(hive.status, 'Sent');
       expect(hive.sentAt, '2030-05-01T10:00:00.000Z');
+      expect(hive.deliveredAt, '');
       expect(hive.localAttachmentPath, '/tmp/test.m4a');
       expect(hive.lastUpdatedAt, '2030-05-01T10:00:00.000Z');
       expect(hive.synced, isTrue);

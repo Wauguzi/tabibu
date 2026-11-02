@@ -169,7 +169,8 @@ function prereadSection(
     const d = doc.data();
     scored++;
     if (d.acceptedUnchanged === true) agreed++;
-    bump(overallMix, str(d.overall) || 'unknown');
+    // overall is stored as 1..5 (number); str() would collapse every score to "unknown".
+    bump(overallMix, typeof d.overall === 'number' ? String(d.overall) : 'unknown');
     bump(bandMix, str(d.confidenceBand) || 'unknown');
     for (const key of ['findingsVerdict', 'impressionVerdict', 'measurementsVerdict', 'segmentationVerdict']) {
       if (str(d[key]) !== '') bump(verdictMix, `${key}:${str(d[key])}`);

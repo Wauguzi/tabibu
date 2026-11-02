@@ -1577,7 +1577,9 @@ describe('alerts', () => {
       );
     });
 
-    it('approval racing the expiry sweep always reports the expiry', async () => {
+    it('approval racing the expiry sweep always reports the expiry', async function () {
+      // Two transactions contend on one document; the emulator's retry backoff can pass 10 s.
+      this.timeout(30_000);
       const caller = await approver(w, 'approver@example.com');
       await seedDraftAlert(db, 'alert-1', { expiresAt: '2026-10-27T08:00:00.000Z' });
       const deps = depsOf(db, { topics: fakeTopics() });

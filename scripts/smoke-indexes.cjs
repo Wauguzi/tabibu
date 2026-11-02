@@ -70,6 +70,7 @@ function placeholderForFilter(filter) {
   const parts = filter.split(/\s+/);
   const op = parts.slice(1).join(' ');
   if (op === 'array-contains') return 'placeholder';
+  if (op === 'in') return ['placeholder'];
   if (op.startsWith('>=') || op.startsWith('>') || op.startsWith('<=') || op.startsWith('<')) {
     return '1970-01-01T00:00:00.000Z';
   }
@@ -77,7 +78,7 @@ function placeholderForFilter(filter) {
     // numeric county ids vs string ids — try number for countyId
     if (parts[0] === 'countyId') return 0;
   }
-  if (op === '==' && (parts[0] === 'patientsReleased' || parts[0] === 'blocked')) {
+  if (op === '==' && ['patientsReleased', 'blocked', 'synthetic'].includes(parts[0])) {
     return false;
   }
   return 'placeholder';
@@ -180,7 +181,7 @@ async function run() {
   );
 }
 
-module.exports = { parseDartQueryRegistry };
+module.exports = { parseDartQueryRegistry, placeholderForFilter };
 
 if (require.main === module) {
   run().catch((err) => {

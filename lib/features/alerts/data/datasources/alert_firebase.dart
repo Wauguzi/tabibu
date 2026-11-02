@@ -74,14 +74,18 @@ class AlertFirebase {
         () => _call('requestAlertDraft', {'alertUid': alertUid}),
       );
 
-  /// Patient delta: county + released + cursor (I-34).
+  /// Patient delta: county + released + non-synthetic + cursor (I-34).
+  /// The `synthetic == false` filter proves the read rule: without it one
+  /// synthetic row denies the whole list. Demo accounts read synthetics
+  /// through a separate query once the demo claim is wired (matrix §demo).
   Future<List<PublicAlertModel>> fetchPatientPublicAlerts({
     required int countyId,
     String? cursor,
   }) => _guard('Patient public alerts', () async {
     var query = _publicAlerts
         .where('countyId', isEqualTo: countyId)
-        .where('patientsReleased', isEqualTo: true);
+        .where('patientsReleased', isEqualTo: true)
+        .where('synthetic', isEqualTo: false);
     if (cursor != null && cursor.isNotEmpty) {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
@@ -93,15 +97,16 @@ class AlertFirebase {
     ];
   });
 
-  /// Clinician delta: `clinicianCountyIds` contains + cursor (I-35).
+  /// Clinician delta: `clinicianCountyIds` contains + non-synthetic +
+  /// cursor (I-35). The `synthetic == false` filter proves the read rule:
+  /// without it one synthetic row denies the whole list.
   Future<List<PublicAlertModel>> fetchClinicianPublicAlerts({
     required int countyId,
     String? cursor,
   }) => _guard('Clinician public alerts', () async {
-    var query = _publicAlerts.where(
-      'clinicianCountyIds',
-      arrayContains: countyId,
-    );
+    var query = _publicAlerts
+        .where('clinicianCountyIds', arrayContains: countyId)
+        .where('synthetic', isEqualTo: false);
     if (cursor != null && cursor.isNotEmpty) {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }

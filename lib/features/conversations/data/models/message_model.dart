@@ -14,18 +14,19 @@ abstract class MessageModel with _$MessageModel {
     @JsonKey(name: 'kind') @Default('Text') String kind,
     @JsonKey(name: 'text') @Default('') String text,
     @JsonKey(name: 'transcriptStatus') @Default('None') String transcriptStatus,
+    @JsonKey(name: 'transcriptShared') @Default(false) bool transcriptShared,
+    @JsonKey(name: 'transcriptLanguage') @Default('') String transcriptLanguage,
     @JsonKey(name: 'inputMode') @Default('Typed') String inputMode,
+    @JsonKey(name: 'identifierFlagged') @Default(false) bool identifierFlagged,
     @JsonKey(name: 'attachmentPath') @Default('') String attachmentPath,
-    @JsonKey(name: 'attachmentContentType')
-    @Default('')
-    String attachmentContentType,
-    @JsonKey(name: 'attachmentDurationMs') @Default(0) int attachmentDurationMs,
+    @JsonKey(name: 'attachmentType') @Default('') String attachmentType,
+    @JsonKey(name: 'attachmentSize') @Default(0) int attachmentSize,
+    @JsonKey(name: 'voiceDurationMs') @Default(0) int voiceDurationMs,
     @JsonKey(name: 'voicePeaks') @Default(<int>[]) List<int> voicePeaks,
-    @JsonKey(name: 'voiceWaveformId') @Default('') String voiceWaveformId,
-    @JsonKey(name: 'replyToMessageUid') @Default('') String replyToMessageUid,
     @JsonKey(name: 'withheldReason') @Default('') String withheldReason,
     @JsonKey(name: 'status') @Default('') String status,
     @JsonKey(name: 'sentAt') @Default('') String sentAt,
+    @JsonKey(name: 'deliveredAt') @Default('') String deliveredAt,
     @JsonKey(includeFromJson: false, includeToJson: false)
     @Default('')
     String localAttachmentPath,

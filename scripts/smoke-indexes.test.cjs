@@ -5,7 +5,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 
 const ROOT = path.join(__dirname, '..');
-const { parseDartQueryRegistry } = require('./smoke-indexes.cjs');
+const { parseDartQueryRegistry, placeholderForFilter } = require('./smoke-indexes.cjs');
 
 test('parses every QuerySpec from the Dart registry', () => {
   const source = fs.readFileSync(
@@ -30,7 +30,11 @@ test('firestore.indexes.json has the required keys on every entry', () => {
   );
   assert.ok(Array.isArray(doc.indexes));
   assert.ok(Array.isArray(doc.fieldOverrides));
-  assert.equal(doc.indexes.length, 41, 'I-1..I-40 plus patients phone+dob');
+  assert.equal(
+    doc.indexes.length,
+    45,
+    'I-1..I-40 plus patients phone+dob plus publicAlerts/messages synthetic shapes',
+  );
   for (const idx of doc.indexes) {
     assert.equal(typeof idx.collectionGroup, 'string');
     assert.ok(['COLLECTION', 'COLLECTION_GROUP'].includes(idx.queryScope));
@@ -58,4 +62,10 @@ test('rejects a QuerySpec the parser cannot read', () => {
     () => parseDartQueryRegistry("const queryRegistry = <QuerySpec>[QuerySpec(\n  id: missing,\n)];"),
     /Cannot parse|Missing list|No QuerySpec/,
   );
+});
+
+test('placeholders fit their operator: an array for in, a boolean for flags', () => {
+  assert.deepEqual(placeholderForFilter('status in'), ['placeholder']);
+  assert.equal(placeholderForFilter('synthetic =='), false);
+  assert.equal(placeholderForFilter('countyId =='), 0);
 });

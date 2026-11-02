@@ -14,21 +14,23 @@ _MessageModel _$MessageModelFromJson(Map<String, dynamic> json) =>
       kind: json['kind'] as String? ?? 'Text',
       text: json['text'] as String? ?? '',
       transcriptStatus: json['transcriptStatus'] as String? ?? 'None',
+      transcriptShared: json['transcriptShared'] as bool? ?? false,
+      transcriptLanguage: json['transcriptLanguage'] as String? ?? '',
       inputMode: json['inputMode'] as String? ?? 'Typed',
+      identifierFlagged: json['identifierFlagged'] as bool? ?? false,
       attachmentPath: json['attachmentPath'] as String? ?? '',
-      attachmentContentType: json['attachmentContentType'] as String? ?? '',
-      attachmentDurationMs:
-          (json['attachmentDurationMs'] as num?)?.toInt() ?? 0,
+      attachmentType: json['attachmentType'] as String? ?? '',
+      attachmentSize: (json['attachmentSize'] as num?)?.toInt() ?? 0,
+      voiceDurationMs: (json['voiceDurationMs'] as num?)?.toInt() ?? 0,
       voicePeaks:
           (json['voicePeaks'] as List<dynamic>?)
               ?.map((e) => (e as num).toInt())
               .toList() ??
           const <int>[],
-      voiceWaveformId: json['voiceWaveformId'] as String? ?? '',
-      replyToMessageUid: json['replyToMessageUid'] as String? ?? '',
       withheldReason: json['withheldReason'] as String? ?? '',
       status: json['status'] as String? ?? '',
       sentAt: json['sentAt'] as String? ?? '',
+      deliveredAt: json['deliveredAt'] as String? ?? '',
       lastUpdatedAt: json['lastUpdatedAt'] as String? ?? '',
     );
 
@@ -40,15 +42,18 @@ Map<String, dynamic> _$MessageModelToJson(_MessageModel instance) =>
       'kind': instance.kind,
       'text': instance.text,
       'transcriptStatus': instance.transcriptStatus,
+      'transcriptShared': instance.transcriptShared,
+      'transcriptLanguage': instance.transcriptLanguage,
       'inputMode': instance.inputMode,
+      'identifierFlagged': instance.identifierFlagged,
       'attachmentPath': instance.attachmentPath,
-      'attachmentContentType': instance.attachmentContentType,
-      'attachmentDurationMs': instance.attachmentDurationMs,
+      'attachmentType': instance.attachmentType,
+      'attachmentSize': instance.attachmentSize,
+      'voiceDurationMs': instance.voiceDurationMs,
       'voicePeaks': instance.voicePeaks,
-      'voiceWaveformId': instance.voiceWaveformId,
-      'replyToMessageUid': instance.replyToMessageUid,
       'withheldReason': instance.withheldReason,
       'status': instance.status,
       'sentAt': instance.sentAt,
+      'deliveredAt': instance.deliveredAt,
       'lastUpdatedAt': instance.lastUpdatedAt,
     };

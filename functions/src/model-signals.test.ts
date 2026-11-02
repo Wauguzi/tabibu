@@ -161,10 +161,18 @@ describe('model-signals', () => {
     await db.collection('cases').doc('c2').collection('riskCheck').doc('current').set({
       status: 'Failed',
       requestedAt: T10,
-      readyAt: '',
+      readyAt: T11,
       inputLanguage: '',
       suggestedLabTestIds: [],
       advisoryKey: '',
+      failureReason: 'ServiceError',
+    });
+    await db.collection('cases').doc('c2').collection('notesTranslation').doc('current').set({
+      status: 'Failed',
+      requestedAt: T10,
+      readyAt: T11,
+      sourceLanguage: '',
+      language: '',
       failureReason: 'ServiceError',
     });
     await db.collection('cases').doc('c1').collection('notesTranslation').doc('current').set({
@@ -199,6 +207,36 @@ describe('model-signals', () => {
     });
   }
 
+  it('overallMix buckets each overall score as a string key', async () => {
+    for (const overall of [1, 2, 3, 4, 5]) {
+      await db.collection('cases').doc(`mix${overall}`).collection('prereadScores').doc(`s${overall}`).set({
+        overall,
+        scoredAt: T12,
+        acceptedUnchanged: false,
+        confidenceBand: 'Low',
+        findingsVerdict: '',
+        impressionVerdict: '',
+      });
+    }
+    await db.collection('cases').doc('mixX').collection('prereadScores').doc('sx').set({
+      overall: 'high',
+      scoredAt: T12,
+      acceptedUnchanged: false,
+      confidenceBand: 'Low',
+      findingsVerdict: '',
+      impressionVerdict: '',
+    });
+    await aggregateModelSignals({ db }, DAY);
+    assert.deepEqual((await db.collection('modelSignals').doc(DAY).get()).data()?.preread.overallMix, {
+      '1': 1,
+      '2': 1,
+      '3': 1,
+      '4': 1,
+      '5': 1,
+      unknown: 1,
+    });
+  });
+
   it('aggregates the previous day into counts, rates and percentiles', async () => {
     await seedDay();
     const result = await aggregateModelSignals({ db }, DAY);
@@ -210,7 +248,9 @@ describe('model-signals', () => {
     assert.deepEqual(doc?.preread.failedByReason, { ServiceError: 1 });
     assert.equal(doc?.preread.latency.count, 1);
     assert.equal(doc?.preread.agreeRate, 0.5);
+    assert.deepEqual(doc?.preread.overallMix, { '5': 1, '3': 1 });
     assert.equal(doc?.preread.startedFromPrereadRate, 0.5);
+    assert.ok(doc?.preread.startedFromPrereadRate > 0);
     assert.equal(doc?.translation.ready, 1);
     assert.equal(doc?.translation.approved, 1);
     assert.equal(doc?.translation.acceptedUnchangedRate, 1);
@@ -224,9 +264,12 @@ describe('model-signals', () => {
     assert.equal(doc?.voice.sharedUnchangedRate, 1);
     assert.equal(doc?.voice.identifierFlagRate, 0.5);
     assert.equal(doc?.risk.ready, 1);
+    assert.equal(doc?.risk.failed, 1);
+    assert.deepEqual(doc?.risk.failedByReason, { ServiceError: 1 });
     assert.equal(doc?.risk.advisoryRate, 1);
     assert.equal(doc?.risk.suggestedTests, 2);
     assert.equal(doc?.notesTranslation.ready, 1);
+    assert.equal(doc?.notesTranslation.failed, 1);
     assert.deepEqual(doc?.notesTranslation.pairMix, { 'en->sw': 1 });
     assert.equal(doc?.alerts.drafted, 2);
     assert.equal(doc?.alerts.fallbackRate, 0.5);

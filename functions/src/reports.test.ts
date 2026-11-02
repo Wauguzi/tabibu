@@ -117,7 +117,34 @@ describe('reports', () => {
       const run = await docData(w, `cases/${caseUid}/preread/${runUid}`);
       assert.equal(run?.status, 'Failed');
       assert.equal(run?.failureReason, 'Stale');
+      assert.ok(typeof run?.readyAt === 'string' && run.readyAt !== '');
       assert.equal((await caseDoc(w, caseUid)).currentStage, 'ReportInProgress');
+      // A failed run must not bind the draft: the pathologist can write and sign without a score.
+      const draft = await docData(w, `cases/${caseUid}/reportDrafts/${w.pathologist.uid}`);
+      assert.equal(draft?.prereadRunUid, '');
+      assert.ok(typeof draft?.createdAt === 'string' && draft.createdAt !== '');
+      const stamp = await fillDraft(w, caseUid);
+      await sign(caseUid, stamp);
+      assert.equal((await caseDoc(w, caseUid)).currentStage, 'ReportSigned');
+    });
+
+    it('a Failed pre-read left on the case still starts a manual report unbound', async () => {
+      const caseUid = await receivedCase(w);
+      const runUid = randomUUID();
+      await w.deps.db.collection('cases').doc(caseUid).update({ prereadRunUid: runUid });
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).set({
+        uid: runUid,
+        status: 'Failed',
+        failureReason: 'ServiceError',
+        requestedAt: '2026-10-27T08:00:00.000Z',
+        readyAt: '2026-10-27T08:01:00.000Z',
+        lastUpdatedAt: '2026-10-27T08:01:00.000Z',
+      });
+      await startReportHandler(w.deps, w.pathologist, { caseUid });
+      const draft = await docData(w, `cases/${caseUid}/reportDrafts/${w.pathologist.uid}`);
+      assert.equal(draft?.prereadRunUid, '');
+      const stamp = await fillDraft(w, caseUid);
+      await sign(caseUid, stamp);
     });
   });
 

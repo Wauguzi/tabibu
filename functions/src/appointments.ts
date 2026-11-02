@@ -170,7 +170,7 @@ function closeDiscussionOf(
   tx: Transaction,
   loaded: LoadedCase | null,
   appointmentUid: string,
-  action: 'Reject' | 'Expire' | 'Cancel',
+  action: 'Reject' | 'Expire' | 'Cancel' | 'Complete' | 'NoShow',
   reason: string,
   actor: { uid: string; role: 'Doctor' | 'Patient' | 'System' },
   now: Date,
@@ -638,8 +638,20 @@ export async function completeAppointmentHandler(
     if (appt.status !== 'Accepted') throw refuse('failed-precondition', 'invalidAppointment');
     const from = Date.parse(str(outcome === 'Completed' ? appt.scheduledStart : appt.scheduledEnd));
     if (now.getTime() < from) throw refuse('failed-precondition', 'tooEarly');
+    // Close the linked discussion in the same write so a NoShow/Completed case can be rebooked;
+    // the report stays signed (closeDiscussion returns to ReportSigned, never releases).
+    const discussion = await loadDiscussionCase(tx, db, appt);
     const at = timestamp(now);
     tx.update(ref, { status: outcome, completedAt: at, lastUpdatedAt: at });
+    closeDiscussionOf(
+      tx,
+      discussion,
+      appointmentUid,
+      outcome === 'Completed' ? 'Complete' : 'NoShow',
+      '',
+      { uid: c.uid, role: 'Doctor' },
+      now,
+    );
     return { status: outcome };
   });
 }
@@ -848,7 +860,7 @@ async function summariseIntake(deps: AppointmentDeps, appointmentUid: string): P
         lastUpdatedAt: at,
       });
     } else {
-      tx.update(summaryRef, { status: 'Failed', failureReason: failure, lastUpdatedAt: at });
+      tx.update(summaryRef, { status: 'Failed', failureReason: failure, readyAt: at, lastUpdatedAt: at });
     }
     // Typed text has no transcript: its language comes from the summary, once, and a patient's
     // transcript language already on the appointment is left alone.
@@ -944,7 +956,7 @@ async function failStaleIntake(
     ) {
       return false;
     }
-    tx.update(summaryRef, { status: 'Failed', failureReason: 'Stale', lastUpdatedAt: at });
+    tx.update(summaryRef, { status: 'Failed', failureReason: 'Stale', readyAt: at, lastUpdatedAt: at });
     tx.update(appointmentRef, { intakeStatus: 'Failed', lastUpdatedAt: at });
     bumpModelSignal(tx, db, 'intakeFailedCount', now);
     return true;

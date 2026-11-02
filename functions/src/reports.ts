@@ -194,7 +194,7 @@ export async function startReportHandler(
       const stale = !run || (['Queued', 'Running'].includes(status) && now.getTime() - requested >= PREREAD_STALE_MS);
       if (!stale) throw refuse('failed-precondition', 'prereadPending');
       if (runRef && run) {
-        tx.update(runRef, { status: 'Failed', failureReason: 'Stale', lastUpdatedAt: at });
+        tx.update(runRef, { status: 'Failed', failureReason: 'Stale', readyAt: at, lastUpdatedAt: at });
       }
       s = transition(s, 'PrereadFailed', { actorUid: '', actorRole: 'System' });
     }
@@ -212,7 +212,9 @@ export async function startReportHandler(
       status: 'Editing',
       baseReportUid: currentUid,
       targetReportUid: target,
-      prereadRunUid: kind === 'Initial' && run ? runUid : '',
+      // Only a Ready run binds the draft to a scored pre-read; a Failed/Stale run
+      // must not block the manual report (rules require a score whenever prereadRunUid is set).
+      prereadRunUid: kind === 'Initial' && run?.status === 'Ready' ? runUid : '',
       templateKey,
       title: copy('title', ''),
       diagnosisType: copy('diagnosisType', 'Final'),
@@ -227,6 +229,7 @@ export async function startReportHandler(
       diagnosisStartedAt: '',
       startedFromPreread: false,
       startedAt: at,
+      createdAt: at,
       signedReportUid: '',
       notifiableFindings: copy('notifiableFindings', []),
       hintShownDiseaseIds: strings(provenance?.hintShownDiseaseIds),

@@ -53,23 +53,41 @@ const queryRegistry = <QuerySpec>[
     filters: ['participantUids array-contains'],
     orderBy: ['lastMessageAt DESC'],
   ),
+  // Two message shapes, so each list is provable under the read rule:
+  // readable statuses, and the caller's own rows (withheld ones included).
   QuerySpec(
-    id: 'conversations.messagesBySentAt',
+    id: 'messages.readableByStatus',
     collection: 'messages',
     scope: 'nested',
-    filters: <String>[],
+    filters: ['status in'],
+    orderBy: ['sentAt ASC'],
+  ),
+  QuerySpec(
+    id: 'messages.ownBySender',
+    collection: 'messages',
+    scope: 'nested',
+    filters: ['senderUid =='],
     orderBy: ['sentAt ASC'],
   ),
   QuerySpec(
     id: 'publicAlerts.patientDelta',
     collection: 'publicAlerts',
-    filters: ['countyId ==', 'patientsReleased ==', 'lastUpdatedAt >='],
+    filters: [
+      'countyId ==',
+      'patientsReleased ==',
+      'synthetic ==',
+      'lastUpdatedAt >=',
+    ],
     orderBy: ['lastUpdatedAt ASC'],
   ),
   QuerySpec(
     id: 'publicAlerts.clinicianDelta',
     collection: 'publicAlerts',
-    filters: ['clinicianCountyIds array-contains', 'lastUpdatedAt >='],
+    filters: [
+      'clinicianCountyIds array-contains',
+      'synthetic ==',
+      'lastUpdatedAt >=',
+    ],
     orderBy: ['lastUpdatedAt ASC'],
   ),
   QuerySpec(

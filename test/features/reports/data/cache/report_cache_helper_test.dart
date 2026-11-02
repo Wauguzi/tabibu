@@ -12,12 +12,14 @@ import 'package:tabibu/features/reports/data/models/notifiable_finding_hive.dart
 import 'package:tabibu/features/reports/data/models/pathology_report_hive.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/data/models/preread_score_hive.dart';
+import 'package:tabibu/features/reports/data/models/preread_score_model.dart';
 import 'package:tabibu/features/reports/data/models/report_addendum_hive.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_hive.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_model.dart';
 import 'package:tabibu/features/reports/data/models/report_measurement_hive.dart';
 import 'package:tabibu/features/reports/data/models/report_response_hive.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
 
 class _MockReportFirebase extends Mock implements ReportFirebase {}
 
@@ -384,6 +386,183 @@ void main() {
         pathologistUid: 'path1',
       );
       expect(await helper.getDraft('c1', 'path1'), isNull);
+    });
+  });
+
+  group('eviction', () {
+    test('a full pull evicts untold reports', () async {
+      await helper.cacheReports(
+        [_report('r1'), _report('r2')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+        role: Role.doctor,
+      );
+      when(
+        () => remote.fetchReaderDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_report('r1', stamp: _t3)]);
+
+      await helper.syncReports('doc1', role: Role.doctor, since: '');
+
+      expect(
+        (await helper.getReports('doc1', role: Role.doctor)).map((r) => r.uid),
+        ['r1'],
+      );
+      verifyNever(
+        () => remote.fetchReport(
+          caseUid: any(named: 'caseUid'),
+          reportUid: any(named: 'reportUid'),
+        ),
+      );
+    });
+
+    test('a patient sweep leaves other scopes alone', () async {
+      await helper.cacheReports(
+        [_report('r1')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+        role: Role.doctor,
+      );
+      when(
+        () => remote.fetchPatientDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => []);
+
+      await helper.syncReports('pat1', role: Role.patient, since: '');
+
+      // The unreleased row is outside the patient's scope, so the sweep
+      // skips it; the patient still reads nothing.
+      expect(await helper.getReports('pat1', role: Role.patient), isEmpty);
+      expect(
+        (await helper.getReports('doc1', role: Role.doctor)).map((r) => r.uid),
+        ['r1'],
+      );
+    });
+
+    test('a delta refetch evicts a denied report', () async {
+      await helper.cacheReports(
+        [_report('r1'), _report('r2')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+        role: Role.doctor,
+      );
+      when(
+        () => remote.fetchReaderDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_report('r1', stamp: _t3)]);
+      when(
+        () => remote.fetchReport(caseUid: 'c1', reportUid: 'r2'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await helper.syncReports('doc1', role: Role.doctor);
+
+      expect(
+        (await helper.getReports('doc1', role: Role.doctor)).map((r) => r.uid),
+        ['r1'],
+      );
+    });
+
+    test('a denied draft sync evicts the synced draft', () async {
+      await helper.cacheDraft(
+        _draft(),
+        fromCloud: true,
+        pathologistUid: 'path1',
+      );
+      when(
+        () => remote.fetchDraft(caseUid: 'c1', pathologistUid: 'path1'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncDraft(caseUid: 'c1', pathologistUid: 'path1'),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(await helper.getDraft('c1', 'path1'), isNull);
+    });
+
+    test('an unsent draft survives a denied sync', () async {
+      await helper.cacheDraft(
+        _draft(synced: false),
+        fromCloud: false,
+        pathologistUid: 'path1',
+      );
+      when(
+        () => remote.fetchDraft(caseUid: 'c1', pathologistUid: 'path1'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncDraft(caseUid: 'c1', pathologistUid: 'path1'),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(await helper.getDraft('c1', 'path1'), isNotNull);
+    });
+
+    test('a missing server draft evicts the synced copy', () async {
+      await helper.cacheDraft(
+        _draft(),
+        fromCloud: true,
+        pathologistUid: 'path1',
+      );
+      when(
+        () => remote.fetchDraft(caseUid: 'c1', pathologistUid: 'path1'),
+      ).thenAnswer((_) async => null);
+
+      expect(
+        await helper.syncDraft(caseUid: 'c1', pathologistUid: 'path1'),
+        isNull,
+      );
+      expect(await helper.getDraft('c1', 'path1'), isNull);
+    });
+
+    test('a denied score sync evicts the synced score', () async {
+      await helper.cachePrereadScore(
+        PrereadScoreModel.empty().copyWith(
+          caseUid: 'c1',
+          runUid: 'run1',
+          pathologistUid: 'path1',
+          lastUpdatedAt: _t1,
+        ),
+        fromCloud: true,
+        pathologistUid: 'path1',
+      );
+      when(
+        () => remote.fetchPrereadScore(caseUid: 'c1', runUid: 'run1'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncPrereadScore(
+          caseUid: 'c1',
+          runUid: 'run1',
+          pathologistUid: 'path1',
+        ),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(await helper.getPrereadScore('c1', 'run1', 'path1'), isNull);
+    });
+
+    test('a missing server text evicts the synced copy', () async {
+      await helper.cacheApprovedText(
+        ReportTextApprovedModel.empty().copyWith(
+          uid: 'x1',
+          caseUid: 'c1',
+          lastUpdatedAt: _t1,
+        ),
+        fromCloud: true,
+      );
+      when(
+        () => remote.fetchApprovedText(caseUid: 'c1', textUid: 'x1'),
+      ).thenAnswer((_) async => null);
+
+      expect(
+        await helper.syncApprovedText(caseUid: 'c1', textUid: 'x1'),
+        isNull,
+      );
+      expect(await helper.getApprovedText('c1', 'x1'), isNull);
     });
   });
 }

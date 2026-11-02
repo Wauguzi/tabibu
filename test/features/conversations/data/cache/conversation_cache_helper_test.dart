@@ -200,6 +200,7 @@ void main() {
       when(
         () => remote.fetchMessages(
           conversationUid: 'c1',
+          callerUid: any(named: 'callerUid'),
           limit: any(named: 'limit'),
           fromSentAt: any(named: 'fromSentAt'),
         ),
@@ -301,6 +302,7 @@ void main() {
       when(
         () => remote.fetchMessages(
           conversationUid: any(named: 'conversationUid'),
+          callerUid: any(named: 'callerUid'),
           limit: any(named: 'limit'),
           fromSentAt: any(named: 'fromSentAt'),
         ),
@@ -320,6 +322,7 @@ void main() {
       when(
         () => remote.fetchMessages(
           conversationUid: any(named: 'conversationUid'),
+          callerUid: any(named: 'callerUid'),
           limit: any(named: 'limit'),
           fromSentAt: any(named: 'fromSentAt'),
         ),
@@ -376,6 +379,7 @@ void main() {
       when(
         () => remote.fetchMessages(
           conversationUid: any(named: 'conversationUid'),
+          callerUid: any(named: 'callerUid'),
           limit: any(named: 'limit'),
           fromSentAt: any(named: 'fromSentAt'),
         ),
@@ -386,6 +390,7 @@ void main() {
       verify(
         () => remote.fetchMessages(
           conversationUid: 'c1',
+          callerUid: 'u1',
           limit: ConversationCacheHelper.messagesKeptPerConversation,
         ),
       ).called(1);
@@ -529,6 +534,7 @@ void main() {
       verifyNever(
         () => remote.fetchMessages(
           conversationUid: any(named: 'conversationUid'),
+          callerUid: any(named: 'callerUid'),
         ),
       );
     });
@@ -771,6 +777,73 @@ void main() {
       final queued = await helper.getQueuedMessages('u1');
       expect(queued, hasLength(1));
       expect(queued.single.status, 'Pending');
+    });
+
+    test('an over-long text is refused before it is queued', () async {
+      await seedThread();
+
+      await expectLater(
+        helper.queueTextMessage(
+          conversationUid: 'c1',
+          senderUid: 'u1',
+          text: 'x' * 2001,
+        ),
+        throwsArgumentError,
+      );
+      expect(await helper.getQueuedMessages('u1'), isEmpty);
+      verifyNever(
+        () => remote.createTextMessage(
+          conversationUid: any(named: 'conversationUid'),
+          messageUid: any(named: 'messageUid'),
+          senderUid: any(named: 'senderUid'),
+          text: any(named: 'text'),
+          sentAt: any(named: 'sentAt'),
+        ),
+      );
+    });
+
+    test('out-of-range voice fields are refused before queuing', () async {
+      await seedThread();
+
+      for (final bad in [
+        () => helper.queueVoiceMessage(
+          conversationUid: 'c1',
+          senderUid: 'u1',
+          localPath: '/tmp/rec.m4a',
+          durationMs: 0,
+          voicePeaks: const [1],
+        ),
+        () => helper.queueVoiceMessage(
+          conversationUid: 'c1',
+          senderUid: 'u1',
+          localPath: '/tmp/rec.m4a',
+          durationMs: 1000,
+          voicePeaks: const [1, 101],
+        ),
+        () => helper.queueVoiceMessage(
+          conversationUid: 'c1',
+          senderUid: 'u1',
+          localPath: '/tmp/rec.m4a',
+          durationMs: 1000,
+          voicePeaks: const [1],
+          contentType: 'video/mp4',
+        ),
+      ]) {
+        await expectLater(bad(), throwsArgumentError);
+      }
+      expect(await helper.getQueuedMessages('u1'), isEmpty);
+      verifyNever(
+        () => remote.createVoiceMessage(
+          conversationUid: any(named: 'conversationUid'),
+          messageUid: any(named: 'messageUid'),
+          senderUid: any(named: 'senderUid'),
+          bytes: any(named: 'bytes'),
+          contentType: any(named: 'contentType'),
+          durationMs: any(named: 'durationMs'),
+          voicePeaks: any(named: 'voicePeaks'),
+          sentAt: any(named: 'sentAt'),
+        ),
+      );
     });
   });
 
@@ -1053,6 +1126,247 @@ void main() {
         failing.getQueuedMessages('u1'),
         throwsA(AppError.unknown),
       );
+    });
+  });
+
+  group('eviction', () {
+    Future<void> seedCursor(String conv) {
+      when(
+        () => remote.updateCursor(
+          conversationUid: any(named: 'conversationUid'),
+          uid: any(named: 'uid'),
+          lastReadAt: any(named: 'lastReadAt'),
+        ),
+      ).thenAnswer((_) async {});
+      return helper.moveCursor('u1', conv, _t2);
+    }
+
+    test('a full pull evicts untold threads and their children', () async {
+      await helper.cacheConversations([
+        _conv('c1'),
+        _conv('c2'),
+      ], fromCloud: true);
+      await helper.cacheMessages([_msg('m1', conv: 'c2')], fromCloud: true);
+      await helper.cacheTranscripts(
+        [_transcript('m1', conv: 'c2')],
+        fromCloud: true,
+        viewerUid: 'u1',
+        viewerRole: .patient,
+      );
+      await seedCursor('c2');
+      when(
+        () => remote.fetchParticipantDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_conv('c1', stamp: _t3)]);
+
+      await helper.syncConversations('u1', since: '');
+
+      expect((await helper.getConversations('u1')).map((c) => c.uid), ['c1']);
+      expect(
+        Hive.box<ConversationHive>(HiveHelperImpl.conversationsBox).get('c2'),
+        isNull,
+      );
+      expect(
+        await Hive.lazyBox<MessageHive>(
+          HiveHelperImpl.messagesBoxName,
+        ).get('m1'),
+        isNull,
+      );
+      expect(await helper.getCursor('u1', 'c2'), isNull);
+      expect(
+        Hive.box<MessageTranscriptHive>(
+          HiveHelperImpl.messageTranscriptsBox,
+        ).get('m1_shared'),
+        isNull,
+      );
+      verifyNever(() => remote.fetchConversation(any()));
+    });
+
+    test('a queued conversation survives a full pull', () async {
+      await helper.cacheConversations([
+        _conv('c9', synced: false),
+      ], fromCloud: false);
+      when(
+        () => remote.fetchParticipantDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => []);
+
+      await helper.syncConversations('u1', since: '');
+
+      expect((await helper.getConversations('u1')).map((c) => c.uid), ['c9']);
+    });
+
+    test('a delta refetch keeps a row the server still lists', () async {
+      await helper.cacheConversations([
+        _conv('c1'),
+        _conv('c2'),
+      ], fromCloud: true);
+      when(
+        () => remote.fetchParticipantDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_conv('c1', stamp: _t3)]);
+      when(
+        () => remote.fetchConversation('c2'),
+      ).thenAnswer((_) async => _conv('c2'));
+
+      await helper.syncConversations('u1');
+
+      expect(
+        (await helper.getConversations('u1')).map((c) => c.uid),
+        contains('c2'),
+      );
+    });
+
+    test('a delta refetch evicts a row the server denies', () async {
+      await helper.cacheConversations([
+        _conv('c1'),
+        _conv('c2'),
+      ], fromCloud: true);
+      await helper.cacheMessages([_msg('m1', conv: 'c2')], fromCloud: true);
+      when(
+        () => remote.fetchParticipantDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_conv('c1', stamp: _t3)]);
+      when(
+        () => remote.fetchConversation('c2'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await helper.syncConversations('u1');
+
+      expect((await helper.getConversations('u1')).map((c) => c.uid), ['c1']);
+      expect(
+        await Hive.lazyBox<MessageHive>(
+          HiveHelperImpl.messagesBoxName,
+        ).get('m1'),
+        isNull,
+      );
+    });
+
+    test('a delta refetch evicts a row that dropped the member', () async {
+      await helper.cacheConversations([
+        _conv('c1'),
+        _conv('c2'),
+      ], fromCloud: true);
+      when(
+        () => remote.fetchParticipantDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_conv('c1', stamp: _t3)]);
+      when(
+        () => remote.fetchConversation('c2'),
+      ).thenAnswer((_) async => _conv('c2', members: ['u9']));
+
+      await helper.syncConversations('u1');
+
+      expect((await helper.getConversations('u1')).map((c) => c.uid), ['c1']);
+    });
+
+    test('a failed delta refetch keeps the row', () async {
+      await helper.cacheConversations([
+        _conv('c1'),
+        _conv('c2'),
+      ], fromCloud: true);
+      when(
+        () => remote.fetchParticipantDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_conv('c1', stamp: _t3)]);
+      when(
+        () => remote.fetchConversation('c2'),
+      ).thenThrow(AppError.serviceUnavailable);
+
+      await helper.syncConversations('u1');
+
+      expect(
+        (await helper.getConversations('u1')).map((c) => c.uid),
+        contains('c2'),
+      );
+    });
+
+    test('a denied message sync evicts the thread', () async {
+      await seedThread();
+      await helper.cacheMessages([_msg('m1')], fromCloud: true);
+      when(
+        () => remote.fetchMessages(
+          conversationUid: any(named: 'conversationUid'),
+          callerUid: any(named: 'callerUid'),
+          limit: any(named: 'limit'),
+          fromSentAt: any(named: 'fromSentAt'),
+        ),
+      ).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncMessages('u1', 'c1'),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(
+        Hive.box<ConversationHive>(HiveHelperImpl.conversationsBox).get('c1'),
+        isNull,
+      );
+      expect(
+        await Hive.lazyBox<MessageHive>(
+          HiveHelperImpl.messagesBoxName,
+        ).get('m1'),
+        isNull,
+      );
+    });
+
+    test('a message sync replaces untold rows and keeps queued ones', () async {
+      await seedThread();
+      await helper.cacheMessages([_msg('m-old', sentAt: _t1)], fromCloud: true);
+      await helper.cacheMessages([
+        _msg('pending', sender: 'u1', synced: false),
+      ], fromCloud: false);
+      when(
+        () => remote.fetchMessages(
+          conversationUid: any(named: 'conversationUid'),
+          callerUid: any(named: 'callerUid'),
+          limit: any(named: 'limit'),
+          fromSentAt: any(named: 'fromSentAt'),
+        ),
+      ).thenAnswer((_) async => [_msg('m-new')]);
+
+      await helper.syncMessages('u1', 'c1');
+
+      expect(
+        (await helper.getMessages('u1', 'c1')).map((m) => m.uid),
+        unorderedEquals(['pending', 'm-new']),
+      );
+    });
+
+    test("reads hide others' withheld rows and keep our own", () async {
+      await seedThread();
+      await helper.cacheMessages([
+        _msg('m1', status: 'Withheld'),
+        _msg('m2', sender: 'u1', status: 'Withheld'),
+      ], fromCloud: true);
+
+      expect((await helper.getMessages('u1', 'c1')).map((m) => m.uid), ['m2']);
+      expect((await helper.getMessages('u2', 'c1')).map((m) => m.uid), ['m1']);
+    });
+
+    test('a denied cursor sync evicts the cursor', () async {
+      await seedThread();
+      await seedCursor('c1');
+      when(
+        () => remote.fetchCursor(conversationUid: 'c1', uid: 'u1'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncCursor('u1', 'c1'),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(await helper.getCursor('u1', 'c1'), isNull);
     });
   });
 }

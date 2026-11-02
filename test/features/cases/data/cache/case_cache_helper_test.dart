@@ -354,6 +354,265 @@ void main() {
       expect(await helper.getLog('c1', role: Role.doctor), isEmpty);
       expect(await helper.getShareCodes('doc1', asCreator: true), isEmpty);
     });
+
+    test('a full pull evicts untold cases', () async {
+      await helper.cacheCases(
+        [_case('c1'), _case('c2')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      when(
+        () => cases.fetchParticipantDelta(
+          uid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_case('c1', stamp: _t3, notes: 'cloud')]);
+
+      await helper.syncCases('doc1', since: '');
+
+      expect((await helper.getCases('doc1')).map((c) => c.uid), ['c1']);
+      verifyNever(() => cases.fetchCase(any()));
+    });
+
+    test('a queued case survives a full pull', () async {
+      await helper.cacheCases(
+        [_case('c9', synced: false)],
+        fromCloud: false,
+        viewerUid: 'doc1',
+      );
+      when(
+        () => cases.fetchParticipantDelta(
+          uid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => []);
+
+      await helper.syncCases('doc1', since: '');
+
+      expect((await helper.getCases('doc1')).map((c) => c.uid), ['c9']);
+    });
+
+    test('a delta refetch evicts a denied case', () async {
+      await helper.cacheCases(
+        [_case('c1'), _case('c2')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      when(
+        () => cases.fetchParticipantDelta(
+          uid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_case('c1', stamp: _t3)]);
+      when(() => cases.fetchCase('c2')).thenThrow(AppError.permissionDenied);
+
+      await helper.syncCases('doc1');
+
+      expect((await helper.getCases('doc1')).map((c) => c.uid), ['c1']);
+    });
+
+    test('a delta refetch refreshes a listed case', () async {
+      await helper.cacheCases(
+        [_case('c1'), _case('c2')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      when(
+        () => cases.fetchParticipantDelta(
+          uid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_case('c1', stamp: _t3)]);
+      when(
+        () => cases.fetchCase('c2'),
+      ).thenAnswer((_) async => _case('c2', stamp: _t3, notes: 'fresh'));
+
+      await helper.syncCases('doc1');
+
+      final rows = await helper.getCases('doc1');
+      expect(rows.map((c) => c.uid), contains('c2'));
+      expect(rows.firstWhere((c) => c.uid == 'c2').clinicalNotes, 'fresh');
+    });
+
+    test('a failed delta refetch keeps the case', () async {
+      await helper.cacheCases(
+        [_case('c1'), _case('c2')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      when(
+        () => cases.fetchParticipantDelta(
+          uid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_case('c1', stamp: _t3)]);
+      when(() => cases.fetchCase('c2')).thenThrow(AppError.unknown);
+
+      await helper.syncCases('doc1');
+
+      expect((await helper.getCases('doc1')).map((c) => c.uid), contains('c2'));
+    });
+
+    test('a denied payment sync evicts the synced row', () async {
+      await helper.cacheCases(
+        [_case('c1')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      await helper.cachePayment(
+        CasePaymentModel.empty().copyWith(caseUid: 'c1', lastUpdatedAt: _t1),
+        fromCloud: true,
+        viewerUid: 'doc1',
+        caseDoc: _case('c1'),
+      );
+      when(() => cases.fetchPayment('c1')).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncPayment(caseUid: 'c1', viewerUid: 'doc1'),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(await helper.getPayment('c1', 'doc1'), isNull);
+    });
+
+    test('an unsent payment survives a denied sync', () async {
+      await helper.cacheCases(
+        [_case('c1')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      await helper.cachePayment(
+        CasePaymentModel.empty().copyWith(
+          caseUid: 'c1',
+          lastUpdatedAt: _t1,
+          synced: false,
+        ),
+        fromCloud: false,
+        viewerUid: 'doc1',
+        caseDoc: _case('c1'),
+      );
+      when(() => cases.fetchPayment('c1')).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncPayment(caseUid: 'c1', viewerUid: 'doc1'),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(await helper.getPayment('c1', 'doc1'), isNotNull);
+    });
+
+    test('a denied patient log sync evicts only visible rows', () async {
+      await helper.cacheLogEntries(
+        [
+          CaseLogEntryModel.empty().copyWith(
+            caseUid: 'c1',
+            seq: 1,
+            patientVisible: false,
+            lastUpdatedAt: _t1,
+          ),
+          CaseLogEntryModel.empty().copyWith(
+            caseUid: 'c1',
+            seq: 2,
+            patientVisible: true,
+            lastUpdatedAt: _t1,
+          ),
+        ],
+        fromCloud: true,
+        role: Role.doctor,
+      );
+      when(
+        () => cases.fetchPatientLog('c1'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await expectLater(
+        helper.syncLog(caseUid: 'c1', role: Role.patient),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(await helper.getLog('c1', role: Role.patient), isEmpty);
+      expect((await helper.getLog('c1', role: Role.doctor)).map((e) => e.seq), [
+        1,
+      ]);
+    });
+
+    test('a full pull evicts untold share codes', () async {
+      await helper.cacheShareCodes([
+        ShareCodeModel.empty().copyWith(
+          uid: 's1',
+          caseUid: 'c1',
+          createdByUid: 'doc1',
+          lastUpdatedAt: _t1,
+        ),
+        ShareCodeModel.empty().copyWith(
+          uid: 's2',
+          caseUid: 'c1',
+          createdByUid: 'doc1',
+          lastUpdatedAt: _t1,
+        ),
+      ], fromCloud: true);
+      when(
+        () => shares.fetchCreatorDelta(
+          createdByUid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer(
+        (_) async => [
+          ShareCodeModel.empty().copyWith(
+            uid: 's1',
+            caseUid: 'c1',
+            createdByUid: 'doc1',
+            lastUpdatedAt: _t3,
+          ),
+        ],
+      );
+
+      await helper.syncShareCodes(uid: 'doc1', asCreator: true, since: '');
+
+      expect(
+        (await helper.getShareCodes('doc1', asCreator: true)).map((s) => s.uid),
+        ['s1'],
+      );
+      verifyNever(() => shares.fetchShareCode(any()));
+    });
+
+    test('a denied share refetch evicts the code', () async {
+      await helper.cacheShareCodes([
+        ShareCodeModel.empty().copyWith(
+          uid: 's1',
+          caseUid: 'c1',
+          createdByUid: 'doc1',
+          lastUpdatedAt: _t1,
+        ),
+        ShareCodeModel.empty().copyWith(
+          uid: 's2',
+          caseUid: 'c1',
+          createdByUid: 'doc1',
+          lastUpdatedAt: _t1,
+        ),
+      ], fromCloud: true);
+      when(
+        () => shares.fetchCreatorDelta(
+          createdByUid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer(
+        (_) async => [
+          ShareCodeModel.empty().copyWith(
+            uid: 's1',
+            caseUid: 'c1',
+            createdByUid: 'doc1',
+            lastUpdatedAt: _t3,
+          ),
+        ],
+      );
+      when(
+        () => shares.fetchShareCode('s2'),
+      ).thenThrow(AppError.permissionDenied);
+
+      await helper.syncShareCodes(uid: 'doc1', asCreator: true);
+
+      expect(
+        (await helper.getShareCodes('doc1', asCreator: true)).map((s) => s.uid),
+        ['s1'],
+      );
+    });
   });
 
   group('replay', () {

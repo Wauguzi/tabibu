@@ -609,6 +609,74 @@
           "order": "ASCENDING"
         }
       ]
+    },
+    {
+      "collectionGroup": "publicAlerts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "countyId",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "patientsReleased",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "synthetic",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastUpdatedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "publicAlerts",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "clinicianCountyIds",
+          "arrayConfig": "CONTAINS"
+        },
+        {
+          "fieldPath": "synthetic",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "lastUpdatedAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "sentAt",
+          "order": "ASCENDING"
+        }
+      ]
+    },
+    {
+      "collectionGroup": "messages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        {
+          "fieldPath": "senderUid",
+          "order": "ASCENDING"
+        },
+        {
+          "fieldPath": "sentAt",
+          "order": "ASCENDING"
+        }
+      ]
     }
   ],
   "fieldOverrides": [

@@ -75,18 +75,30 @@ void main() {
       await firestore.collection('publicAlerts').doc('a1').set({
         'countyId': 47,
         'patientsReleased': true,
+        'synthetic': false,
         'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
         'diseaseId': 'cholera',
       });
       await firestore.collection('publicAlerts').doc('a2').set({
         'countyId': 47,
         'patientsReleased': false,
+        'synthetic': false,
         'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
         'diseaseId': 'cholera',
       });
       await firestore.collection('publicAlerts').doc('a3').set({
         'countyId': 1,
         'patientsReleased': true,
+        'synthetic': false,
+        'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
+        'diseaseId': 'cholera',
+      });
+      // Synthetic, released, same county: excluded, so the read rule holds
+      // for every row the query can return.
+      await firestore.collection('publicAlerts').doc('a4').set({
+        'countyId': 47,
+        'patientsReleased': true,
+        'synthetic': true,
         'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
         'diseaseId': 'cholera',
       });
@@ -98,10 +110,17 @@ void main() {
     test('clinician public alerts use clinicianCountyIds', () async {
       await firestore.collection('publicAlerts').doc('a1').set({
         'clinicianCountyIds': [47, 48],
+        'synthetic': false,
         'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
       });
       await firestore.collection('publicAlerts').doc('a2').set({
         'clinicianCountyIds': [1],
+        'synthetic': false,
+        'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
+      });
+      await firestore.collection('publicAlerts').doc('a3').set({
+        'clinicianCountyIds': [47],
+        'synthetic': true,
         'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
       });
 

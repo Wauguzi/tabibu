@@ -100,6 +100,17 @@ describe('reportDrafts', () => {
     );
   });
 
+  // startReport leaves prereadRunUid empty after a Failed/Stale run so the manual report can begin.
+  it('RT-202 diagnosisStartedAt with no Ready run needs no score', async () => {
+    await seed('cases/case1/reportDrafts/drWanjiru', draft({ prereadRunUid: '' }));
+    await assertSucceeds(
+      updateDoc(doc(db('drWanjiru', PATHOLOGIST), 'cases/case1/reportDrafts/drWanjiru'), {
+        diagnosisStartedAt: '2026-10-28T09:00:00.000Z',
+        ...at,
+      }),
+    );
+  });
+
   it('RT-96 diagnosisStartedAt with a score is allowed', async () => {
     await seed('cases/case1/reportDrafts/drWanjiru', draft({ prereadRunUid: 'run1' }));
     await seed('cases/case1/prereadScores/run1', {

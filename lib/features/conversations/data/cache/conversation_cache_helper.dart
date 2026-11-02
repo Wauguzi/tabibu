@@ -111,11 +111,15 @@ class ConversationCacheHelper {
   }) async {
     if (uid.isEmpty) return const [];
     try {
+      final cursor = since ?? await conversationCursor(uid);
       final remote = await _remote.fetchParticipantDelta(
         uid: uid,
-        cursor: since ?? await conversationCursor(uid),
+        cursor: cursor,
       );
       await cacheConversations(remote, fromCloud: true);
+      await _evictUntoldConversations(uid, {
+        for (final c in remote) c.uid,
+      }, fullPull: cursor == null || cursor.isEmpty);
     } on AppError catch (e) {
       if (!_offline.contains(e)) rethrow;
       final cached = await getConversations(uid);
@@ -124,6 +128,94 @@ class ConversationCacheHelper {
       return cached;
     }
     return await getConversations(uid);
+  }
+
+  /// Evicts cached conversations the sync did not return. A full pull is
+  /// authoritative, so untold rows go at once; after a delta each untold
+  /// row is fetched again, and only a denied, missing, or non-member
+  /// row goes.
+  /// Anything else — including every failure — keeps the row, and queued
+  /// rows stay for the replay queue.
+  Future<void> _evictUntoldConversations(
+    String uid,
+    Set<String> told, {
+    required bool fullPull,
+  }) async {
+    for (final row in await _db.getAll<ConversationHive>(
+      HiveHelperImpl.conversationsBox,
+    )) {
+      if (!row.participantUids.contains(uid) ||
+          told.contains(row.uid) ||
+          !row.synced) {
+        continue;
+      }
+      if (fullPull) {
+        await evictConversation(row.uid);
+        continue;
+      }
+      ConversationModel? fresh;
+      try {
+        fresh = await _remote.fetchConversation(row.uid);
+      } on AppError catch (e) {
+        if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+          await evictConversation(row.uid);
+        }
+        continue;
+      }
+      if (fresh == null || !fresh.participantUids.contains(uid)) {
+        await evictConversation(row.uid);
+      } else if (fresh.lastUpdatedAt.compareTo(row.lastUpdatedAt) > 0) {
+        await cacheConversations([fresh], fromCloud: true);
+      }
+    }
+  }
+
+  /// Evicts a conversation with its messages, cursors and transcripts.
+  /// Queued messages stay for the replay queue: denied replays evict them,
+  /// offline ones keep them, and nothing unsent vanishes here.
+  Future<void> evictConversation(String conversationUid) async {
+    if (conversationUid.isEmpty) return;
+    if (kDebugMode) _logger.i('Evicting conversation $conversationUid.');
+    await _db.delete<ConversationHive>(
+      HiveHelperImpl.conversationsBox,
+      conversationUid,
+    );
+    await _guardLazy('evictMessages', (box) async {
+      final paths = <String>[];
+      for (final key in box.keys) {
+        final row = await box.get(key);
+        if (row == null ||
+            row.conversationUid != conversationUid ||
+            !row.synced) {
+          continue;
+        }
+        if (row.localAttachmentPath.isNotEmpty) {
+          paths.add(row.localAttachmentPath);
+        }
+        await box.delete(key);
+      }
+      await _deleteFiles(paths);
+    });
+    for (final row in await _db.getAll<ConversationCursorHive>(
+      HiveHelperImpl.conversationCursorsBox,
+    )) {
+      if (row.conversationUid == conversationUid) {
+        await _db.delete<ConversationCursorHive>(
+          HiveHelperImpl.conversationCursorsBox,
+          '${conversationUid}_${row.uid}',
+        );
+      }
+    }
+    for (final row in await _db.getAll<MessageTranscriptHive>(
+      HiveHelperImpl.messageTranscriptsBox,
+    )) {
+      if (row.conversationUid == conversationUid) {
+        await _db.delete<MessageTranscriptHive>(
+          HiveHelperImpl.messageTranscriptsBox,
+          '${row.messageUid}_${row.uid}',
+        );
+      }
+    }
   }
 
   /// The participant's cached conversations, newest activity first.
@@ -212,6 +304,12 @@ class ConversationCacheHelper {
       for (final key in box.keys) {
         final row = await box.get(key);
         if (row == null || row.conversationUid != conversationUid) continue;
+        // A withheld row lingers only until the next sync evicts it; until
+        // then its sender alone may still see it.
+        if (row.status == MessageStatus.withheld.value &&
+            row.senderUid != uid) {
+          continue;
+        }
         if (before != null &&
             before.isNotEmpty &&
             row.sentAt.compareTo(before) >= 0) {
@@ -268,23 +366,30 @@ class ConversationCacheHelper {
       throw AppError.dataNotFound;
     }
     try {
-      // Page to a short page: every read stays bounded no matter how long
-      // the thread grows.
+      // Page until a page adds nothing new: every read stays bounded no
+      // matter how long the thread grows, and the inclusive cursor can
+      // never spin on a boundary stamp.
       String? cursor;
+      final seen = <String>{};
       for (;;) {
         final page = await _remote.fetchMessages(
           conversationUid: conversationUid,
+          callerUid: uid,
           limit: messagesKeptPerConversation,
           fromSentAt: cursor,
         );
         if (page.isEmpty) break;
         await cacheMessages(page, fromCloud: true);
-        if (page.length < messagesKeptPerConversation) break;
-        // A full page on one stamp cannot advance an inclusive cursor.
-        if (page.last.sentAt == cursor) break;
+        final before = seen.length;
+        seen.addAll(page.map((m) => m.uid));
+        if (seen.length == before) break;
         cursor = page.last.sentAt;
       }
+      await _replaceSyncedMessages(conversationUid, seen);
     } on AppError catch (e) {
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        await evictConversation(conversationUid);
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getMessages(uid, conversationUid);
       // Nothing cached is "could not read", never "there is none".
@@ -292,6 +397,44 @@ class ConversationCacheHelper {
       return cached;
     }
     return await getMessages(uid, conversationUid);
+  }
+
+  /// Replaces the synced cache with exactly the rows the server told:
+  /// untold synced rows are gone remotely (withdrawn, deleted or lost
+  /// access) and go here too. Queued rows stay for the replay queue.
+  Future<void> _replaceSyncedMessages(
+    String conversationUid,
+    Set<String> told,
+  ) async {
+    await _guardLazy('replaceSyncedMessages', (box) async {
+      final paths = <String>[];
+      for (final key in box.keys) {
+        final row = await box.get(key);
+        if (row == null ||
+            row.conversationUid != conversationUid ||
+            !row.synced ||
+            told.contains(row.uid)) {
+          continue;
+        }
+        if (row.localAttachmentPath.isNotEmpty) {
+          paths.add(row.localAttachmentPath);
+        }
+        await box.delete(key);
+      }
+      await _deleteFiles(paths);
+    });
+  }
+
+  /// Best-effort: the rows are already gone, so a leftover file is
+  /// unreferenced and never shown again.
+  Future<void> _deleteFiles(List<String> paths) async {
+    for (final path in paths) {
+      try {
+        await File(path).delete();
+      } on Exception catch (_) {
+        // Keep evicting the rest.
+      }
+    }
   }
 
   /// Caches conversation rows under the merge guard.
@@ -389,9 +532,12 @@ class ConversationCacheHelper {
     required String conversationUid,
     required String senderUid,
     required String text,
-    String replyToMessageUid = '',
   }) async {
-    if (text.isEmpty) throw ArgumentError('Cannot queue an empty message.');
+    // The rule refuses empty and over-long text; the queue checks before
+    // caching so a replay never trips on an unsendable row.
+    if (text.isEmpty || text.length > 2000) {
+      throw ArgumentError('Text messages must be 1-2000 characters.');
+    }
     if (!await _isParticipant(senderUid, conversationUid)) {
       throw AppError.dataNotFound;
     }
@@ -402,7 +548,6 @@ class ConversationCacheHelper {
       senderUid: senderUid,
       kind: MessageKind.text.value,
       text: text,
-      replyToMessageUid: replyToMessageUid,
       status: MessageStatus.pending.value,
       sentAt: now,
       lastUpdatedAt: now,
@@ -420,9 +565,19 @@ class ConversationCacheHelper {
     required int durationMs,
     required List<int> voicePeaks,
     String contentType = 'audio/mp4',
-    String replyToMessageUid = '',
   }) async {
     if (localPath.isEmpty) throw ArgumentError('A voice message needs audio.');
+    // The rule refuses out-of-range voice fields; the queue checks before
+    // caching so a replay never trips on an unsendable row.
+    if (durationMs <= 0 || durationMs > 120000) {
+      throw ArgumentError('Voice duration must be within (0, 120000] ms.');
+    }
+    if (voicePeaks.length > 64 || voicePeaks.any((p) => p < 0 || p > 100)) {
+      throw ArgumentError('Voice peaks must fit in 64 buckets of 0-100.');
+    }
+    if (contentType != 'audio/mp4' && contentType != 'audio/aac') {
+      throw ArgumentError('Voice uploads must be audio/mp4 or audio/aac.');
+    }
     if (!await _isParticipant(senderUid, conversationUid)) {
       throw AppError.dataNotFound;
     }
@@ -434,10 +589,9 @@ class ConversationCacheHelper {
       kind: MessageKind.voice.value,
       inputMode: InputMode.voice.value,
       transcriptStatus: TranscriptStatus.queued.value,
-      attachmentContentType: contentType,
-      attachmentDurationMs: durationMs,
+      attachmentType: contentType,
+      voiceDurationMs: durationMs,
       voicePeaks: voicePeaks,
-      replyToMessageUid: replyToMessageUid,
       status: MessageStatus.pending.value,
       sentAt: now,
       localAttachmentPath: localPath,
@@ -495,8 +649,8 @@ class ConversationCacheHelper {
             messageUid: row.uid,
             senderUid: row.senderUid,
             bytes: voiceBytes!,
-            contentType: row.attachmentContentType,
-            durationMs: row.attachmentDurationMs,
+            contentType: row.attachmentType,
+            durationMs: row.voiceDurationMs,
             voicePeaks: row.voicePeaks,
             sentAt: row.sentAt,
           );
@@ -764,6 +918,12 @@ class ConversationCacheHelper {
       if (remote != null) await _cacheCursor(remote, fromCloud: true);
       return await getCursor(uid, conversationUid);
     } on AppError catch (e) {
+      if (e == AppError.permissionDenied || e == AppError.dataNotFound) {
+        await _db.delete<ConversationCursorHive>(
+          HiveHelperImpl.conversationCursorsBox,
+          '${conversationUid}_$uid',
+        );
+      }
       if (!_offline.contains(e)) rethrow;
       final cached = await getCursor(uid, conversationUid);
       // Nothing cached is "could not read", never "there is none".

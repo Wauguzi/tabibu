@@ -354,6 +354,83 @@ describe('appointments', () => {
       const after = ahead(deps, 23 * HOUR_MS);
       await completeAppointmentHandler(after, w.doctor, { appointmentUid: uid, outcome: 'NoShow' });
     });
+
+    it('a case-discussion NoShow closes the discussion so a new booking is allowed', async () => {
+      const signed = await signedCase(w);
+      const uid = newId();
+      await requestAppointmentHandler(deps, w.patient, {
+        appointmentUid: uid,
+        type: 'CaseDiscussion',
+        caseUid: signed.caseUid,
+        scheduledStart: SLOT,
+      });
+      await respondToAppointmentHandler(deps, w.doctor, { appointmentUid: uid, decision: 'Accept' });
+      assert.equal((await caseDoc(w, signed.caseUid)).currentStage, 'DiscussionBooked');
+      const after = ahead(deps, 23 * HOUR_MS);
+      await completeAppointmentHandler(after, w.doctor, { appointmentUid: uid, outcome: 'NoShow' });
+      const closed = await caseDoc(w, signed.caseUid);
+      assert.equal(closed.currentStage, 'ReportSigned');
+      assert.equal(closed.discussionAppointmentUid, '');
+      // Rebook after the no-show on a later slot.
+      const next = newId();
+      await requestAppointmentHandler(ahead(deps, 24 * HOUR_MS), w.patient, {
+        appointmentUid: next,
+        type: 'CaseDiscussion',
+        caseUid: signed.caseUid,
+        scheduledStart: '2026-10-29T07:00:00.000Z',
+      });
+      assert.equal((await caseDoc(w, signed.caseUid)).currentStage, 'DiscussionRequested');
+    });
+
+    it('a completed case discussion also returns the case to ReportSigned', async () => {
+      const signed = await signedCase(w);
+      const uid = newId();
+      await requestAppointmentHandler(deps, w.patient, {
+        appointmentUid: uid,
+        type: 'CaseDiscussion',
+        caseUid: signed.caseUid,
+        scheduledStart: SLOT,
+      });
+      await respondToAppointmentHandler(deps, w.doctor, { appointmentUid: uid, decision: 'Accept' });
+      await completeAppointmentHandler(ahead(deps, 23 * HOUR_MS), w.doctor, { appointmentUid: uid, outcome: 'Completed' });
+      const closed = await caseDoc(w, signed.caseUid);
+      assert.equal(closed.currentStage, 'ReportSigned');
+      assert.equal(closed.discussionAppointmentUid, '');
+    });
+  });
+
+  it('a Declined or Expired case-discussion request clears the discussion for rebooking', async () => {
+    const declined = await signedCase(w);
+    const declinedUid = newId();
+    await requestAppointmentHandler(deps, w.patient, {
+      appointmentUid: declinedUid,
+      type: 'CaseDiscussion',
+      caseUid: declined.caseUid,
+      scheduledStart: SLOT,
+    });
+    await respondToAppointmentHandler(deps, w.doctor, {
+      appointmentUid: declinedUid,
+      decision: 'Decline',
+      declineReason: 'SlotUnavailable',
+    });
+    assert.equal((await caseDoc(w, declined.caseUid)).currentStage, 'ReportSigned');
+    assert.equal((await caseDoc(w, declined.caseUid)).discussionAppointmentUid, '');
+
+    const expired = await signedCase(w);
+    const expiredUid = newId();
+    await requestAppointmentHandler(deps, w.patient, {
+      appointmentUid: expiredUid,
+      type: 'CaseDiscussion',
+      caseUid: expired.caseUid,
+      scheduledStart: SLOT_2,
+    });
+    await respondToAppointmentHandler(ahead(deps, 23 * HOUR_MS), w.doctor, {
+      appointmentUid: expiredUid,
+      decision: 'Accept',
+    });
+    assert.equal((await docData(w, `appointments/${expiredUid}`))?.status, 'Expired');
+    assert.equal((await caseDoc(w, expired.caseUid)).currentStage, 'ReportSigned');
+    assert.equal((await caseDoc(w, expired.caseUid)).discussionAppointmentUid, '');
   });
 
   describe('onAppointmentWritten', () => {
@@ -422,6 +499,7 @@ describe('appointments', () => {
       const summary = await docData(w, `appointments/${uid}/intake/summary`);
       assert.equal(summary?.status, 'Failed');
       assert.equal(summary?.failureReason, 'Disabled');
+      assert.ok(typeof summary?.readyAt === 'string' && summary.readyAt !== '');
       assert.equal((await docData(w, `appointments/${uid}`))?.intakeStatus, 'Failed');
       assert.equal(calls, 0);
     });
@@ -491,6 +569,7 @@ describe('appointments', () => {
       const summary = await docData(w, `appointments/${uid}/intake/summary`);
       assert.equal(summary?.status, 'Failed');
       assert.equal(summary?.failureReason, 'ServiceError');
+      assert.ok(typeof summary?.readyAt === 'string' && summary.readyAt !== '');
 
       const other = await secondPatient(w);
       const invented = runtime(w, {
@@ -640,6 +719,7 @@ describe('appointments', () => {
       const summary = await docData(w, `appointments/${uid}/intake/summary`);
       assert.equal(summary?.status, 'Failed');
       assert.equal(summary?.failureReason, 'Stale');
+      assert.ok(typeof summary?.readyAt === 'string' && summary.readyAt !== '');
       assert.equal((await docData(w, `appointments/${uid}`))?.intakeStatus, 'Failed');
     });
 
