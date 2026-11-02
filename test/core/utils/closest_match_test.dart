@@ -1,3 +1,4 @@
+// cspell:ignore Amna Wambu kiprno MÁRI
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tabibu/core/utils/closest_match.dart';
 
