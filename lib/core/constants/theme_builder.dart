@@ -201,7 +201,7 @@ TextTheme _textTheme(ColorScheme scheme) {
       letterSpacing: -0.5,
       color: onSurface,
     ),
-    headlineLarge: base(32, FontWeight.w400, color: onSurface),
+    headlineLarge: base(34, FontWeight.w700, height: 1.1, color: onSurface),
     headlineMedium: base(28, FontWeight.w700, color: onSurface),
     headlineSmall: base(24, FontWeight.w400, color: onSurface),
     titleLarge: base(22, FontWeight.w600, color: onSurface),

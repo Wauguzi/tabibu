@@ -12,6 +12,9 @@ class HomeHeader extends StatelessWidget {
     required this.subtitle,
     required this.notificationsLabel,
     this.photoUrl = '',
+    this.onNotifications,
+    this.hasUnread = false,
+    this.unreadLabel,
     super.key,
   });
 
@@ -21,9 +24,16 @@ class HomeHeader extends StatelessWidget {
   final String subtitle;
   final String notificationsLabel;
   final String photoUrl;
+  final VoidCallback? onNotifications;
+  final bool hasUnread;
+
+  /// The bell's localised reading while [hasUnread], e.g. "Notifications,
+  /// unread".
+  final String? unreadLabel;
 
   @override
   Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     return Row(
       children: [
@@ -48,11 +58,33 @@ class HomeHeader extends StatelessWidget {
           ),
         ),
         const SizedBox(width: AppSpacing.sm),
-        // The inbox is a later screen; the bell is in place for it.
-        CircleIconButton(
-          icon: Assets.icons.notificationBellIcon,
-          onTap: null,
-          semanticLabel: notificationsLabel,
+        Stack(
+          children: [
+            CircleIconButton(
+              icon: Assets.icons.notificationBellIcon,
+              onTap: onNotifications,
+              semanticLabel: hasUnread
+                  ? unreadLabel ?? notificationsLabel
+                  : notificationsLabel,
+            ),
+            if (hasUnread)
+              Positioned(
+                right: 2,
+                top: 2,
+                child: Container(
+                  width: 10,
+                  height: 10,
+                  decoration: BoxDecoration(
+                    shape: .circle,
+                    color: scheme.error,
+                    border: Border.all(
+                      color: scheme.surfaceContainerLowest,
+                      width: 2,
+                    ),
+                  ),
+                ),
+              ),
+          ],
         ),
       ],
     );

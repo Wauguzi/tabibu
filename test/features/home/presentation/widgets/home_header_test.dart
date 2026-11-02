@@ -13,6 +13,7 @@ void main() {
         greeting: 'Habari, Amina',
         subtitle: 'Embakasi · Tue 27 Oct',
         notificationsLabel: 'Notifications',
+        unreadLabel: 'Notifications, unread',
         onNotifications: onNotifications,
         hasUnread: hasUnread,
       );
@@ -76,7 +77,11 @@ void main() {
       await tester.pumpAndSettle();
       expect(
         tester.getSemantics(find.byType(CircleIconButton)),
-        matchesSemantics(label: 'Notifications', isButton: true),
+        matchesSemantics(
+          label: 'Notifications',
+          isButton: true,
+          hasEnabledState: true,
+        ),
       );
 
       await tester.pumpApp(header(hasUnread: true, onNotifications: () {}));
