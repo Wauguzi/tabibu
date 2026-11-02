@@ -23,6 +23,9 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
+import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
+import 'package:tabibu/features/notifications/presentation/inbox_watch.dart';
 import 'package:tabibu/features/themes/blocs/theme_bloc/theme_bloc.dart';
 import 'package:tabibu/features/themes/blocs/theme_bloc/theme_state.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -82,10 +85,31 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     setState(() => _locale = Locale(AppLanguage.fromValue(saved).value));
   }
 
+  /// The uid whose inbox is being watched live, or null.
+  String? _watchedUid;
+
+  /// Keeps the live inbox on while someone with a role is signed in and the
+  /// app is in front, so a booking request reaches a doctor as it arrives.
+  void _syncInboxWatch(AuthSession session, {bool foreground = true}) {
+    final uid = inboxWatchUid(session, foreground: foreground);
+    if (uid == _watchedUid) return;
+    _watchedUid = uid;
+    context.read<NotificationsBloc>().add(
+      uid == null
+          ? const NotificationsWatchStopped()
+          : NotificationsWatchStarted(uid: uid),
+    );
+  }
+
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
-    if (state == .paused) _hasBeenBackgrounded = true;
+    final session = context.read<AuthBloc>().state.session;
+    if (state == .paused) {
+      _hasBeenBackgrounded = true;
+      _syncInboxWatch(session, foreground: false);
+    }
     if (state == .resumed && _hasBeenBackgrounded) {
+      _syncInboxWatch(session);
       unawaited(_onResume());
     }
   }
@@ -117,6 +141,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
+        _syncInboxWatch(state.session);
         switch (state) {
           case LanguageChangeSuccess(:final language):
             setState(() => _locale = Locale(language.value));
