@@ -275,7 +275,8 @@
     "ziara",
     "Zote",
     "pexels",
-    "unsplash"
+    "unsplash",
+    "Kwale"
   ],
   "ignorePaths": [
     "**/lib/firebase_options.dart",
