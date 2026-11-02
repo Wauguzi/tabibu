@@ -10,6 +10,7 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_event.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_event.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_event.dart';
 
 import '../../helpers/helpers.dart';
@@ -38,6 +39,7 @@ void main() {
       verify(() => blocs.desk.add(const DeskReset()));
       verify(() => blocs.alertReview.add(const AlertReviewReset()));
       verify(() => blocs.caseWorkspace.add(const CaseWorkspaceReset()));
+      verify(() => blocs.reportReader.add(const ReportReaderReset()));
     });
   });
 }

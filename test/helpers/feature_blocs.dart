@@ -22,6 +22,9 @@ import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_sta
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_bloc.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_event.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_state.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_state.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_bloc.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_event.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_state.dart';
@@ -51,6 +54,10 @@ class MockCaseWorkspaceBloc
     extends MockBloc<CaseWorkspaceEvent, CaseWorkspaceState>
     implements CaseWorkspaceBloc {}
 
+class MockReportReaderBloc
+    extends MockBloc<ReportReaderEvent, ReportReaderState>
+    implements ReportReaderBloc {}
+
 class MockDeskBloc extends MockBloc<DeskEvent, DeskState> implements DeskBloc {}
 
 /// The app-wide feature blocs as mocks, each starting in its initial state.
@@ -67,6 +74,7 @@ class FeatureBlocs {
     when(() => desk.state).thenReturn(const DeskInitial());
     when(() => alertReview.state).thenReturn(const AlertReviewInitial());
     when(() => caseWorkspace.state).thenReturn(const CaseWorkspaceInitial());
+    when(() => reportReader.state).thenReturn(const ReportReaderInitial());
   }
 
   final notifications = MockNotificationsBloc();
@@ -77,6 +85,7 @@ class FeatureBlocs {
   final desk = MockDeskBloc();
   final alertReview = MockAlertReviewBloc();
   final caseWorkspace = MockCaseWorkspaceBloc();
+  final reportReader = MockReportReaderBloc();
 
   List<BlocProvider> get providers => [
     BlocProvider<NotificationsBloc>.value(value: notifications),
@@ -87,5 +96,6 @@ class FeatureBlocs {
     BlocProvider<DeskBloc>.value(value: desk),
     BlocProvider<AlertReviewBloc>.value(value: alertReview),
     BlocProvider<CaseWorkspaceBloc>.value(value: caseWorkspace),
+    BlocProvider<ReportReaderBloc>.value(value: reportReader),
   ];
 }
