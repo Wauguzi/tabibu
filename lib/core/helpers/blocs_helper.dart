@@ -14,6 +14,8 @@ import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/onboarding/blocs/onboarding_bloc/onboarding_bloc.dart';
+import 'package:tabibu/features/orders/blocs/order_bloc/order_bloc.dart';
+import 'package:tabibu/features/orders/blocs/order_bloc/order_event.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_bloc.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_event.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_bloc.dart';
@@ -43,6 +45,7 @@ abstract final class BlocsHelper {
     BlocProvider<AlertReviewBloc>(create: (_) => AlertReviewBloc()),
     BlocProvider<CaseWorkspaceBloc>(create: (_) => CaseWorkspaceBloc()),
     BlocProvider<ReportReaderBloc>(create: (_) => ReportReaderBloc()),
+    BlocProvider<OrderBloc>(create: (_) => OrderBloc()),
   ];
 
   /// Sign-out wipes the encrypted boxes, so every feature bloc holding user
@@ -57,5 +60,6 @@ abstract final class BlocsHelper {
     context.read<AlertReviewBloc>().add(const AlertReviewReset());
     context.read<CaseWorkspaceBloc>().add(const CaseWorkspaceReset());
     context.read<ReportReaderBloc>().add(const ReportReaderReset());
+    context.read<OrderBloc>().add(const OrderReset());
   }
 }

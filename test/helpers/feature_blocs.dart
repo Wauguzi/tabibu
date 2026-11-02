@@ -16,6 +16,9 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_state.dart';
+import 'package:tabibu/features/orders/blocs/order_bloc/order_bloc.dart';
+import 'package:tabibu/features/orders/blocs/order_bloc/order_event.dart';
+import 'package:tabibu/features/orders/blocs/order_bloc/order_state.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_bloc.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_event.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_state.dart';
@@ -58,6 +61,9 @@ class MockReportReaderBloc
     extends MockBloc<ReportReaderEvent, ReportReaderState>
     implements ReportReaderBloc {}
 
+class MockOrderBloc extends MockBloc<OrderEvent, OrderState>
+    implements OrderBloc {}
+
 class MockDeskBloc extends MockBloc<DeskEvent, DeskState> implements DeskBloc {}
 
 /// The app-wide feature blocs as mocks, each starting in its initial state.
@@ -75,6 +81,7 @@ class FeatureBlocs {
     when(() => alertReview.state).thenReturn(const AlertReviewInitial());
     when(() => caseWorkspace.state).thenReturn(const CaseWorkspaceInitial());
     when(() => reportReader.state).thenReturn(const ReportReaderInitial());
+    when(() => order.state).thenReturn(const OrderInitial());
   }
 
   final notifications = MockNotificationsBloc();
@@ -86,6 +93,7 @@ class FeatureBlocs {
   final alertReview = MockAlertReviewBloc();
   final caseWorkspace = MockCaseWorkspaceBloc();
   final reportReader = MockReportReaderBloc();
+  final order = MockOrderBloc();
 
   List<BlocProvider> get providers => [
     BlocProvider<NotificationsBloc>.value(value: notifications),
@@ -97,5 +105,6 @@ class FeatureBlocs {
     BlocProvider<AlertReviewBloc>.value(value: alertReview),
     BlocProvider<CaseWorkspaceBloc>.value(value: caseWorkspace),
     BlocProvider<ReportReaderBloc>.value(value: reportReader),
+    BlocProvider<OrderBloc>.value(value: order),
   ];
 }
