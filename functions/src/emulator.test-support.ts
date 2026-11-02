@@ -67,3 +67,19 @@ export async function refusedWith(promise: Promise<unknown>, reason: string): Pr
   }
   throw new Error(`expected refusal "${reason}", but it succeeded`);
 }
+
+/** A signed-in, verified account that holds no role: sign-up has not finished. */
+export function callerWithoutRole(): Caller {
+  return { uid: 'no-role-account', email: 'no-role@example.com', emailVerified: true, role: '', isAdmin: false };
+}
+
+/** For a caller no handler should serve: any refusal will do; a success or a crash will not. */
+export async function refused(promise: Promise<unknown>): Promise<void> {
+  try {
+    await promise;
+  } catch (e) {
+    if (typeof (e as { code?: unknown }).code === 'string') return;
+    throw e;
+  }
+  throw new Error('expected a refusal, but it succeeded');
+}

@@ -20,9 +20,15 @@ interface CompositeIndex {
   fields: IndexField[];
 }
 
+interface FieldOverride {
+  collectionGroup: string;
+  fieldPath: string;
+  indexes: { order?: string; arrayConfig?: string; queryScope: string }[];
+}
+
 interface IndexesFile {
   indexes: CompositeIndex[];
-  fieldOverrides: unknown[];
+  fieldOverrides: FieldOverride[];
 }
 
 function loadIndexes(): IndexesFile {
@@ -45,9 +51,12 @@ function entryMatchesIndex(entry: QueryEntry, index: CompositeIndex): boolean {
   if (index.collectionGroup !== entry.collection) return false;
   if (index.queryScope !== expectedScope) return false;
 
-  // Index fields = filters (in order) then orderBy fields not already covered.
+  // Index fields = filters (in order) then orderBy fields not already covered. Two filters on one
+  // field (a lower and an upper bound) are one index field.
   const wanted: { field: string; op?: string; direction?: string }[] = [
-    ...entry.filters.map((f) => ({ field: f.field, op: f.op })),
+    ...entry.filters
+      .filter((f, i) => entry.filters.findIndex((g) => g.field === f.field) === i)
+      .map((f) => ({ field: f.field, op: f.op })),
     ...entry.orderBy
       .filter((o) => !entry.filters.some((f) => f.field === o.field))
       .map((o) => ({ field: o.field, direction: o.direction })),
@@ -78,7 +87,9 @@ describe('query registry', () => {
   it('every entry that needs a composite or collection-group index has one', () => {
     for (const entry of allEntries) {
       if (!needsCompositeOrGroupIndex(entry)) continue;
-      const match = indexes.indexes.find((idx) => entryMatchesIndex(entry, idx));
+      const match =
+        indexes.indexes.find((idx) => entryMatchesIndex(entry, idx)) ??
+        (overrideServes(entry) ? true : undefined);
       assert.ok(
         match,
         `No composite index for query ${entry.id} ` +
@@ -86,6 +97,21 @@ describe('query registry', () => {
       );
     }
   });
+
+  // A collection-group read ordered by one field rides that field's single-field
+  // override, not a composite.
+  function overrideServes(entry: QueryEntry): boolean {
+    if (entry.scope !== 'collectionGroup') return false;
+    if (entry.filters.length !== 0 || entry.orderBy.length !== 1) return false;
+    const order = entry.orderBy[0];
+    const want = order.direction === 'desc' ? 'DESCENDING' : 'ASCENDING';
+    return indexes.fieldOverrides.some(
+      (o) =>
+        o.collectionGroup === entry.collection &&
+        o.fieldPath === order.field &&
+        o.indexes.some((i) => i.order === want && i.queryScope === 'COLLECTION_GROUP'),
+    );
+  }
 
   it('queries.ts is the only functions/src file that calls .where(', () => {
     const files = readdirSync(SRC_DIR).filter(

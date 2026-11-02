@@ -5,7 +5,7 @@ import { randomBytes } from 'node:crypto';
 import type { DocumentSnapshot } from 'firebase-admin/firestore';
 
 import { applyCounts, loadMarks } from './counters';
-import { setDiseasesForTest } from './disease-data';
+import { loadDiseasesFromDisk, setDiseasesForTest } from './disease-data';
 import { emulatorDeps, resetEmulators } from './emulator.test-support';
 import {
   ALERT_DELIVERY_ARG_ALLOW,
@@ -21,6 +21,10 @@ import { pushSw } from './copy/notifications.sw';
 import { closeShare, loadShareClose, mintShareCode } from './shares';
 
 describe('notifications', () => {
+  after(() => {
+    loadDiseasesFromDisk();
+  });
+
   beforeEach(async () => {
     await resetEmulators();
     setDiseasesForTest([
@@ -150,11 +154,12 @@ describe('notifications', () => {
             recipientUid: 'rec',
             expiresAt: '2026-10-28T09:00:00.000Z',
             template: 'caseShared',
-            codeForTest: code,
           },
           loaded,
           key,
           deps.now!(),
+          undefined,
+          () => code,
         );
       });
     }
@@ -173,11 +178,12 @@ describe('notifications', () => {
           recipientUid: 'doc-1',
           expiresAt: '2026-10-27T08:00:00.000Z',
           template: 'reportSigned',
-          codeForTest: '3030',
         },
         loaded,
         key,
         deps.now!(),
+        undefined,
+        () => '3030',
       );
     });
 
@@ -226,12 +232,12 @@ describe('notifications', () => {
           template: 'shareCodeReissued',
           resourceKey: 'unlock_c_v1-r1',
           mode: 'reissue',
-          codeForTest: '4040',
         },
         reissueNote,
         key,
         deps.now!(),
         priorSnap,
+        () => '4040',
       );
       applyCounts(
         tx,
@@ -297,6 +303,35 @@ describe('notifications', () => {
         .exists,
       true,
     );
+  });
+
+  it('raises a row’s priority only for a template that allows it', async () => {
+    const deps = emulatorDeps();
+    const send = (template: string, priority: 'High' | 'Normal') =>
+      deps.db.runTransaction(async (tx) => {
+        const loaded = await NotificationTx.load(tx, deps.db, template, 'k', 'u1');
+        NotificationTx.create(
+          tx,
+          loaded,
+          {
+            template,
+            resourceKey: 'k',
+            resourceUid: 'k',
+            threadUid: 'k',
+            recipientUid: 'u1',
+            recipientRole: 'doctor',
+            language: 'en',
+            priority,
+          },
+          deps.now!(),
+        );
+      });
+    await assert.rejects(send('orderCreated', 'High'), (e: Error) => e.message === 'priorityNotAllowed');
+    assert.equal((await deps.db.collection('notifications').doc('orderCreated:k:u1').get()).exists, false);
+    await send('reportSigned', 'High');
+    assert.equal((await deps.db.collection('notifications').doc('reportSigned:k:u1').get()).data()?.priority, 'High');
+    await send('orderCreated', 'Normal');
+    assert.equal((await deps.db.collection('notifications').doc('orderCreated:k:u1').get()).data()?.priority, 'Normal');
   });
 
   it('deliberately reading after a write throws', async () => {

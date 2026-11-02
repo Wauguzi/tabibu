@@ -83,6 +83,30 @@ function caller(uid: string, email: string, role = '', isAdmin = false): Caller 
   return { uid, email, emailVerified: true, role, isAdmin };
 }
 
+/** Marks a seeded account as demo content, keeping every claim it already holds. */
+async function markDemo(uid: string): Promise<void> {
+  const auth = getAuth();
+  const claims = (await auth.getUser(uid)).customClaims ?? {};
+  await auth.setCustomUserClaims(uid, { ...claims, demo: true });
+}
+
+/**
+ * The demo-clinician row synthetic alerts page. County and language mirror the synced
+ * profile, so the row pages exactly where the practitioner's own row does.
+ */
+async function writeDemoAccount(uid: string, role: 'doctor' | 'pathologist'): Promise<void> {
+  const db = getFirestore();
+  const practitioner = (await db.collection('practitioners').doc(uid).get()).data();
+  const profile = (await db.collection('doctors').doc(uid).get()).data();
+  const county = practitioner?.county;
+  await db.collection('demoAccounts').doc(uid).set({
+    uid,
+    role,
+    county: typeof county === 'string' ? county : '',
+    language: profile?.language === 'sw' ? 'sw' : 'en',
+  });
+}
+
 /** A placeholder license, stored where the rules expect one, with its download URL. */
 async function license(uid: string, bucketName: string): Promise<string> {
   const token = randomUUID();
@@ -145,8 +169,21 @@ async function main(): Promise<void> {
   const adminEmail = email('admin');
   const adminUid = await user(adminEmail, password, 'Tabibu admin');
   const existing = (await getAuth().getUser(adminUid)).customClaims ?? {};
-  await getAuth().setCustomUserClaims(adminUid, { ...existing, admin: true });
+  await getAuth().setCustomUserClaims(adminUid, { ...existing, admin: true, alertApprover: true });
   const admin = caller(adminUid, adminEmail, '', true);
+  const seededAt = new Date().toISOString();
+  await getFirestore()
+    .collection('alertApprovers')
+    .doc(adminUid)
+    .set({
+      uid: adminUid,
+      grantedByUid: adminUid,
+      grantedAt: seededAt,
+      fcmTokens: [],
+      language: 'en',
+      lastUpdatedAt: seededAt,
+    });
+  await markDemo(adminUid);
 
   const doctorEmail = email('doctor');
   const doctorUid = await practitioner(deps, admin, {
@@ -164,11 +201,18 @@ async function main(): Promise<void> {
       kmpdcNumber: 'DEMO-D-0001',
     },
   });
-  // The approver permission sits on one doctor (spec, Wed 28 Oct).
+  // The approver permission used to sit on this doctor; it now sits on the admin
+  // account, so a stale claim from an earlier seed is removed (F-41).
   const doctorClaims = (await getAuth().getUser(doctorUid)).customClaims ?? {};
-  await getAuth().setCustomUserClaims(doctorUid, { ...doctorClaims, alertApprover: true });
+  if (doctorClaims.alertApprover !== undefined) {
+    const kept = { ...doctorClaims };
+    delete kept.alertApprover;
+    await getAuth().setCustomUserClaims(doctorUid, kept);
+  }
+  await markDemo(doctorUid);
+  await writeDemoAccount(doctorUid, 'doctor');
 
-  await practitioner(deps, admin, {
+  const pathologistUid = await practitioner(deps, admin, {
     email: email('pathologist'),
     password,
     isPathologist: true,
@@ -183,6 +227,8 @@ async function main(): Promise<void> {
       kmpdcNumber: 'DEMO-P-0001',
     },
   });
+  await markDemo(pathologistUid);
+  await writeDemoAccount(pathologistUid, 'pathologist');
 
   const patientEmail = email('patient');
   const patientUid = await user(patientEmail, password, 'Amina Otieno');
@@ -197,6 +243,7 @@ async function main(): Promise<void> {
     subCountyId: 30,
     language: 'sw',
   });
+  await markDemo(patientUid);
 
   const doctor = caller(doctorUid, doctorEmail, 'doctor');
   for (const p of [
@@ -216,7 +263,7 @@ async function main(): Promise<void> {
     });
   }
 
-  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin, doctor (approver), pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
+  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin (approver), doctor, pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
 }
 
 main().catch((e: Error) => {

@@ -41,6 +41,8 @@ export interface TemplateDef {
   pushes?: boolean;
   topicOnly?: boolean;
   carriesCode?: boolean;
+  /** A caller may raise this template to High, as a critical result does. */
+  raisable?: boolean;
 }
 
 export const TEMPLATES: readonly TemplateDef[] = [
@@ -56,9 +58,9 @@ export const TEMPLATES: readonly TemplateDef[] = [
   { key: 'orderCancelled', category: 'Case', resourceType: 'Case', actionType: '', priority: 'Normal', argKeys: [] },
   { key: 'caseShared', category: 'Case', resourceType: 'Case', actionType: 'Acknowledge', priority: 'Normal', argKeys: [], carriesCode: true },
   { key: 'shareRedeemed', category: 'Case', resourceType: 'Case', actionType: '', priority: 'Normal', argKeys: [] },
-  { key: 'reportSigned', category: 'Report', resourceType: 'Report', actionType: 'Acknowledge', priority: 'Normal', argKeys: [], carriesCode: true },
-  { key: 'reportUpdated', category: 'Report', resourceType: 'Report', actionType: 'Acknowledge', priority: 'Normal', argKeys: [], carriesCode: true },
-  { key: 'shareCodeReissued', category: 'Report', resourceType: 'Report', actionType: 'Acknowledge', priority: 'Normal', argKeys: [], carriesCode: true },
+  { key: 'reportSigned', category: 'Report', resourceType: 'Report', actionType: 'Acknowledge', priority: 'Normal', argKeys: [], carriesCode: true, raisable: true },
+  { key: 'reportUpdated', category: 'Report', resourceType: 'Report', actionType: 'Acknowledge', priority: 'Normal', argKeys: [], carriesCode: true, raisable: true },
+  { key: 'shareCodeReissued', category: 'Report', resourceType: 'Report', actionType: 'Acknowledge', priority: 'Normal', argKeys: [], carriesCode: true, raisable: true },
   { key: 'criticalReportUnopened', category: 'Report', resourceType: 'Report', actionType: '', priority: 'High', argKeys: [] },
   { key: 'criticalReportUnopenedSigner', category: 'Report', resourceType: 'Report', actionType: '', priority: 'Normal', argKeys: [] },
   { key: 'resultsWithDoctor', category: 'Result', resourceType: 'Case', actionType: 'Acknowledge', priority: 'Normal', argKeys: [] },
@@ -236,6 +238,9 @@ export function createNotification(
 
   const args = input.templateArgs ?? {};
   assertArgs(def, args);
+  if (input.priority !== undefined && input.priority !== def.priority && !def.raisable) {
+    throw refuse('invalid-argument', 'priorityNotAllowed');
+  }
 
   if (input.shareCode) {
     if (!def.carriesCode && !CODE_TEMPLATES.has(def.key)) {

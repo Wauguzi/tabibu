@@ -36,11 +36,12 @@ describe('shares', () => {
           recipientUid: 'rec',
           expiresAt: '2026-10-28T09:00:00.000Z',
           template: 'caseShared',
-          codeForTest: fixed,
         },
         loaded,
         key,
         deps.now!(),
+        undefined,
+        () => fixed,
       );
       assert.deepEqual(Object.keys(result), ['shareUid']);
       assert.equal('code' in result, false);
@@ -72,11 +73,12 @@ describe('shares', () => {
           recipientUid: 'rec',
           expiresAt: '2026-10-27T08:00:00.000Z',
           template: 'caseShared',
-          codeForTest: fixed,
         },
         loaded,
         key,
         deps.now!(),
+        undefined,
+        () => fixed,
       );
     });
     await deps.db.runTransaction(async (tx) => {
@@ -128,12 +130,12 @@ describe('shares', () => {
             template,
             resourceKey,
             mode: round === 0 ? 'create' : 'reissue',
-            codeForTest: `5${round}${round}5`,
           },
           loaded,
           key,
           deps.now!(),
           prior,
+          () => `5${round}${round}5`,
         );
       });
       const secrets = await deps.db.collection('shareSecrets').get();
@@ -142,6 +144,58 @@ describe('shares', () => {
       assert.equal(share.status, 'Pending');
       assert.equal(share.reissueCount, round);
     }
+  });
+
+  describe('reissuing a revoked share', () => {
+    async function reissueOver(purpose: 'Join' | 'ReportUnlock'): Promise<void> {
+      const deps = emulatorDeps();
+      const key = randomBytes(32).toString('hex');
+      await deps.db.collection('shareCodes').doc('s-1').set({
+        uid: 's-1',
+        caseUid: 'c',
+        purpose,
+        status: 'Revoked',
+        reissueCount: 0,
+        createdAt: '2026-10-27T08:00:00.000Z',
+      });
+      await deps.db.runTransaction(async (tx) => {
+        const prior = await tx.get(deps.db.collection('shareCodes').doc('s-1'));
+        const loaded = await NotificationTx.load(tx, deps.db, 'shareCodeReissued', 's-1-r1', 'doc');
+        mintShareCode(
+          tx,
+          deps.db,
+          {
+            shareUid: 's-1',
+            caseUid: 'c',
+            reportUid: purpose === 'ReportUnlock' ? 'v1' : undefined,
+            purpose,
+            createdByUid: 'path',
+            createdByRole: 'pathologist',
+            recipientUid: 'doc',
+            expiresAt: '2026-11-03T09:00:00.000Z',
+            template: 'shareCodeReissued',
+            resourceKey: 's-1-r1',
+            mode: 'reissue',
+          },
+          loaded,
+          key,
+          deps.now!(),
+          prior,
+          () => '4321',
+        );
+      });
+    }
+
+    it('lets a revoked unlock code come back, since the doctor’s right to it never lapses', async () => {
+      await reissueOver('ReportUnlock');
+      const share = (await emulatorDeps().db.collection('shareCodes').doc('s-1').get()).data()!;
+      assert.equal(share.status, 'Pending');
+      assert.equal(share.reissueCount, 1);
+    });
+
+    it('keeps a revoked invitation closed', async () => {
+      await assert.rejects(reissueOver('Join'), (e: Error) => e.message === 'shareNotReusable');
+    });
   });
 
   it('judgeRedemption locks after five wrong codes and refuses after lock', () => {

@@ -22,6 +22,8 @@ export interface DeidentifySubject {
   facilityName?: string;
   orderNumber?: string;
   labAccessionNo?: string;
+  /** Record ids (case, patient, doctor) the notes might quote. */
+  ids?: string[];
 }
 
 const EMAIL = /\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b/g;
@@ -48,7 +50,7 @@ const INTRO =
 const ID_NEAR =
   /(?:\b(?:ID|id|kitambulisho|NHIF|nhif|SHA|sha)\b[\s:#-]*)(\d{7,8})\b/g;
 
-const ORDER_NO = /\b(?:ODR|TBB)-\d{8}-\d{2,6}\b/gi;
+const ORDER_NO = /\b(?:ODR|TBB)-(?:[A-Z]{1,6}-){0,2}\d{8}-\d{2,6}\b/gi;
 
 function escapeRegExp(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -94,6 +96,7 @@ export function deidentify(text: string, subject: DeidentifySubject = {}): strin
   out = replaceWord(out, subject.county ?? '', '[AREA]');
   out = replaceWord(out, subject.orderNumber ?? '', '[ORDER]');
   out = replaceWord(out, subject.labAccessionNo ?? '', '[ACCESSION]');
+  for (const id of subject.ids ?? []) out = replaceWord(out, id, '[ID]');
 
   if (subject.dateOfBirth) {
     out = replaceWord(out, subject.dateOfBirth, '[DOB]');

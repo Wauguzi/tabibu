@@ -59,8 +59,10 @@ export interface MintShareArgs {
   language?: 'en' | 'sw';
   deepLink?: string;
   mode?: MintMode;
-  /** Test-only fixed code. */
-  codeForTest?: string;
+  /** Who reads the code; a share to a pathologist (the signer) is not for a doctor. */
+  recipientRole?: 'doctor' | 'pathologist';
+  /** A critical result: the row goes out at High priority, whatever the template's usual one. */
+  critical?: boolean;
 }
 
 export interface LoadedShareClose {
@@ -209,10 +211,11 @@ export function mintShareCode(
   shareCodeKey: string,
   now: Date,
   priorShare?: DocumentSnapshot | null,
+  generate: () => string = generateShareCode,
 ): { shareUid: string } {
   if (!shareCodeKey) throw refuse('failed-precondition', 'shareKeyMissing');
   const mode: MintMode = args.mode ?? 'create';
-  const code = args.codeForTest ?? generateShareCode();
+  const code = generate();
   if (!/^\d{4}$/.test(code)) throw refuse('invalid-argument', 'invalidShareCode');
 
   const at = timestamp(now);
@@ -228,9 +231,14 @@ export function mintShareCode(
     const prior = priorShare?.data();
     if (!prior) throw refuse('failed-precondition', 'shareMissing');
     const prevStatus = prior.status as ShareStatus;
-    if (prevStatus !== 'Expired' && prevStatus !== 'Locked' && prevStatus !== 'Pending') {
-      throw refuse('failed-precondition', 'shareNotReusable');
-    }
+    // A revoke that landed on a current-version unlock is undone here, so the ordering doctor is
+    // never left without a way in; the caller has checked the version is still current.
+    const reusable =
+      prevStatus === 'Expired' ||
+      prevStatus === 'Locked' ||
+      prevStatus === 'Pending' ||
+      (prevStatus === 'Revoked' && args.purpose === 'ReportUnlock');
+    if (!reusable) throw refuse('failed-precondition', 'shareNotReusable');
     reissueCount = (typeof prior.reissueCount === 'number' ? prior.reissueCount : 0) + 1;
     createdAt = typeof prior.createdAt === 'string' ? prior.createdAt : at;
   } else if (priorShare?.exists) {
@@ -292,9 +300,10 @@ export function mintShareCode(
       resourceUid: args.caseUid,
       threadUid: args.threadUid ?? args.caseUid,
       recipientUid: args.recipientUid,
-      recipientRole: 'doctor',
+      recipientRole: args.recipientRole ?? 'doctor',
       language: args.language ?? 'en',
       deepLink: args.deepLink,
+      priority: args.critical === true ? 'High' : undefined,
       shareCode: code,
       expiresAt: args.expiresAt,
     },

@@ -136,6 +136,38 @@ describe('orchestrator', () => {
     );
   });
 
+  it('with() takes lists of plain records for slide keys only, and refuses anything exotic inside', () => {
+    const s = CaseState.initial({ uid: 'c', doctorUid: 'd' });
+    const slide = { imageUid: 'i', path: 'slides/c/i.jpg', micronsPerPixel: 0.25, tags: ['a'] };
+    assert.deepEqual(s.with({ slideImages: [slide] }).fields.slideImages, [slide]);
+    assert.throws(() => s.with({ viewerUids: [slide] }), (e: Error) => e.message === 'invalidPatch');
+    assert.throws(
+      () => s.with({ slideImages: [{ ...slide, uploadedAt: { _methodName: 'serverTimestamp' } }] }),
+      (e: Error) => e.message === 'invalidPatch',
+    );
+    class Sentinel {
+      readonly imageUid = 'i';
+    }
+    assert.throws(() => s.with({ slideImages: [new Sentinel()] }), (e: Error) => e.message === 'invalidPatch');
+    assert.throws(() => s.with({ slideImages: [[slide]] }), (e: Error) => e.message === 'invalidPatch');
+  });
+
+  it('a self row keeps a pending request, and asks for none', () => {
+    let s = CaseState.initial({ uid: 'c', doctorUid: 'd', patientUid: 'pat' });
+    s = transition(s, 'OrderCreated', { actorUid: 'd', actorRole: 'Doctor' });
+    s = transition(s, 'PathologistRequested', { actorUid: 'd', actorRole: 'Doctor', requested });
+    const shared = transition(s.with({ viewerUids: ['v'] }), 'PathologistRequested', {
+      actorUid: 'd',
+      actorRole: 'Doctor',
+      action: 'Share',
+    });
+    assert.equal(shared.currentStage, 'PathologistRequested');
+    assert.equal(shared.requestedPathologistUid, requested.uid);
+    assert.equal(shared.pathologistRequestExpiresAt, requested.expiresAt);
+    assert.ok(participants(shared).includes(requested.uid));
+    assert.equal(shared.queuedLogs.at(-1)?.actionType, 'Share');
+  });
+
   it('patient-visible logs never name a hidden stage', () => {
     let s = CaseState.from({
       id: 'c',

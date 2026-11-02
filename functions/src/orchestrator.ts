@@ -70,6 +70,9 @@ export const PATIENT_VISIBLE_REASONS = new Set([
   'SlotTaken',
 ]);
 
+/** The reasons a doctor may give when cancelling an order; the rest belong to requests and slots. */
+export const ORDER_CANCEL_REASONS = new Set(['OrderedInError', 'Duplicate', 'PatientDeclined', 'Other']);
+
 /** Stages a patient may see on a log row (plan §3.1 "Patient sees"). */
 export const PATIENT_VISIBLE_STAGES = new Set<CaseStage>([
   'OrderCreated',
@@ -412,11 +415,29 @@ function patientFacingStep(step: CaseStep): CaseStep {
   return 'ReceiveSample';
 }
 
-function isPlainValue(value: unknown): boolean {
-  if (value === null || value === undefined) return true;
+/** Keys whose value is a list of plain records; every other list holds scalars only. */
+const OBJECT_LIST_KEYS = new Set(['slideImages', 'slideUploadUids']);
+
+function isScalar(value: unknown): boolean {
   const t = typeof value;
-  if (t === 'string' || t === 'number' || t === 'boolean') return true;
-  if (Array.isArray(value)) return value.every((x) => typeof x === 'string' || typeof x === 'number' || typeof x === 'boolean');
+  return t === 'string' || t === 'number' || t === 'boolean';
+}
+
+function isPlainRecord(value: unknown): boolean {
+  if (value === null || typeof value !== 'object' || Array.isArray(value)) return false;
+  if (Object.getPrototypeOf(value) !== Object.prototype) return false;
+  return Object.values(value as Record<string, unknown>).every(
+    (v) => isScalar(v) || (Array.isArray(v) && v.every(isScalar)),
+  );
+}
+
+function isPlainValue(key: string, value: unknown): boolean {
+  if (value === null || value === undefined) return true;
+  if (isScalar(value)) return true;
+  if (Array.isArray(value)) {
+    if (value.every(isScalar)) return true;
+    return OBJECT_LIST_KEYS.has(key) && value.every(isPlainRecord);
+  }
   return false;
 }
 
@@ -562,7 +583,7 @@ export class CaseState {
       if (FORBIDDEN_WITH_KEYS.has(key)) {
         throw refuse('invalid-argument', 'invalidPatch');
       }
-      if (!isPlainValue(patch[key])) {
+      if (!isPlainValue(key, patch[key])) {
         throw refuse('invalid-argument', 'invalidPatch');
       }
     }
@@ -669,8 +690,11 @@ export function transition(s: CaseState, to: CaseStage, opts: TransitionOpts): C
     throw refuse('failed-precondition', 'sampleNotReceived');
   }
 
+  // A log-only row leaves every field as it was, so a pending request stays pending.
   const extras: DocumentData = {};
-  if (action === 'Reassign' || to === 'PathologistRequested') {
+  if (rule.self === true) {
+    // nothing to change
+  } else if (action === 'Reassign' || to === 'PathologistRequested') {
     if (action === 'Reassign') {
       extras.pathologistUid = '';
       extras.pathologistName = '';

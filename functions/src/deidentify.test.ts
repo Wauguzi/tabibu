@@ -1,5 +1,5 @@
 // cspell:ignore Wanjiru Kamau Baraka Mwangi naitwa Achieng kitambulisho tarehe Mgonjwa maumivu
-// cspell:ignore Kiprop langu NHIF deidentify
+// cspell:ignore Kiprop langu NHIF deidentify Mwangaza Zk3pQ9wLx Yh7aB2cDe
 import assert from 'node:assert/strict';
 
 import { deidentify } from './deidentify';
@@ -106,6 +106,23 @@ describe('deidentify', () => {
       name: 'order number',
       text: 'Case TBB-20261027-0042 ready',
       expectGone: /TBB-20261027-0042/,
+    },
+    {
+      name: 'order number as the app mints it, in either case',
+      text: 'See ODR-NK-AO-27102026-001 and odr-nk-ao-27102026-002 again',
+      expectGone: /27102026/i,
+    },
+    {
+      name: 'record ids and uids named by the subject',
+      text: 'Record record-1, patient uid Zk3pQ9wLx and doctor Yh7aB2cDe',
+      expectGone: /record-1|Zk3pQ9wLx|Yh7aB2cDe/,
+      subject: { ids: ['record-1', 'Zk3pQ9wLx', 'Yh7aB2cDe', ''] },
+    },
+    {
+      name: 'the ordering doctor’s facility',
+      text: 'Seen at Mwangaza Clinic last week',
+      expectGone: /Mwangaza Clinic/,
+      subject: { facilityName: 'Mwangaza Clinic' },
     },
     {
       name: 'facility from catalogue',
