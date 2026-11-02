@@ -123,5 +123,48 @@ void main() {
       await tester.pump();
       expect(taps, 1);
     });
+
+    testWidgets('hides the edit link without edit params', (tester) async {
+      await tester.pumpApp(
+        const SummaryCard(title: 'You', rows: [('Name', 'Dr. Wanjiru Kamau')]),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('You'), findsOneWidget);
+      expect(find.text('Name'), findsOneWidget);
+      expect(find.text('Edit'), findsNothing);
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is Semantics && w.properties.button == true,
+        ),
+        findsNothing,
+      );
+    });
+
+    testWidgets('shows a disabled edit link when onEdit is null', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        const SummaryCard(
+          title: 'You',
+          rows: [('Name', 'Dr. Wanjiru Kamau')],
+          editLabel: 'Edit',
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Edit'), findsOneWidget);
+      final editButton = find.byWidgetPredicate(
+        (w) => w is Semantics && w.properties.button == true,
+      );
+      expect(editButton, findsOneWidget);
+      expect(
+        tester.getSemantics(editButton),
+        matchesSemantics(label: 'Edit', isButton: true, isImage: true),
+      );
+      await tester.tap(find.text('Edit'));
+      await tester.pumpAndSettle();
+      expect(find.text('Edit'), findsOneWidget);
+    });
   });
 }

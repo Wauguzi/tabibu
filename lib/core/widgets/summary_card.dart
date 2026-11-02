@@ -12,14 +12,14 @@ class SummaryCard extends StatelessWidget {
   const SummaryCard({
     required this.title,
     required this.rows,
-    required this.editLabel,
-    required this.onEdit,
+    this.editLabel,
+    this.onEdit,
     super.key,
   });
 
   final String title;
   final List<(String, String)> rows;
-  final String editLabel;
+  final String? editLabel;
   final VoidCallback? onEdit;
 
   @override
@@ -29,6 +29,7 @@ class SummaryCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
 
     final isDark = scheme.brightness == .dark;
+    final editLabel = this.editLabel;
     return Container(
       padding: const EdgeInsets.all(AppSpacing.md),
       decoration: BoxDecoration(
@@ -45,55 +46,79 @@ class SummaryCard extends StatelessWidget {
           Row(
             children: [
               Expanded(child: Text(title, style: textTheme.titleMedium)),
-              Semantics(
-                button: true,
-                onTap: onEdit,
-                child: Tappable(
+              if (editLabel != null)
+                Semantics(
+                  button: true,
                   onTap: onEdit,
-                  child: ConstrainedBox(
-                    constraints: const BoxConstraints(minHeight: 48),
-                    child: Row(
-                      mainAxisSize: .min,
-                      children: [
-                        AssetIcon(
-                          Assets.icons.editIcon,
-                          size: 18,
-                          color: status.primaryText,
-                        ),
-                        const SizedBox(width: AppSpacing.xxs),
-                        Text(
-                          editLabel,
-                          style: textTheme.titleSmall?.copyWith(
+                  child: Tappable(
+                    onTap: onEdit,
+                    child: ConstrainedBox(
+                      constraints: const BoxConstraints(minHeight: 48),
+                      child: Row(
+                        mainAxisSize: .min,
+                        children: [
+                          AssetIcon(
+                            Assets.icons.editIcon,
+                            size: 18,
                             color: status.primaryText,
                           ),
-                        ),
-                      ],
+                          const SizedBox(width: AppSpacing.xxs),
+                          Text(
+                            editLabel,
+                            style: textTheme.titleSmall?.copyWith(
+                              color: status.primaryText,
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
-              ),
             ],
           ),
           const SizedBox(height: AppSpacing.sm),
           for (final (label, value) in rows)
-            Padding(
-              padding: const EdgeInsets.only(bottom: AppSpacing.xs),
-              child: Row(
-                crossAxisAlignment: .start,
-                children: [
-                  SizedBox(
-                    width: 120,
-                    child: Text(
-                      label,
-                      style: textTheme.bodySmall?.copyWith(
-                        color: scheme.onSurfaceVariant,
-                      ),
-                    ),
-                  ),
-                  Expanded(child: Text(value, style: textTheme.bodyMedium)),
-                ],
+            SummaryCardRow(label: label, value: value),
+        ],
+      ),
+    );
+  }
+}
+
+/// One label/value row, shared with the key-value card.
+class SummaryCardRow extends StatelessWidget {
+  const SummaryCardRow({
+    required this.label,
+    required this.value,
+    this.valueStyle,
+    super.key,
+  });
+
+  final String label;
+  final String value;
+  final TextStyle? valueStyle;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final textTheme = Theme.of(context).textTheme;
+    return Padding(
+      padding: const EdgeInsets.only(bottom: AppSpacing.xs),
+      child: Row(
+        crossAxisAlignment: .start,
+        children: [
+          SizedBox(
+            width: 120,
+            child: Text(
+              label,
+              style: textTheme.bodySmall?.copyWith(
+                color: scheme.onSurfaceVariant,
               ),
             ),
+          ),
+          Expanded(
+            child: Text(value, style: valueStyle ?? textTheme.bodyMedium),
+          ),
         ],
       ),
     );
