@@ -32,19 +32,22 @@ final class AppointmentsRefreshed extends AppointmentsEvent {
 
 final class AppointmentBookRequested extends AppointmentsEvent {
   const AppointmentBookRequested({
+    required this.uid,
     required this.doctorUid,
     required this.type,
     required this.start,
     required this.symptomText,
   });
 
+  /// The patient booking, whose appointments are synced after the request.
+  final String uid;
   final String doctorUid;
   final String type;
   final DateTime start;
   final String symptomText;
 
   @override
-  List<Object?> get props => [doctorUid, type, start, symptomText];
+  List<Object?> get props => [uid, doctorUid, type, start, symptomText];
 }
 
 final class AppointmentDecisionRequested extends AppointmentsEvent {
