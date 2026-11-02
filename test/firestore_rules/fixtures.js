@@ -91,7 +91,8 @@ function caseDoc(overrides = {}) {
     requestedPathologistUid: '',
     participantUids: ['drOdhiambo', 'amina', 'drWanjiru'],
     currentStage: 'PathologistAccepted',
-    slideUploadUids: ['slide1.jpg', 'slide2.png'],
+    // Bare uids, matching what reserveSlideUploads stores (C-20).
+    slideUploadUids: ['slide1', 'slide2'],
     clinicalNotes: 'Notes',
     sampleNotes: '',
     sampleCollectedAt: '2026-10-20T08:00:00.000Z',

@@ -154,6 +154,39 @@ async function stopNotes(
 }
 
 /**
+ * Stops patient release when the alert is no longer releasable: retracted, stale, or
+ * CliniciansOnly. Row 44 (`alertDeliveryStopped`) fires on a forced stop. Reads the public
+ * alert before any write so the transaction stays read-then-write.
+ */
+async function stopIfNotReleasable(
+  tx: Transaction,
+  db: Firestore,
+  deps: AlertDeps,
+  alertUid: string,
+  deliveryRef: DocumentReference,
+  now: Date,
+): Promise<'missing' | 'stopped' | null> {
+  const current = (await tx.get(db.collection('alerts').doc(alertUid))).data();
+  if (!current || str(current.status) !== 'Approved') return 'missing';
+  const decidedAt = Date.parse(str(current.decidedAt));
+  const stale = !Number.isFinite(decidedAt) || now.getTime() - decidedAt > resumeMaxMs(deps);
+  if (str(current.audience) !== 'CliniciansOnly' && current.evidenceRetracted !== true && !stale) {
+    return null;
+  }
+  const publicRef = db.collection('publicAlerts').doc(alertUid);
+  const released = (await tx.get(publicRef)).data();
+  const forced = current.evidenceRetracted === true || stale;
+  if (forced) await stopNotes(tx, db, alertUid, now);
+  const at = timestamp(now);
+  if (released?.patientsReleased === true) {
+    tx.update(publicRef, { patientsReleased: false, lastUpdatedAt: at });
+  }
+  finishAlert(tx, db, alertUid, 'CliniciansOnly', at);
+  finishDelivery(tx, deliveryRef, now, at);
+  return 'stopped';
+}
+
+/**
  * Delivers an approved alert to the end of its current phase, then returns: the trigger
  * runs it on the `Approved` edge and the sweep resumes `Held`, `Waiting` and stalled
  * jobs. Every step re-checks the lease, the switch and the alert before it writes.
@@ -257,8 +290,10 @@ async function resumeStep(
     if (str(live.phase) !== 'Held') return 'again' as const;
     if (str(live.leaseOwner) !== mine) return 'leaseLost' as const;
     if (!isEnabled(deps.config, 'alerts_delivery_enabled')) return 'held' as const;
-    const current = (await tx.get(db.collection('alerts').doc(alertUid))).data();
-    if (!current || str(current.status) !== 'Approved') return 'missing' as const;
+    // A Held job that already released patients still re-checks retraction / staleness.
+    const stop = await stopIfNotReleasable(tx, db, deps, alertUid, deliveryRef, now);
+    if (stop === 'missing') return 'missing' as const;
+    if (stop === 'stopped') return 'delivered' as const;
     const released = (await tx.get(db.collection('publicAlerts').doc(alertUid))).data();
     const phase = !released ? 'Pending' : released.patientsReleased === true ? 'Patients' : 'Clinicians';
     tx.update(deliveryRef, {
@@ -520,6 +555,10 @@ async function patientsStep(
         tx.update(deliveryRef, { phase: 'Held', heldReason: 'KillSwitch', lastUpdatedAt: at });
         return 'held' as const;
       }
+      // Re-check before every topic claim: a retraction mid-flight must not send.
+      const stop = await stopIfNotReleasable(tx, db, deps, alertUid, deliveryRef, now);
+      if (stop === 'missing') return 'missing' as const;
+      if (stop === 'stopped') return 'stopped' as const;
       const claims = (live.topicClaims ?? {}) as DocumentData;
       const sentAt = (live.topicSentAt ?? {}) as DocumentData;
       if (str(sentAt[language]) !== '') return 'sent' as const;
@@ -536,6 +575,7 @@ async function patientsStep(
     });
     if (claimed !== 'claimed') {
       if (claimed === 'sent') continue;
+      if (claimed === 'stopped') return 'delivered';
       return claimed;
     }
     const template = synthetic ? 'alertDeliveredPatientDemo' : 'alertDeliveredPatient';
@@ -578,14 +618,15 @@ async function patientsStep(
 
   return db.runTransaction(async (tx) => {
     const now = nowOf(deps);
-    const doneAt = timestamp(now);
     const deliveryRef = db.collection('alertDeliveries').doc(alertUid);
     const live = (await tx.get(deliveryRef)).data();
     if (!live || str(live.phase) === 'Done') return 'done' as const;
     const sentAt = (live.topicSentAt ?? {}) as DocumentData;
     if (str(sentAt.en) === '' || str(sentAt.sw) === '') return 'again' as const;
-    const current = (await tx.get(db.collection('alerts').doc(alertUid))).data();
-    if (!current || str(current.status) !== 'Approved') return 'missing' as const;
+    const stop = await stopIfNotReleasable(tx, db, deps, alertUid, deliveryRef, now);
+    if (stop === 'missing') return 'missing' as const;
+    if (stop === 'stopped') return 'delivered' as const;
+    const doneAt = timestamp(now);
     finishAlert(tx, db, alertUid, 'CliniciansAndPatients', doneAt);
     finishDelivery(tx, deliveryRef, now, doneAt);
     return 'delivered' as const;

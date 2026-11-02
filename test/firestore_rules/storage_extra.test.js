@@ -45,24 +45,27 @@ describe('storage slides preread signatures', () => {
     await seed('cases/case1', caseDoc({
       pathologistUid: '',
       doctorUid: 'drOdhiambo',
-      slideUploadUids: ['slide1.jpg', 'slide2.png'],
+      // Bare uids only — the shape reserveSlideUploads writes (C-20).
+      slideUploadUids: ['slide1', 'slide2'],
       participantUids: ['drOdhiambo', 'amina', 'viewer1'],
     }));
   });
 
-  it('RT-158 slides: reserved name by doctor before acceptance and pathologist after', async () => {
+  it('RT-158 slides: reserved stem by doctor before acceptance and pathologist after', async () => {
     await assertSucceeds(put('drOdhiambo', DOCTOR, 'slides/case1/slide1.jpg'));
-    // Twin extension against the same stem is denied (L-6).
-    await assertFails(put('drOdhiambo', DOCTOR, 'slides/case1/slide1.png', png, 'image/png'));
+    // Either extension of a reserved stem is allowed; content-type still binds.
+    await assertSucceeds(put('drOdhiambo', DOCTOR, 'slides/case1/slide1.png', png, 'image/png'));
     await seed('cases/case1', caseDoc({
       pathologistUid: 'drWanjiru',
-      slideUploadUids: ['slide1.jpg', 'slide2.png'],
+      slideUploadUids: ['slide1', 'slide2'],
     }));
     await assertSucceeds(put('drWanjiru', PATHOLOGIST, 'slides/case1/slide2.png', png, 'image/png'));
   });
 
-  it('RT-159 an unreserved name is denied (F-22)', async () => {
+  it('RT-159 an unreserved stem is denied (F-22)', async () => {
     await assertFails(put('drOdhiambo', DOCTOR, 'slides/case1/notReserved.jpg'));
+    // A full object name left over from the old reservation shape is also refused.
+    await assertFails(put('drOdhiambo', DOCTOR, 'slides/case1/slide1.jpg.jpg'));
   });
 
   it('RT-160 patient or viewer read, wrong type, or oversize denied', async () => {

@@ -15,6 +15,7 @@ import {
   type Firestore,
   type Transaction,
 } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions';
 
 import { withTimeout } from './ai-domain';
 import {
@@ -1281,7 +1282,11 @@ export async function sweepConversationsHandler(deps: ConversationsDeps): Promis
     .limit(SWEEP_LIMIT)
     .get();
   for (const doc of invites.docs) {
-    if (await expireInvites(db, doc.ref, now)) result.invitesExpired += 1;
+    try {
+      if (await expireInvites(db, doc.ref, now)) result.invitesExpired += 1;
+    } catch {
+      // One poisoned invite must not starve the rest of the sweep.
+    }
   }
 
   for (const [id, flag, until] of [
@@ -1290,7 +1295,11 @@ export async function sweepConversationsHandler(deps: ConversationsDeps): Promis
   ] as const) {
     const blocked = await buildQuery(db, queryById(id), [true, iso]).limit(SWEEP_LIMIT).get();
     for (const doc of blocked.docs) {
-      if (await unblock(db, doc.ref, flag, until, now)) result.quotasUnblocked += 1;
+      try {
+        if (await unblock(db, doc.ref, flag, until, now)) result.quotasUnblocked += 1;
+      } catch {
+        // One poisoned quota must not starve the rest of the sweep.
+      }
     }
   }
 
@@ -1301,7 +1310,11 @@ export async function sweepConversationsHandler(deps: ConversationsDeps): Promis
     .limit(SWEEP_LIMIT)
     .get();
   for (const doc of stale.docs) {
-    if (await failStaleTranscript(db, doc.ref, now)) result.transcriptsFailed += 1;
+    try {
+      if (await failStaleTranscript(db, doc.ref, now)) result.transcriptsFailed += 1;
+    } catch {
+      // One poisoned transcript must not starve the rest of the sweep.
+    }
   }
 
   result.mediaDeleted = await deleteOrphanMedia(deps, now);
@@ -1410,8 +1423,9 @@ async function deleteOrphanMedia(deps: ConversationsDeps, now: Date): Promise<nu
 
     const token = (next as { pageToken?: string } | null)?.pageToken ?? '';
     await cursor.set({ pageToken: token, expireAt: ttlAt(now), lastUpdatedAt: timestamp(now) });
-  } catch {
+  } catch (error) {
     // Storage is not reachable from this run; the next one tries again from the same page.
+    logger.error('deleteOrphanMedia failed', { deleted, reason: String(error) });
   }
   return deleted;
 }

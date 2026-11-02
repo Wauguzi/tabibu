@@ -139,6 +139,10 @@
           "order": "ASCENDING"
         },
         {
+          "fieldPath": "status",
+          "order": "ASCENDING"
+        },
+        {
           "fieldPath": "doctorOpenedAt",
           "order": "ASCENDING"
         },

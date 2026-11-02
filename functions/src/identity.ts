@@ -161,6 +161,7 @@ function patientRecord(
 
 /** Sets `role`, keeping any other claim (an admin who is also a doctor stays an admin). */
 async function setRole(auth: AuthLike, uid: string, role: Role | null): Promise<void> {
+  // Re-read immediately before writing so a concurrent claim edit is not overwritten.
   const user = await auth.getUser(uid);
   const claims: Record<string, unknown> = { ...(user.customClaims ?? {}) };
   if (role === null) delete claims.role;

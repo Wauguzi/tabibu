@@ -41,7 +41,7 @@ export interface EventWriteInput {
   caseUid: string;
   reportUid: string;
   kind: string;
-  /** The signing stamp (the draft's client-stamped `lastUpdatedAt`, D-7). */
+  /** Server signing time (`timestamp(now)`); drives the event's date and epi-week. */
   signedAt: string;
   pathologistUid: string;
   countyName: string;

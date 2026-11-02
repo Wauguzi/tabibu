@@ -1369,8 +1369,10 @@ export async function sweepCasesHandler(deps: Deps, pageSize: number = SWEEP_LIM
 
   const dayAgo = timestamp(new Date(now.getTime() - DAY_MS));
   result.criticalReminders = tally(
-    await sweepKind(buildQuery(db, queryById('reports.criticalUnopened'), [true, '', dayAgo]), pageSize, (doc) =>
-      remindCritical(deps, doc, now),
+    await sweepKind(
+      buildQuery(db, queryById('reports.criticalUnopened'), [true, 'Signed', '', dayAgo]),
+      pageSize,
+      (doc) => remindCritical(deps, doc, now),
     ),
   );
 

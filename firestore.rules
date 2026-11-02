@@ -3,10 +3,10 @@ rules_version = '2';
 // ════════════════════════════════════════════════════════════════════════════
 // TABIBU: FIRESTORE SECURITY RULES
 // Information security review document
-// Last updated : 2026-11-01
+// Last updated : 2026-11-02
 // Prepared by  : Engineering (Theo)
 // Review target: the pull request reviewer and Greptile, before each deploy
-// Emulator test: make rules-test → 200 passing (RT-1..RT-44 + RT-45..RT-200)
+// Emulator test: make rules-test → 201 passing (RT-1..RT-44 + RT-45..RT-201)
 // Change records: CRQ-0016 (identity), CRQ-0026 (licences, specialties),
 //                 the feat/infra CRQs (data layer, rules, indexes)
 // Threat model  : docs/security/reports/firebase_and_ai_service_threat_model.md
@@ -263,8 +263,10 @@ rules_version = '2';
 //                                         draftStamped(), not stamped().
 //   C-19  LOW       RESOLVED 2026-11-01   Synthetic publicAlerts need demo
 //                                         claim (F-12). RT-200
-//   C-20  LOW       RESOLVED 2026-11-01   Slide reservation is the full object
-//                                         name (exactly one object). RT-158
+//   C-20  LOW       RESOLVED 2026-11-02   Slide reservation is the bare image
+//                                         uid; Storage checks the object stem
+//                                         (RT-158). Alert approver reads also
+//                                         require the registry row (RT-201).
 //
 // ── 10. EMULATOR TEST COVERAGE ──────────────────────────────────────────────
 //
@@ -293,8 +295,12 @@ service cloud.firestore {
       return role() in ['patient', 'doctor', 'pathologist'];
     }
 
+    // Claim and registry together (F-6): a half-finished grant or revoke leaves
+    // no read access. The Functions gates also read the registry row.
     function isAlertApprover() {
-      return isAdmin() && request.auth.token.get('alertApprover', false) == true;
+      return isAdmin()
+          && request.auth.token.get('alertApprover', false) == true
+          && exists(/databases/$(database)/documents/alertApprovers/$(request.auth.uid));
     }
 
     function isDemo() {

@@ -22,6 +22,7 @@ import {
   unlockUidOf,
   type World,
 } from './case.test-support';
+import { nairobiEpiWeek } from './alert-data';
 import { completeCaseHandler, recordSampleReceivedHandler } from './cases';
 import { loadDiseasesFromDisk, setDiseasesForTest, type DiseaseNames } from './disease-data';
 import { BUCKET, refusedWith, resetEmulators } from './emulator.test-support';
@@ -391,6 +392,29 @@ describe('reports', () => {
         await sign(caseUid, await fillDraft(w, caseUid, {}));
         const links = await w.deps.db.collection('notifiableEventLinks').where('caseUid', '==', caseUid).get();
         assert.equal(links.size, 0);
+      });
+
+      it('weeks the notifiable event from the server clock, not a skewed draft stamp', async () => {
+        // A draft stamp in 2026-W43; the server signs in 2026-W44.
+        const skewed = '2026-10-25T21:30:00.000Z';
+        const serverNow = new Date('2026-11-02T09:00:00.000Z');
+        assert.notEqual(nairobiEpiWeek(new Date(skewed)), nairobiEpiWeek(serverNow));
+        const caseUid = await startedReport(w);
+        const stamp = await fillDraft(w, caseUid, {
+          notifiableFindings: [{ diseaseId: 'd-confirmed', alertRequested: true }],
+        });
+        await draftRef(caseUid).update({ lastUpdatedAt: skewed });
+        await signReportHandler(
+          { ...w.deps, now: () => serverNow },
+          w.pathologist,
+          { caseUid, draftLastUpdatedAt: skewed, signaturePng: signaturePng() },
+        );
+        const link = await docData(w, `notifiableEventLinks/${caseUid}_d-confirmed`);
+        const event = await docData(w, `notifiableEvents/${String(link?.eventUid)}`);
+        assert.equal(event?.epiWeek, nairobiEpiWeek(serverNow));
+        assert.equal(event?.date, '2026-11-02');
+        // The lost-update check still used the (skewed) draft stamp.
+        assert.notEqual(stamp, skewed);
       });
 
       it('refuses a finding that is free text, unlisted, unconfirmed or one that cannot raise an alert', async () => {

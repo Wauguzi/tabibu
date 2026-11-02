@@ -6,6 +6,7 @@ const {
 } = require('@firebase/rules-unit-testing');
 const {
   collection,
+  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -24,6 +25,7 @@ const {
   clearAll,
   seed,
   db,
+  getEnv,
 } = require('./fixtures');
 
 before(async () => setupEnv());
@@ -46,6 +48,8 @@ describe('alerts domain', () => {
       alertUid: 'a1',
       lastUpdatedAt: '2026-10-27T09:00:00.000Z',
     });
+    // Registry row required with the claim (F-6 / RT-201).
+    await seed('alertApprovers/approver', { uid: 'approver', fcmTokens: [], language: 'en' });
   });
 
   it('RT-172 an approver gets and lists alerts and alertSignals', async () => {
@@ -61,6 +65,14 @@ describe('alerts domain', () => {
 
   it('RT-174 the claim without admin is denied', async () => {
     await assertFails(getDoc(doc(db('doc', { alertApprover: true, ...DOCTOR }), 'alerts/a1')));
+  });
+
+  it('RT-201 the claim without a registry row is denied (F-6)', async () => {
+    await getEnv().withSecurityRulesDisabled((ctx) =>
+      deleteDoc(doc(ctx.firestore(), 'alertApprovers/approver')),
+    );
+    await assertFails(getDoc(doc(db('approver', APPROVER), 'alerts/a1')));
+    await assertFails(getDoc(doc(db('approver', APPROVER), 'publicAlerts/a1')));
   });
 
   it('RT-175 doctor, pathologist, patient and role-less accounts are denied working alerts', async () => {

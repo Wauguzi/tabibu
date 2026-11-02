@@ -133,8 +133,9 @@ service firebase.storage {
     }
 
     // ── slides/{c}/{imageUid}.jpg|png ───────────────────────────────────────
-    // Reservation is the full object name, so one uid cannot produce both
-    // .jpg and .png (L-6 / C-20).
+    // Reservation is the bare image uid (what reserveSlideUploads stores). The
+    // stem of the object name must match; extension and content-type still bind
+    // the bytes (C-20).
 
     match /slides/{c}/{name} {
       function caseDoc() {
@@ -153,12 +154,17 @@ service firebase.storage {
             || (role() == 'pathologist' && request.auth.uid == caseDoc().pathologistUid);
       }
 
+      // .jpg and .png are both four characters including the dot.
+      function slideStem() {
+        return name[0:name.size() - 4];
+      }
+
       allow read: if signedIn() && slideReader();
       allow create: if signedIn()
           && name.matches('^[A-Za-z0-9_-]+[.](jpg|png)$')
           && typedAs(name)
           && under20MB()
-          && name in caseDoc().slideUploadUids
+          && slideStem() in caseDoc().slideUploadUids
           && slideWriter();
       allow update, delete: if false;
     }

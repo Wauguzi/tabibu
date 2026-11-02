@@ -675,7 +675,7 @@ export async function signReportHandler(
       caseUid,
       reportUid: '',
       kind,
-      signedAt: stamp,
+      signedAt: timestamp(now),
       pathologistUid: c.uid,
       countyName: str(patient?.county),
       ageYears: num(planned.fields.patientAgeYears),
@@ -939,7 +939,8 @@ export async function signReportHandler(
         caseUid,
         reportUid,
         kind,
-        signedAt: stamp,
+        // Server clock, never the client draft stamp: a skewed device must not move the epi-week.
+        signedAt: at,
         pathologistUid: c.uid,
         countyName: str(patientDoc?.county),
         ageYears: num(s.fields.patientAgeYears),

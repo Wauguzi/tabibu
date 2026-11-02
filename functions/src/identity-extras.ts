@@ -97,9 +97,11 @@ export async function registerStaffTokenHandler(
 // --- setAlertApprover ------------------------------------------------------------------------
 
 /**
- * Only a different approver may grant or revoke (F-6). The claim keeps the target's other claims;
- * a revoke removes the registry row first, so the server refuses the person at once, and then
- * ends their sessions so the old claim does not outlive its token.
+ * Only a different approver may grant or revoke (F-6). Partial failures always leave the
+ * target without read access: rules and Functions both need the claim *and* the registry
+ * row. Grant writes the claim then the row (claim alone is useless). Revoke deletes the
+ * row first, then the claim, then ends sessions (row gone → no access even if the claim
+ * write fails).
  */
 export async function setAlertApproverHandler(
   deps: AdminDeps,
@@ -141,7 +143,9 @@ export async function setAlertApproverHandler(
     });
   };
   const setClaim = async (): Promise<void> => {
-    const claims: Record<string, unknown> = { ...(user.customClaims ?? {}) };
+    // Re-read immediately before writing so a concurrent role settle is not overwritten.
+    const fresh = await auth.getUser(target);
+    const claims: Record<string, unknown> = { ...(fresh.customClaims ?? {}) };
     if (grant) claims.alertApprover = true;
     else delete claims.alertApprover;
     await auth.setCustomUserClaims(target, claims);
@@ -150,7 +154,6 @@ export async function setAlertApproverHandler(
   };
 
   if (grant) {
-    // The claim without a row is refused at every approver check, so it is safe to go first.
     await setClaim();
     await registry();
   } else {

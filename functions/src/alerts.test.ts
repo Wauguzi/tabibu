@@ -1832,6 +1832,34 @@ describe('alerts', () => {
       assert.equal(topics.sends.length, 2);
     });
 
+    it('a retraction after clinicians stop patient topics with row 44', async () => {
+      const caller = await approver(w, 'approver@example.com');
+      const topics = fakeTopics();
+      // Clinicians already done; patientsReleased is set; topics not yet sent.
+      const uid = await approvedAlert(
+        {},
+        { phase: 'Patients', cliniciansNotified: 1, topicSentAt: { en: '', sw: '' } },
+      );
+      await db.collection('publicAlerts').doc(uid).set({
+        uid,
+        patientsReleased: true,
+        patientsReleasedAt: NOW_ISO,
+        lastUpdatedAt: NOW_ISO,
+      });
+      await db.collection('alerts').doc(uid).update({ evidenceRetracted: true });
+      const outcome = await deliverAlert(depsOf(db, { topics }), uid);
+      assert.equal(outcome, 'delivered');
+      assert.equal(topics.sends.length, 0);
+      const alert = (await db.collection('alerts').doc(uid).get()).data();
+      assert.equal(alert?.deliveredTo, 'CliniciansOnly');
+      const released = (await db.collection('publicAlerts').doc(uid).get()).data();
+      assert.equal(released?.patientsReleased, false);
+      const stopped = (
+        await db.collection('notifications').doc(`alertDeliveryStopped:${uid}:${caller.uid}`).get()
+      ).data();
+      assert.equal(stopped?.templateKey, 'alertDeliveryStopped');
+    });
+
     it('a stale delivery stops with row 44', async () => {
       await approver(w, 'approver@example.com');
       const topics = fakeTopics();

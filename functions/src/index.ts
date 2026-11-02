@@ -245,12 +245,20 @@ export const onReportTextWritten = onDocumentWritten(
 
 // The alert kinds ride the same schedule; each half runs even when the other throws.
 export const sweepCases = onSchedule('every 5 minutes', async () => {
-  const [cases, alerts] = await Promise.allSettled([
-    sweepCasesHandler(await domainDeps()),
-    runAlertSweep(await alertDeps(), new Date()),
+  // Resolve deps first so a deps failure does not leave one half already in flight.
+  const [domain, alerts] = await Promise.all([domainDeps(), alertDeps()]);
+  const [casesResult, alertsResult] = await Promise.allSettled([
+    sweepCasesHandler(domain),
+    runAlertSweep(alerts, new Date()),
   ]);
-  const failed = [cases, alerts].find((r) => r.status === 'rejected');
-  if (failed) throw (failed as PromiseRejectedResult).reason;
+  const failed = [casesResult, alertsResult].filter((r) => r.status === 'rejected');
+  if (failed.length === 0) return;
+  for (const r of failed) {
+    logger.error('sweepCases half failed', {
+      reason: String((r as PromiseRejectedResult).reason),
+    });
+  }
+  throw (failed[0] as PromiseRejectedResult).reason;
 });
 
 // --- Appointments, conversations, push and staff ---------------------------------------------

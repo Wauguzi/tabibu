@@ -14,6 +14,7 @@ import {
   type Firestore,
   type Transaction,
 } from 'firebase-admin/firestore';
+import { logger } from 'firebase-functions';
 
 import { idOf, languageIn, newUid, requireRole, str, uuidOf, displayName } from './case-support';
 import { applyCounts, loadMarks, type CountTarget, type MarkSpec } from './counters';
@@ -878,7 +879,11 @@ export async function expireAppointmentsHandler(deps: AppointmentDeps): Promise<
     .limit(SWEEP_LIMIT)
     .get();
   for (const doc of due.docs) {
-    if (await expireOne(deps, doc.id, now)) result.expired += 1;
+    try {
+      if (await expireOne(deps, doc.id, now)) result.expired += 1;
+    } catch {
+      // One poisoned appointment must not starve the rest of the sweep.
+    }
   }
 
   const stale = await buildQuery(db, queryById('intake.staleQueued'), [
@@ -888,7 +893,11 @@ export async function expireAppointmentsHandler(deps: AppointmentDeps): Promise<
     .limit(SWEEP_LIMIT)
     .get();
   for (const doc of stale.docs) {
-    if (await failStaleIntake(deps, doc.ref, now)) result.intakeFailed += 1;
+    try {
+      if (await failStaleIntake(deps, doc.ref, now)) result.intakeFailed += 1;
+    } catch {
+      // One poisoned intake must not starve the rest of the sweep.
+    }
   }
 
   result.audioDeleted = await deleteStaleSpeech(deps, now);
@@ -963,8 +972,9 @@ async function deleteStaleSpeech(deps: AppointmentDeps, now: Date): Promise<numb
       }
       pageToken = (next as { pageToken?: string } | null)?.pageToken;
     } while (pageToken);
-  } catch {
-    // Storage is not reachable from this run; the next one tries again.
+  } catch (error) {
+    // Storage is not reachable from this run; the next one tries again. Counts only.
+    logger.error('deleteStaleSpeech failed', { deleted, reason: String(error) });
   }
   return deleted;
 }

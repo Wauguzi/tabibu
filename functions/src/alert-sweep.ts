@@ -79,25 +79,29 @@ async function reminderSweep(deps: AlertDeps, now: Date): Promise<number> {
     .get();
   let reminded = 0;
   for (const doc of snap.docs) {
-    const done = await db.runTransaction(async (tx) => {
-      const alert = (await tx.get(doc.ref)).data();
-      if (
-        !alert || str(alert.status) !== 'Draft' || str(alert.category) !== 'Immediate' ||
-        str(alert.reminderSentAt) !== '' || str(alert.draftedAt) === '' || str(alert.draftedAt) > bound
-      ) {
-        return false;
-      }
-      const approvers = await readAlertApprovers(tx, db);
-      const notes = await planNotes(
-        tx,
-        db,
-        approverSpecs(approvers, 'alertDraftReminder', `${doc.id}-r${num(alert.requestCount)}`, doc.id),
-      );
-      tx.update(doc.ref, { reminderSentAt: at, lastUpdatedAt: at });
-      sendNotes(tx, notes, now);
-      return true;
-    });
-    if (done) reminded++;
+    try {
+      const done = await db.runTransaction(async (tx) => {
+        const alert = (await tx.get(doc.ref)).data();
+        if (
+          !alert || str(alert.status) !== 'Draft' || str(alert.category) !== 'Immediate' ||
+          str(alert.reminderSentAt) !== '' || str(alert.draftedAt) === '' || str(alert.draftedAt) > bound
+        ) {
+          return false;
+        }
+        const approvers = await readAlertApprovers(tx, db);
+        const notes = await planNotes(
+          tx,
+          db,
+          approverSpecs(approvers, 'alertDraftReminder', `${doc.id}-r${num(alert.requestCount)}`, doc.id),
+        );
+        tx.update(doc.ref, { reminderSentAt: at, lastUpdatedAt: at });
+        sendNotes(tx, notes, now);
+        return true;
+      });
+      if (done) reminded++;
+    } catch {
+      // One poisoned draft must not starve the rest of the sweep.
+    }
   }
   return reminded;
 }
@@ -111,24 +115,28 @@ async function expirySweep(deps: AlertDeps, now: Date): Promise<number> {
     .get();
   let expired = 0;
   for (const doc of snap.docs) {
-    const done = await db.runTransaction(async (tx) => {
-      const alert = (await tx.get(doc.ref)).data();
-      if (!alert || str(alert.status) !== 'Draft' || str(alert.expiresAt) === '' || str(alert.expiresAt) > at) {
-        return false;
-      }
-      const rows = await loadAlertDraftRows(tx, db, doc.id);
-      const approvers = await readAlertApprovers(tx, db);
-      const notes = await planNotes(
-        tx,
-        db,
-        approverSpecs(approvers, 'alertExpired', `${doc.id}-r${num(alert.requestCount)}`, doc.id),
-      );
-      tx.update(doc.ref, { status: 'Expired', lastUpdatedAt: at });
-      settleLoadedRows(tx, rows, 'Expired', '', now);
-      sendNotes(tx, notes, now);
-      return true;
-    });
-    if (done) expired++;
+    try {
+      const done = await db.runTransaction(async (tx) => {
+        const alert = (await tx.get(doc.ref)).data();
+        if (!alert || str(alert.status) !== 'Draft' || str(alert.expiresAt) === '' || str(alert.expiresAt) > at) {
+          return false;
+        }
+        const rows = await loadAlertDraftRows(tx, db, doc.id);
+        const approvers = await readAlertApprovers(tx, db);
+        const notes = await planNotes(
+          tx,
+          db,
+          approverSpecs(approvers, 'alertExpired', `${doc.id}-r${num(alert.requestCount)}`, doc.id),
+        );
+        tx.update(doc.ref, { status: 'Expired', lastUpdatedAt: at });
+        settleLoadedRows(tx, rows, 'Expired', '', now);
+        sendNotes(tx, notes, now);
+        return true;
+      });
+      if (done) expired++;
+    } catch {
+      // One poisoned draft must not starve the rest of the sweep.
+    }
   }
   return expired;
 }
@@ -146,18 +154,22 @@ async function stuckDraftingSweep(deps: AlertDeps, now: Date): Promise<number> {
     .get();
   let drafted = 0;
   for (const doc of snap.docs) {
-    const outcome = await db.runTransaction((tx) =>
-      writeDraftTx(
-        tx,
-        db,
-        doc.id,
-        num(doc.get('requestCount')),
-        { models: {}, draftSource: 'Template', failureReason: 'Stale' },
-        now,
-        staleAfter,
-      ),
-    );
-    if (outcome !== 'dropped') drafted++;
+    try {
+      const outcome = await db.runTransaction((tx) =>
+        writeDraftTx(
+          tx,
+          db,
+          doc.id,
+          num(doc.get('requestCount')),
+          { models: {}, draftSource: 'Template', failureReason: 'Stale' },
+          now,
+          staleAfter,
+        ),
+      );
+      if (outcome !== 'dropped') drafted++;
+    } catch {
+      // One poisoned draft must not starve the rest of the sweep.
+    }
   }
   return drafted;
 }
@@ -208,17 +220,21 @@ async function heldSweep(deps: AlertDeps, now: Date): Promise<number> {
     .get();
   let held = 0;
   for (const doc of snap.docs) {
-    const done = await db.runTransaction(async (tx) => {
-      const delivery = (await tx.get(doc.ref)).data();
-      if (!delivery || str(delivery.phase) !== 'Held' || str(delivery.lastUpdatedAt) > bound) {
-        return false;
-      }
-      const approvers = await readAlertApprovers(tx, db);
-      const notes = await planNotes(tx, db, approverSpecs(approvers, 'alertDeliveryHeld', doc.id, doc.id));
-      sendNotes(tx, notes, now);
-      return notes.some((n) => !n.loaded.exists);
-    });
-    if (done) held++;
+    try {
+      const done = await db.runTransaction(async (tx) => {
+        const delivery = (await tx.get(doc.ref)).data();
+        if (!delivery || str(delivery.phase) !== 'Held' || str(delivery.lastUpdatedAt) > bound) {
+          return false;
+        }
+        const approvers = await readAlertApprovers(tx, db);
+        const notes = await planNotes(tx, db, approverSpecs(approvers, 'alertDeliveryHeld', doc.id, doc.id));
+        sendNotes(tx, notes, now);
+        return notes.some((n) => !n.loaded.exists);
+      });
+      if (done) held++;
+    } catch {
+      // One poisoned delivery must not starve the rest of the sweep.
+    }
   }
   return held;
 }

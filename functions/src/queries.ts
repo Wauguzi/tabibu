@@ -226,13 +226,14 @@ export const queryRegistry: QueryEntry[] = [
     ],
     orderBy: [],
   },
-  // sweepCases: critical reports the ordering doctor has not opened, signed more than a day ago.
+  // sweepCases: critical Signed reports the ordering doctor has not opened, signed more than a day ago.
   {
     id: 'reports.criticalUnopened',
     collection: 'reports',
     scope: 'collectionGroup',
     filters: [
       { field: 'isCritical', op: '==' },
+      { field: 'status', op: '==' },
       { field: 'doctorOpenedAt', op: '==' },
       { field: 'signedAt', op: '<=' },
     ],
