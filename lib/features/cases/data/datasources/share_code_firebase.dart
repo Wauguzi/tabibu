@@ -57,7 +57,8 @@ class ShareCodeFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         ShareCodeModel.fromJson({'uid': doc.id, ...doc.data()}),
@@ -74,7 +75,8 @@ class ShareCodeFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         ShareCodeModel.fromJson({'uid': doc.id, ...doc.data()}),
@@ -83,7 +85,10 @@ class ShareCodeFirebase {
 
   Future<ShareCodeModel?> fetchShareCode(String shareUid) =>
       _guard('Fetch share code', () async {
-        final snap = await _shareCodes.doc(shareUid).get();
+        // Eviction needs server truth: a cached answer must throw, not delete.
+        final snap = await _shareCodes
+            .doc(shareUid)
+            .get(const GetOptions(source: Source.server));
         if (!snap.exists || snap.data() == null) return null;
         return ShareCodeModel.fromJson({'uid': snap.id, ...snap.data()!});
       });

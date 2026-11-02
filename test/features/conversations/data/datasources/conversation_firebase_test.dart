@@ -10,6 +10,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart';
 
+import '../../../../helpers/helpers.dart';
+
 class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 class _MockCallable extends Mock implements HttpsCallable {}
@@ -93,6 +95,32 @@ void main() {
 
       final rows = await remote.fetchParticipantDelta(uid: 'u1');
       expect(rows.map((r) => r.uid), ['c1']);
+    });
+
+    test('eviction reads reach the server, never the cache', () async {
+      final recording = RecordingFirestore();
+      final server = ConversationFirebase(
+        firestore: recording,
+        functions: functions,
+        storage: storage,
+      );
+
+      await server.fetchParticipantDelta(uid: 'u1');
+      await server.fetchConversation('c1');
+      await server.fetchMessages(
+        conversationUid: 'c1',
+        callerUid: 'u1',
+        limit: 200,
+      );
+      await server.fetchMessages(
+        conversationUid: 'c1',
+        callerUid: 'u1',
+        limit: 200,
+        fromSentAt: '2026-11-01T10:00:00.000Z',
+      );
+      await server.fetchCursor(conversationUid: 'c1', uid: 'u1');
+
+      recording.expectServerReads(7);
     });
 
     test('one conversation by id, or null when the server has none', () async {
@@ -206,6 +234,89 @@ void main() {
         fromSentAt: first.last.sentAt,
       );
       expect(rest.map((r) => r.uid).toSet(), {'m2', 'm3'});
+    });
+
+    test('a full peer page holds back a newer own row', () async {
+      final col = firestore
+          .collection('conversations')
+          .doc('c1')
+          .collection('messages');
+      final base = DateTime.utc(2026, 11, 1, 10);
+      for (var i = 0; i < 201; i++) {
+        await col.doc('p$i').set({
+          'senderUid': 'u2',
+          'sentAt': base.add(Duration(seconds: i)).toIso8601String(),
+          'status': 'Sent',
+          'text': 'p$i',
+        });
+      }
+      await col.doc('mine').set({
+        'senderUid': 'u1',
+        'sentAt': base.add(const Duration(seconds: 201)).toIso8601String(),
+        'status': 'Sent',
+        'text': 'mine',
+      });
+
+      // The readable query comes back full, so the page ends at its last
+      // row; the newer own row waits instead of dragging the cursor past
+      // the peer row still behind it.
+      final first = await remote.fetchMessages(
+        conversationUid: 'c1',
+        callerUid: 'u1',
+        limit: 200,
+      );
+      expect(first, hasLength(200));
+      expect(first.map((r) => r.uid), isNot(contains('mine')));
+      expect(first.last.uid, 'p199');
+
+      final rest = await remote.fetchMessages(
+        conversationUid: 'c1',
+        callerUid: 'u1',
+        limit: 200,
+        fromSentAt: first.last.sentAt,
+      );
+      expect(rest.map((r) => r.uid).toSet(), {'p199', 'p200', 'mine'});
+
+      final all = {...first.map((r) => r.uid), ...rest.map((r) => r.uid)};
+      expect(all, hasLength(202));
+    });
+
+    test('interleaved threads page completely and terminate', () async {
+      final col = firestore
+          .collection('conversations')
+          .doc('c1')
+          .collection('messages');
+      final base = DateTime.utc(2026, 11, 1, 10);
+      for (var i = 0; i < 500; i++) {
+        final own = i.isOdd;
+        await col.doc('m$i').set({
+          'senderUid': own ? 'u1' : 'u2',
+          'sentAt': base.add(Duration(seconds: i)).toIso8601String(),
+          'status': own && i % 50 == 1 ? 'Withheld' : 'Sent',
+          'text': 'm$i',
+        });
+      }
+
+      final seen = <String>{};
+      String? cursor;
+      var pages = 0;
+      for (;;) {
+        final page = await remote.fetchMessages(
+          conversationUid: 'c1',
+          callerUid: 'u1',
+          limit: 200,
+          fromSentAt: cursor,
+        );
+        if (page.isEmpty) break;
+        expect(page.map((r) => r.uid).toSet(), hasLength(page.length));
+        final before = seen.length;
+        seen.addAll(page.map((r) => r.uid));
+        if (seen.length == before) break;
+        cursor = page.last.sentAt;
+        pages++;
+        expect(pages, lessThan(10), reason: 'paging terminates');
+      }
+      expect(seen, hasLength(500));
     });
 
     test('one message by id, null when missing', () async {

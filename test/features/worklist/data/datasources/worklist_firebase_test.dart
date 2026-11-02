@@ -2,6 +2,8 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tabibu/features/worklist/data/datasources/worklist_firebase.dart';
 
+import '../../../../helpers/helpers.dart';
+
 void main() {
   late FakeFirebaseFirestore firestore;
   late WorklistFirebase remote;
@@ -58,6 +60,17 @@ void main() {
       final hit = await remote.fetchEntry('c1');
       expect(hit?.uid, 'c1');
       expect(await remote.fetchEntry('nope'), isNull);
+    });
+  });
+
+  group('server reads', () {
+    test('eviction reads reach the server, never the cache', () async {
+      final recording = RecordingFirestore();
+      final server = WorklistFirebase(firestore: recording);
+
+      await server.fetchPathologistDelta(pathologistUid: 'path1');
+
+      recording.expectServerReads(1);
     });
   });
 }

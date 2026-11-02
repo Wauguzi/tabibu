@@ -5,6 +5,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/cases/data/datasources/case_firebase.dart';
 
+import '../../../../helpers/helpers.dart';
+
 class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 class _MockCallable extends Mock implements HttpsCallable {}
@@ -158,6 +160,21 @@ void main() {
         remote.acceptCase(caseUid: 'c1'),
         throwsA(isA<AppError>()),
       );
+    });
+  });
+
+  group('server reads', () {
+    test('eviction reads reach the server, never the cache', () async {
+      final recording = RecordingFirestore();
+      final server = CaseFirebase(firestore: recording, functions: functions);
+
+      await server.fetchParticipantDelta(uid: 'u1');
+      await server.fetchCase('c1');
+      await server.fetchPayment('c1');
+      await server.fetchRiskCheck('c1');
+      await server.fetchNotesTranslation('c1');
+
+      recording.expectServerReads(5);
     });
   });
 }

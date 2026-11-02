@@ -65,7 +65,8 @@ class AppointmentFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         AppointmentModel.fromJson({'uid': doc.id, ...doc.data()}),
@@ -82,7 +83,8 @@ class AppointmentFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         AppointmentModel.fromJson({'uid': doc.id, ...doc.data()}),

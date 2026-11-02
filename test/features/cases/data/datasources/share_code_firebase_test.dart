@@ -6,6 +6,8 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/cases/data/datasources/share_code_firebase.dart';
 import 'package:tabibu/features/cases/data/models/share_code_model.dart';
 
+import '../../../../helpers/helpers.dart';
+
 class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 class _MockCallable extends Mock implements HttpsCallable {}
@@ -141,6 +143,22 @@ void main() {
         'notificationUid': 'n1',
       });
       expect(model.toString(), isNot(contains('code')));
+    });
+  });
+
+  group('server reads', () {
+    test('eviction reads reach the server, never the cache', () async {
+      final recording = RecordingFirestore();
+      final server = ShareCodeFirebase(
+        firestore: recording,
+        functions: functions,
+      );
+
+      await server.fetchCreatorDelta(createdByUid: 'u1');
+      await server.fetchRecipientDelta(recipientUid: 'u1');
+      await server.fetchShareCode('s1');
+
+      recording.expectServerReads(3);
     });
   });
 }

@@ -9,6 +9,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/appointments/data/datasources/appointment_firebase.dart';
 
+import '../../../../helpers/helpers.dart';
+
 class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 class _MockCallable extends Mock implements HttpsCallable {}
@@ -182,6 +184,22 @@ void main() {
         throwsA(AppError.fileTooLarge),
       );
       verifyZeroInteractions(storage);
+    });
+  });
+
+  group('server reads', () {
+    test('eviction reads reach the server, never the cache', () async {
+      final recording = RecordingFirestore();
+      final server = AppointmentFirebase(
+        firestore: recording,
+        functions: functions,
+        storage: storage,
+      );
+
+      await server.fetchPatientDelta(patientUid: 'p1');
+      await server.fetchDoctorDelta(doctorUid: 'd1');
+
+      recording.expectServerReads(2);
     });
   });
 }

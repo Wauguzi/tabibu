@@ -564,5 +564,82 @@ void main() {
       );
       expect(await helper.getApprovedText('c1', 'x1'), isNull);
     });
+
+    test('an offline full pull deletes nothing', () async {
+      await helper.cacheReports(
+        [_report('r1')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+        role: Role.doctor,
+      );
+      when(
+        () => remote.fetchReaderDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenThrow(AppError.noInternet);
+
+      await helper.syncReports('doc1', role: Role.doctor, since: '');
+
+      expect(
+        (await helper.getReports('doc1', role: Role.doctor)).map((r) => r.uid),
+        ['r1'],
+      );
+    });
+
+    test('offline single-row syncs keep their rows', () async {
+      await helper.cacheDraft(
+        _draft(),
+        fromCloud: true,
+        pathologistUid: 'path1',
+      );
+      await helper.cachePrereadScore(
+        PrereadScoreModel.empty().copyWith(
+          caseUid: 'c1',
+          runUid: 'run1',
+          pathologistUid: 'path1',
+          lastUpdatedAt: _t1,
+        ),
+        fromCloud: true,
+        pathologistUid: 'path1',
+      );
+      await helper.cacheApprovedText(
+        ReportTextApprovedModel.empty().copyWith(
+          uid: 'x1',
+          caseUid: 'c1',
+          lastUpdatedAt: _t1,
+        ),
+        fromCloud: true,
+      );
+      when(
+        () => remote.fetchDraft(caseUid: 'c1', pathologistUid: 'path1'),
+      ).thenThrow(AppError.noInternet);
+      when(
+        () => remote.fetchPrereadScore(caseUid: 'c1', runUid: 'run1'),
+      ).thenThrow(AppError.noInternet);
+      when(
+        () => remote.fetchApprovedText(caseUid: 'c1', textUid: 'x1'),
+      ).thenThrow(AppError.noInternet);
+
+      expect(
+        await helper.syncDraft(caseUid: 'c1', pathologistUid: 'path1'),
+        isNotNull,
+      );
+      expect(
+        await helper.syncPrereadScore(
+          caseUid: 'c1',
+          runUid: 'run1',
+          pathologistUid: 'path1',
+        ),
+        isNotNull,
+      );
+      expect(
+        await helper.syncApprovedText(caseUid: 'c1', textUid: 'x1'),
+        isNotNull,
+      );
+      expect(await helper.getDraft('c1', 'path1'), isNotNull);
+      expect(await helper.getPrereadScore('c1', 'run1', 'path1'), isNotNull);
+      expect(await helper.getApprovedText('c1', 'x1'), isNotNull);
+    });
   });
 }

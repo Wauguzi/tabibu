@@ -91,7 +91,8 @@ class ReportFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         PathologyReportModel.fromJson({'uid': doc.id, ...doc.data()}),
@@ -111,7 +112,8 @@ class ReportFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         PathologyReportModel.fromJson({'uid': doc.id, ...doc.data()}),
@@ -122,7 +124,10 @@ class ReportFirebase {
     required String caseUid,
     required String reportUid,
   }) => _guard('Fetch report', () async {
-    final snap = await _reports(caseUid).doc(reportUid).get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await _reports(
+      caseUid,
+    ).doc(reportUid).get(const GetOptions(source: Source.server));
     if (!snap.exists || snap.data() == null) return null;
     return PathologyReportModel.fromJson({'uid': snap.id, ...snap.data()!});
   });
@@ -143,7 +148,11 @@ class ReportFirebase {
     required String caseUid,
     required String pathologistUid,
   }) => _guard('Fetch report draft', () async {
-    final snap = await _draft(caseUid, pathologistUid).get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await _draft(
+      caseUid,
+      pathologistUid,
+    ).get(const GetOptions(source: Source.server));
     if (!snap.exists || snap.data() == null) return null;
     return ReportDraftModel.fromJson({'uid': snap.id, ...snap.data()!});
   });
@@ -190,9 +199,11 @@ class ReportFirebase {
     required String caseUid,
     required String runUid,
   }) => _guard('Fetch preread score', () async {
-    final snap = await _case(
-      caseUid,
-    ).collection('prereadScores').doc(runUid).get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await _case(caseUid)
+        .collection('prereadScores')
+        .doc(runUid)
+        .get(const GetOptions(source: Source.server));
     if (!snap.exists || snap.data() == null) return null;
     return PrereadScoreModel.fromJson({'uid': snap.id, ...snap.data()!});
   });
@@ -202,9 +213,11 @@ class ReportFirebase {
     required String caseUid,
     required String textUid,
   }) => _guard('Fetch approved report text', () async {
-    final snap = await _case(
-      caseUid,
-    ).collection('reportTextsApproved').doc(textUid).get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await _case(caseUid)
+        .collection('reportTextsApproved')
+        .doc(textUid)
+        .get(const GetOptions(source: Source.server));
     if (!snap.exists || snap.data() == null) return null;
     return ReportTextApprovedModel.fromJson({'uid': snap.id, ...snap.data()!});
   });

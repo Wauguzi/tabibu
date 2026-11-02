@@ -6,6 +6,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/reports/data/datasources/report_firebase.dart';
 
+import '../../../../helpers/helpers.dart';
+
 class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 class _MockCallable extends Mock implements HttpsCallable {}
@@ -234,6 +236,25 @@ void main() {
 
       await remote.markDiscussed(caseUid: 'c1', reportUid: 'v1');
       verify(() => functions.httpsCallable('markDiscussed')).called(1);
+    });
+  });
+
+  group('server reads', () {
+    test('eviction reads reach the server, never the cache', () async {
+      final recording = RecordingFirestore();
+      final server = ReportFirebase(firestore: recording, functions: functions);
+
+      await server.fetchReaderDelta(uid: 'u1');
+      await server.fetchPatientDelta(uid: 'u1');
+      await server.fetchReport(caseUid: 'c1', reportUid: 'v1');
+      await server.fetchDraft(caseUid: 'c1', pathologistUid: 'path1');
+      await server.fetchPrereadScore(caseUid: 'c1', runUid: 'run1');
+      await server.fetchApprovedText(
+        caseUid: 'c1',
+        textUid: 'v1_Explanation_en',
+      );
+
+      recording.expectServerReads(6);
     });
   });
 }

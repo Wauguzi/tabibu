@@ -2,6 +2,8 @@ import 'package:fake_cloud_firestore/fake_cloud_firestore.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tabibu/features/notifications/data/datasources/notification_firebase.dart';
 
+import '../../../../helpers/helpers.dart';
+
 void main() {
   late FakeFirebaseFirestore firestore;
   late NotificationFirebase remote;
@@ -68,6 +70,17 @@ void main() {
           'recipientUid',
         ]),
       );
+    });
+  });
+
+  group('server reads', () {
+    test('eviction reads reach the server, never the cache', () async {
+      final recording = RecordingFirestore();
+      final server = NotificationFirebase(firestore: recording);
+
+      await server.fetchInboxDelta(recipientUid: 'u1');
+
+      recording.expectServerReads(1);
     });
   });
 }

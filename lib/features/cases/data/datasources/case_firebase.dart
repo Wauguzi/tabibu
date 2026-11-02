@@ -70,7 +70,8 @@ class CaseFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         CaseModel.fromJson({'uid': doc.id, ...doc.data()}),
@@ -79,7 +80,10 @@ class CaseFirebase {
 
   Future<CaseModel?> fetchCase(String caseUid) =>
       _guard('Fetch case', () async {
-        final snap = await _case(caseUid).get();
+        // Eviction needs server truth: a cached answer must throw, not delete.
+        final snap = await _case(
+          caseUid,
+        ).get(const GetOptions(source: Source.server));
         if (!snap.exists || snap.data() == null) return null;
         return CaseModel.fromJson({'uid': snap.id, ...snap.data()!});
       });
@@ -112,27 +116,33 @@ class CaseFirebase {
 
   Future<CasePaymentModel?> fetchPayment(String caseUid) =>
       _guard('Fetch case payment', () async {
-        final snap = await _case(
-          caseUid,
-        ).collection('private').doc('payment').get();
+        // Eviction needs server truth: a cached answer must throw, not delete.
+        final snap = await _case(caseUid)
+            .collection('private')
+            .doc('payment')
+            .get(const GetOptions(source: Source.server));
         if (!snap.exists || snap.data() == null) return null;
         return CasePaymentModel.fromJson(snap.data()!);
       });
 
   Future<RiskCheckModel?> fetchRiskCheck(String caseUid) =>
       _guard('Fetch risk check', () async {
-        final snap = await _case(
-          caseUid,
-        ).collection('riskCheck').doc('current').get();
+        // Eviction needs server truth: a cached answer must throw, not delete.
+        final snap = await _case(caseUid)
+            .collection('riskCheck')
+            .doc('current')
+            .get(const GetOptions(source: Source.server));
         if (!snap.exists || snap.data() == null) return null;
         return RiskCheckModel.fromJson(snap.data()!);
       });
 
   Future<NotesTranslationModel?> fetchNotesTranslation(String caseUid) =>
       _guard('Fetch notes translation', () async {
-        final snap = await _case(
-          caseUid,
-        ).collection('notesTranslation').doc('current').get();
+        // Eviction needs server truth: a cached answer must throw, not delete.
+        final snap = await _case(caseUid)
+            .collection('notesTranslation')
+            .doc('current')
+            .get(const GetOptions(source: Source.server));
         if (!snap.exists || snap.data() == null) return null;
         return NotesTranslationModel.fromJson(snap.data()!);
       });

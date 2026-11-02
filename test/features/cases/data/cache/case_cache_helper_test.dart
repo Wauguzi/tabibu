@@ -613,6 +613,147 @@ void main() {
         ['s1'],
       );
     });
+
+    test('an offline full pull deletes nothing', () async {
+      await helper.cacheCases(
+        [_case('c1')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      await helper.cachePayment(
+        CasePaymentModel.empty().copyWith(caseUid: 'c1', lastUpdatedAt: _t1),
+        fromCloud: true,
+        viewerUid: 'doc1',
+        caseDoc: _case('c1'),
+      );
+      await helper.cacheLogEntries(
+        [
+          CaseLogEntryModel.empty().copyWith(
+            caseUid: 'c1',
+            seq: 1,
+            patientVisible: true,
+            lastUpdatedAt: _t1,
+          ),
+        ],
+        fromCloud: true,
+        role: Role.doctor,
+      );
+      await helper.cacheShareCodes([
+        ShareCodeModel.empty().copyWith(
+          uid: 's1',
+          caseUid: 'c1',
+          createdByUid: 'doc1',
+          lastUpdatedAt: _t1,
+        ),
+      ], fromCloud: true);
+      when(
+        () => cases.fetchParticipantDelta(
+          uid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenThrow(AppError.noInternet);
+
+      expect((await helper.syncCases('doc1', since: '')).map((c) => c.uid), [
+        'c1',
+      ]);
+      expect(
+        await db.get<CasePaymentHive>(HiveHelperImpl.casePaymentsBox, 'c1'),
+        isNotNull,
+      );
+      expect(await helper.getLog('c1', role: Role.doctor), hasLength(1));
+      expect(await helper.getShareCodes('doc1', asCreator: true), hasLength(1));
+    });
+
+    test('an offline share full pull deletes nothing', () async {
+      await helper.cacheShareCodes([
+        ShareCodeModel.empty().copyWith(
+          uid: 's1',
+          caseUid: 'c1',
+          createdByUid: 'doc1',
+          lastUpdatedAt: _t1,
+        ),
+      ], fromCloud: true);
+      when(
+        () => shares.fetchCreatorDelta(
+          createdByUid: 'doc1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenThrow(AppError.noInternet);
+
+      await helper.syncShareCodes(uid: 'doc1', asCreator: true, since: '');
+
+      expect(
+        (await helper.getShareCodes('doc1', asCreator: true)).map((s) => s.uid),
+        ['s1'],
+      );
+    });
+
+    test('offline single-row syncs keep their rows', () async {
+      await helper.cacheCases(
+        [_case('c1')],
+        fromCloud: true,
+        viewerUid: 'doc1',
+      );
+      await helper.cachePayment(
+        CasePaymentModel.empty().copyWith(caseUid: 'c1', lastUpdatedAt: _t1),
+        fromCloud: true,
+        viewerUid: 'doc1',
+        caseDoc: _case('c1'),
+      );
+      await helper.cacheRiskCheck(
+        RiskCheckModel.empty().copyWith(caseUid: 'c1', lastUpdatedAt: _t1),
+        fromCloud: true,
+        doctorUid: 'doc1',
+        caseDoc: _case('c1'),
+      );
+      await helper.cacheNotesTranslation(
+        NotesTranslationModel.empty().copyWith(
+          caseUid: 'c1',
+          lastUpdatedAt: _t1,
+        ),
+        fromCloud: true,
+        viewerUid: 'doc1',
+        caseDoc: _case('c1'),
+      );
+      await helper.cacheLogEntries(
+        [
+          CaseLogEntryModel.empty().copyWith(
+            caseUid: 'c1',
+            seq: 2,
+            patientVisible: true,
+            lastUpdatedAt: _t1,
+          ),
+        ],
+        fromCloud: true,
+        role: Role.doctor,
+      );
+      when(() => cases.fetchPayment('c1')).thenThrow(AppError.noInternet);
+      when(() => cases.fetchRiskCheck('c1')).thenThrow(AppError.noInternet);
+      when(
+        () => cases.fetchNotesTranslation('c1'),
+      ).thenThrow(AppError.noInternet);
+      when(() => cases.fetchPatientLog('c1')).thenThrow(AppError.noInternet);
+
+      expect(
+        await helper.syncPayment(caseUid: 'c1', viewerUid: 'doc1'),
+        isNotNull,
+      );
+      expect(
+        await helper.syncRiskCheck(caseUid: 'c1', doctorUid: 'doc1'),
+        isNotNull,
+      );
+      expect(
+        await helper.syncNotesTranslation(caseUid: 'c1', viewerUid: 'doc1'),
+        isNotNull,
+      );
+      expect(
+        await helper.syncLog(caseUid: 'c1', role: Role.patient),
+        hasLength(1),
+      );
+      expect(await helper.getPayment('c1', 'doc1'), isNotNull);
+      expect(await helper.getRiskCheck('c1', 'doc1'), isNotNull);
+      expect(await helper.getNotesTranslation('c1', 'doc1'), isNotNull);
+    });
   });
 
   group('replay', () {

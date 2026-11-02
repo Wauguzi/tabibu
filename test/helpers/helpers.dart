@@ -1,3 +1,4 @@
 export 'keyboard.dart';
 export 'pump_app.dart';
+export 'recording_firestore.dart';
 export 'role_sessions.dart';

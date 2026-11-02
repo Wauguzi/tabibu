@@ -1344,6 +1344,47 @@ void main() {
       );
     });
 
+    test('a multi-page sync loads every row and evicts none', () async {
+      await seedThread();
+      final base = DateTime.utc(2026, 11);
+      String stamp(int i) => base.add(Duration(seconds: i)).toIso8601String();
+      // The downloaded copy of the peer row behind the first page.
+      await helper.cacheMessages([
+        _msg('p3', sentAt: stamp(3)),
+      ], fromCloud: true);
+      when(
+        () => remote.fetchMessages(
+          conversationUid: any(named: 'conversationUid'),
+          callerUid: any(named: 'callerUid'),
+          limit: any(named: 'limit'),
+          fromSentAt: any(named: 'fromSentAt'),
+        ),
+      ).thenAnswer((inv) async {
+        final from = inv.namedArguments[#fromSentAt] as String?;
+        if (from == null) {
+          return [for (var i = 0; i < 3; i++) _msg('p$i', sentAt: stamp(i))];
+        }
+        if (from == stamp(2)) {
+          return [
+            _msg('p2', sentAt: stamp(2)),
+            _msg('p3', sentAt: stamp(3)),
+            _msg('mine', sender: 'u1', sentAt: stamp(4)),
+          ];
+        }
+        return <MessageModel>[];
+      });
+
+      await helper.syncMessages('u1', 'c1');
+
+      expect((await helper.getMessages('u1', 'c1')).map((m) => m.uid).toSet(), {
+        'p0',
+        'p1',
+        'p2',
+        'p3',
+        'mine',
+      });
+    });
+
     test("reads hide others' withheld rows and keep our own", () async {
       await seedThread();
       await helper.cacheMessages([
@@ -1367,6 +1408,57 @@ void main() {
         throwsA(AppError.permissionDenied),
       );
       expect(await helper.getCursor('u1', 'c1'), isNull);
+    });
+
+    test('an offline full pull deletes nothing', () async {
+      await helper.cacheConversations([_conv('c1')], fromCloud: true);
+      await helper.cacheMessages([_msg('m1')], fromCloud: true);
+      await helper.cacheTranscripts(
+        [_transcript('m1')],
+        fromCloud: true,
+        viewerUid: 'u1',
+        viewerRole: .patient,
+      );
+      await seedCursor('c1');
+      when(
+        () => remote.fetchParticipantDelta(
+          uid: any(named: 'uid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenThrow(AppError.noInternet);
+
+      expect(
+        (await helper.syncConversations('u1', since: '')).map((c) => c.uid),
+        ['c1'],
+      );
+      expect(
+        Hive.box<ConversationHive>(HiveHelperImpl.conversationsBox).get('c1'),
+        isNotNull,
+      );
+      expect(
+        await Hive.lazyBox<MessageHive>(
+          HiveHelperImpl.messagesBoxName,
+        ).get('m1'),
+        isNotNull,
+      );
+      expect(await helper.getCursor('u1', 'c1'), isNotNull);
+      expect(
+        Hive.box<MessageTranscriptHive>(
+          HiveHelperImpl.messageTranscriptsBox,
+        ).get('m1_shared'),
+        isNotNull,
+      );
+    });
+
+    test('an offline cursor sync keeps the cursor', () async {
+      await seedThread();
+      await seedCursor('c1');
+      when(
+        () => remote.fetchCursor(conversationUid: 'c1', uid: 'u1'),
+      ).thenThrow(AppError.noInternet);
+
+      expect(await helper.syncCursor('u1', 'c1'), isNotNull);
+      expect(await helper.getCursor('u1', 'c1'), isNotNull);
     });
   });
 }

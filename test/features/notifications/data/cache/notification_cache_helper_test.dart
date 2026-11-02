@@ -408,6 +408,31 @@ void main() {
       expect(box.get('n1'), isNull);
     });
 
+    test('an offline refetch after a refusal keeps the row', () async {
+      await helper.cacheNotifications([_note('n1')], fromCloud: true);
+      when(
+        () => remote.markRead(
+          notificationUid: any(named: 'notificationUid'),
+          readAt: any(named: 'readAt'),
+        ),
+      ).thenThrow(AppError.permissionDenied);
+      when(
+        () => remote.fetchInboxDelta(
+          recipientUid: 'u1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenThrow(AppError.noInternet);
+
+      await expectLater(
+        helper.markRead('u1', 'n1'),
+        throwsA(AppError.permissionDenied),
+      );
+
+      final box = Hive.box<NotificationHive>(HiveHelperImpl.notificationsBox);
+      expect(box.get('n1'), isNotNull);
+      expect(box.get('n1')?.synced, isFalse);
+    });
+
     test('a transient replay failure stays queued', () async {
       await helper.cacheNotifications([
         _note('n1', synced: false, status: 'Read').copyWith(readAt: _t2),

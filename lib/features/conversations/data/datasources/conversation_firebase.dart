@@ -75,7 +75,8 @@ class ConversationFirebase {
       query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
     }
     query = query.orderBy('lastUpdatedAt');
-    final snap = await query.get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await query.get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         ConversationModel.fromJson({'uid': doc.id, ...doc.data()}),
@@ -86,7 +87,10 @@ class ConversationFirebase {
   /// read throws; the cache maps that to eviction.
   Future<ConversationModel?> fetchConversation(String conversationUid) =>
       _guard('Fetch conversation', () async {
-        final snap = await _conversations.doc(conversationUid).get();
+        // Eviction needs server truth: a cached answer must throw, not delete.
+        final snap = await _conversations
+            .doc(conversationUid)
+            .get(const GetOptions(source: Source.server));
         if (!snap.exists || snap.data() == null) return null;
         return ConversationModel.fromJson({'uid': snap.id, ...snap.data()!});
       });
@@ -114,7 +118,9 @@ class ConversationFirebase {
   ///
   /// The read rule shows withheld rows to their sender only, and a query
   /// must prove every row it could return — so the readable statuses and
-  /// the caller's own rows are queried separately, then merged.
+  /// the caller's own rows are queried separately, then merged. Only the
+  /// complete leading page is returned (see below), so one cursor stays
+  /// sound no matter how the two queries interleave.
   Future<List<MessageModel>> fetchMessages({
     required String conversationUid,
     required String callerUid,
@@ -138,13 +144,38 @@ class ConversationFirebase {
     final own = page(
       _messages(conversationUid).where('senderUid', isEqualTo: callerUid),
     );
-    final snaps = await Future.wait([readable.get(), own.get()]);
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snaps = await Future.wait([
+      readable.get(const GetOptions(source: Source.server)),
+      own.get(const GetOptions(source: Source.server)),
+    ]);
+    final lists = [
+      for (final snap in snaps)
+        [
+          for (final doc in snap.docs)
+            MessageModel.fromJson({'uid': doc.id, ...doc.data()}),
+        ],
+    ];
+    // Complete leading page: the boundary is the smallest last stamp among
+    // the queries that came back full, so everything at or before it is in
+    // hand from both. Rows past it wait for the next page, whose inclusive
+    // cursor re-reads them. A short query is exhausted and sets no
+    // boundary; with none, the merge is already complete.
+    String? boundary;
+    if (limit != null) {
+      for (final list in lists) {
+        if (list.length < limit) continue;
+        final last = list.last.sentAt;
+        if (boundary == null || last.compareTo(boundary) < 0) boundary = last;
+      }
+    }
     final seen = <String>{};
     final rows = <MessageModel>[];
-    for (final snap in snaps) {
-      for (final doc in snap.docs) {
-        if (!seen.add(doc.id)) continue;
-        rows.add(MessageModel.fromJson({'uid': doc.id, ...doc.data()}));
+    for (final list in lists) {
+      for (final msg in list) {
+        if (boundary != null && msg.sentAt.compareTo(boundary) > 0) continue;
+        if (!seen.add(msg.uid)) continue;
+        rows.add(msg);
       }
     }
     rows.sort((a, b) => a.sentAt.compareTo(b.sentAt));
@@ -194,7 +225,11 @@ class ConversationFirebase {
     required String conversationUid,
     required String uid,
   }) => _guard('Fetch conversation cursor', () async {
-    final snap = await _cursor(conversationUid, uid).get();
+    // Eviction needs server truth: a cached answer must throw, not delete.
+    final snap = await _cursor(
+      conversationUid,
+      uid,
+    ).get(const GetOptions(source: Source.server));
     if (!snap.exists || snap.data() == null) return null;
     return ConversationCursorModel.fromJson(snap.data()!);
   });
