@@ -326,7 +326,7 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
       expect(find.text('Embakasi · ${subtitleDate('en')}'), findsOneWidget);
       expect(find.byType(ConnectivityBanner), findsNothing);
       expect(find.text('Your care,'), findsOneWidget);
@@ -512,7 +512,7 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pump();
 
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
       expect(find.text('Your care,'), findsOneWidget);
       expect(find.byType(LoadingView), findsOneWidget);
       expect(find.byType(BookPromptCard), findsNothing);
@@ -723,7 +723,7 @@ void main() {
       await tester.pumpApp(screen(), themeMode: ThemeMode.dark);
       await tester.pumpAndSettle();
 
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
       expect(find.text('Next appointment · in 2 days'), findsOneWidget);
       expect(find.text('Lymph node results'), findsOneWidget);
       expect(tester.takeException(), isNull);
@@ -782,7 +782,7 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
       expect(find.text('Next appointment · in 2 days'), findsOneWidget);
       expect(find.text('Lymph node results'), findsOneWidget);
       expect(tester.takeException(), isNull);

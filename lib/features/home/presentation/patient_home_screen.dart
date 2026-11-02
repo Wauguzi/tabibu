@@ -2,9 +2,7 @@ import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
-import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/constants/app_styles.dart';
@@ -23,6 +21,7 @@ import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointment
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
 import 'package:tabibu/features/appointments/presentation/widgets/appointment_hero_card.dart';
+import 'package:tabibu/features/appointments/presentation/widgets/hero_pill_button.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
@@ -313,7 +312,7 @@ class _PatientHomeScreenState extends State<PatientHomeScreen> {
           ? '${appointment.doctorName} · ${appointment.facilityName}'
           : '${appointment.doctorName} · $specialty, '
                 '${appointment.facilityName}',
-      primary: _DetailsButton(
+      primary: HeroPillButton(
         label: l10n.patientHomeDetails,
         onTap: () => PatientAppointmentRoute(
           appointmentUid: appointment.uid,
@@ -506,49 +505,3 @@ class _NoticeStrip extends StatelessWidget {
 
 /// The white pill on the teal hero. No [TabibuButton] variant stays white in
 /// both themes, so the hero owns this one.
-class _DetailsButton extends StatelessWidget {
-  const _DetailsButton({required this.label, required this.onTap});
-
-  final String label;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final onTap = this.onTap;
-    return Semantics(
-      label: label,
-      button: true,
-      enabled: onTap != null,
-      onTap: onTap,
-      excludeSemantics: true,
-      child: ConstrainedBox(
-        constraints: const BoxConstraints(minHeight: 56),
-        child: Material(
-          color: Colors.white,
-          borderRadius: BorderRadius.circular(AppRadii.pill),
-          elevation: 2,
-          shadowColor: AppShadows.raisedColor,
-          child: Tappable(
-            onTap: onTap,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(
-                horizontal: AppSpacing.xlg,
-                vertical: AppSpacing.sm,
-              ),
-              child: Center(
-                child: Text(
-                  label,
-                  style: textTheme.labelLarge?.copyWith(
-                    color: AppColors.inkLight,
-                  ),
-                  textAlign: .center,
-                ),
-              ),
-            ),
-          ),
-        ),
-      ),
-    );
-  }
-}
