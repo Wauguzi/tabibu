@@ -15,6 +15,26 @@ prepares a pathology pre-read and an outbreak alert draft; a qualified person al
 The app is Flutter on iOS, Android and the web, backed only by Firebase. No model is called from
 the app: the AI service sits behind Cloud Functions.
 
+## Hackathon and partners
+
+Tabibu is built for the
+[Meta Global AI Developer Hackathon](https://cerebralvalley.ai/e/meta-ai-developer-hackathon),
+hosted by [Meta](https://www.meta.com/) and [Cerebral Valley](https://cerebralvalley.ai/), in the
+Indie developer track, "Build for Your World" theme. The hackathon's inference partners are
+[Baseten](https://www.baseten.co/), [Modal](https://modal.com/) and
+[Fireworks](https://fireworks.ai/).
+
+| | Role | What Tabibu uses |
+|---|---|---|
+| Meta | Host | The Muse models (Muse Spark, SAM 3.1, Muse Spark Open, Muse Voice Transcribe) through the Meta Model API, the API credits for the hackathon, and Muse Code, the coding agent Tabibu is built with |
+| Cerebral Valley | Host | The hackathon itself: the event, its schedule and its submission |
+| Baseten | Inference partner | Serving Muse Spark Open, which drafts the pathology report, the alert drafts and the patient explanations, on partner credits |
+| Modal | Inference partner | Compute for the AI service, on partner credits |
+| Fireworks | Inference partner | Not used by Tabibu |
+
+The AI service that calls these models is the next branch; the architecture's §16 says what is
+built today.
+
 ## How it works
 
 Each step is a Firestore write that a Cloud Function checks, and each step notifies the next
