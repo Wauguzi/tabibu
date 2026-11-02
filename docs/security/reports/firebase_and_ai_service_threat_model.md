@@ -103,7 +103,7 @@ These are the rules whose breach is a P1 even when no attacker is involved
 | ID | Threat | Control | Proof | Status |
 |---|---|---|---|---|
 | T-1 | A user reads a case they are not on | Rules: participant check on every case-bearing collection; no list query without the participant filter | Rules tests, including cross-patient reads | Planned |
-| T-2 | A user escalates their role or grants themselves alert approval | Role and `alertApprover` are custom claims set only by an admin function; no role field is client-writable. Approving needs `admin` **and** `alertApprover`, and the approver registry read inside the transaction; `setAlertApprover` is callable only by an existing approver, never on themselves, and revokes the target's refresh tokens on a revoke | Rules test that writes a role field; claim-set function test; self-grant and revoked-approver function tests | Planned |
+| T-2 | A user escalates their role or grants themselves alert approval | Role and `alertApprover` are custom claims set only by an admin function; no role field is client-writable. Approving needs `admin` **and** `alertApprover` (held by a verified doctor), and the approver registry read inside the transaction; `setAlertApprover` is callable only by an existing approver, never on themselves, and revokes the target's refresh tokens on a revoke | Rules test that writes a role field; claim-set function test; self-grant and revoked-approver function tests | Planned |
 | T-3 | A forged notification in someone's inbox (phishing with Tabibu's chrome) | `notifications` `create: if false`; Functions only | Rules test | Planned |
 | T-4 | A model API key leaks from the app binary | No key in the app; service secrets in Modal and Firebase secret parameters | Release-build string scan in CI | Planned |
 | T-5 | The AI service endpoint is called by anyone on the internet | Shared-secret header checked first; Modal endpoint not listed | Service test without the header | Planned |
@@ -155,6 +155,7 @@ trusted.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-02 | T-2: the approver permission sits on a verified doctor who also holds `admin`; the controls are unchanged (`feat/ui`, decision S-2). | Theo |
 | 2026-11-01 | For the `feat/infra` data layer: S-1 to S-5 controls extended; S-8 added (direct use of AI output, including any voice-note transcript to the conversation's clinicians, and the speech exception); T-2, T-7, T-8, T-11, T-12 and T-16 extended; T-17 to T-20 added (MDT identity, share codes, public alerts); §5 payments are recorded, never collected (CRQ-0041 to CRQ-0049). | Theo |
 | 2026-10-30 | T-14: the name final once verified, file URLs pinned to the project's bucket, the directory built from the stored profile. T-15: linking needs a confirmed address (CRQ-0036). | Theo |
 | 2026-10-27 | T-10: freeRASP active in release binaries (CRQ-0024). | Theo |

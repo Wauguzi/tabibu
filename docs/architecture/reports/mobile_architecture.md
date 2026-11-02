@@ -810,7 +810,7 @@ In summary:
 | Pending practitioner (no role claim) | Edit their own `doctors` profile, KMPDC number and license | Reach any clinical route or read any patient |
 | Doctor | Add a patient; read the profiles of patients whose care team they are on; accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
 | Pathologist | Work the ranked list of cases assigned to them; review, edit and sign reports; mark a result notifiable | Release a result to a patient |
-| Alert approver (a permission on an admin, held by an authorised public-health officer (MoH or county health department)) | Read a drafted alert and its evidence; approve it as is in one tap, edit it, or reject it; choose clinicians only | Approve an alert raised from their own finding; grant or revoke their own permission; write an alert's status |
+| Alert approver (a permission on a verified doctor who also holds `admin`, granted by an existing approver; in the demo, the seeded doctor) | Read a drafted alert and its evidence; approve it as is in one tap, edit it, or reject it; choose clinicians only | Approve an alert raised from their own finding; grant or revoke their own permission; write an alert's status |
 
 **Scope is participation.** Participation is `participantUids` (the doctor,
 the linked patient, the requested and the accepted pathologist, and viewers),
@@ -1034,6 +1034,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-02 | §11: the alert approver is a verified doctor holding `admin` and `alertApprover`, not a separate public-health account (`feat/ui`, decision S-2). | Theo |
 | 2026-11-02 | §4, §6 (typeId rows), §6.1 (availability, the link job, booking), §6.2, §6.3, §10 and §16 items 5 and 11 brought up to what `feat/infra` built: the domain functions, the alert engine and the signed-report PDF (CRQ-0041 to CRQ-0049). | Theo |
 | 2026-11-01 | The `feat/infra` data layer, as planned: §4 the clinical features; §6 the append rule for shipped classes, typeIds 4-55 reserved, scoping by `participantUids` and `readerUids`, counters on the edge; §6.1 availability, the link job, the patient's `Join` share; §6.2 the four new assets with their sources; §6.3 the collections, Storage paths and boxes; §9 the tap payload and the listeners; §10 eight kill switches and two templates; §11 the patient's rights and the alert approver; §15 rule 4 signing as a transaction; §16 item 11 (CRQ-0039 to CRQ-0049). | Theo |
 | 2026-10-29 | §6.2: the lab test catalogue, with benchmark prices (CRQ-0033). | Theo |

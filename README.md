@@ -30,7 +30,7 @@ person. The order **is** the case, so one record carries a patient from booking 
 | 6. Score and sign | The pathologist scores the pre-read, then edits and signs the report. The doctor opens it with a code from their inbox, behind the device's biometrics. | The pathologist approves the report's translation in one tap |
 | 7. Release | The patient books a discussion. Only when the doctor marks it discussed does the patient see the result (S-3). | A plain-language explanation, which the doctor approves in one tap before the patient sees it |
 | 8. Talk | Direct threads and MDT discussions carry text, images and voice notes. | Voice notes are transcribed for clinicians; a patient reads a clinician's transcript only once the sender shares it |
-| 9. Alert | A pathologist's confirmed notifiable finding becomes an anonymous count. When a county's count calls for it, an alert is drafted. | An English and Kiswahili draft, grounded in bundled Ministry of Health and WHO guidance. It reaches clinicians, then patients in that county, **only after an authorised public-health officer approves it** |
+| 9. Alert | A pathologist's confirmed notifiable finding becomes an anonymous count. When a county's count calls for it, an alert is drafted. | An English and Kiswahili draft, grounded in bundled Ministry of Health and WHO guidance. It reaches clinicians, then patients in that county, **only after an authorised clinician approves it** |
 
 AI output reaches a person through a one-tap approval, or, where the threat model's S-8 names the
 reader as the qualified person who acts on it, directly. Either way it is labelled as AI. The

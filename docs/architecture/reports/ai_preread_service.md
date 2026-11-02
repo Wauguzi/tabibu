@@ -32,7 +32,7 @@ from the service to anyone directly. **Where the docs require an approval, it
 is a one-tap "approve as is"**, with editing secondary: the pre-read (scored,
 then signed), the report translation (the signer), the patient explanation
 (the ordering doctor), a clinician's transcript shared with a patient (the
-sender), and an alert (an authorised public-health officer). **Where the
+sender), and an alert (an authorised clinician holding the approver permission). **Where the
 threat model's S-8 names the reader as the qualified person who acts on the
 output, it is used directly**: the symptom summary and risk advice to the
 doctor, the notes translation to the doctor and pathologist, the speaker's
@@ -288,5 +288,6 @@ Decided by the 27 October tests, recorded here once run:
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-02 | The alert's approver is an authorised clinician holding the approver permission (`feat/ui`, decision S-2). | Theo |
 | 2026-11-01 | For the `feat/infra` data layer: §1 the report translation, the doctor-approved explanation, the en and sw intake from one call, speech to text, voice-note transcripts, grounded alert drafting, one-tap approval and S-8 direct use; §2 de-identified text or the speaker's audio, synchronous calls, `Failed` without retries; §3 ranking split between the functions and the app; §4 scoring first, `signReport` as a transaction, §4.1 the report texts with numbers tokenised; §5 `labelsPath`, `inputLanguage`, `failureReason`, stale runs; §6 the speech exception, `acceptedUnchanged` and the model performance signals; §8 the two records; §9 eight switches; §10 the Swahili fallback (CRQ-0041, CRQ-0043, CRQ-0044, CRQ-0047). | Theo |
 | 2026-10-26 | Initial version: jobs, invocation path, the five-step pipeline, measurement-in-code and confidence rules, signing, the Firestore contract, endpoint policy, cost control, and the day-2 gates. | Theo |

@@ -2,7 +2,7 @@
 
 > Every signed positive result for a notifiable disease is also a data point.
 > When one disease's results call for a warning in a county, Tabibu drafts
-> the warning, an authorised public-health officer approves it, and doctors
+> the warning, an authorised clinician approves it, and doctors
 > and then patients in that area are told within minutes. The engine is
 > driven by the **test**, not by one disease: any test that confirms a
 > notifiable disease feeds it the same way, and malaria is the demo data.
@@ -187,9 +187,9 @@ The AI service drafts `alerts/{uid}`:
 
 ## 6. Approve
 
-**An authorised public-health officer (MoH or a county health department)**
-approves. In the system that is an `admin` holding the `alertApprover` claim
-and listed in the approver registry; only a different, existing approver can
+**An authorised clinician** approves: a verified doctor who also holds the
+`admin` and `alertApprover` claims and is listed in the approver registry (in
+the demo, the seeded doctor); only a different, existing approver can
 grant or revoke the claim, and a revoke takes effect at once.
 
 `approveAlert` is the one callable, with three decisions:
@@ -227,8 +227,8 @@ Delivery runs when an alert becomes `Approved`, in two phases:
    shows the county's alerts instead). The delay between the phases is a
    config value: zero in the demo.
 
-The delivered alert reads "Approved for release by an authorised
-public-health officer. Guidance: {source}", with the guidance verbatim and
+The delivered alert reads "Approved for release by an authorised Tabibu
+clinician. Guidance: {source}", with the guidance verbatim and
 the Kiswahili labelled as Tabibu's translation. It carries no count, age
 band, date, facility or approver name.
 
@@ -317,6 +317,7 @@ the alert scope, the guidance and the attribution.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-02 | Summary, §6 and the attribution: the approver is an authorised clinician, a verified doctor holding `admin` and `alertApprover`; the delivered alert still names no approver (`feat/ui`, decision S-2). | Theo |
 | 2026-11-01 | For the `feat/infra` data layer: §1 the statutory notification stays the facility's; §2 the bundled 38-disease list with its sources and unverified categories, and the guidance; §3 the pathologist's finding, the event allow-list, retraction; §4 Rule M and `epiCounts`; §5 placeholders, grounding and the template fallback; §6 approval by an authorised public-health officer (`admin` + `alertApprover`), four eyes, expiry; §7 two-phase delivery by rows and county topics, `publicAlerts`, the kill switch failing closed; §9 the rules; §10 demo alerts marked (CRQ-0049). | Theo |
 | 2026-10-27 | §8: patients choose a sub-county too; the geohash is an area, never an event field (CRQ-0014). | Theo |
 | 2026-10-27 | Initial version: the six-step pipeline, the event shape and what never leaves a case, Rules A and B, approval and two-phase delivery, the rules shape and the demo. | Theo |
