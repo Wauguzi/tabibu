@@ -137,6 +137,37 @@ class NotificationCacheHelper {
   Future<String?> cursor(String uid) async =>
       syncCursorFrom((await getInbox(uid)).map((n) => n.lastUpdatedAt));
 
+  /// Foreground listener: merges each live delta into Hive and ticks once
+  /// per successful merge. Never evicts (that is sync's job) and never
+  /// errors — a failed merge is skipped so the next delta can re-read.
+  /// Built from stream operators so cancel finishes promptly.
+  Stream<void> watchInbox(String uid) {
+    if (uid.isEmpty) return const Stream<void>.empty();
+    return Stream.fromFuture(cursor(uid))
+        .asyncExpand((c) {
+          return _remote
+              .watchInboxDelta(recipientUid: uid, cursor: c)
+              .asyncMap((rows) async {
+                try {
+                  await cacheNotifications(rows, fromCloud: true);
+                  return true;
+                } on Exception catch (e) {
+                  if (kDebugMode) {
+                    _logger.w('Merging a notification snapshot failed: $e');
+                  }
+                  return false;
+                }
+              })
+              .where((merged) => merged)
+              .map((_) {});
+        })
+        .handleError((Object e) {
+          // A listener that errors (signed out, access lost) just ends; the
+          // next sync reads what it missed.
+          if (kDebugMode) _logger.w('Inbox listener ended: $e');
+        });
+  }
+
   /// Drops synced rows older than [pruneAfter]; queued rows are never
   /// pruned, and rows without a date are kept.
   Future<void> pruneInbox(String uid, {DateTime? now}) async {

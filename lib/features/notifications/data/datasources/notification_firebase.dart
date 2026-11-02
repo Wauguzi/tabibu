@@ -32,23 +32,53 @@ class NotificationFirebase {
   CollectionReference<Map<String, dynamic>> get _notifications =>
       _firestore.collection('notifications');
 
+  Query<Map<String, dynamic>> _inboxQuery({
+    required String recipientUid,
+    String? cursor,
+  }) {
+    var query = _notifications.where('recipientUid', isEqualTo: recipientUid);
+    if (cursor != null && cursor.isNotEmpty) {
+      query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
+    }
+    return query.orderBy('lastUpdatedAt');
+  }
+
   /// Inbox delta: `recipientUid ==` and `lastUpdatedAt >=` cursor (I-28).
   Future<List<NotificationModel>> fetchInboxDelta({
     required String recipientUid,
     String? cursor,
   }) => _guard('Notification inbox delta', () async {
-    var query = _notifications.where('recipientUid', isEqualTo: recipientUid);
-    if (cursor != null && cursor.isNotEmpty) {
-      query = query.where('lastUpdatedAt', isGreaterThanOrEqualTo: cursor);
-    }
-    query = query.orderBy('lastUpdatedAt');
     // Eviction needs server truth: a cached answer must throw, not delete.
-    final snap = await query.get(const GetOptions(source: Source.server));
+    final snap = await _inboxQuery(
+      recipientUid: recipientUid,
+      cursor: cursor,
+    ).get(const GetOptions(source: Source.server));
     return [
       for (final doc in snap.docs)
         NotificationModel.fromJson({'uid': doc.id, ...doc.data()}),
     ];
   });
+
+  /// Live inbox: the same query as [fetchInboxDelta], as `snapshots()`.
+  /// Emits only added and modified rows; empty changes are skipped. Built
+  /// from stream operators so cancel finishes promptly.
+  Stream<List<NotificationModel>> watchInboxDelta({
+    required String recipientUid,
+    String? cursor,
+  }) => _inboxQuery(recipientUid: recipientUid, cursor: cursor)
+      .snapshots()
+      .map((snap) {
+        return [
+          for (final change in snap.docChanges)
+            if (change.type != DocumentChangeType.removed &&
+                change.doc.data() != null)
+              NotificationModel.fromJson({
+                'uid': change.doc.id,
+                ...change.doc.data()!,
+              }),
+        ];
+      })
+      .where((rows) => rows.isNotEmpty);
 
   /// Recipient may update only `status`, `readAt` and `lastUpdatedAt`.
   Future<void> markRead({

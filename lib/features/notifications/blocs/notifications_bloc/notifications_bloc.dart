@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:tabibu/core/constants/enums.dart';
@@ -20,10 +22,19 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     // Writes must not race each other.
     on<NotificationReadRequested>(_onRead, transformer: sequential());
     on<NotificationsAllReadRequested>(_onAllRead, transformer: sequential());
-    on<NotificationsReset>((_, emit) => emit(const NotificationsInitial()));
+    // Live inbox: restartable so a second start replaces the first; stop
+    // closes the bridge controller that feed `emit.forEach`.
+    on<NotificationsWatchStarted>(_onWatchStarted, transformer: restartable());
+    on<NotificationsWatchStopped>(_onWatchStopped);
+    on<NotificationsReset>(_onReset);
   }
 
   final NotificationCacheHelper _cache;
+
+  /// Bridge from the cache watch into `emit.forEach`. Closing it ends the
+  /// running watch handler (stop / reset / close / restart).
+  StreamController<void>? _watchBridge;
+  StreamSubscription<void>? _watchSub;
 
   static const Set<AppError> _offline = {
     .noInternet,
@@ -55,6 +66,54 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     unread: await _cache.unreadCount(uid),
     offline: offline,
   );
+
+  // The Firestore listener is cancelled explicitly: closing the bridge ends
+  // the handler but is not guaranteed to cancel what feeds it.
+  Future<void> _closeWatchBridge() async {
+    await _watchSub?.cancel();
+    _watchSub = null;
+    final bridge = _watchBridge;
+    _watchBridge = null;
+    if (bridge != null && !bridge.isClosed) {
+      await bridge.close();
+    }
+  }
+
+  Future<void> _onWatchStarted(
+    NotificationsWatchStarted event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    await _closeWatchBridge();
+    final bridge = StreamController<void>();
+    _watchBridge = bridge;
+    // A listener error never reaches the handler: it would end live updates.
+    _watchSub = _cache
+        .watchInbox(event.uid)
+        .listen(bridge.add, onError: (Object _) {}, onDone: bridge.close);
+
+    await emit.forEach<NotificationsLoadSuccess>(
+      bridge.stream.asyncMap((_) async {
+        final items = await _cache.getInbox(event.uid);
+        return await _success(event.uid, items, offline: state.offline);
+      }),
+      onData: (next) => next,
+    );
+  }
+
+  Future<void> _onWatchStopped(
+    NotificationsWatchStopped event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    await _closeWatchBridge();
+  }
+
+  Future<void> _onReset(
+    NotificationsReset event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    await _closeWatchBridge();
+    emit(const NotificationsInitial());
+  }
 
   Future<void> _onRequested(
     NotificationsRequested event,
@@ -154,4 +213,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       emit(_failure(e));
     }
   }
+
+  @override
+  Future<void> close() => _closeWatchBridge().then((_) => super.close());
 }

@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,32 @@ import 'package:tabibu/features/notifications/data/models/notification_metadata_
 import 'package:tabibu/features/notifications/data/models/notification_model.dart';
 
 class _MockNotificationFirebase extends Mock implements NotificationFirebase {}
+
+class _ThrowingDb extends Fake implements DBHelper {
+  _ThrowingDb(this._inner, {required this.failPuts});
+
+  final DBHelper _inner;
+  bool failPuts;
+
+  @override
+  Future<List<T>> getAll<T>(String box) => _inner.getAll<T>(box);
+
+  @override
+  Future<T?> get<T>(String box, String key) => _inner.get<T>(box, key);
+
+  @override
+  Future<void> put<T>(String box, String key, T value) =>
+      _inner.put<T>(box, key, value);
+
+  @override
+  Future<void> putAll<T>(String box, Map<String, T> entries) {
+    if (failPuts) throw Exception('merge failed');
+    return _inner.putAll<T>(box, entries);
+  }
+
+  @override
+  Future<void> delete<T>(String box, String key) => _inner.delete<T>(box, key);
+}
 
 const _t1 = '2026-11-01T10:00:00.000Z';
 const _t2 = '2026-11-02T10:00:00.000Z';
@@ -494,6 +521,63 @@ void main() {
       // Pruning is scoped: u2's row survives u1's sync.
       final box = Hive.box<NotificationHive>(HiveHelperImpl.notificationsBox);
       expect(box.get('old'), isNotNull);
+    });
+  });
+
+  group('watchInbox', () {
+    test('a batch merges and ticks; never evicts', () async {
+      await helper.cacheNotifications([
+        _note('kept', created: '2026-01-01T10:00:00.000Z'),
+      ], fromCloud: true);
+
+      final deltas = StreamController<List<NotificationModel>>();
+      when(
+        () => remote.watchInboxDelta(
+          recipientUid: 'u1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) => deltas.stream);
+
+      final ticks = <void>[];
+      final sub = helper.watchInbox('u1').listen(ticks.add);
+
+      deltas.add([_note('n2', stamp: _t2, title: 'live')]);
+      await Future<void>.delayed(Duration.zero);
+      await Future<void>.delayed(Duration.zero);
+
+      expect(ticks, hasLength(1));
+      final inbox = await helper.getInbox('u1');
+      expect(inbox.map((n) => n.uid), containsAll(['kept', 'n2']));
+
+      await sub.cancel();
+      await deltas.close();
+    });
+
+    test('a failing merge is skipped and the stream continues', () async {
+      final db = _ThrowingDb(DBHelperImpl(), failPuts: true);
+      final watching = NotificationCacheHelper(db: db, remote: remote);
+      final deltas = StreamController<List<NotificationModel>>();
+      when(
+        () => remote.watchInboxDelta(
+          recipientUid: 'u1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) => deltas.stream);
+
+      final ticks = <void>[];
+      final sub = watching.watchInbox('u1').listen(ticks.add);
+
+      deltas.add([_note('n1', stamp: _t2)]);
+      await pumpEventQueue();
+      expect(ticks, isEmpty);
+
+      db.failPuts = false;
+      deltas.add([_note('n2', stamp: _t3)]);
+      await pumpEventQueue();
+      expect(ticks, hasLength(1));
+
+      await sub.cancel();
+      await deltas.close();
     });
   });
 }

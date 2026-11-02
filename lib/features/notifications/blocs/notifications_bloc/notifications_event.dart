@@ -53,3 +53,19 @@ final class NotificationsAllReadRequested extends NotificationsEvent {
 final class NotificationsReset extends NotificationsEvent {
   const NotificationsReset();
 }
+
+/// Opens the foreground inbox listener. A second start replaces the first
+/// (`restartable`), so resume and the shell can both send it.
+final class NotificationsWatchStarted extends NotificationsEvent {
+  const NotificationsWatchStarted({required this.uid});
+
+  final String uid;
+
+  @override
+  List<Object?> get props => [uid];
+}
+
+/// Closes the listener — on backgrounding and on sign-out.
+final class NotificationsWatchStopped extends NotificationsEvent {
+  const NotificationsWatchStopped();
+}

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -290,6 +292,113 @@ void main() {
         act: (bloc) => bloc.add(const NotificationsReset()),
         expect: () => [const NotificationsInitial()],
       );
+    });
+
+    group('live watch', () {
+      late List<StreamController<void>> watches;
+
+      setUp(() {
+        watches = [];
+        when(() => cache.watchInbox('u1')).thenAnswer((_) {
+          final c = StreamController<void>();
+          watches.add(c);
+          return c.stream;
+        });
+        when(() => cache.getInbox('u1')).thenAnswer((_) async => [_note('n1')]);
+        when(() => cache.unreadCount('u1')).thenAnswer((_) async => 1);
+      });
+
+      tearDown(() async {
+        for (final c in watches) {
+          if (!c.isClosed) await c.close();
+        }
+      });
+
+      blocTest<NotificationsBloc, NotificationsState>(
+        'a tick re-reads and emits success',
+        build: build,
+        act: (bloc) async {
+          bloc.add(const NotificationsWatchStarted(uid: 'u1'));
+          await Future<void>.delayed(Duration.zero);
+          watches.single.add(null);
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [
+          NotificationsLoadSuccess(items: [_note('n1')], unread: 1),
+        ],
+      );
+
+      blocTest<NotificationsBloc, NotificationsState>(
+        'a second start replaces the first subscription',
+        build: build,
+        act: (bloc) async {
+          bloc.add(const NotificationsWatchStarted(uid: 'u1'));
+          await Future<void>.delayed(Duration.zero);
+          bloc.add(const NotificationsWatchStarted(uid: 'u1'));
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => <NotificationsState>[],
+        verify: (_) {
+          verify(() => cache.watchInbox('u1')).called(2);
+          expect(watches, hasLength(2));
+          expect(watches.first.hasListener, isFalse);
+          expect(watches.last.isClosed, isFalse);
+        },
+      );
+
+      blocTest<NotificationsBloc, NotificationsState>(
+        'stopped ignores later ticks',
+        build: build,
+        act: (bloc) async {
+          bloc.add(const NotificationsWatchStarted(uid: 'u1'));
+          await Future<void>.delayed(Duration.zero);
+          final watch = watches.single;
+          bloc.add(const NotificationsWatchStopped());
+          await Future<void>.delayed(Duration.zero);
+          if (!watch.isClosed) watch.add(null);
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => <NotificationsState>[],
+      );
+
+      blocTest<NotificationsBloc, NotificationsState>(
+        'reset cancels the watch and clears',
+        build: build,
+        seed: () => NotificationsLoadSuccess(items: [_note('n1')], unread: 1),
+        act: (bloc) async {
+          bloc.add(const NotificationsWatchStarted(uid: 'u1'));
+          await Future<void>.delayed(Duration.zero);
+          final watch = watches.single;
+          bloc.add(const NotificationsReset());
+          await Future<void>.delayed(Duration.zero);
+          if (!watch.isClosed) watch.add(null);
+          await Future<void>.delayed(Duration.zero);
+        },
+        expect: () => [const NotificationsInitial()],
+      );
+
+      test('close cancels the watch', () async {
+        final bloc = build()..add(const NotificationsWatchStarted(uid: 'u1'));
+        await Future<void>.delayed(Duration.zero);
+        await bloc.close();
+        expect(watches, isNotEmpty);
+        expect(watches.last.hasListener, isFalse);
+      });
+    });
+    test('stopping the watch cancels the live listener itself', () async {
+      var cancelled = false;
+      final source = StreamController<void>(onCancel: () => cancelled = true);
+      when(() => cache.watchInbox('u1')).thenAnswer((_) => source.stream);
+      final bloc = build()..add(const NotificationsWatchStarted(uid: 'u1'));
+      await pumpEventQueue();
+      expect(source.hasListener, isTrue);
+
+      bloc.add(const NotificationsWatchStopped());
+      await pumpEventQueue();
+      expect(cancelled, isTrue);
+
+      await bloc.close();
+      await source.close();
     });
   });
 }
