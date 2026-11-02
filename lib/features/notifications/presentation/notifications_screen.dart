@@ -4,7 +4,7 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
-/// P-02, D-NOTIF, PA-05. A back button only, until its bundle builds the
+/// P-02, D-NOTIFICATIONS, PA-05. A back button only, until its bundle builds the
 /// screen.
 class NotificationsScreen extends StatelessWidget {
   const NotificationsScreen({required this.role, super.key});

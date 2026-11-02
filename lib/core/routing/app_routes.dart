@@ -648,7 +648,7 @@ class HealthNoticeRoute extends GoRouteData with $HealthNoticeRoute {
       HealthNoticeScreen(alertUid: alertUid);
 }
 
-/// D-NOTIF.
+/// D-NOTIFICATIONS.
 @TypedGoRoute<DoctorNotificationsRoute>(
   path: '${RoutePaths.doctor}/notifications',
 )
