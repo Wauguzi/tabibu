@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/helpers/facilities_helper.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_bloc.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_event.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_state.dart';
@@ -9,8 +10,11 @@ import 'package:tabibu/features/alerts/data/cache/alert_cache_helper.dart';
 import 'package:tabibu/features/alerts/data/models/alert_clinician_brief_model.dart';
 import 'package:tabibu/features/alerts/data/models/alert_receipt_model.dart';
 import 'package:tabibu/features/alerts/data/models/public_alert_model.dart';
+import 'package:tabibu/features/facilities/data/models/county_model.dart';
 
 class _MockCache extends Mock implements AlertCacheHelper {}
+
+class _MockFacilities extends Mock implements FacilitiesHelper {}
 
 PublicAlertModel _alert(
   String uid, {
@@ -22,10 +26,20 @@ AlertClinicianBriefModel _brief(String alertUid) =>
 
 void main() {
   late _MockCache cache;
+  late _MockFacilities facilities;
 
-  PublicAlertsBloc build() => PublicAlertsBloc(cache: cache);
+  PublicAlertsBloc build() =>
+      PublicAlertsBloc(cache: cache, facilities: facilities);
 
   setUp(() {
+    facilities = _MockFacilities();
+    when(facilities.counties).thenAnswer(
+      (_) async => const [
+        CountyModel(id: 1, name: 'Mombasa'),
+        CountyModel(id: 2, name: 'Kwale'),
+        CountyModel(id: 47, name: 'Nairobi'),
+      ],
+    );
     cache = _MockCache();
   });
 
@@ -42,6 +56,28 @@ void main() {
       expect: () => [const PublicAlertsInitial()],
     );
 
+    blocTest<PublicAlertsBloc, PublicAlertsState>(
+      'an unknown county shows no alerts and reads nothing',
+      build: build,
+      act: (bloc) => bloc.add(
+        const PublicAlertsRequested(
+          county: 'Atlantis',
+          demo: false,
+          clinician: false,
+        ),
+      ),
+      expect: () => [
+        const PublicAlertsLoadInProgress(),
+        const PublicAlertsLoadSuccess(),
+      ],
+      verify: (_) => verifyNever(
+        () => cache.publicAlertsForCounty(
+          countyId: any(named: 'countyId'),
+          demo: any(named: 'demo'),
+        ),
+      ),
+    );
+
     group('PublicAlertsRequested', () {
       blocTest<PublicAlertsBloc, PublicAlertsState>(
         'patient path loads the county list',
@@ -53,7 +89,7 @@ void main() {
         build: build,
         act: (bloc) => bloc.add(
           const PublicAlertsRequested(
-            countyId: 47,
+            county: 'Nairobi',
             demo: false,
             clinician: false,
           ),
@@ -83,7 +119,7 @@ void main() {
         build: build,
         act: (bloc) => bloc.add(
           const PublicAlertsRequested(
-            countyId: 47,
+            county: 'Nairobi',
             demo: true,
             clinician: true,
           ),
@@ -108,7 +144,7 @@ void main() {
         seed: () => PublicAlertsLoadSuccess(alerts: [_alert('a1')]),
         act: (bloc) => bloc.add(
           const PublicAlertsRequested(
-            countyId: 47,
+            county: 'Nairobi',
             demo: false,
             clinician: false,
           ),
@@ -129,7 +165,7 @@ void main() {
         build: build,
         act: (bloc) => bloc.add(
           const PublicAlertsRequested(
-            countyId: 47,
+            county: 'Nairobi',
             demo: false,
             clinician: false,
           ),
@@ -154,7 +190,7 @@ void main() {
         final bloc = build()
           ..add(
             const PublicAlertsRequested(
-              countyId: 1,
+              county: 'Mombasa',
               demo: false,
               clinician: false,
             ),
@@ -162,7 +198,7 @@ void main() {
         await Future<void>.delayed(const Duration(milliseconds: 10));
         bloc.add(
           const PublicAlertsRequested(
-            countyId: 2,
+            county: 'Kwale',
             demo: false,
             clinician: false,
           ),

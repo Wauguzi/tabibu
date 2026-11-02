@@ -9,17 +9,18 @@ sealed class PublicAlertsEvent extends Equatable {
 
 final class PublicAlertsRequested extends PublicAlertsEvent {
   const PublicAlertsRequested({
-    required this.countyId,
+    required this.county,
     required this.demo,
     required this.clinician,
   });
 
-  final int countyId;
+  /// The county by name, as the patient and practitioner records hold it.
+  final String county;
   final bool demo;
   final bool clinician;
 
   @override
-  List<Object?> get props => [countyId, demo, clinician];
+  List<Object?> get props => [county, demo, clinician];
 }
 
 final class PublicAlertReadRequested extends PublicAlertsEvent {

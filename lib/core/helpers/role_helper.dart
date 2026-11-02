@@ -12,6 +12,7 @@ class RoleHelper extends Equatable {
     required this.role,
     required this.isAdmin,
     required this.isAlertApprover,
+    this.isDemo = false,
   });
 
   factory RoleHelper.fromClaims(Map<String, dynamic>? claims) {
@@ -20,6 +21,7 @@ class RoleHelper extends Equatable {
       role: raw is String ? Role.fromClaim(raw) : null,
       isAdmin: claims?['admin'] == true,
       isAlertApprover: claims?['alertApprover'] == true,
+      isDemo: claims?['demo'] == true,
     );
   }
 
@@ -35,6 +37,9 @@ class RoleHelper extends Equatable {
   final bool isAdmin;
   final bool isAlertApprover;
 
+  /// A seeded demo account: it reads synthetic area alerts only (F-12).
+  final bool isDemo;
+
   bool get hasRole => role != null;
   bool get isPatient => role == .patient;
   bool get isDoctor => role == .doctor;
@@ -49,5 +54,5 @@ class RoleHelper extends Equatable {
   bool get canVerifyPractitioners => isAdmin;
 
   @override
-  List<Object?> get props => [role, isAdmin, isAlertApprover];
+  List<Object?> get props => [role, isAdmin, isAlertApprover, isDemo];
 }

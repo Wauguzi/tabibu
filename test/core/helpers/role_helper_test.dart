@@ -71,5 +71,13 @@ void main() {
       expect(claims({'role': 'patient'}).isPractitioner, isFalse);
       expect(claims({'role': 'patient'}).role, Role.patient);
     });
+    test('reads the demo claim, false by default', () {
+      expect(
+        RoleHelper.fromClaims(const {'role': 'doctor', 'demo': true}).isDemo,
+        isTrue,
+      );
+      expect(RoleHelper.fromClaims(const {'role': 'doctor'}).isDemo, isFalse);
+      expect(RoleHelper.none.isDemo, isFalse);
+    });
   });
 }

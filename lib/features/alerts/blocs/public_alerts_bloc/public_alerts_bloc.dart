@@ -1,6 +1,8 @@
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:collection/collection.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/helpers/facilities_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_event.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_state.dart';
@@ -11,8 +13,9 @@ import 'package:tabibu/features/alerts/data/models/public_alert_model.dart';
 /// Released area alerts for the reader's county, and the clinician brief for
 /// clinicians.
 class PublicAlertsBloc extends Bloc<PublicAlertsEvent, PublicAlertsState> {
-  PublicAlertsBloc({AlertCacheHelper? cache})
+  PublicAlertsBloc({AlertCacheHelper? cache, FacilitiesHelper? facilities})
     : _cache = cache ?? getIt<AlertCacheHelper>(),
+      _facilities = facilities ?? getIt<FacilitiesHelper>(),
       super(const PublicAlertsInitial()) {
     // A county change supersedes the in-flight load.
     on<PublicAlertsRequested>(_onRequested, transformer: restartable());
@@ -22,6 +25,7 @@ class PublicAlertsBloc extends Bloc<PublicAlertsEvent, PublicAlertsState> {
   }
 
   final AlertCacheHelper _cache;
+  final FacilitiesHelper _facilities;
 
   static const Set<AppError> _offline = {
     .noInternet,
@@ -57,13 +61,21 @@ class PublicAlertsBloc extends Bloc<PublicAlertsEvent, PublicAlertsState> {
   ) async {
     emit(_inProgress());
     try {
+      final county = (await _facilities.counties()).firstWhereOrNull(
+        (c) => c.name == event.county,
+      );
+      // No known county, no area alerts: nothing to show, nothing failed.
+      if (county == null) {
+        emit(_success(const [], const {}));
+        return;
+      }
       final alerts = event.clinician
           ? await _cache.publicAlertsForClinician(
-              countyId: event.countyId,
+              countyId: county.id,
               demo: event.demo,
             )
           : await _cache.publicAlertsForCounty(
-              countyId: event.countyId,
+              countyId: county.id,
               demo: event.demo,
             );
       final briefs = <String, AlertClinicianBriefModel>{};
