@@ -145,4 +145,10 @@ const queryRegistry = <QuerySpec>[
     filters: ['lastUpdatedAt >='],
     orderBy: ['lastUpdatedAt ASC'],
   ),
+  QuerySpec(
+    id: 'alerts.awaitingDecision',
+    collection: 'alerts',
+    filters: ['status =='],
+    orderBy: ['draftedAt ASC'],
+  ),
 ];

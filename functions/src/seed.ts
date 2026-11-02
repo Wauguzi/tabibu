@@ -201,13 +201,26 @@ async function main(): Promise<void> {
       kmpdcNumber: 'DEMO-D-0001',
     },
   });
-  // The approver permission used to sit on this doctor; it now sits on the admin
-  // account, so a stale claim from an earlier seed is removed (F-41).
+  // S-2: the demo doctor is the in-app alert approver (admin still approves
+  // from the console). Claims merge with whatever practitioner() wrote.
   const doctorClaims = (await getAuth().getUser(doctorUid)).customClaims ?? {};
-  if (doctorClaims.alertApprover !== undefined) {
-    const kept = { ...doctorClaims };
-    delete kept.alertApprover;
-    await getAuth().setCustomUserClaims(doctorUid, kept);
+  await getAuth().setCustomUserClaims(doctorUid, {
+    ...doctorClaims,
+    admin: true,
+    alertApprover: true,
+  });
+  // Created once: a re-run must not wipe the push tokens the doctor's phone
+  // has since registered.
+  const doctorApprover = getFirestore().collection('alertApprovers').doc(doctorUid);
+  if (!(await doctorApprover.get()).exists) {
+    await doctorApprover.set({
+      uid: doctorUid,
+      grantedByUid: adminUid,
+      grantedAt: seededAt,
+      fcmTokens: [],
+      language: 'en',
+      lastUpdatedAt: seededAt,
+    });
   }
   await markDemo(doctorUid);
   await writeDemoAccount(doctorUid, 'doctor');
@@ -263,7 +276,7 @@ async function main(): Promise<void> {
     });
   }
 
-  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin (approver), doctor, pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
+  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin, doctor (approver), pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
 }
 
 main().catch((e: Error) => {
