@@ -2,7 +2,9 @@
 /**
  * Verifies one practitioner as the verifyPractitioner callable does, until the
  * app has an approval screen: verificationStatus Verified, then the role claim,
- * keeping every other claim. A dry run unless --confirm names the project.
+ * keeping every other claim. A profile from before the availability fields gets
+ * their defaults, as backfillAvailability writes them. A dry run unless
+ * --confirm names the project.
  *
  * Usage: node scripts/verify-practitioner.cjs <projectId> <uid> [--confirm <projectId>]
  */
@@ -37,15 +39,28 @@ async function main() {
     throw new Error(`KMPDC number ${kmpdc} is held by another account`);
   }
 
+  // functions/src/identity.ts DEFAULT_WORKING_DAYS, DEFAULT_DAY_START_MINUTE, DEFAULT_DAY_END_MINUTE.
+  const availability = {};
+  if (!Array.isArray(doc.get('workingDays'))) availability.workingDays = [1, 2, 3, 4, 5];
+  if (typeof doc.get('dayStartMinute') !== 'number') availability.dayStartMinute = 480;
+  if (typeof doc.get('dayEndMinute') !== 'number') availability.dayEndMinute = 1020;
+  if (!Array.isArray(doc.get('busySlots'))) availability.busySlots = [];
+
   const role = doc.get('isPathologist') === true ? 'pathologist' : 'doctor';
   const user = await auth.getUser(uid);
   const claims = { ...(user.customClaims ?? {}), role };
   console.log(`${uid}: ${doc.get('verificationStatus')} -> Verified, role ${role}`);
+  const filled = Object.keys(availability);
+  if (filled.length) console.log(`availability defaults: ${filled.join(', ')}`);
   if (!live) {
     console.log(`Dry run. Add CONFIRM=${project} to apply.`);
     return;
   }
-  await ref.update({ verificationStatus: 'Verified', lastUpdatedAt: new Date().toISOString() });
+  await ref.update({
+    ...availability,
+    verificationStatus: 'Verified',
+    lastUpdatedAt: new Date().toISOString(),
+  });
   await auth.setCustomUserClaims(uid, claims);
   console.log('Verified. The practitioner reopens the app to pick up the role.');
 }
