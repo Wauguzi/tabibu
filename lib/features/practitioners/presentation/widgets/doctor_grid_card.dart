@@ -75,7 +75,8 @@ class DoctorGridCard extends StatelessWidget {
                     Text(
                       name,
                       style: textTheme.titleMedium,
-                      maxLines: 2,
+                      // One line each: every card in the grid keeps its height.
+                      maxLines: 1,
                       overflow: .ellipsis,
                     ),
                     Text(
@@ -83,7 +84,7 @@ class DoctorGridCard extends StatelessWidget {
                       style: textTheme.bodyMedium?.copyWith(
                         color: scheme.onSurfaceVariant,
                       ),
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: .ellipsis,
                     ),
                     const SizedBox(height: AppSpacing.xs),
@@ -98,8 +99,8 @@ class DoctorGridCard extends StatelessWidget {
                         ),
                         alignment: Alignment.center,
                         child: AssetIcon(
-                          Assets.icons.forwardIcon,
-                          size: 14,
+                          Assets.icons.arrowUpRightIcon,
+                          size: 12,
                           scaleUp: false,
                           color: scheme.onSurfaceVariant,
                         ),
@@ -129,7 +130,7 @@ Color _toneFill(IconTone tone, bool isDark) => switch ((tone, isDark)) {
   (.peach, true) => AppColors.peachDark,
   (.white, false) => AppColors.surfaceLowestLight,
   (.white, true) => AppColors.surfaceHighDark,
-  (.glass, _) => Colors.white.withValues(alpha: 0.16),
+  (.glass, _) => AppColors.white.withValues(alpha: 0.16),
   (.neutral, false) => AppColors.surfaceLowLight,
   (.neutral, true) => AppColors.surfaceLowDark,
   (.danger, false) => AppColors.peachLight,

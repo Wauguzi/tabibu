@@ -53,7 +53,7 @@ class DoctorRowCard extends StatelessWidget {
                   Text(
                     name,
                     style: textTheme.titleMedium,
-                    maxLines: 2,
+                    maxLines: 1,
                     overflow: .ellipsis,
                   ),
                   Text(

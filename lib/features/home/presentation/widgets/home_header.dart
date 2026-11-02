@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -37,10 +38,20 @@ class HomeHeader extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Row(
       children: [
-        Avatar(
-          name: name,
-          image: photoUrl.isEmpty ? null : NetworkImage(photoUrl),
-          radius: 28,
+        // The bell's white circle: pale initials alone fade into the wash.
+        Material(
+          color: scheme.surfaceContainerLowest,
+          shape: const CircleBorder(),
+          elevation: 2,
+          shadowColor: AppShadows.raisedColor,
+          child: Padding(
+            padding: const EdgeInsets.all(3),
+            child: Avatar(
+              name: name,
+              image: photoUrl.isEmpty ? null : NetworkImage(photoUrl),
+              radius: 25,
+            ),
+          ),
         ),
         const SizedBox(width: AppSpacing.sm),
         Expanded(

@@ -79,6 +79,36 @@ void main() {
       );
       expect(tester.takeException(), isNull);
     });
+    testWidgets('a long name keeps to one line, so cards keep one height', (
+      tester,
+    ) async {
+      Future<double> heightFor(String name) async {
+        await tester.pumpApp(
+          Center(
+            child: SizedBox(
+              width: 170,
+              child: DoctorGridCard(
+                name: name,
+                specialty: 'General practice',
+                onTap: () {},
+              ),
+            ),
+          ),
+        );
+        return tester.getSize(find.byType(DoctorGridCard)).height;
+      }
+
+      final short = await heightFor('Dr. Ann Mutua');
+      final long = await heightFor(
+        'Dr. Wanjiru Kamau-Njoroge Wambui Achieng Odhiambo',
+      );
+      expect(long, short);
+      final text = tester.widget<Text>(
+        find.text('Dr. Wanjiru Kamau-Njoroge Wambui Achieng Odhiambo'),
+      );
+      expect(text.maxLines, 1);
+      expect(text.overflow, TextOverflow.ellipsis);
+    });
   });
 }
 

@@ -1,6 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:tabibu/core/widgets/circle_icon_button.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/home/presentation/widgets/home_header.dart';
 
 import '../../../../helpers/helpers.dart';
@@ -10,7 +10,7 @@ void main() {
     HomeHeader header({VoidCallback? onNotifications, bool hasUnread = false}) {
       return HomeHeader(
         name: 'Amina Wambui',
-        greeting: 'Habari, Amina',
+        greeting: 'Hi, Amina',
         subtitle: 'Embakasi · Tue 27 Oct',
         notificationsLabel: 'Notifications',
         unreadLabel: 'Notifications, unread',
@@ -33,7 +33,7 @@ void main() {
       await tester.pumpApp(header());
       await tester.pumpAndSettle();
 
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
       expect(find.text('Embakasi · Tue 27 Oct'), findsOneWidget);
       final bell = tester.widget<CircleIconButton>(
         find.byType(CircleIconButton),
@@ -41,6 +41,22 @@ void main() {
       expect(bell.semanticLabel, 'Notifications');
       expect(bell.onTap, isNull);
       expect(unreadDot(schemeOf(tester)), findsNothing);
+    });
+
+    testWidgets('sets the initials on a white circle, like the bell', (
+      tester,
+    ) async {
+      await tester.pumpApp(header());
+      await tester.pumpAndSettle();
+
+      expect(find.text('AW'), findsOneWidget);
+      final circle = tester.widget<Material>(
+        find
+            .ancestor(of: find.byType(Avatar), matching: find.byType(Material))
+            .first,
+      );
+      expect(circle.color, schemeOf(tester).surfaceContainerLowest);
+      expect(circle.shape, isA<CircleBorder>());
     });
 
     testWidgets('opens notifications from the bell', (tester) async {
@@ -105,7 +121,7 @@ void main() {
       );
       await tester.pumpAndSettle();
 
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
       expect(unreadDot(schemeOf(tester)), findsOneWidget);
     });
 
@@ -113,7 +129,7 @@ void main() {
       await tester.pumpApp(header(), locale: const Locale('sw'));
       await tester.pumpAndSettle();
 
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
     });
 
     testWidgets('grows at 1.3x text without overflow', (tester) async {

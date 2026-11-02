@@ -45,10 +45,7 @@ class FloatingTabBar extends StatelessWidget {
         boxShadow: AppShadows.glass(isDark: isDark),
       ),
       child: Padding(
-        padding: const EdgeInsets.symmetric(
-          horizontal: AppSpacing.xxs,
-          vertical: AppSpacing.xs,
-        ),
+        padding: const EdgeInsets.all(AppSpacing.xs),
         child: Row(
           mainAxisSize: .min,
           children: [
@@ -81,13 +78,16 @@ class _TabItem extends StatelessWidget {
   final bool selected;
   final VoidCallback onTap;
 
+  static const _duration = Duration(milliseconds: 250);
+  static const Curve _curve = Curves.easeOutCubic;
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final onInk = scheme.brightness == .dark
         ? AppColors.inkLight
-        : Colors.white;
+        : AppColors.white;
     final color = selected ? onInk : scheme.onSurfaceVariant;
 
     return Semantics(
@@ -110,40 +110,45 @@ class _TabItem extends StatelessWidget {
         child: GestureDetector(
           onTap: onTap,
           behavior: .opaque,
-          child: AnimatedSize(
-            duration: const Duration(milliseconds: 250),
-            curve: Curves.easeOutCubic,
-            child: Container(
-              height: 52,
-              constraints: const BoxConstraints(minWidth: 56),
-              padding: EdgeInsets.symmetric(
-                horizontal: selected ? AppSpacing.md : 0,
-              ),
-              decoration: selected
-                  ? BoxDecoration(
-                      color: status.ink,
-                      borderRadius: BorderRadius.circular(AppRadii.pill),
-                    )
-                  : null,
-              child: Row(
-                mainAxisSize: .min,
-                mainAxisAlignment: .center,
-                children: [
-                  AssetIcon(tab.icon, size: 22, color: color),
-                  if (selected) ...[
-                    const SizedBox(width: AppSpacing.xs),
-                    Flexible(
-                      child: Text(
-                        tab.label,
-                        style: Theme.of(
-                          context,
-                        ).textTheme.titleSmall?.copyWith(color: color),
-                        maxLines: 1,
-                        overflow: .ellipsis,
+          // The pill sits outside the clip so it grows with the width
+          // instead of being cut while the label slides in.
+          child: AnimatedContainer(
+            duration: _duration,
+            curve: _curve,
+            height: 52,
+            constraints: const BoxConstraints(minWidth: 56),
+            decoration: BoxDecoration(
+              color: selected ? status.ink : status.ink.withValues(alpha: 0),
+              borderRadius: BorderRadius.circular(AppRadii.pill),
+            ),
+            clipBehavior: .antiAlias,
+            child: AnimatedSize(
+              duration: _duration,
+              curve: _curve,
+              child: Padding(
+                padding: EdgeInsets.symmetric(
+                  horizontal: selected ? AppSpacing.md : 0,
+                ),
+                child: Row(
+                  mainAxisSize: .min,
+                  mainAxisAlignment: .center,
+                  children: [
+                    AssetIcon(tab.icon, size: 22, color: color),
+                    if (selected) ...[
+                      const SizedBox(width: AppSpacing.xs),
+                      Flexible(
+                        child: Text(
+                          tab.label,
+                          style: Theme.of(
+                            context,
+                          ).textTheme.titleSmall?.copyWith(color: color),
+                          maxLines: 1,
+                          overflow: .ellipsis,
+                        ),
                       ),
-                    ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
           ),
