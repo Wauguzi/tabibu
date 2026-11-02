@@ -108,7 +108,7 @@ harmless. Deploy order stays indexes (`READY`) → smoke → functions
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No clinical path |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | Reads inside the rules |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | Bytes not URLs; visibility filters |
@@ -122,6 +122,14 @@ harmless. Deploy order stays indexes (`READY`) → smoke → functions
 - **Smoke run**: the dev-project run predates the queries the domain
   functions added (d05d289). Run `make smoke-indexes` again, with the
   indexes `READY`, before the functions deploy.
+- **What Greptile found** ([PR #8](https://github.com/Wauguzi/tabibu/pull/8)):
+  - Round 1: every data-source call was checked against its rule block
+    (the client and rules matrix); the alert deltas filter out synthetic
+    rows so the lists are provable; four composite indexes were added on
+    both sides (7c3e416).
+  - Round 2: eviction-driving reads ask the server (`Source.server`),
+    across 23 reads in seven data sources (a828a9f). The client and
+    rules matrix predates this change.
 
 ## 10. Related records
 

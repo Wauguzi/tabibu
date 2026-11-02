@@ -97,7 +97,7 @@ counts without identifiers and need no cleanup.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | Counts only |
 | Security Analyst | §4 flags security impact | N/A | — | No security impact |
 | Compliance Officer | §4 flags data protection impact | N/A | — | No identifiers by construction |
@@ -109,6 +109,10 @@ counts without identifiers and need no cleanup.
   shaped for it.
 - **Follow-up**: the AI service client, whose jobs emit the rest of
   these signals.
+- **What Greptile found** ([PR #8](https://github.com/Wauguzi/tabibu/pull/8), round 1): failed AI jobs carried
+  no completion stamp, so the daily job missed them; `overallMix` could
+  not bucket a number; drafts lacked `createdAt`. All three fixed, with
+  each bucket asserted (7c3e416).
 
 ## 10. Related records
 

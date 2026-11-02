@@ -110,7 +110,7 @@ idempotent.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Covered by CTO | Pending | Summary is a labelled AI draft; `Failed` until the service exists |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | Scoped reads; quotas |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | Audio discarded; intake role-gated |
@@ -131,6 +131,10 @@ idempotent.
   summary.
 - **F-20**: profiles keep display names; county ids derive at the
   edge, with `unknownCounty` and an audit in `backfillAvailability`.
+- **What Greptile found** ([PR #8](https://github.com/Wauguzi/tabibu/pull/8), round 1): a no-show left the
+  case's discussion booked, so it could not be booked again. Every
+  terminal status of a discussion appointment now closes it in the same
+  transaction (7c3e416).
 
 ## 10. Related records
 

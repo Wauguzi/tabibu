@@ -125,7 +125,7 @@ writers.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Covered by CTO | Pending | Transcripts labelled AI (S-8); no result path |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | Media rules; quotas; T-17 controls |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | De-identified summaries; split transcripts |
@@ -149,6 +149,19 @@ writers.
 - **Follow-up**: the AI service client, for the voice-note transcript.
 - **Later**: a pre-send identifier check for typed MDT messages
   (Q-22); de-identified slides in the MDT (§13).
+- **What Greptile found** ([PR #8](https://github.com/Wauguzi/tabibu/pull/8)):
+  - Round 1: text and voice messages now send exactly the keys, types
+    and stamps the rules accept, and the thread loads through two
+    provable queries, merged by id (7c3e416).
+  - Round 2: one cursor over the two limited queries skipped rows past
+    one query's page, and the replacement then deleted them. A page now
+    ends at the earliest last stamp among the queries that came back
+    full (a828a9f).
+- **Accepted risk**: if more than a page (200) of a thread's messages
+  share one `sentAt`, the sync stops early and the replacement evicts
+  the rest. The server stamps each message to the millisecond, so this
+  is not reachable in practice; a document-id tiebreak would need new
+  indexes.
 
 ## 10. Related records
 

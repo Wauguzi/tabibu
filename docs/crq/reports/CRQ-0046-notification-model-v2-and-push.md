@@ -104,7 +104,7 @@ stay readable: the v1 readers ignore the new fields.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No clinical path |
 | Security Analyst | §4 flags security impact | N/A | — | No security impact |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | Fixed push copy; server-only case links |

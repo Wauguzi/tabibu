@@ -104,7 +104,7 @@ them.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | No clinical path |
 | Security Analyst | §4 flags security impact | N/A | — | No security impact |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | Records encrypted and wiped; role gates at write time |
@@ -120,6 +120,16 @@ them.
 - **Voice replay vs write-once uploads**: a refused voice send whose
   upload already landed keeps its `Failed` row visible rather than
   vanish; the recording file survives until sign-out.
+- **What Greptile found** ([PR #8](https://github.com/Wauguzi/tabibu/pull/8)):
+  - Round 1: a removed viewer's cached cases, reports, conversations
+    and messages stayed on the device. A successful sync now evicts the
+    rows the server no longer returns, and a failed read never evicts
+    (7c3e416).
+  - Round 2: that eviction trusted Firestore's offline answer, which
+    comes from its partial local cache, so an offline refresh could
+    delete downloads. Every read that drives an eviction or a
+    replacement now asks the server (`Source.server`); offline it
+    throws, and the helper keeps its rows (a828a9f).
 
 ## 10. Related records
 

@@ -136,7 +136,7 @@ app (§8 5e).
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Covered by CTO | Pending | Release only by signature then the doctor's marking; no wording authored |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | Reader rules with tests per reader |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | Drafts uncached; approved text to readers only |
@@ -166,6 +166,11 @@ app (§8 5e).
   than pass on (CRQ-0045 §9).
 - **Follow-ups**: the AI service client, including the measure
   endpoint; an index for a notes-AI `Running` sweep (CRQ-0041 §9).
+- **What Greptile found** ([PR #8](https://github.com/Wauguzi/tabibu/pull/8), round 1): a failed or stale
+  pre-read's run id reached the draft, and the rules then demanded a
+  score `scorePreread` refuses to record, so the report could not be
+  written and signed by hand. `startReport` now carries a run only when
+  it is `Ready` (7c3e416).
 
 ## 10. Related records
 

@@ -115,7 +115,7 @@ Config → app (§8 5e).
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-02 | Approved — [PR #8](https://github.com/Wauguzi/tabibu/pull/8), 5/5 at round 3 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Covered by CTO | Pending | Risk check and notes translation are labelled AI, key-selected advisories only |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | Injected HMAC key; ignored emulator secret |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | De-identification before any summary leaves the case |
@@ -146,6 +146,10 @@ Config → app (§8 5e).
   translations stuck `Running` (today a stale run fails when the next
   write retriggers it, and `sweepCases` covers the pre-read and report
   texts only).
+- **Accepted risk (L-6)**: the slide rule accepts `{uuid}.jpg` or
+  `{uuid}.png` against one reservation, so before `registerSlides`
+  runs a reservation can yield both objects. `registerSlides` registers
+  one; the other is unreferenced and never shown.
 
 ## 10. Related records
 
