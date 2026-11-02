@@ -2,6 +2,7 @@ import 'dart:math' as math;
 import 'dart:ui' as ui;
 
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 
@@ -139,7 +140,7 @@ class WeeklyBarChartPainter extends CustomPainter {
     final count = index < counts.length ? counts[index] : 0;
     final base = count > baseline ? aboveColor : belowColor;
     if (counts.isNotEmpty && index == counts.length - 1) {
-      return Color.alphaBlend(Colors.black.withValues(alpha: 0.2), base);
+      return Color.alphaBlend(AppColors.black.withValues(alpha: 0.2), base);
     }
     return base;
   }

@@ -8,6 +8,7 @@ import 'package:flutter_localizations/flutter_localizations.dart'
     show GlobalWidgetsLocalizations;
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/constants/theme_builder.dart';
 import 'package:tabibu/core/helpers/blocs_helper.dart';
@@ -174,7 +175,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
             // The default for screens that set no style of their own.
             return AnnotatedRegion<SystemUiOverlayStyle>(
               value: SystemUiOverlayStyle(
-                statusBarColor: Colors.transparent,
+                statusBarColor: AppColors.transparent,
                 statusBarBrightness: isDark ? .dark : .light,
                 statusBarIconBrightness: isDark ? .light : .dark,
               ),

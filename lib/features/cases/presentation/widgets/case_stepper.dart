@@ -28,7 +28,7 @@ class CaseStepper extends StatelessWidget {
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final textTheme = Theme.of(context).textTheme;
     final isDark = scheme.brightness == .dark;
-    final onInk = isDark ? AppColors.inkLight : Colors.white;
+    final onInk = isDark ? AppColors.inkLight : AppColors.white;
     final count = labels.length;
 
     return Semantics(

@@ -52,7 +52,7 @@ class TabibuFilterChip extends StatelessWidget {
                     label,
                     style: textTheme.titleMedium?.copyWith(
                       color: selected
-                          ? (isDark ? AppColors.inkLight : Colors.white)
+                          ? (isDark ? AppColors.inkLight : AppColors.white)
                           : scheme.onSurface,
                     ),
                   ),

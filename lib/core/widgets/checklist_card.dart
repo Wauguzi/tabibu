@@ -32,7 +32,7 @@ class ChecklistCard extends StatelessWidget {
 
     final leading = this.leading;
     final content = inverse
-        ? (isDark ? AppColors.inkLight : Colors.white)
+        ? (isDark ? AppColors.inkLight : AppColors.white)
         : scheme.onSurface;
     final check = inverse ? content : scheme.primary;
     return Container(

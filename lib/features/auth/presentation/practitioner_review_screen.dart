@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
@@ -254,7 +255,7 @@ class _TermsBox extends StatelessWidget {
         child: Tappable(
           onTap: onChanged == null ? null : () => onChanged(!value),
           child: Material(
-            color: Colors.transparent,
+            color: AppColors.transparent,
             child: Padding(
               padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
               child: Row(

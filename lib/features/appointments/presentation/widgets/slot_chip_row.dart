@@ -80,7 +80,7 @@ class _SlotChip extends StatelessWidget {
     final foreground = taken
         ? scheme.onSurface.withValues(alpha: 0.38)
         : selected
-        ? (isDark ? AppColors.inkLight : Colors.white)
+        ? (isDark ? AppColors.inkLight : AppColors.white)
         : scheme.onSurface;
 
     final chip = ConstrainedBox(

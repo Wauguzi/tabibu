@@ -19,7 +19,7 @@ class CaseThumb extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final isDark = scheme.brightness == .dark;
-    final onInk = isDark ? AppColors.inkLight : Colors.white;
+    final onInk = isDark ? AppColors.inkLight : AppColors.white;
     final image = this.image;
     final rank = this.rank;
     final radius = BorderRadius.circular(AppRadii.field);

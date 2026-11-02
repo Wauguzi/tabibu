@@ -98,7 +98,7 @@ class _SlideViewerState extends State<SlideViewer> {
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final textTheme = Theme.of(context).textTheme;
     final isDark = scheme.brightness == .dark;
-    final onInk = isDark ? AppColors.inkLight : Colors.white;
+    final onInk = isDark ? AppColors.inkLight : AppColors.white;
     final heatmap = widget.heatmap;
     final imageRadius = BorderRadius.circular(AppRadii.card);
 

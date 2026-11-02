@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_gradients.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_styles.dart';
@@ -68,7 +69,7 @@ class _PatternPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = Colors.white.withValues(alpha: isDark ? 0.14 : 0.12);
+      ..color = AppColors.white.withValues(alpha: isDark ? 0.14 : 0.12);
     for (var i = 0; i < _scatter.length; i++) {
       final (fx, fy, width, rotation) = _scatter[i];
       canvas

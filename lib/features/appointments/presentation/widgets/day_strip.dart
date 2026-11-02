@@ -81,7 +81,7 @@ class _DayPill extends StatelessWidget {
     final foreground = !available
         ? scheme.onSurface.withValues(alpha: 0.38)
         : selected
-        ? (isDark ? AppColors.inkLight : Colors.white)
+        ? (isDark ? AppColors.inkLight : AppColors.white)
         : scheme.onSurface;
 
     final pill = ConstrainedBox(

@@ -189,7 +189,7 @@ class _NowCard extends StatelessWidget {
     // Ink flips to near-white in dark mode, so its text flips to ink.
     final onInk = scheme.brightness == .dark
         ? AppColors.inkLight
-        : Colors.white;
+        : AppColors.white;
     final avatar = entry.avatar;
     final nowLabel = entry.nowLabel;
     final onTap = entry.onTap;

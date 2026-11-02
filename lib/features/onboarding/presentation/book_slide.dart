@@ -92,13 +92,13 @@ class _CliniciansPill extends StatelessWidget {
             height: 44,
             alignment: .center,
             decoration: BoxDecoration(
-              color: Colors.white.withValues(alpha: 0.14),
+              color: AppColors.white.withValues(alpha: 0.14),
               shape: .circle,
             ),
             child: AssetIcon(
               Assets.icons.verificationBadge,
               size: 20,
-              color: Colors.white,
+              color: AppColors.white,
             ),
           ),
         ],

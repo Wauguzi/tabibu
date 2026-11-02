@@ -38,7 +38,7 @@ class CircleIconButton extends StatelessWidget {
         ? scheme.surfaceContainerLow
         : scheme.surfaceContainerLowest;
     final foreground = filled
-        ? (isDark ? AppColors.inkLight : Colors.white)
+        ? (isDark ? AppColors.inkLight : AppColors.white)
         : scheme.onSurface;
 
     final onTap = this.onTap;

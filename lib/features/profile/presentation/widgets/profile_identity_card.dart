@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -117,12 +118,12 @@ class PractitionerIdentityCard extends StatelessWidget {
               children: [
                 Text(
                   name,
-                  style: textTheme.titleLarge?.copyWith(color: Colors.white),
+                  style: textTheme.titleLarge?.copyWith(color: AppColors.white),
                 ),
                 Text(
                   subtitle,
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.white.withValues(alpha: 0.8),
+                    color: AppColors.white.withValues(alpha: 0.8),
                   ),
                   maxLines: 2,
                   overflow: .ellipsis,

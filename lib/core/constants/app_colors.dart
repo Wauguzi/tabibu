@@ -6,6 +6,12 @@ import 'package:material_ui/material_ui.dart';
 /// keep the text roles at WCAG AA against a dark surface; containers are
 /// dark tints that sit slightly above it.
 abstract final class AppColors {
+  // Fixed colours for content on surfaces that don't change with the theme
+  // (the teal hero, ink) and for scrims. Never `Colors.*` in a widget.
+  static const Color white = Color(0xFFFFFFFF);
+  static const Color black = Color(0xFF000000);
+  static const Color transparent = Color(0x00000000);
+
   // Brand and actions. Ink drives actions; teal is the brand.
   static const Color inkLight = Color(0xFF0F1A1C);
   static const Color inkDark = Color(0xFFE8EDED);

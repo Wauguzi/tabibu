@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
@@ -79,7 +80,7 @@ class PendingVerificationScreen extends StatelessWidget {
         final failure = state is SessionLoadFailure ? state.error : null;
 
         final scaffold = Scaffold(
-          backgroundColor: Colors.transparent,
+          backgroundColor: AppColors.transparent,
           body: SafeArea(
             child: Padding(
               padding: const EdgeInsets.all(AppSpacing.screenMargin),

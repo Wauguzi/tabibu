@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_styles.dart';
@@ -50,7 +51,7 @@ class AppointmentHeroCard extends StatelessWidget {
               Flexible(
                 child: DecoratedBox(
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.16),
+                    color: AppColors.white.withValues(alpha: 0.16),
                     borderRadius: BorderRadius.circular(AppRadii.pill),
                   ),
                   child: Padding(
@@ -61,7 +62,7 @@ class AppointmentHeroCard extends StatelessWidget {
                     child: Text(
                       eyebrow,
                       style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.white,
                         fontWeight: .w600,
                       ),
                       maxLines: 2,
@@ -91,21 +92,21 @@ class AppointmentHeroCard extends StatelessWidget {
                     Text(
                       title,
                       style: textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
+                        color: AppColors.white,
                       ),
                     ),
                     if (figure != null)
                       Text(
                         figure,
                         style: AppStyles.numericLarge.copyWith(
-                          color: Colors.white,
+                          color: AppColors.white,
                         ),
                       ),
                     if (subtitle != null)
                       Text(
                         subtitle,
                         style: textTheme.bodyMedium?.copyWith(
-                          color: Colors.white.withValues(alpha: 0.85),
+                          color: AppColors.white.withValues(alpha: 0.85),
                         ),
                       ),
                     Text(
@@ -113,7 +114,7 @@ class AppointmentHeroCard extends StatelessWidget {
                       maxLines: 2,
                       overflow: .ellipsis,
                       style: textTheme.bodyMedium?.copyWith(
-                        color: Colors.white.withValues(alpha: 0.85),
+                        color: AppColors.white.withValues(alpha: 0.85),
                       ),
                     ),
                   ],

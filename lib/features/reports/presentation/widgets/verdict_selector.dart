@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 
@@ -89,7 +90,7 @@ class OverallScore extends StatelessWidget {
                           shape: .circle,
                           color: value != null && i <= value
                               ? scheme.primary
-                              : Colors.transparent,
+                              : AppColors.transparent,
                           border: Border.all(
                             color: value != null && i <= value
                                 ? scheme.primary

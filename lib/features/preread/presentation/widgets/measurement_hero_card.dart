@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_gradients.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -48,10 +49,10 @@ class MeasurementHeroCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     final isDark = scheme.brightness == .dark;
     final chipLabel = this.chipLabel;
-    final onHero = unsure ? scheme.onSurface : Colors.white;
+    final onHero = unsure ? scheme.onSurface : AppColors.white;
     final onHeroMuted = unsure
         ? scheme.onSurfaceVariant
-        : Colors.white.withValues(alpha: 0.85);
+        : AppColors.white.withValues(alpha: 0.85);
     final marker = position.clamp(0.0, 1.0);
 
     final body = Column(
@@ -89,9 +90,9 @@ class MeasurementHeroCard extends StatelessWidget {
           labelColor: onHeroMuted,
           trackColor: unsure
               ? scheme.onSurface.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.35),
-          fillColor: unsure ? scheme.onSurface : Colors.white,
-          markerColor: unsure ? scheme.onSurface : Colors.white,
+              : AppColors.white.withValues(alpha: 0.35),
+          fillColor: unsure ? scheme.onSurface : AppColors.white,
+          markerColor: unsure ? scheme.onSurface : AppColors.white,
         ),
       ],
     );
