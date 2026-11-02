@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -7,6 +5,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
+import 'package:tabibu/core/utils/closest_match.dart';
 import 'package:tabibu/core/utils/settle_refresh.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
@@ -353,44 +352,10 @@ String? _suggestion(
   String query,
   List<PractitionerModel> all,
   AppLocalizations l10n,
-) {
-  final needle = query.trim().toLowerCase();
-  if (needle.length < 3) return null;
-  final labels = <String>{
-    for (final doctor in all) ...[
-      doctor.fullName,
-      for (final raw in doctor.specialties)
-        Specialty.fromValue(raw)?.description(l10n) ?? raw,
-    ],
-  }..removeWhere((label) => label.trim().isEmpty);
-  final allowance = (needle.length / 3).ceil().clamp(2, 4);
-  String? best;
-  var bestDistance = allowance + 1;
-  for (final label in labels.toList()..sort()) {
-    final words = [label.toLowerCase(), ...label.toLowerCase().split(' ')];
-    final distance = words.map((w) => _editDistance(needle, w)).reduce(min);
-    if (distance > 0 && distance < bestDistance) {
-      best = label;
-      bestDistance = distance;
-    }
-  }
-  return bestDistance <= allowance ? best : null;
-}
-
-int _editDistance(String a, String b) {
-  if (a == b) return 0;
-  if (a.isEmpty) return b.length;
-  if (b.isEmpty) return a.length;
-  var previous = List.generate(b.length + 1, (j) => j);
-  for (var i = 1; i <= a.length; i++) {
-    final current = [i, ...List.filled(b.length, 0)];
-    for (var j = 1; j <= b.length; j++) {
-      current[j] = min(
-        min(current[j - 1] + 1, previous[j] + 1),
-        previous[j - 1] + (a.codeUnitAt(i - 1) == b.codeUnitAt(j - 1) ? 0 : 1),
-      );
-    }
-    previous = current;
-  }
-  return previous[b.length];
-}
+) => closestMatch(query, [
+  for (final doctor in all) ...[
+    doctor.fullName,
+    for (final raw in doctor.specialties)
+      Specialty.fromValue(raw)?.description(l10n) ?? raw,
+  ],
+]);
