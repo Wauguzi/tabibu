@@ -3791,5 +3791,1309 @@
     "appointmentDetailLoadingLabel": "Loading appointment",
     "@appointmentDetailLoadingLabel": {
         "description": "Appointment detail: semantic label announced while loading"
+    },
+    "caseSearchHint": "Case numbers look like ODR-JK-AW-02112026-001.",
+    "@caseSearchHint": {
+        "description": "Case search: validation hint with a literal example number"
+    },
+    "caseSearchClosestMatch": "Closest match",
+    "@caseSearchClosestMatch": {
+        "description": "Case search: label above the suggested case"
+    },
+    "caseSearchDidYouMean": "Did you mean",
+    "@caseSearchDidYouMean": {
+        "description": "Case search: label above the suggested patient"
+    },
+    "doctorAppointmentNewTitle": "New appointment",
+    "@doctorAppointmentNewTitle": {
+        "description": "Doctor appointment: title for a first visit"
+    },
+    "doctorAppointmentBookedBy": "Booked by {name}, {date}",
+    "@doctorAppointmentBookedBy": {
+        "description": "Doctor appointment: info tile naming who booked and when",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorAppointmentBookedByCard": "Booked by {name} · {date} · {area}",
+    "@doctorAppointmentBookedByCard": {
+        "description": "Doctor appointment: new-patient card line with booker, date and area",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            },
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorAppointmentPreferredLanguage": "Preferred language",
+    "@doctorAppointmentPreferredLanguage": {
+        "description": "Doctor appointment: info tile subtitle under the language name"
+    },
+    "doctorAppointmentWhyBooked": "Why {name} booked",
+    "@doctorAppointmentWhyBooked": {
+        "description": "Doctor appointment: reasons card title with the patient first name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorAppointmentRowAppointment": "Appointment",
+    "@doctorAppointmentRowAppointment": {
+        "description": "Doctor appointment: reasons row label"
+    },
+    "doctorAppointmentTypeDuration": "{type} · {minutes} min",
+    "@doctorAppointmentTypeDuration": {
+        "description": "Doctor appointment: reasons row value with the type label and length",
+        "placeholders": {
+            "type": {
+                "type": "String"
+            },
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorAppointmentRowLanguage": "Language",
+    "@doctorAppointmentRowLanguage": {
+        "description": "Doctor appointment: reasons row label"
+    },
+    "doctorAppointmentRowFirstTime": "First time",
+    "@doctorAppointmentRowFirstTime": {
+        "description": "Doctor appointment: reasons row label"
+    },
+    "doctorAppointmentFirstYes": "Yes · no records yet",
+    "@doctorAppointmentFirstYes": {
+        "description": "Doctor appointment: first-visit value"
+    },
+    "doctorAppointmentFirstNo": "No",
+    "@doctorAppointmentFirstNo": {
+        "description": "Doctor appointment: returning-visit value"
+    },
+    "doctorAppointmentNotes": "Your notes",
+    "@doctorAppointmentNotes": {
+        "description": "Doctor appointment: notes card and sheet title"
+    },
+    "doctorAppointmentNotesHint": "Add notes during the appointment. Only you and the care team see them.",
+    "@doctorAppointmentNotesHint": {
+        "description": "Doctor appointment: empty notes placeholder"
+    },
+    "doctorAppointmentEditNotes": "Edit your notes",
+    "@doctorAppointmentEditNotes": {
+        "description": "Doctor appointment: notes edit label"
+    },
+    "doctorAppointmentNotesFieldLabel": "Notes",
+    "@doctorAppointmentNotesFieldLabel": {
+        "description": "Doctor appointment: notes sheet field label"
+    },
+    "doctorAppointmentNotesSave": "Save",
+    "@doctorAppointmentNotesSave": {
+        "description": "Doctor appointment: notes sheet save button"
+    },
+    "doctorAppointmentNotesSaved": "Notes saved",
+    "@doctorAppointmentNotesSaved": {
+        "description": "Doctor appointment: notes saved confirmation"
+    },
+    "doctorAppointmentNotesFailed": "Couldn't save your notes. Try again.",
+    "@doctorAppointmentNotesFailed": {
+        "description": "Doctor appointment: notes save failure"
+    },
+    "doctorAppointmentOrderTest": "Order a test",
+    "@doctorAppointmentOrderTest": {
+        "description": "Doctor appointment: primary action and options row"
+    },
+    "doctorAppointmentEnd": "End appointment",
+    "@doctorAppointmentEnd": {
+        "description": "Doctor appointment: secondary action"
+    },
+    "doctorAppointmentDidntCome": "Didn't come",
+    "@doctorAppointmentDidntCome": {
+        "description": "Doctor appointment: options row after the slot ends"
+    },
+    "doctorAppointmentEnded": "Ended",
+    "@doctorAppointmentEnded": {
+        "description": "Doctor appointment: confirmation once ended"
+    },
+    "doctorAppointmentEndDisabled": "You can end it once it has started.",
+    "@doctorAppointmentEndDisabled": {
+        "description": "Doctor appointment: reason the end action is disabled"
+    },
+    "doctorCasesSubtitle": "{open} open · {needsYou} needs you",
+    "@doctorCasesSubtitle": {
+        "description": "Doctor cases: subtitle with the open and needs-you counts",
+        "placeholders": {
+            "open": {
+                "type": "int"
+            },
+            "needsYou": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorCasesNoneOpen": "None open",
+    "@doctorCasesNoneOpen": {
+        "description": "Doctor cases: subtitle when no case is open"
+    },
+    "doctorCasesSearchHint": "Search patient, case or test",
+    "@doctorCasesSearchHint": {
+        "description": "Doctor cases: search field hint"
+    },
+    "doctorCasesFilterAll": "All {count}",
+    "@doctorCasesFilterAll": {
+        "description": "Case lists: All filter with the case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorCasesOrdered": "Ordered",
+    "@doctorCasesOrdered": {
+        "description": "Doctor cases: filter chip for ordered cases"
+    },
+    "doctorCasesWithPathologist": "With pathologist",
+    "@doctorCasesWithPathologist": {
+        "description": "Doctor cases: filter and status chip"
+    },
+    "doctorCasesSigned": "Signed",
+    "@doctorCasesSigned": {
+        "description": "Doctor cases: filter and status chip"
+    },
+    "doctorCasesClosed": "Closed",
+    "@doctorCasesClosed": {
+        "description": "Doctor cases: status chip for a closed case"
+    },
+    "doctorCasesNeedsYou": "Needs you",
+    "@doctorCasesNeedsYou": {
+        "description": "Doctor cases: first section title"
+    },
+    "doctorCasesInProgress": "In progress",
+    "@doctorCasesInProgress": {
+        "description": "Doctor cases: second section title"
+    },
+    "doctorCasesDone": "Done",
+    "@doctorCasesDone": {
+        "description": "Doctor cases: last section title"
+    },
+    "doctorCasesSeeAll": "See all",
+    "@doctorCasesSeeAll": {
+        "description": "Doctor cases: link beside the last section"
+    },
+    "doctorCasesDiscuss": "Discuss",
+    "@doctorCasesDiscuss": {
+        "description": "Doctor cases: row chip asking the doctor to discuss"
+    },
+    "doctorCasesNoMatchTitle": "No exact match for \"{query}\"",
+    "@doctorCasesNoMatchTitle": {
+        "description": "Doctor cases: no-result title with the search text",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorCasesNoMatchBody": "One of your patients has a similar name.",
+    "@doctorCasesNoMatchBody": {
+        "description": "Doctor cases: no-result body"
+    },
+    "doctorCasesCheckNumber": "Check the case number",
+    "@doctorCasesCheckNumber": {
+        "description": "Case lists: wrong-number title and subtitle"
+    },
+    "doctorCasesCheckNumberBody": "It's printed on the order form and the sample label.",
+    "@doctorCasesCheckNumberBody": {
+        "description": "Doctor cases: wrong-number body"
+    },
+    "doctorCasesTipSearch": "Search by first name, case number or test",
+    "@doctorCasesTipSearch": {
+        "description": "Doctor cases: no-result search tip"
+    },
+    "doctorCasesTipSeen": "Only patients you've seen show here",
+    "@doctorCasesTipSeen": {
+        "description": "Doctor cases: no-result scope tip"
+    },
+    "doctorCasesEmptyTitle": "No cases yet",
+    "@doctorCasesEmptyTitle": {
+        "description": "Doctor cases: empty state title"
+    },
+    "doctorCasesEmptyBody": "Order a test during an appointment and follow it here, from order to signed report.",
+    "@doctorCasesEmptyBody": {
+        "description": "Doctor cases: empty state body"
+    },
+    "doctorCaseSubtitle": "{test} · {stage}",
+    "@doctorCaseSubtitle": {
+        "description": "Doctor case: subtitle with the test name and stage word",
+        "placeholders": {
+            "test": {
+                "type": "String"
+            },
+            "stage": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorCaseStageOrdered": "ordered",
+    "@doctorCaseStageOrdered": {
+        "description": "Doctor case: subtitle stage word"
+    },
+    "doctorCaseStageWithPathologist": "with pathologist",
+    "@doctorCaseStageWithPathologist": {
+        "description": "Doctor case: subtitle stage word"
+    },
+    "doctorCaseStageSigned": "signed",
+    "@doctorCaseStageSigned": {
+        "description": "Doctor case: subtitle stage word"
+    },
+    "doctorCaseStageDiscuss": "to discuss",
+    "@doctorCaseStageDiscuss": {
+        "description": "Doctor case: subtitle stage word"
+    },
+    "doctorCaseStageClosed": "closed",
+    "@doctorCaseStageClosed": {
+        "description": "Doctor case: subtitle stage word"
+    },
+    "doctorCaseAppointmentLine": "Appointment {date} · {facility}",
+    "@doctorCaseAppointmentLine": {
+        "description": "Doctor case: patient card line with the date and facility",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorCaseTimelineTitle": "Where the case is",
+    "@doctorCaseTimelineTitle": {
+        "description": "Doctor case: timeline card title"
+    },
+    "doctorCaseSampleReceived": "Sample received",
+    "@doctorCaseSampleReceived": {
+        "description": "Doctor case: timeline step"
+    },
+    "doctorCaseReading": "Pathologist reading",
+    "@doctorCaseReading": {
+        "description": "Doctor case: timeline step"
+    },
+    "doctorCaseReportSigned": "Report signed",
+    "@doctorCaseReportSigned": {
+        "description": "Doctor case: timeline step"
+    },
+    "doctorCaseDiscussWith": "Discuss with {name}",
+    "@doctorCaseDiscussWith": {
+        "description": "Doctor case: timeline step with the patient first name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorCaseDiscussDetail": "Book a results talk when it's signed",
+    "@doctorCaseDiscussDetail": {
+        "description": "Doctor case: last timeline step detail"
+    },
+    "doctorCaseNow": "Now",
+    "@doctorCaseNow": {
+        "description": "Doctor case: timeline chip for the current step"
+    },
+    "doctorCaseNext": "Next",
+    "@doctorCaseNext": {
+        "description": "Doctor case: timeline chip for a later step"
+    },
+    "doctorCaseOrder": "Order",
+    "@doctorCaseOrder": {
+        "description": "Doctor case: order card title"
+    },
+    "doctorCaseTest": "Test",
+    "@doctorCaseTest": {
+        "description": "Doctor case: order row label"
+    },
+    "doctorCaseSpecimen": "Specimen",
+    "@doctorCaseSpecimen": {
+        "description": "Doctor case: order row label"
+    },
+    "doctorCasePriority": "Priority",
+    "@doctorCasePriority": {
+        "description": "Doctor case: order row label"
+    },
+    "doctorCaseRoutine": "Routine",
+    "@doctorCaseRoutine": {
+        "description": "Doctor case: routine priority value"
+    },
+    "doctorCaseUrgent": "Urgent",
+    "@doctorCaseUrgent": {
+        "description": "Doctor case: urgent priority value"
+    },
+    "doctorCaseRiskCheck": "Risk check",
+    "@doctorCaseRiskCheck": {
+        "description": "Doctor case: order row label"
+    },
+    "doctorCaseNoFlags": "No flags",
+    "@doctorCaseNoFlags": {
+        "description": "Doctor case: clear risk check value"
+    },
+    "doctorCaseFlagged": "Flagged",
+    "@doctorCaseFlagged": {
+        "description": "Doctor case: flagged risk check value"
+    },
+    "doctorCaseReportInProgress": "Report in progress",
+    "@doctorCaseReportInProgress": {
+        "description": "Doctor side: unsigned report placeholder"
+    },
+    "deskCasesOnDesk": "{count, plural, =1{1 case on desk.} other{{count} cases on desk.}}",
+    "@deskCasesOnDesk": {
+        "description": "Desk: headline first line with the open case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskAiReadFirst": "AI read them first.",
+    "@deskAiReadFirst": {
+        "description": "Desk: headline second line"
+    },
+    "deskMostUrgent": "Most urgent",
+    "@deskMostUrgent": {
+        "description": "Desk: hero rank chip"
+    },
+    "deskHeroWaiting": "{name}, {age} · waiting {elapsed}",
+    "@deskHeroWaiting": {
+        "description": "Desk: hero patient line with short name, age and elapsed wait",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "age": {
+                "type": "int"
+            },
+            "elapsed": {
+                "type": "String"
+            }
+        }
+    },
+    "deskWaitingLabel": "waiting",
+    "@deskWaitingLabel": {
+        "description": "Desk: hero figure label under the elapsed time"
+    },
+    "deskOpenCase": "Open case",
+    "@deskOpenCase": {
+        "description": "Desk: hero button"
+    },
+    "deskAiDraftReady": "AI draft ready",
+    "@deskAiDraftReady": {
+        "description": "Desk: hero chip when the pre-read is ready"
+    },
+    "deskNoAiDraft": "No AI draft",
+    "@deskNoAiDraft": {
+        "description": "Desk: hero line when the pre-read failed"
+    },
+    "deskElapsedHours": "{hours}h {minutes}m",
+    "@deskElapsedHours": {
+        "description": "Desk: elapsed wait of an hour or more",
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            },
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "deskElapsedMinutes": "{minutes}m",
+    "@deskElapsedMinutes": {
+        "description": "Desk: elapsed wait under an hour",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "deskLowConfidence": "Low confidence",
+    "@deskLowConfidence": {
+        "description": "Desk: low-confidence tile title"
+    },
+    "deskLowConfidenceBody": "The AI was unsure. Read these closely.",
+    "@deskLowConfidenceBody": {
+        "description": "Desk: low-confidence tile body"
+    },
+    "deskWaitingOver4h": "Waiting over 4h",
+    "@deskWaitingOver4h": {
+        "description": "Desk: long-wait tile title"
+    },
+    "deskWaitingBody": "{count, plural, =1{1 case} other{{count} cases}} · oldest {elapsed}",
+    "@deskWaitingBody": {
+        "description": "Desk: long-wait tile body with count and oldest wait",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "elapsed": {
+                "type": "String"
+            }
+        }
+    },
+    "deskSignedToday": "Signed today",
+    "@deskSignedToday": {
+        "description": "Pathologist side: signed-today tile title"
+    },
+    "deskSignedBody": "{count} · avg {minutes} min",
+    "@deskSignedBody": {
+        "description": "Desk: signed tile body with count and average minutes",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "deskUpNext": "Up next",
+    "@deskUpNext": {
+        "description": "Desk: ranked list section title"
+    },
+    "deskPriority": "Priority",
+    "@deskPriority": {
+        "description": "Desk: row summary for the priority case"
+    },
+    "deskUrgent": "Urgent",
+    "@deskUrgent": {
+        "description": "Desk: row summary for an urgent case"
+    },
+    "deskLowConfidenceRow": "Low confidence · {percent}",
+    "@deskLowConfidenceRow": {
+        "description": "Desk: row summary with the confidence percentage",
+        "placeholders": {
+            "percent": {
+                "type": "String"
+            }
+        }
+    },
+    "deskBandRow": "{band} {percent}",
+    "@deskBandRow": {
+        "description": "Desk: row summary with the confidence band word and percentage",
+        "placeholders": {
+            "band": {
+                "type": "String"
+            },
+            "percent": {
+                "type": "String"
+            }
+        }
+    },
+    "deskBandHigh": "High",
+    "@deskBandHigh": {
+        "description": "Desk: high confidence band word"
+    },
+    "deskBandModerate": "Moderate",
+    "@deskBandModerate": {
+        "description": "Desk: moderate confidence band word"
+    },
+    "deskBandLow": "Low",
+    "@deskBandLow": {
+        "description": "Desk: low confidence band word"
+    },
+    "deskWaitingOver": "Waiting over {hours}h",
+    "@deskWaitingOver": {
+        "description": "Desk: row summary with the whole hours waited",
+        "placeholders": {
+            "hours": {
+                "type": "int"
+            }
+        }
+    },
+    "deskAllCasesTitle": "Your desk",
+    "@deskAllCasesTitle": {
+        "description": "Desk list: app bar title"
+    },
+    "deskFilterLowConfidence": "Low confidence · {count}",
+    "@deskFilterLowConfidence": {
+        "description": "Desk list: filter chip with the case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskFilterWaiting": "Waiting 4h+ · {count}",
+    "@deskFilterWaiting": {
+        "description": "Desk list: filter chip with the case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskFilterNotifiable": "Notifiable · {count}",
+    "@deskFilterNotifiable": {
+        "description": "Desk list: filter chip with the case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskSubtitleAll": "{count, plural, =1{1 case} other{{count} cases}} · oldest waiting {elapsed}",
+    "@deskSubtitleAll": {
+        "description": "Desk list: subtitle with count and oldest wait",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "elapsed": {
+                "type": "String"
+            }
+        }
+    },
+    "deskSubtitleLowConfidence": "{count, plural, =1{1 case the AI was unsure about} other{{count} cases the AI was unsure about}}",
+    "@deskSubtitleLowConfidence": {
+        "description": "Desk list: low-confidence subtitle with the case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskSubtitleWaiting": "{count, plural, =1{1 case waiting over 4 hours} other{{count} cases waiting over 4 hours}}",
+    "@deskSubtitleWaiting": {
+        "description": "Desk list: long-wait subtitle with the case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskSubtitleNotifiable": "{count, plural, =1{1 malaria case} other{{count} malaria cases}} · signing adds them to the area alert engine",
+    "@deskSubtitleNotifiable": {
+        "description": "Desk list: notifiable subtitle with the case count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskSearchHint": "Search case ID or patient",
+    "@deskSearchHint": {
+        "description": "Pathologist side: case search field hint"
+    },
+    "deskSearchTitle": "Search",
+    "@deskSearchTitle": {
+        "description": "Desk search: app bar title"
+    },
+    "deskSearchResults": "{count, plural, =1{1 result for {query}} other{{count} results for {query}}}",
+    "@deskSearchResults": {
+        "description": "Desk search: subtitle with the result count and query",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "deskSearchNoResults": "No results",
+    "@deskSearchNoResults": {
+        "description": "Desk search: subtitle when nothing matches"
+    },
+    "deskSearchNoCase": "No case {query} on your desk",
+    "@deskSearchNoCase": {
+        "description": "Desk search: no-result title with the query",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "deskSearchNoCaseBody": "It may be signed already, with another pathologist, or not at the lab yet.",
+    "@deskSearchNoCaseBody": {
+        "description": "Desk search: no-result body"
+    },
+    "deskSearchElsewhere": "Look somewhere else",
+    "@deskSearchElsewhere": {
+        "description": "Desk search: no-result label above the escape links"
+    },
+    "deskSearchSigned": "Search Signed",
+    "@deskSearchSigned": {
+        "description": "Desk search: no-result link to the signed tab"
+    },
+    "deskSearchAllCases": "All {count} cases",
+    "@deskSearchAllCases": {
+        "description": "Desk search: no-result link to the full list",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "deskTipSlide": "Check the number on the slide label",
+    "@deskTipSlide": {
+        "description": "Desk search: no-result slide tip"
+    },
+    "deskTipAreas": "Cases reach you by the areas you report on",
+    "@deskTipAreas": {
+        "description": "Desk search: no-result areas tip"
+    },
+    "deskWrongNumberBody": "Use the case number or search the patient's first name.",
+    "@deskWrongNumberBody": {
+        "description": "Desk search: wrong-number body"
+    },
+    "deskEmptyTitle": "Your desk is empty",
+    "@deskEmptyTitle": {
+        "description": "Desk: empty state title"
+    },
+    "deskEmptyBody": "Cases from Nairobi doctors in your areas arrive here. The AI reads each one first.",
+    "@deskEmptyBody": {
+        "description": "Desk: empty state body"
+    },
+    "deskSlowConnectionTitle": "Slow connection",
+    "@deskSlowConnectionTitle": {
+        "description": "Desk: slow-connection banner title"
+    },
+    "deskSlowConnectionBody": "Slides load in lower quality to save data.",
+    "@deskSlowConnectionBody": {
+        "description": "Desk: slow-connection banner body"
+    },
+    "deskBellUnread": "Notifications, unread",
+    "@deskBellUnread": {
+        "description": "Desk: bell label while notifications are unread"
+    },
+    "signedTabSubtitle": "Every report you sign, with the AI draft kept beside it",
+    "@signedTabSubtitle": {
+        "description": "Signed tab: subtitle"
+    },
+    "signedTabSignedWeek": "Signed this week",
+    "@signedTabSignedWeek": {
+        "description": "Signed tab: week tile title"
+    },
+    "signedTabAvgMinutes": "Avg {minutes} min a case",
+    "@signedTabAvgMinutes": {
+        "description": "Signed tab: tile caption with the average minutes",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "signedTabToday": "Today",
+    "@signedTabToday": {
+        "description": "Signed tab: filter chip"
+    },
+    "signedTabWeek": "This week",
+    "@signedTabWeek": {
+        "description": "Signed tab: filter chip"
+    },
+    "signedTabNotifiable": "Notifiable",
+    "@signedTabNotifiable": {
+        "description": "Signed tab: filter and row chip"
+    },
+    "signedTabSignedTime": "Signed {time}",
+    "@signedTabSignedTime": {
+        "description": "Signed tab: row line with the signing time",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "signedTabSignedDate": "Signed {date}",
+    "@signedTabSignedDate": {
+        "description": "Signed tab: row line with the signing date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "signedTabEventSent": "notifiable event sent",
+    "@signedTabEventSent": {
+        "description": "Signed tab: row line suffix for a notifiable report"
+    },
+    "signedTabSent": "Sent",
+    "@signedTabSent": {
+        "description": "Signed tab: row chip for a delivered report"
+    },
+    "signedTabCompare": "Compare",
+    "@signedTabCompare": {
+        "description": "Signed tab: row link to the comparison"
+    },
+    "signedTabNoResultsTitle": "No signed reports for \"{query}\"",
+    "@signedTabNoResultsTitle": {
+        "description": "Signed tab: no-result title with the search text",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "signedTabNoResultsTip": "Signed only shows reports you signed",
+    "@signedTabNoResultsTip": {
+        "description": "Signed tab: no-result tip"
+    },
+    "signedTabGoToCase": "Go to the case",
+    "@signedTabGoToCase": {
+        "description": "Signed tab: no-result label above the case link"
+    },
+    "signedTabOpenCase": "Open {caseNumber}",
+    "@signedTabOpenCase": {
+        "description": "Signed tab: no-result link with the case number",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            }
+        }
+    },
+    "signedTabStillOnDesk": "This case is still on your desk.",
+    "@signedTabStillOnDesk": {
+        "description": "Signed tab: no-result body"
+    },
+    "signedTabEmptyTitle": "Nothing signed yet",
+    "@signedTabEmptyTitle": {
+        "description": "Signed tab: empty state title"
+    },
+    "signedTabEmptyBody": "Reports you sign show here, with the AI draft kept beside each one.",
+    "@signedTabEmptyBody": {
+        "description": "Signed tab: empty state body"
+    },
+    "doctorReportSubtitle": "{patient} · {caseNumber}",
+    "@doctorReportSubtitle": {
+        "description": "Doctor report: subtitle with patient name and case number",
+        "placeholders": {
+            "patient": {
+                "type": "String"
+            },
+            "caseNumber": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorReportSignedBy": "Signed by {name}",
+    "@doctorReportSignedBy": {
+        "description": "Doctor report: signed banner title with the signer name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorReportSignedAt": "{lab} · {date}",
+    "@doctorReportSignedAt": {
+        "description": "Doctor report: signed banner line with lab and date",
+        "placeholders": {
+            "lab": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorReportSpecimen": "Specimen",
+    "@doctorReportSpecimen": {
+        "description": "Doctor report: specimen card title"
+    },
+    "doctorReportLabNumber": "Lab number",
+    "@doctorReportLabNumber": {
+        "description": "Doctor report: specimen row label"
+    },
+    "doctorReportPatientLine": "{name} · {age} · {caseNumber}",
+    "@doctorReportPatientLine": {
+        "description": "Doctor report: specimen patient row without the sex word",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "age": {
+                "type": "int"
+            },
+            "caseNumber": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorReportFootnote": "The AI draft is kept on record beside this report.",
+    "@doctorReportFootnote": {
+        "description": "Doctor report: provenance footnote"
+    },
+    "doctorReportPrivacyTitle": "{name} can't see this yet",
+    "@doctorReportPrivacyTitle": {
+        "description": "Doctor report: privacy notice title with the patient first name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorReportPrivacyBody": "They see your own summary, in English or Kiswahili, only after you mark it as discussed.",
+    "@doctorReportPrivacyBody": {
+        "description": "Doctor report: privacy notice body"
+    },
+    "doctorReportInProgressBody": "The pathologist hasn't signed this report yet.",
+    "@doctorReportInProgressBody": {
+        "description": "Doctor report: unsigned placeholder body"
+    },
+    "doctorReportOpenFull": "Open pathology report",
+    "@doctorReportOpenFull": {
+        "description": "Doctor report: options row to the full report"
+    },
+    "doctorReportOpenFullSubtitle": "Full findings",
+    "@doctorReportOpenFullSubtitle": {
+        "description": "Doctor report: options row subtitle"
+    },
+    "urgencyRoutine": "Routine",
+    "@urgencyRoutine": {
+        "description": "Order priority"
+    },
+    "urgencyPriority": "Priority",
+    "@urgencyPriority": {
+        "description": "Order priority"
+    },
+    "urgencyUrgent": "Urgent",
+    "@urgencyUrgent": {
+        "description": "Order priority"
+    },
+    "orderStepProgress": "Step {step} of {total}",
+    "@orderStepProgress": {
+        "description": "Order wizard progress; step and total are numbers",
+        "placeholders": {
+            "step": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            }
+        }
+    },
+    "orderTestsTitle": "Order a test",
+    "@orderTestsTitle": {
+        "description": "Order wizard step 1 title"
+    },
+    "orderForPatient": "For {name}",
+    "@orderForPatient": {
+        "description": "Order wizard subtitle; name is the patient's full name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "orderSearchTests": "Search tests",
+    "@orderSearchTests": {
+        "description": "Test catalogue search placeholder"
+    },
+    "orderAllTypes": "All",
+    "@orderAllTypes": {
+        "description": "Test type filter: every type"
+    },
+    "orderTestCount": "{count, plural, =1{1 test} other{{count} tests}}",
+    "@orderTestCount": {
+        "description": "Number of tests listed or chosen",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "orderPrice": "KES {price}",
+    "@orderPrice": {
+        "description": "A test's price; price is a whole number of shillings",
+        "placeholders": {
+            "price": {
+                "type": "int"
+            }
+        }
+    },
+    "orderPriceEstimate": "About KES {price}",
+    "@orderPriceEstimate": {
+        "description": "An estimated test price; price is a whole number of shillings",
+        "placeholders": {
+            "price": {
+                "type": "int"
+            }
+        }
+    },
+    "orderContinueTests": "{count, plural, =0{Choose a test} =1{Continue with 1 test} other{Continue with {count} tests}}",
+    "@orderContinueTests": {
+        "description": "Catalogue button; count is the tests chosen",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "orderMaxTests": "Up to 10 tests on one order.",
+    "@orderMaxTests": {
+        "description": "Shown when ten tests are chosen"
+    },
+    "orderNoTestsFound": "No tests match “{query}”",
+    "@orderNoTestsFound": {
+        "description": "Catalogue search with no result; query is what was typed",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "orderSelectTest": "Choose {name}",
+    "@orderSelectTest": {
+        "description": "Semantics for a catalogue row; name is the test",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "orderDetailsTitle": "Order details",
+    "@orderDetailsTitle": {
+        "description": "Order wizard step 2 title"
+    },
+    "orderTestsLabel": "Tests",
+    "@orderTestsLabel": {
+        "description": "Details: the chosen tests"
+    },
+    "orderRemoveTest": "Remove {name}",
+    "@orderRemoveTest": {
+        "description": "Semantics for removing a test; name is the test",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "orderCollectedLabel": "Sample collected",
+    "@orderCollectedLabel": {
+        "description": "Details: when the sample was collected"
+    },
+    "orderCollectedMissing": "Say when the sample was collected.",
+    "@orderCollectedMissing": {
+        "description": "Validation"
+    },
+    "orderCollectedFuture": "That time hasn't come yet.",
+    "@orderCollectedFuture": {
+        "description": "Validation: collection time in the future"
+    },
+    "orderCollectedOld": "Collected more than 7 days ago. Take a new sample.",
+    "@orderCollectedOld": {
+        "description": "Validation: the server takes samples from the last 7 days"
+    },
+    "orderPriorityLabel": "Priority",
+    "@orderPriorityLabel": {
+        "description": "Details: priority"
+    },
+    "orderSpecimenLabel": "Specimen",
+    "@orderSpecimenLabel": {
+        "description": "Details: specimen description"
+    },
+    "orderSpecimenHint": "Site and how it was taken",
+    "@orderSpecimenHint": {
+        "description": "Details: specimen hint"
+    },
+    "orderNotesLabel": "Clinical notes",
+    "@orderNotesLabel": {
+        "description": "Details: clinical notes"
+    },
+    "orderNotesHint": "What the pathologist should know. The AI risk check reads these.",
+    "@orderNotesHint": {
+        "description": "Details: clinical notes hint; says the AI reads them"
+    },
+    "orderTooLong": "{max} characters at most.",
+    "@orderTooLong": {
+        "description": "Validation: text too long; max is a number",
+        "placeholders": {
+            "max": {
+                "type": "int"
+            }
+        }
+    },
+    "orderPaymentLabel": "Payment",
+    "@orderPaymentLabel": {
+        "description": "Details: payment"
+    },
+    "orderPaymentCash": "Cash",
+    "@orderPaymentCash": {
+        "description": "Payment method"
+    },
+    "orderPaymentInsurance": "Insurance",
+    "@orderPaymentInsurance": {
+        "description": "Payment method"
+    },
+    "orderInsurerLabel": "Insurer",
+    "@orderInsurerLabel": {
+        "description": "Details: insurer"
+    },
+    "orderInsurerMissing": "Choose the insurer.",
+    "@orderInsurerMissing": {
+        "description": "Validation"
+    },
+    "orderInsurerNameLabel": "Insurer's name",
+    "@orderInsurerNameLabel": {
+        "description": "Details: name when the insurer is Other"
+    },
+    "orderInsurerNameInvalid": "Enter the insurer's name.",
+    "@orderInsurerNameInvalid": {
+        "description": "Validation"
+    },
+    "orderPolicyLabel": "Policy number",
+    "@orderPolicyLabel": {
+        "description": "Details: policy number"
+    },
+    "orderPolicyInvalid": "3 to 30 letters, numbers, / or -.",
+    "@orderPolicyInvalid": {
+        "description": "Validation: policy number format"
+    },
+    "orderOffline": "You're offline. The order stays here; create it when you're back online.",
+    "@orderOffline": {
+        "description": "Details: offline notice"
+    },
+    "orderCreate": "Create order",
+    "@orderCreate": {
+        "description": "Details: primary button"
+    },
+    "orderSendTitle": "Risk check and pathologist",
+    "@orderSendTitle": {
+        "description": "Order wizard step 3 title"
+    },
+    "orderRiskAiLabel": "AI risk check",
+    "@orderRiskAiLabel": {
+        "description": "Label on the AI frame around the risk check"
+    },
+    "orderRiskRunning": "The risk check is reading the notes.",
+    "@orderRiskRunning": {
+        "description": "Risk check in progress"
+    },
+    "orderRiskClear": "No flags",
+    "@orderRiskClear": {
+        "description": "Risk check result: nothing flagged"
+    },
+    "orderRiskClearBody": "Nothing in the notes points to a disease that needs a protocol.",
+    "@orderRiskClearBody": {
+        "description": "Risk check result body: nothing flagged"
+    },
+    "orderRiskFailed": "The risk check didn't run. Order as usual.",
+    "@orderRiskFailed": {
+        "description": "Risk check failed or switched off"
+    },
+    "orderRiskTimedOut": "The risk check is taking longer than usual. You can send the order now.",
+    "@orderRiskTimedOut": {
+        "description": "Risk check still running after the wait"
+    },
+    "orderRiskDisclaimer": "The risk check gives advice. It never confirms or rules out a disease.",
+    "@orderRiskDisclaimer": {
+        "description": "Under every risk check result"
+    },
+    "orderRiskSuggested": "Suggested tests",
+    "@orderRiskSuggested": {
+        "description": "AI-suggested tests heading"
+    },
+    "orderRiskSuggestedBody": "Not on this order. Order them separately if you agree.",
+    "@orderRiskSuggestedBody": {
+        "description": "AI-suggested tests: they can't join a created order"
+    },
+    "orderProtocolTitle": "Follow Ministry of Health protocol before this sample travels",
+    "@orderProtocolTitle": {
+        "description": "Protocol card title when the risk check flags"
+    },
+    "orderProtocolRead": "Read the protocol",
+    "@orderProtocolRead": {
+        "description": "Link to the protocol screen"
+    },
+    "orderProtocolConfirm": "The protocol is in place",
+    "@orderProtocolConfirm": {
+        "description": "Checkbox the doctor ticks before sending a flagged order"
+    },
+    "orderPathologistLabel": "Pathologist",
+    "@orderPathologistLabel": {
+        "description": "Step 3: pathologist list heading"
+    },
+    "orderSearchPathologists": "Search name or lab",
+    "@orderSearchPathologists": {
+        "description": "Pathologist search placeholder"
+    },
+    "orderNoPathologists": "No pathologist is taking cases right now.",
+    "@orderNoPathologists": {
+        "description": "Pathologist list empty"
+    },
+    "orderPathologistAiNote": "An AI pre-read is ready for the pathologist once the slide is scanned. A person signs every report.",
+    "@orderPathologistAiNote": {
+        "description": "Explains the AI pre-read; not AI output"
+    },
+    "orderSelectPathologist": "Choose {name}",
+    "@orderSelectPathologist": {
+        "description": "Semantics for a pathologist row; name is the pathologist",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "orderWaitRisk": "Sending opens once the risk check is done.",
+    "@orderWaitRisk": {
+        "description": "Why send is disabled while the check runs"
+    },
+    "orderSend": "Send to pathologist",
+    "@orderSend": {
+        "description": "Step 3: primary button"
+    },
+    "orderSentTitle": "Order sent",
+    "@orderSentTitle": {
+        "description": "Order sent screen title"
+    },
+    "orderSentHero": "With {name} now",
+    "@orderSentHero": {
+        "description": "Order sent hero; name is the pathologist's title and surname",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "orderSentHeroBody": "You'll get a notification the moment the report is signed.",
+    "@orderSentHeroBody": {
+        "description": "Order sent hero body"
+    },
+    "orderSummary": "Order summary",
+    "@orderSummary": {
+        "description": "Order sent: summary card title"
+    },
+    "orderSummaryRisk": "Risk check",
+    "@orderSummaryRisk": {
+        "description": "Summary row label"
+    },
+    "orderSummaryProtocol": "Protocol advised",
+    "@orderSummaryProtocol": {
+        "description": "Summary value: the risk check flagged"
+    },
+    "orderSummaryRiskPending": "Not finished",
+    "@orderSummaryRiskPending": {
+        "description": "Summary value: the risk check hadn't finished"
+    },
+    "orderViewCase": "View case",
+    "@orderViewCase": {
+        "description": "Order sent: secondary button"
+    },
+    "orderBackToAppointment": "Back to appointment",
+    "@orderBackToAppointment": {
+        "description": "Order sent: primary button"
+    },
+    "mohTitle": "Ministry of Health protocol",
+    "@mohTitle": {
+        "description": "Protocol screen title"
+    },
+    "mohVhfTitle": "Suspected viral haemorrhagic fever",
+    "@mohVhfTitle": {
+        "description": "Protocol notice title for the VHF advice"
+    },
+    "mohVhfBody": "Notifiable disease · follow before the sample travels",
+    "@mohVhfBody": {
+        "description": "Protocol notice body"
+    },
+    "mohCaption": "The risk check only points you to this protocol. It never confirms a disease.",
+    "@mohCaption": {
+        "description": "Under the protocol steps"
+    },
+    "mohSource": "Source: {title}",
+    "@mohSource": {
+        "description": "A guidance source link; title is the document's title",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "mohReviewed": "Reviewed {date}",
+    "@mohReviewed": {
+        "description": "When the guidance was last checked; date is formatted",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "mohUnknown": "There is no protocol for this advice.",
+    "@mohUnknown": {
+        "description": "Protocol screen with an unknown id"
+    },
+    "errorNotInCare": "This patient isn't under your care.",
+    "@errorNotInCare": {
+        "description": "Order refused: the patient isn't linked to the doctor"
+    },
+    "errorInvalidAppointment": "That isn't possible for this appointment.",
+    "@errorInvalidAppointment": {
+        "description": "Refused: the appointment isn't in a state for this (an order needs an accepted one)"
+    },
+    "errorInvalidOrder": "Something in this order isn't valid. Check the details.",
+    "@errorInvalidOrder": {
+        "description": "Order refused: a test, note, time or payment failed the server's check"
+    },
+    "errorInvalidPathologist": "That pathologist can't take this case.",
+    "@errorInvalidPathologist": {
+        "description": "Request refused: pathologist not available or declined before"
+    },
+    "errorDailyOrderLimit": "You've reached today's order limit.",
+    "@errorDailyOrderLimit": {
+        "description": "Order refused: the daily limit"
+    },
+    "orderLoadingLabel": "Loading the order",
+    "@orderLoadingLabel": {
+        "description": "Spinner semantics on the order screens"
+    },
+    "mohLoadingLabel": "Loading the protocol",
+    "@mohLoadingLabel": {
+        "description": "Spinner semantics on the protocol screen"
+    },
+    "mohTranslatedByTabibu": "Kiswahili translation by Tabibu",
+    "@mohTranslatedByTabibu": {
+        "description": "Under guidance shown in Kiswahili that isn't the official text"
+    },
+    "orderAppointmentMissing": "This appointment isn't on your list any more.",
+    "@orderAppointmentMissing": {
+        "description": "Order screen opened for an appointment the doctor no longer has"
+    },
+    "caseStepSeen": "Seen",
+    "@caseStepSeen": {
+        "description": "Doctor's case stepper: the appointment"
+    },
+    "caseStepOrdered": "Ordered",
+    "@caseStepOrdered": {
+        "description": "Doctor's case stepper: the order"
+    },
+    "caseStepPathologist": "Pathologist",
+    "@caseStepPathologist": {
+        "description": "Doctor's case stepper: with the pathologist"
+    },
+    "caseStepSigned": "Signed",
+    "@caseStepSigned": {
+        "description": "Doctor's case stepper: report signed"
+    },
+    "caseStepDiscussed": "Discussed",
+    "@caseStepDiscussed": {
+        "description": "Doctor's case stepper: discussed with the patient"
+    },
+    "caseStepProgress": "Case progress: {step} of {total}, {label}",
+    "@caseStepProgress": {
+        "description": "Semantics for the doctor's case stepper; step and total are numbers, label is the current step's name",
+        "placeholders": {
+            "step": {
+                "type": "int"
+            },
+            "total": {
+                "type": "int"
+            },
+            "label": {
+                "type": "String"
+            }
+        }
     }
 }
