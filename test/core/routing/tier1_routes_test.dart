@@ -69,7 +69,9 @@ void main() {
     for (final (location, session, screen) in routes) {
       testWidgets('$location opens $screen', (tester) async {
         await tester.pumpRoleApp(session, location);
-        await tester.pumpAndSettle();
+        // A built screen may show a spinner, which never settles.
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
         expect(find.byType(screen), findsOneWidget);
       });
     }

@@ -580,5 +580,19 @@
     "reportPdfPage": "Ukurasa {page} kati ya {pages}",
     "reportPdfDisclaimer": "Kwa mgonjwa aliyetajwa na timu yake ya matibabu. Isome pamoja na hali ya kliniki. Maswali: {contact}.",
     "reportPdfAge": "{years, plural, =0{{months, plural, =1{mwezi {months}} other{miezi {months}}}} =1{mwaka {years} {months, plural, =1{mwezi {months}} other{miezi {months}}}} other{miaka {years} {months, plural, =1{mwezi {months}} other{miezi {months}}}}}",
-    "reportPdfMissingValue": "—"
+    "reportPdfMissingValue": "—",
+    "notificationsTitle": "Arifa",
+    "notificationsToday": "Leo",
+    "notificationsYesterday": "Jana",
+    "notificationsEarlier": "Za awali",
+    "notificationsMarkAllRead": "Weka zote kama zilizosomwa",
+    "notificationsRefresh": "Sasisha",
+    "notificationsEmptyTitle": "Umesoma zote",
+    "notificationsEmptyBodyPatient": "Miadi, majibu na taarifa za afya zitaonekana hapa.",
+    "notificationsEmptyBodyDoctor": "Miadi iliyohifadhiwa, ripoti zilizosainiwa na tahadhari za eneo zitaonekana hapa.",
+    "notificationsEmptyBodyPathologist": "Kesi mpya, maswali kutoka kwa madaktari na mialiko ya MDT yataonekana hapa.",
+    "notificationsOfflineTitle": "Hauko mtandaoni",
+    "notificationsOfflineBody": "Inaonyesha yaliyohifadhiwa kwenye simu hii.",
+    "notificationsMoreLabel": "Chaguo zaidi",
+    "notificationsLoadingLabel": "Arifa zinapakiwa"
 }

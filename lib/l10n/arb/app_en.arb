@@ -2628,5 +2628,61 @@
     "reportPdfMissingValue": "—",
     "@reportPdfMissingValue": {
         "description": "PDF report: shown where a date or age is unknown"
+    },
+    "notificationsTitle": "Notifications",
+    "@notificationsTitle": {
+        "description": "Notifications screen: centred top bar title"
+    },
+    "notificationsToday": "Today",
+    "@notificationsToday": {
+        "description": "Notifications screen: group header for today's rows"
+    },
+    "notificationsYesterday": "Yesterday",
+    "@notificationsYesterday": {
+        "description": "Notifications screen: group header for yesterday's rows"
+    },
+    "notificationsEarlier": "Earlier",
+    "@notificationsEarlier": {
+        "description": "Notifications screen: group header for older rows"
+    },
+    "notificationsMarkAllRead": "Mark all as read",
+    "@notificationsMarkAllRead": {
+        "description": "Notifications screen: options menu action"
+    },
+    "notificationsRefresh": "Refresh",
+    "@notificationsRefresh": {
+        "description": "Notifications screen: options menu action"
+    },
+    "notificationsEmptyTitle": "You're all caught up",
+    "@notificationsEmptyTitle": {
+        "description": "Notifications screen: empty state title, all roles"
+    },
+    "notificationsEmptyBodyPatient": "Appointments, results and health notices will show here.",
+    "@notificationsEmptyBodyPatient": {
+        "description": "Notifications screen: empty state body for a patient"
+    },
+    "notificationsEmptyBodyDoctor": "Bookings, signed reports and area alerts will show here.",
+    "@notificationsEmptyBodyDoctor": {
+        "description": "Notifications screen: empty state body for a doctor"
+    },
+    "notificationsEmptyBodyPathologist": "New cases, questions from doctors and MDT invites will show here.",
+    "@notificationsEmptyBodyPathologist": {
+        "description": "Notifications screen: empty state body for a pathologist"
+    },
+    "notificationsOfflineTitle": "You're offline",
+    "@notificationsOfflineTitle": {
+        "description": "Notifications screen: offline banner title"
+    },
+    "notificationsOfflineBody": "Showing what's saved on this phone.",
+    "@notificationsOfflineBody": {
+        "description": "Notifications screen: offline banner body"
+    },
+    "notificationsMoreLabel": "More options",
+    "@notificationsMoreLabel": {
+        "description": "Notifications screen: semantic label of the options button"
+    },
+    "notificationsLoadingLabel": "Loading notifications",
+    "@notificationsLoadingLabel": {
+        "description": "Notifications screen: semantic label announced while loading"
     }
 }
