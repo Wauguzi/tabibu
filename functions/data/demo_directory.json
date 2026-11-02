@@ -35,12 +35,7 @@
       "bio": "Children from birth to their teens, fevers to follow-ups. A demo profile in Tabibu's test environment.",
       "phoneNumber": "+254700000202",
       "kmpdcNumber": "DEMO-D-0102",
-      "photo": {
-        "url": "https://images.pexels.com/photos/18788957/pexels-photo-18788957.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
-        "source": "https://www.pexels.com/photo/portrait-of-an-african-woman-in-medical-apron-18788957/",
-        "author": "Carmel Nsenga",
-        "licence": "Pexels License (https://www.pexels.com/license/)"
-      }
+      "photo": null
     },
     {
       "key": "wairimu-grace",
@@ -358,12 +353,7 @@
       "bio": "Reads haematology cases. A demo profile in Tabibu's test environment.",
       "phoneNumber": "+254700000303",
       "kmpdcNumber": "DEMO-P-0103",
-      "photo": {
-        "url": "https://images.pexels.com/photos/8770727/pexels-photo-8770727.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
-        "source": "https://www.pexels.com/photo/woman-wearing-a-white-lab-coat-looking-through-a-microscope-8770727/",
-        "author": "Gustavo Fring",
-        "licence": "Pexels License (https://www.pexels.com/license/)"
-      }
+      "photo": null
     },
     {
       "key": "otieno-paul",

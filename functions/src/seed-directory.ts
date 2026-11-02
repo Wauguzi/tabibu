@@ -15,8 +15,7 @@ import { getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import type { Deps } from './identity';
-import { syncPractitionerHandler } from './identity';
-import { PROJECT, caller, config, markDemo, practitioner, writeDemoAccount } from './seed';
+import { PROJECT, caller, config, markDemo, practitioner, setDemoPhoto, writeDemoAccount } from './seed';
 
 interface DemoPhoto {
   url: string;
@@ -90,11 +89,7 @@ async function main(): Promise<void> {
         kmpdcNumber: entry.kmpdcNumber,
       },
     });
-    await deps.db.collection('doctors').doc(uid).update({
-      profilePictureUrl: photos.get(entry.key) ?? '',
-      lastUpdatedAt: new Date().toISOString(),
-    });
-    await syncPractitionerHandler(deps.db, uid);
+    await setDemoPhoto(deps.db, uid, photos.get(entry.key) ?? '');
     await markDemo(uid);
     await writeDemoAccount(uid, entry.isPathologist ? 'pathologist' : 'doctor');
     if (entry.isPathologist) pathologists += 1;

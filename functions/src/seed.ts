@@ -12,7 +12,7 @@ import { randomUUID } from 'node:crypto';
 
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { type Firestore, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import type { Caller } from './common';
@@ -137,6 +137,22 @@ export async function picture(uid: string, bucketName: string): Promise<string> 
   return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
 }
 
+/**
+ * A demo practitioner's photo: a Pexels stock model (Pexels License, no attribution required),
+ * set after sign-up because sign-up accepts only a Storage URL. Not a picture of the named person.
+ */
+const DEMO_PHOTOS = {
+  // https://www.pexels.com/photo/portrait-of-an-african-woman-in-medical-apron-18788957/
+  doctor: 'https://images.pexels.com/photos/18788957/pexels-photo-18788957.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop',
+  // https://www.pexels.com/photo/woman-wearing-a-white-lab-coat-looking-through-a-microscope-8770727/
+  pathologist: 'https://images.pexels.com/photos/8770727/pexels-photo-8770727.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop',
+};
+
+export async function setDemoPhoto(db: Firestore, uid: string, url: string): Promise<void> {
+  await db.collection('doctors').doc(uid).update({ profilePictureUrl: url, lastUpdatedAt: new Date().toISOString() });
+  await syncPractitionerHandler(db, uid);
+}
+
 export async function practitioner(
   deps: Deps,
   admin: Caller,
@@ -222,6 +238,7 @@ async function main(): Promise<void> {
       lastUpdatedAt: seededAt,
     });
   }
+  await setDemoPhoto(deps.db, doctorUid, DEMO_PHOTOS.doctor);
   await markDemo(doctorUid);
   await writeDemoAccount(doctorUid, 'doctor');
 
@@ -240,6 +257,7 @@ async function main(): Promise<void> {
       kmpdcNumber: 'DEMO-P-0001',
     },
   });
+  await setDemoPhoto(deps.db, pathologistUid, DEMO_PHOTOS.pathologist);
   await markDemo(pathologistUid);
   await writeDemoAccount(pathologistUid, 'pathologist');
 
