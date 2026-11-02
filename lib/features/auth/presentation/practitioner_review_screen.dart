@@ -1,6 +1,5 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
@@ -214,7 +213,7 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
                     onEdit: busy ? null : () => _edit(3),
                   ),
                   const SizedBox(height: AppSpacing.sm),
-                  _TermsBox(
+                  CheckRow(
                     label: isPathologist
                         ? l10n.reviewTermsPathologist
                         : l10n.reviewTerms,
@@ -226,60 +225,6 @@ class _PractitionerReviewScreenState extends State<PractitionerReviewScreen> {
             ),
           );
         },
-      ),
-    );
-  }
-}
-
-/// E4/F4's terms checkbox, in the shared library's absence.
-class _TermsBox extends StatelessWidget {
-  const _TermsBox({
-    required this.label,
-    required this.value,
-    required this.onChanged,
-  });
-
-  final String label;
-  final bool value;
-  final ValueChanged<bool>? onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    final onChanged = this.onChanged;
-    return MergeSemantics(
-      child: Semantics(
-        checked: value,
-        enabled: onChanged != null,
-        onTap: onChanged == null ? null : () => onChanged(!value),
-        child: Tappable(
-          onTap: onChanged == null ? null : () => onChanged(!value),
-          child: Material(
-            color: AppColors.transparent,
-            child: Padding(
-              padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-              child: Row(
-                crossAxisAlignment: .start,
-                children: [
-                  ExcludeFocus(
-                    child: Checkbox(
-                      value: value,
-                      onChanged: onChanged == null
-                          ? null
-                          : (checked) => onChanged(checked ?? false),
-                    ),
-                  ),
-                  Expanded(
-                    child: Padding(
-                      padding: const EdgeInsets.only(top: AppSpacing.sm),
-                      child: Text(label, style: textTheme.bodyMedium),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        ),
       ),
     );
   }

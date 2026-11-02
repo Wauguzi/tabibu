@@ -3,6 +3,7 @@ export 'asset_icon.dart';
 export 'attribution_line.dart';
 export 'avatar.dart';
 export 'bottom_action_bar.dart';
+export 'check_row.dart';
 export 'checklist_card.dart';
 export 'circle_icon_button.dart';
 export 'connectivity_banner.dart';
