@@ -1,5 +1,3 @@
-import 'dart:math';
-
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -145,7 +143,7 @@ class _BookedScreenState extends State<BookedScreen> {
               ],
             ),
             const SizedBox(height: AppSpacing.md),
-            const _DashedDivider(),
+            const DashedDivider(),
             const SizedBox(height: AppSpacing.md),
             Text(
               DateFormat('EEE d MMM', language).format(start),
@@ -212,46 +210,4 @@ class _BookedScreenState extends State<BookedScreen> {
       style: Theme.of(context).textTheme.bodyMedium,
     );
   }
-}
-
-/// A dashed horizontal hairline splitting the booked card.
-class _DashedDivider extends StatelessWidget {
-  const _DashedDivider();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(double.infinity, 1),
-      painter: _DashedLinePainter(
-        color: Theme.of(context).colorScheme.outlineVariant,
-      ),
-    );
-  }
-}
-
-class _DashedLinePainter extends CustomPainter {
-  _DashedLinePainter({required this.color});
-
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..strokeWidth = 1;
-    const dash = 6.0;
-    const gap = 4.0;
-    var x = 0.0;
-    while (x < size.width) {
-      canvas.drawLine(
-        Offset(x, 0),
-        Offset(min(x + dash, size.width), 0),
-        paint,
-      );
-      x += dash + gap;
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant _DashedLinePainter old) => old.color != color;
 }

@@ -2,7 +2,9 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
-import 'package:tabibu/core/widgets/grouped_rows_card.dart';
+import 'package:tabibu/core/constants/app_styles.dart';
+import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 
 import '../../helpers/helpers.dart';
 
@@ -130,6 +132,68 @@ void main() {
       );
       await tester.pumpAndSettle();
 
+      expect(tester.takeException(), isNull);
+    });
+  });
+
+  group('GroupedRow', () {
+    testWidgets('keeps its icon off the card edge', (tester) async {
+      await tester.pumpApp(
+        GroupedRowsCard(
+          children: [
+            GroupedRow(
+              icon: Assets.icons.calendarIcon,
+              tone: .sky,
+              title: 'Mon 2 Nov · 11:15 AM',
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final card = tester.getTopLeft(find.byType(GroupedRowsCard));
+      final tile = tester.getTopLeft(find.byType(IconTile));
+      expect(tile.dx - card.dx, AppStyles.cardPadding.left);
+      expect(find.byType(AssetIcon), findsOneWidget, reason: 'no chevron');
+    });
+
+    testWidgets('a tap makes it a button with a chevron', (tester) async {
+      var taps = 0;
+      final handle = tester.ensureSemantics();
+      await tester.pumpApp(
+        GroupedRowsCard(
+          children: [
+            GroupedRow(
+              icon: Assets.icons.testTubeIcon,
+              tone: .butter,
+              title: 'See results',
+              onTap: () => taps++,
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(
+        find.byWidgetPredicate(
+          (w) => w is AssetIcon && w.asset == Assets.icons.forwardIcon,
+        ),
+        findsOneWidget,
+      );
+      expect(
+        tester.getSemantics(find.byType(GroupedRow)),
+        isSemantics(label: 'See results', isButton: true, hasTapAction: true),
+      );
+      await tester.tap(find.text('See results'));
+      expect(taps, 1);
+      handle.dispose();
+    });
+  });
+
+  group('DashedDivider', () {
+    testWidgets('spans the width in the theme hairline', (tester) async {
+      await tester.pumpApp(const SizedBox(width: 200, child: DashedDivider()));
+      expect(tester.getSize(find.byType(DashedDivider)).width, 200);
       expect(tester.takeException(), isNull);
     });
   });

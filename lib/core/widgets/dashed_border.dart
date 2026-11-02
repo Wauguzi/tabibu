@@ -2,6 +2,10 @@ import 'dart:math';
 
 import 'package:material_ui/material_ui.dart';
 
+// One dash rhythm for every dashed line in the app.
+const _dash = 6.0;
+const _gap = 4.0;
+
 /// A dashed rounded-rectangle outline, drawn with a [CustomPainter]. The
 /// draft frame: AI drafts always wear it, signed work never does, so the
 /// distinction survives without colour.
@@ -57,19 +61,14 @@ class _DashedBorderPainter extends CustomPainter {
       ..color = color
       ..style = .stroke
       ..strokeWidth = strokeWidth;
-    const dashWidth = 6.0;
-    const gapWidth = 4.0;
     for (final metric in path.computeMetrics()) {
       var distance = 0.0;
       while (distance < metric.length) {
         canvas.drawPath(
-          metric.extractPath(
-            distance,
-            min(distance + dashWidth, metric.length),
-          ),
+          metric.extractPath(distance, min(distance + _dash, metric.length)),
           paint,
         );
-        distance += dashWidth + gapWidth;
+        distance += _dash + _gap;
       }
     }
   }
@@ -79,4 +78,44 @@ class _DashedBorderPainter extends CustomPainter {
       oldDelegate.color != color ||
       oldDelegate.radius != radius ||
       oldDelegate.strokeWidth != strokeWidth;
+}
+
+/// A dashed hairline across the available width, in [DashedBorder]'s
+/// rhythm: splits a card where a solid divider would read as two cards.
+class DashedDivider extends StatelessWidget {
+  const DashedDivider({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return CustomPaint(
+      size: const Size(double.infinity, 1),
+      painter: _DashedLinePainter(
+        color: Theme.of(context).colorScheme.outlineVariant,
+      ),
+    );
+  }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  _DashedLinePainter({required this.color});
+
+  final Color color;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..strokeWidth = 1;
+    for (var x = 0.0; x < size.width; x += _dash + _gap) {
+      canvas.drawLine(
+        Offset(x, 0),
+        Offset(min(x + _dash, size.width), 0),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedLinePainter oldDelegate) =>
+      oldDelegate.color != color;
 }

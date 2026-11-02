@@ -141,7 +141,7 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
         : appointment.caseUids.firstOrNull;
     return [
       TopBar(
-        title: _typeLabel(appointment),
+        title: appointment.typeValue.description(context.l10n),
         subtitle:
             '${DateFormat('EEE d MMM', language).format(start)} · '
             '${DateFormat('h:mm a', language).format(start)}',
@@ -156,26 +156,26 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
       const SizedBox(height: AppSpacing.md),
       GroupedRowsCard(
         children: [
-          _InfoRow(
+          GroupedRow(
             icon: Assets.icons.calendarIcon,
             tone: .sky,
             title:
                 '${DateFormat('EEE d MMM', language).format(start)} · '
                 '${DateFormat('h:mm a', language).format(start)}',
           ),
-          _InfoRow(
+          GroupedRow(
             icon: Assets.icons.facilityIcon,
             tone: .mint,
             title: appointment.facilityName,
           ),
           if (appointment.symptomText.isNotEmpty)
-            _InfoRow(
+            GroupedRow(
               icon: Assets.icons.documentIcon,
               tone: .lavender,
               title: appointment.symptomText,
             ),
           if (!upcoming && caseUid != null)
-            _InfoRow(
+            GroupedRow(
               icon: Assets.icons.testTubeIcon,
               tone: .butter,
               title: l10n.appointmentDetailSeeResults,
@@ -215,14 +215,6 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
     ),
   );
 
-  String _typeLabel(AppointmentModel appointment) {
-    final l10n = context.l10n;
-    return switch (appointment.typeValue) {
-      .consultation => l10n.appointmentsTypeConsultation,
-      .caseDiscussion => l10n.appointmentsTypeCaseDiscussion,
-    };
-  }
-
   /// Specialty from the directory with the facility, or whichever exists.
   String _doctorSupporting(AppointmentModel appointment) {
     final directory = context.watch<DirectoryBloc>().state;
@@ -237,57 +229,5 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
     if (specialty.isEmpty) return facility;
     if (facility.isEmpty) return specialty;
     return '$specialty · $facility';
-  }
-}
-
-/// One icon-labelled row inside the grouped card; a tap makes it a button
-/// with a chevron.
-class _InfoRow extends StatelessWidget {
-  const _InfoRow({
-    required this.icon,
-    required this.tone,
-    required this.title,
-    this.onTap,
-  });
-
-  final SvgGenImage icon;
-  final IconTone tone;
-  final String title;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final onTap = this.onTap;
-    final row = Row(
-      children: [
-        IconTile(icon: icon, tone: tone),
-        const SizedBox(width: AppSpacing.sm),
-        Expanded(
-          child: Text(title, style: Theme.of(context).textTheme.titleSmall),
-        ),
-        if (onTap != null) ...[
-          const SizedBox(width: AppSpacing.sm),
-          AssetIcon(
-            Assets.icons.forwardIcon,
-            size: 22,
-            scaleUp: false,
-            color: scheme.onSurfaceVariant,
-          ),
-        ],
-      ],
-    );
-    if (onTap == null) return row;
-    return MergeSemantics(
-      child: Semantics(
-        button: true,
-        label: title,
-        onTap: onTap,
-        child: Tappable(
-          onTap: onTap,
-          child: ExcludeSemantics(child: row),
-        ),
-      ),
-    );
   }
 }

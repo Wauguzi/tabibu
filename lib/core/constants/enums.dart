@@ -1223,6 +1223,11 @@ enum AppointmentType {
     'CaseDiscussion' => .caseDiscussion,
     _ => .consultation,
   };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .consultation => l10n.appointmentsTypeConsultation,
+    .caseDiscussion => l10n.appointmentsTypeCaseDiscussion,
+  };
 }
 
 /// The state of an appointment. Unknown reads as [expired].

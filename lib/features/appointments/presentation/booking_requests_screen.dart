@@ -244,13 +244,10 @@ class _RequestCard extends StatelessWidget {
     final symptoms = request.symptomText.trim();
     return BookingRequestCard(
       name: request.patientName,
-      // The card joins these two with a dot. There is no translated label for
-      // the appointment type yet, so the clock takes its place rather than an
-      // English word.
       when: start == null
           ? ''
-          : DateFormat('EEE d MMM', language).format(start),
-      type: start == null ? '' : DateFormat('h:mm a', language).format(start),
+          : DateFormat('EEE d MMM · h:mm a', language).format(start),
+      type: request.typeValue.description(l10n),
       supporting: symptoms.isEmpty ? null : symptoms,
       acceptLabel: l10n.bookingRequestsAccept,
       declineLabel: l10n.bookingRequestsDecline,

@@ -208,6 +208,10 @@ void main() {
         expect(reason.description(en), isNotEmpty, reason: '$reason en');
         expect(reason.description(sw), isNotEmpty, reason: '$reason sw');
       }
+      for (final type in AppointmentType.values) {
+        expect(type.description(en), isNotEmpty, reason: '$type en');
+        expect(type.description(sw), isNotEmpty, reason: '$type sw');
+      }
       for (final reason in CancelReason.values) {
         expect(reason.description(en), isNotEmpty, reason: '$reason en');
         expect(reason.description(sw), isNotEmpty, reason: '$reason sw');

@@ -177,7 +177,9 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       eyebrow: DateFormat('EEE d MMM', language).format(start),
       leading: Avatar(name: appointment.doctorName, radius: 32),
       title: appointment.doctorName,
-      body: '${_typeLabel(appointment)} · ${appointment.facilityName}',
+      body:
+          '${appointment.typeValue.description(l10n)} · '
+          '${appointment.facilityName}',
       figure: DateFormat('h:mm a', language).format(start),
       primary: HeroPillButton(
         label: l10n.appointmentsViewAppointment,
@@ -284,15 +286,4 @@ class _AppointmentsScreenState extends State<AppointmentsScreen> {
       .accepted || .completed || .noShow => null,
     };
   }
-
-  String _typeLabel(AppointmentModel appointment) {
-    final l10n = context.l10n;
-    return switch (appointment.typeValue) {
-      .consultation => l10n.appointmentsTypeConsultation,
-      .caseDiscussion => l10n.appointmentsTypeCaseDiscussion,
-    };
-  }
 }
-
-/// The white pill on the teal hero. No [TabibuButton] variant stays white in
-/// both themes, so the hero owns this one.

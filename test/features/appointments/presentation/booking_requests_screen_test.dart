@@ -49,11 +49,15 @@ PractitionerSession _session() {
   );
 }
 
-/// The card's second line: the day and the clock, in Nairobi time.
+/// The card's second line: the day, the clock in Nairobi time, and the
+/// appointment type in the screen's language.
 String _when(String iso, [String language = 'en']) {
   final time = nairobiTimeOf(iso)!;
+  final type = lookupAppLocalizations(
+    Locale(language),
+  ).appointmentsTypeConsultation;
   return '${DateFormat('EEE d MMM', language).format(time)} · '
-      '${DateFormat('h:mm a', language).format(time)}';
+      '${DateFormat('h:mm a', language).format(time)} · $type';
 }
 
 String _clock(String iso, [String language = 'en']) =>
@@ -209,7 +213,9 @@ void main() {
       await pumpScreen(tester);
 
       expect(
-        find.text('Tue 3 Nov · ${_clock('2026-11-02T21:30:00Z')}'),
+        find.text(
+          'Tue 3 Nov · ${_clock('2026-11-02T21:30:00Z')} · Consultation',
+        ),
         findsOneWidget,
       );
       expect(_clock('2026-11-02T21:30:00Z'), startsWith('12:30'));

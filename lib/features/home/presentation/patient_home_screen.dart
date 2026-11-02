@@ -502,6 +502,3 @@ class _NoticeStrip extends StatelessWidget {
     );
   }
 }
-
-/// The white pill on the teal hero. No [TabibuButton] variant stays white in
-/// both themes, so the hero owns this one.
