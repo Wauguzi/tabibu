@@ -1,5 +1,7 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_bloc.dart';
+import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_event.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_bloc.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_event.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -34,6 +36,7 @@ abstract final class BlocsHelper {
     BlocProvider<PublicAlertsBloc>(create: (_) => PublicAlertsBloc()),
     BlocProvider<CasesBloc>(create: (_) => CasesBloc()),
     BlocProvider<DeskBloc>(create: (_) => DeskBloc()),
+    BlocProvider<AlertReviewBloc>(create: (_) => AlertReviewBloc()),
   ];
 
   /// Sign-out wipes the encrypted boxes, so every feature bloc holding user
@@ -45,5 +48,6 @@ abstract final class BlocsHelper {
     context.read<PublicAlertsBloc>().add(const PublicAlertsReset());
     context.read<CasesBloc>().add(const CasesReset());
     context.read<DeskBloc>().add(const DeskReset());
+    context.read<AlertReviewBloc>().add(const AlertReviewReset());
   }
 }

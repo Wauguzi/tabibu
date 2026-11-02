@@ -1,6 +1,9 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_bloc.dart';
+import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_event.dart';
+import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_state.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_bloc.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_event.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_state.dart';
@@ -38,6 +41,9 @@ class MockPublicAlertsBloc
 class MockCasesBloc extends MockBloc<CasesEvent, CasesState>
     implements CasesBloc {}
 
+class MockAlertReviewBloc extends MockBloc<AlertReviewEvent, AlertReviewState>
+    implements AlertReviewBloc {}
+
 class MockDeskBloc extends MockBloc<DeskEvent, DeskState> implements DeskBloc {}
 
 /// The app-wide feature blocs as mocks, each starting in its initial state.
@@ -52,6 +58,7 @@ class FeatureBlocs {
     when(() => publicAlerts.state).thenReturn(const PublicAlertsInitial());
     when(() => cases.state).thenReturn(const CasesInitial());
     when(() => desk.state).thenReturn(const DeskInitial());
+    when(() => alertReview.state).thenReturn(const AlertReviewInitial());
   }
 
   final notifications = MockNotificationsBloc();
@@ -60,6 +67,7 @@ class FeatureBlocs {
   final publicAlerts = MockPublicAlertsBloc();
   final cases = MockCasesBloc();
   final desk = MockDeskBloc();
+  final alertReview = MockAlertReviewBloc();
 
   List<BlocProvider> get providers => [
     BlocProvider<NotificationsBloc>.value(value: notifications),
@@ -68,5 +76,6 @@ class FeatureBlocs {
     BlocProvider<PublicAlertsBloc>.value(value: publicAlerts),
     BlocProvider<CasesBloc>.value(value: cases),
     BlocProvider<DeskBloc>.value(value: desk),
+    BlocProvider<AlertReviewBloc>.value(value: alertReview),
   ];
 }

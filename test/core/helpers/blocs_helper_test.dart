@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/helpers/blocs_helper.dart';
+import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_event.dart';
 import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_event.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
@@ -34,6 +35,7 @@ void main() {
       verify(() => blocs.publicAlerts.add(const PublicAlertsReset()));
       verify(() => blocs.cases.add(const CasesReset()));
       verify(() => blocs.desk.add(const DeskReset()));
+      verify(() => blocs.alertReview.add(const AlertReviewReset()));
     });
   });
 }
