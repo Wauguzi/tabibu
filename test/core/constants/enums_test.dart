@@ -158,6 +158,16 @@ void main() {
         'adminOnly': AppError.adminOnly,
         'invalidPractitioner': AppError.invalidPractitioner,
         'invalidDecision': AppError.invalidDecision,
+        'notInCare': AppError.notInCare,
+        'invalidAppointment': AppError.invalidAppointment,
+        'invalidTest': AppError.invalidOrder,
+        'invalidNotes': AppError.invalidOrder,
+        'invalidCollectedAt': AppError.invalidOrder,
+        'invalidPayment': AppError.invalidOrder,
+        'invalidPriority': AppError.invalidOrder,
+        'invalidPathologist': AppError.invalidPathologist,
+        'pathologistDeclined': AppError.invalidPathologist,
+        'dailyOrderLimit': AppError.dailyOrderLimit,
       };
       for (final entry in keys.entries) {
         final exception = _TestFunctionsException(
@@ -207,6 +217,10 @@ void main() {
       for (final reason in DeclineReason.values) {
         expect(reason.description(en), isNotEmpty, reason: '$reason en');
         expect(reason.description(sw), isNotEmpty, reason: '$reason sw');
+      }
+      for (final urgency in Urgency.values) {
+        expect(urgency.description(en), isNotEmpty, reason: '$urgency en');
+        expect(urgency.description(sw), isNotEmpty, reason: '$urgency sw');
       }
       for (final type in AppointmentType.values) {
         expect(type.description(en), isNotEmpty, reason: '$type en');

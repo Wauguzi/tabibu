@@ -5,6 +5,7 @@ import 'dart:ui' show Locale;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tabibu/core/helpers/reference_data_helper.dart';
+import 'package:tabibu/features/orders/data/advisory_protocol.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// Serves the real asset files while counting loads per key.
@@ -62,6 +63,7 @@ void main() {
         'lab_test_types.json',
         'insurers.json',
         'report_templates.json',
+        'public_health_guidance.json',
       ])
         'assets/data/$name': File('assets/data/$name').readAsStringSync(),
     });
@@ -79,6 +81,16 @@ void main() {
     expect(insurers.first.type, 'publicScheme');
     expect(insurers.last.insurerId, 'other');
     expect(insurers.skip(1).take(12).map((i) => i.type).toSet(), {'insurer'});
+  });
+
+  test('the guidance register carries the VHF protocol row (F-13)', () async {
+    final guidance = await helper.publicHealthGuidance();
+    expect(guidance, hasLength(20));
+    final vhf = guidance.firstWhere(
+      (g) => g.diseaseId == AdvisoryProtocol.vhf.guidanceDiseaseId,
+    );
+    expect(vhf.bullets.where((b) => b.audienceValue == .clinician), isNotEmpty);
+    expect(identical(guidance, await helper.publicHealthGuidance()), isTrue);
   });
 
   test('every test type maps to exactly one template', () async {

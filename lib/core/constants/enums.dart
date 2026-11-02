@@ -279,6 +279,11 @@ enum AppError implements Exception {
   adminOnly,
   invalidPractitioner,
   invalidDecision,
+  notInCare,
+  invalidAppointment,
+  invalidOrder,
+  invalidPathologist,
+  dailyOrderLimit,
   // Thrown directly by the auth flow, not from a Firebase code.
   practitionerPendingVerification,
   noRoleAssigned,
@@ -322,6 +327,16 @@ enum AppError implements Exception {
       'adminOnly' => AppError.adminOnly,
       'invalidPractitioner' => AppError.invalidPractitioner,
       'invalidDecision' => AppError.invalidDecision,
+      'notInCare' => AppError.notInCare,
+      'invalidAppointment' => AppError.invalidAppointment,
+      'invalidTest' ||
+      'invalidNotes' ||
+      'invalidCollectedAt' ||
+      'invalidPayment' ||
+      'invalidPriority' => AppError.invalidOrder,
+      'invalidPathologist' ||
+      'pathologistDeclined' => AppError.invalidPathologist,
+      'dailyOrderLimit' => AppError.dailyOrderLimit,
       _ => null,
     };
     return reason ?? fromFirebaseCode(e.code);
@@ -412,6 +427,11 @@ enum AppError implements Exception {
     .adminOnly => l10n.errorAdminOnly,
     .invalidPractitioner => l10n.errorInvalidPractitioner,
     .invalidDecision => l10n.errorInvalidDecision,
+    .notInCare => l10n.errorNotInCare,
+    .invalidAppointment => l10n.errorInvalidAppointment,
+    .invalidOrder => l10n.errorInvalidOrder,
+    .invalidPathologist => l10n.errorInvalidPathologist,
+    .dailyOrderLimit => l10n.errorDailyOrderLimit,
     .practitionerPendingVerification =>
       l10n.errorPractitionerPendingVerification,
     .noRoleAssigned => l10n.errorNoRoleAssigned,
@@ -736,6 +756,12 @@ enum Urgency {
     'Priority' => .priority,
     'Urgent' => .urgent,
     _ => .routine,
+  };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .routine => l10n.urgencyRoutine,
+    .priority => l10n.urgencyPriority,
+    .urgent => l10n.urgencyUrgent,
   };
 }
 

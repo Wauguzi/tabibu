@@ -725,16 +725,17 @@ class OrderSentRoute extends GoRouteData with $OrderSentRoute {
 
 /// D-MOH-PROTOCOL.
 @TypedGoRoute<MohProtocolRoute>(
-  path: '${RoutePaths.doctor}/protocol/:diseaseId',
+  path: '${RoutePaths.doctor}/protocol/:protocolId',
 )
 class MohProtocolRoute extends GoRouteData with $MohProtocolRoute {
-  const MohProtocolRoute({required this.diseaseId});
+  const MohProtocolRoute({required this.protocolId});
 
-  final String diseaseId;
+  /// A risk-check advisory key, e.g. `VhfProtocol` (F-13).
+  final String protocolId;
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      MohProtocolScreen(diseaseId: diseaseId);
+      MohProtocolScreen(protocolId: protocolId);
 }
 
 /// D-CASE.

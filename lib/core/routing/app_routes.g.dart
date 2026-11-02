@@ -1453,20 +1453,20 @@ mixin $OrderSentRoute on GoRouteData {
 }
 
 RouteBase get $mohProtocolRoute => GoRouteData.$route(
-  path: '/doctor/protocol/:diseaseId',
+  path: '/doctor/protocol/:protocolId',
   hasOverriddenOnExit: false,
   factory: $MohProtocolRoute._fromState,
 );
 
 mixin $MohProtocolRoute on GoRouteData {
   static MohProtocolRoute _fromState(GoRouterState state) =>
-      MohProtocolRoute(diseaseId: state.pathParameters['diseaseId']!);
+      MohProtocolRoute(protocolId: state.pathParameters['protocolId']!);
 
   MohProtocolRoute get _self => this as MohProtocolRoute;
 
   @override
   String get location => GoRouteData.$location(
-    '/doctor/protocol/${Uri.encodeComponent(_self.diseaseId)}',
+    '/doctor/protocol/${Uri.encodeComponent(_self.protocolId)}',
   );
 
   @override

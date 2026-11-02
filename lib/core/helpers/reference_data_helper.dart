@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/services.dart';
 import 'package:injectable/injectable.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/features/alerts/data/models/public_health_guidance_model.dart';
 import 'package:tabibu/features/orders/data/models/insurer_model.dart';
 import 'package:tabibu/features/orders/data/models/lab_test_model.dart';
 import 'package:tabibu/features/orders/data/models/lab_test_type_model.dart';
@@ -23,6 +24,7 @@ class ReferenceDataHelper {
   List<LabTestModel>? _labTests;
   List<InsurerModel>? _insurers;
   List<ReportTemplateModel>? _reportTemplates;
+  List<PublicHealthGuidanceModel>? _guidance;
 
   /// The 11 lab test types, in catalogue order.
   Future<List<LabTestTypeModel>> labTestTypes() async {
@@ -68,6 +70,17 @@ class ReferenceDataHelper {
       ReportTemplateModel.fromJson,
     );
     return _reportTemplates = loaded;
+  }
+
+  /// The public-health guidance register, one row per notifiable disease.
+  Future<List<PublicHealthGuidanceModel>> publicHealthGuidance() async {
+    final cached = _guidance;
+    if (cached != null) return cached;
+    final loaded = await _load(
+      Assets.data.publicHealthGuidance,
+      PublicHealthGuidanceModel.fromJson,
+    );
+    return _guidance = loaded;
   }
 
   /// The template covering [testTypeId], or `General` when none does.
