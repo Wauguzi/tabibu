@@ -1,6 +1,15 @@
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/routing/landing.dart';
+import 'package:tabibu/features/alerts/presentation/alert_review_screen.dart';
+import 'package:tabibu/features/alerts/presentation/alert_sent_screen.dart';
+import 'package:tabibu/features/alerts/presentation/health_notice_screen.dart';
+import 'package:tabibu/features/alerts/presentation/moh_protocol_screen.dart';
+import 'package:tabibu/features/appointments/presentation/appointments_screen.dart';
+import 'package:tabibu/features/appointments/presentation/booked_screen.dart';
+import 'package:tabibu/features/appointments/presentation/booking_requests_screen.dart';
+import 'package:tabibu/features/appointments/presentation/doctor_appointment_screen.dart';
+import 'package:tabibu/features/appointments/presentation/patient_appointment_screen.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/presentation/clinic_record_screen.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
@@ -20,14 +29,36 @@ import 'package:tabibu/features/auth/presentation/role_screen.dart';
 import 'package:tabibu/features/auth/presentation/sign_in_screen.dart';
 import 'package:tabibu/features/auth/presentation/verified_screen.dart';
 import 'package:tabibu/features/auth/presentation/verify_email_screen.dart';
+import 'package:tabibu/features/cases/presentation/cases_screen.dart';
+import 'package:tabibu/features/cases/presentation/doctor_case_screen.dart';
+import 'package:tabibu/features/cases/presentation/patient_result_screen.dart';
+import 'package:tabibu/features/cases/presentation/reports_ready_screen.dart';
+import 'package:tabibu/features/cases/presentation/results_screen.dart';
+import 'package:tabibu/features/home/presentation/doctor_home_screen.dart';
 import 'package:tabibu/features/home/presentation/home_shell.dart';
-import 'package:tabibu/features/home/presentation/home_tab_screen.dart';
+import 'package:tabibu/features/home/presentation/patient_home_screen.dart';
 import 'package:tabibu/features/home/presentation/title_tab_screen.dart';
+import 'package:tabibu/features/notifications/presentation/notifications_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/get_started_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/intro_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/language_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/update_required_screen.dart';
+import 'package:tabibu/features/orders/presentation/order_screen.dart';
+import 'package:tabibu/features/orders/presentation/order_sent_screen.dart';
+import 'package:tabibu/features/practitioners/presentation/doctor_profile_screen.dart';
+import 'package:tabibu/features/practitioners/presentation/find_doctor_screen.dart';
 import 'package:tabibu/features/profile/presentation/profile_screen.dart';
+import 'package:tabibu/features/reports/presentation/case_workspace_screen.dart';
+import 'package:tabibu/features/reports/presentation/compare_screen.dart';
+import 'package:tabibu/features/reports/presentation/doctor_report_screen.dart';
+import 'package:tabibu/features/reports/presentation/explained_result_screen.dart';
+import 'package:tabibu/features/reports/presentation/full_report_screen.dart';
+import 'package:tabibu/features/reports/presentation/signed_screen.dart';
+import 'package:tabibu/features/reports/presentation/tiles_screen.dart';
+import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_state.dart';
+import 'package:tabibu/features/worklist/presentation/desk_list_screen.dart';
+import 'package:tabibu/features/worklist/presentation/desk_screen.dart';
+import 'package:tabibu/features/worklist/presentation/desk_search_screen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 part 'app_routes.g.dart';
@@ -344,7 +375,7 @@ class PatientHomeRoute extends GoRouteData with $PatientHomeRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const HomeTabScreen(role: .patient);
+      const PatientHomeScreen();
 }
 
 class PatientAppointmentsRoute extends GoRouteData
@@ -353,7 +384,7 @@ class PatientAppointmentsRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      TitleTabScreen(role: .patient, title: context.l10n.appointmentsTitle);
+      const AppointmentsScreen();
 }
 
 class PatientResultsRoute extends GoRouteData with $PatientResultsRoute {
@@ -361,7 +392,7 @@ class PatientResultsRoute extends GoRouteData with $PatientResultsRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      TitleTabScreen(role: .patient, title: context.l10n.resultsTitle);
+      const ResultsScreen();
 }
 
 class PatientProfileRoute extends GoRouteData with $PatientProfileRoute {
@@ -408,7 +439,7 @@ class DoctorHomeRoute extends GoRouteData with $DoctorHomeRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      const HomeTabScreen(role: .doctor);
+      const DoctorHomeScreen();
 }
 
 class DoctorCasesRoute extends GoRouteData with $DoctorCasesRoute {
@@ -416,7 +447,7 @@ class DoctorCasesRoute extends GoRouteData with $DoctorCasesRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      TitleTabScreen(role: .doctor, title: context.l10n.casesTitle);
+      const CasesScreen();
 }
 
 class DoctorMdtRoute extends GoRouteData with $DoctorMdtRoute {
@@ -480,8 +511,7 @@ class PathologistHomeRoute extends GoRouteData with $PathologistHomeRoute {
   const PathologistHomeRoute();
 
   @override
-  Widget build(BuildContext context, GoRouterState state) =>
-      const HomeTabScreen(role: .pathologist);
+  Widget build(BuildContext context, GoRouterState state) => const DeskScreen();
 }
 
 class PathologistSignedRoute extends GoRouteData with $PathologistSignedRoute {
@@ -489,7 +519,7 @@ class PathologistSignedRoute extends GoRouteData with $PathologistSignedRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      TitleTabScreen(role: .pathologist, title: context.l10n.signedTitle);
+      const SignedScreen();
 }
 
 class PathologistMdtRoute extends GoRouteData with $PathologistMdtRoute {
@@ -507,4 +537,343 @@ class PathologistProfileRoute extends GoRouteData
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const ProfileScreen(role: .pathologist);
+}
+
+// Tier 1 screens off the tabs. Each sits on the root navigator under its role's
+// prefix, so it covers the tab bar (as every design does) and the role guard
+// applies unchanged. Routes carry ids only (F-2).
+
+/// P-02.
+@TypedGoRoute<PatientNotificationsRoute>(
+  path: '${RoutePaths.patient}/notifications',
+)
+class PatientNotificationsRoute extends GoRouteData
+    with $PatientNotificationsRoute {
+  const PatientNotificationsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationsScreen(role: .patient);
+}
+
+/// P-03.
+@TypedGoRoute<FindDoctorRoute>(path: '${RoutePaths.patient}/doctors')
+class FindDoctorRoute extends GoRouteData with $FindDoctorRoute {
+  const FindDoctorRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const FindDoctorScreen();
+}
+
+/// P-04.
+@TypedGoRoute<PractitionerProfileRoute>(
+  path: '${RoutePaths.patient}/doctors/:doctorUid',
+)
+class PractitionerProfileRoute extends GoRouteData
+    with $PractitionerProfileRoute {
+  const PractitionerProfileRoute({required this.doctorUid});
+
+  final String doctorUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      DoctorProfileScreen(doctorUid: doctorUid);
+}
+
+/// P-09, P-10.
+@TypedGoRoute<PatientAppointmentRoute>(
+  path: '${RoutePaths.patient}/appointment/:appointmentUid',
+)
+class PatientAppointmentRoute extends GoRouteData
+    with $PatientAppointmentRoute {
+  const PatientAppointmentRoute({required this.appointmentUid});
+
+  final String appointmentUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      PatientAppointmentScreen(appointmentUid: appointmentUid);
+}
+
+/// P-07; reached with pushReplacement (F-1).
+@TypedGoRoute<BookedRoute>(
+  path: '${RoutePaths.patient}/appointment/:appointmentUid/booked',
+)
+class BookedRoute extends GoRouteData with $BookedRoute {
+  const BookedRoute({required this.appointmentUid});
+
+  final String appointmentUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      BookedScreen(appointmentUid: appointmentUid);
+}
+
+/// P-11b, P-13.
+@TypedGoRoute<PatientResultRoute>(path: '${RoutePaths.patient}/result/:caseUid')
+class PatientResultRoute extends GoRouteData with $PatientResultRoute {
+  const PatientResultRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      PatientResultScreen(caseUid: caseUid);
+}
+
+/// P-14; opens only with an approved explanation (F-8).
+@TypedGoRoute<ExplainedResultRoute>(
+  path: '${RoutePaths.patient}/result/:caseUid/explained',
+)
+class ExplainedResultRoute extends GoRouteData with $ExplainedResultRoute {
+  const ExplainedResultRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      ExplainedResultScreen(caseUid: caseUid);
+}
+
+/// P-12.
+@TypedGoRoute<HealthNoticeRoute>(path: '${RoutePaths.patient}/notice/:alertUid')
+class HealthNoticeRoute extends GoRouteData with $HealthNoticeRoute {
+  const HealthNoticeRoute({required this.alertUid});
+
+  final String alertUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      HealthNoticeScreen(alertUid: alertUid);
+}
+
+/// D-NOTIF.
+@TypedGoRoute<DoctorNotificationsRoute>(
+  path: '${RoutePaths.doctor}/notifications',
+)
+class DoctorNotificationsRoute extends GoRouteData
+    with $DoctorNotificationsRoute {
+  const DoctorNotificationsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationsScreen(role: .doctor);
+}
+
+/// D-REPORTS-READY.
+@TypedGoRoute<ReportsReadyRoute>(path: '${RoutePaths.doctor}/reports-ready')
+class ReportsReadyRoute extends GoRouteData with $ReportsReadyRoute {
+  const ReportsReadyRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ReportsReadyScreen();
+}
+
+/// D-BOOKINGS.
+@TypedGoRoute<BookingRequestsRoute>(
+  path: '${RoutePaths.doctor}/booking-requests',
+)
+class BookingRequestsRoute extends GoRouteData with $BookingRequestsRoute {
+  const BookingRequestsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const BookingRequestsScreen();
+}
+
+/// D-APPT.
+@TypedGoRoute<DoctorAppointmentRoute>(
+  path: '${RoutePaths.doctor}/appointment/:appointmentUid',
+)
+class DoctorAppointmentRoute extends GoRouteData with $DoctorAppointmentRoute {
+  const DoctorAppointmentRoute({required this.appointmentUid});
+
+  final String appointmentUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      DoctorAppointmentScreen(appointmentUid: appointmentUid);
+}
+
+/// D-ORDER-CATALOGUE to D-ORDER-PATHOLOGIST.
+@TypedGoRoute<OrderRoute>(
+  path: '${RoutePaths.doctor}/appointment/:appointmentUid/order',
+)
+class OrderRoute extends GoRouteData with $OrderRoute {
+  const OrderRoute({required this.appointmentUid});
+
+  final String appointmentUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      OrderScreen(appointmentUid: appointmentUid);
+}
+
+/// D-ORDER-SENT; reached with pushReplacement (F-1).
+@TypedGoRoute<OrderSentRoute>(path: '${RoutePaths.doctor}/case/:caseUid/sent')
+class OrderSentRoute extends GoRouteData with $OrderSentRoute {
+  const OrderSentRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      OrderSentScreen(caseUid: caseUid);
+}
+
+/// D-MOH-PROTOCOL.
+@TypedGoRoute<MohProtocolRoute>(
+  path: '${RoutePaths.doctor}/protocol/:diseaseId',
+)
+class MohProtocolRoute extends GoRouteData with $MohProtocolRoute {
+  const MohProtocolRoute({required this.diseaseId});
+
+  final String diseaseId;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      MohProtocolScreen(diseaseId: diseaseId);
+}
+
+/// D-CASE.
+@TypedGoRoute<DoctorCaseRoute>(path: '${RoutePaths.doctor}/case/:caseUid')
+class DoctorCaseRoute extends GoRouteData with $DoctorCaseRoute {
+  const DoctorCaseRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      DoctorCaseScreen(caseUid: caseUid);
+}
+
+/// D-REPORT-SUMMARY.
+@TypedGoRoute<DoctorReportRoute>(
+  path: '${RoutePaths.doctor}/case/:caseUid/report',
+)
+class DoctorReportRoute extends GoRouteData with $DoctorReportRoute {
+  const DoctorReportRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      DoctorReportScreen(caseUid: caseUid);
+}
+
+/// D-REPORT-FULL.
+@TypedGoRoute<FullReportRoute>(
+  path: '${RoutePaths.doctor}/case/:caseUid/report/full',
+)
+class FullReportRoute extends GoRouteData with $FullReportRoute {
+  const FullReportRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      FullReportScreen(caseUid: caseUid);
+}
+
+/// D-ALERT; approvers only (F-6).
+@TypedGoRoute<AlertReviewRoute>(path: '${RoutePaths.doctor}/alert/:alertUid')
+class AlertReviewRoute extends GoRouteData with $AlertReviewRoute {
+  const AlertReviewRoute({required this.alertUid});
+
+  final String alertUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      AlertReviewScreen(alertUid: alertUid);
+}
+
+/// D-ALERT-SENT; reached with pushReplacement (F-1).
+@TypedGoRoute<AlertSentRoute>(path: '${RoutePaths.doctor}/alert/:alertUid/sent')
+class AlertSentRoute extends GoRouteData with $AlertSentRoute {
+  const AlertSentRoute({required this.alertUid});
+
+  final String alertUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      AlertSentScreen(alertUid: alertUid);
+}
+
+/// PA-05.
+@TypedGoRoute<PathologistNotificationsRoute>(
+  path: '${RoutePaths.pathologist}/notifications',
+)
+class PathologistNotificationsRoute extends GoRouteData
+    with $PathologistNotificationsRoute {
+  const PathologistNotificationsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationsScreen(role: .pathologist);
+}
+
+/// PA-02.
+@TypedGoRoute<DeskListRoute>(path: '${RoutePaths.pathologist}/cases')
+class DeskListRoute extends GoRouteData with $DeskListRoute {
+  const DeskListRoute({this.filter = 'all'});
+
+  /// A [DeskFilter] name; an unknown one reads as all (the generator's enum
+  /// maps are untyped, so the route carries the name).
+  final String filter;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      DeskListScreen(filter: DeskFilter.values.asNameMap()[filter] ?? .all);
+}
+
+/// PA-03.
+@TypedGoRoute<DeskSearchRoute>(path: '${RoutePaths.pathologist}/search')
+class DeskSearchRoute extends GoRouteData with $DeskSearchRoute {
+  const DeskSearchRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const DeskSearchScreen();
+}
+
+/// CS-01 to CS-08.
+@TypedGoRoute<CaseWorkspaceRoute>(
+  path: '${RoutePaths.pathologist}/case/:caseUid',
+)
+class CaseWorkspaceRoute extends GoRouteData with $CaseWorkspaceRoute {
+  const CaseWorkspaceRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      CaseWorkspaceScreen(caseUid: caseUid);
+}
+
+/// CS-03.
+@TypedGoRoute<TilesRoute>(path: '${RoutePaths.pathologist}/case/:caseUid/tiles')
+class TilesRoute extends GoRouteData with $TilesRoute {
+  const TilesRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      TilesScreen(caseUid: caseUid);
+}
+
+/// CS-09; the signer only (H-4).
+@TypedGoRoute<CompareRoute>(
+  path: '${RoutePaths.pathologist}/case/:caseUid/compare',
+)
+class CompareRoute extends GoRouteData with $CompareRoute {
+  const CompareRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      CompareScreen(caseUid: caseUid);
 }

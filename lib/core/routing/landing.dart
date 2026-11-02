@@ -91,7 +91,13 @@ String? guardLocation({
       ? Role.pathologist
       : null;
   if (required != null) {
-    return roles?.role == required ? null : _decision(location);
+    if (roles?.role != required) return _decision(location);
+    // Approval is a permission on top of the role (F-6); the rules refuse
+    // the reads too, so a stale link only lands on the doctor's home.
+    if (under('${RoutePaths.doctor}/alert') && !roles!.canApproveAlerts) {
+      return RoutePaths.doctor;
+    }
+    return null;
   }
 
   const signUpPrefix = '${RoutePaths.signUp}/';
