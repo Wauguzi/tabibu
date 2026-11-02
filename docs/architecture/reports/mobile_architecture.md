@@ -115,9 +115,10 @@ Three rules follow from the diagram and are not negotiable:
 **Today** the app has `lib/app/`, `lib/core/` (constants, helpers, routing,
 services, utils, widgets), `lib/l10n/` (`en`, `sw`), `bootstrap.dart`, three
 flavor entrypoints, and the identity features: `auth`, `onboarding`, `home`,
-`profile`, `patients`, `practitioners`, `facilities` and `themes`. The
-clinical features below are the `feat/infra` data layer, still to be built
-(§16 item 11).
+`profile`, `patients`, `practitioners`, `facilities` and `themes`, and the
+`feat/infra` data layer of the clinical features below: their models, cache
+helpers and Firebase data sources, and the PDF builder in `reports/`. Their
+blocs and screens are still to be built (§16 item 11).
 
 **Target** layout, which every feature is built to:
 
@@ -258,48 +259,48 @@ The registry below is the record. Add a row in the same commit as the model.
 | typeId | Class | Feature | Added |
 |---|---|---|---|
 | 0 | `PatientHive` | `patients` | Added 2026-10-27 (CRQ-0019) |
-| 1 | `DoctorHive` | `profile` | Added 2026-10-27 (CRQ-0019). Fields 30-33 (availability) reserved for `feat/infra`, appended with `defaultValue`; they land in CRQ-0039 |
-| 2 | `PractitionerHive` | `practitioners` | Added 2026-10-27 (CRQ-0019). Fields 20-23 (availability) reserved for `feat/infra`, appended with `defaultValue`; they land in CRQ-0039 |
+| 1 | `DoctorHive` | `profile` | Added 2026-10-27 (CRQ-0019). Fields 30-33 (availability) appended with `defaultValue` (CRQ-0039) |
+| 2 | `PractitionerHive` | `practitioners` | Added 2026-10-27 (CRQ-0019). Fields 20-23 (availability) appended with `defaultValue` (CRQ-0039) |
 | 3 | `OnboardingHive` | `auth` | Added 2026-10-27 (CRQ-0020) |
-| 4 | `CaseHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 5 | `OrderedTestHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 6 | `SlideImageHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 7 | `CaseLogEntryHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 8 | `CasePaymentHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 9 | `ShareCodeHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 10 | `RiskCheckHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 11 | `NotesTranslationHive` | `cases` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 4 | `CaseHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
+| 5 | `OrderedTestHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
+| 6 | `SlideImageHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
+| 7 | `CaseLogEntryHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
+| 8 | `CasePaymentHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
+| 9 | `ShareCodeHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
+| 10 | `RiskCheckHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
+| 11 | `NotesTranslationHive` | `cases` | Added 2026-11-01 (CRQ-0039) |
 | 12-15 | none | `cases` | Reserved, unused |
-| 16 | `PathologyReportHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 17 | `ReportResponseHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 18 | `ReportAddendumHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 19 | `ReportMeasurementHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 20 | `ReportDraftHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 21 | `PrereadScoreHive` | `preread` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 22 | `WorklistEntryHive` | `worklist` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 23 | `ReportTextApprovedHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 24 | `AppointmentHive` | `appointments` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 25 | `AppointmentIntakeHive` | `appointments` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 26 | `IntakeDraftHive` | `appointments` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 16 | `PathologyReportHive` | `reports` | Added 2026-11-01 (CRQ-0039) |
+| 17 | `ReportResponseHive` | `reports` | Added 2026-11-01 (CRQ-0039) |
+| 18 | `ReportAddendumHive` | `reports` | Added 2026-11-01 (CRQ-0039) |
+| 19 | `ReportMeasurementHive` | `reports` | Added 2026-11-01 (CRQ-0039) |
+| 20 | `ReportDraftHive` | `reports` | Added 2026-11-01 (CRQ-0039) |
+| 21 | `PrereadScoreHive` | `preread` | Added 2026-11-01 (CRQ-0039) |
+| 22 | `WorklistEntryHive` | `worklist` | Added 2026-11-01 (CRQ-0039) |
+| 23 | `ReportTextApprovedHive` | `reports` | Added 2026-11-01 (CRQ-0039) |
+| 24 | `AppointmentHive` | `appointments` | Added 2026-11-01 (CRQ-0039) |
+| 25 | `AppointmentIntakeHive` | `appointments` | Added 2026-11-01 (CRQ-0039) |
+| 26 | `IntakeDraftHive` | `appointments` | Added 2026-11-01 (CRQ-0039) |
 | 27-31 | none | `appointments` | Reserved, unused |
-| 32 | `ConversationHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 33 | `ConversationMemberHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 34 | `CaseSummaryHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 35 | `MessageHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 36 | `MessagePreviewHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 37 | `ConversationCursorHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 38 | `MessageTranscriptHive` | `conversations` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 32 | `ConversationHive` | `conversations` | Added 2026-11-01 (CRQ-0039) |
+| 33 | `ConversationMemberHive` | `conversations` | Added 2026-11-01 (CRQ-0039) |
+| 34 | `CaseSummaryHive` | `conversations` | Added 2026-11-01 (CRQ-0039) |
+| 35 | `MessageHive` | `conversations` | Added 2026-11-01 (CRQ-0039) |
+| 36 | `MessagePreviewHive` | `conversations` | Added 2026-11-01 (CRQ-0039) |
+| 37 | `ConversationCursorHive` | `conversations` | Added 2026-11-01 (CRQ-0039) |
+| 38 | `MessageTranscriptHive` | `conversations` | Added 2026-11-01 (CRQ-0039) |
 | 39 | none | `conversations` | Reserved, unused |
-| 40 | `NotificationHive` | `notifications` | Reserved for `feat/infra`; model lands in CRQ-0039 |
-| 41 | `NotificationMetadataHive` | `notifications` | Reserved for `feat/infra`; model lands in CRQ-0039 |
+| 40 | `NotificationHive` | `notifications` | Added 2026-11-01 (CRQ-0039) |
+| 41 | `NotificationMetadataHive` | `notifications` | Added 2026-11-01 (CRQ-0039) |
 | 42-45 | none | `notifications` | Reserved, unused |
-| 46 | `PublicAlertHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
-| 47 | `AlertTextHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
-| 48 | `GuidanceBulletHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
-| 49 | `GuidanceSourceHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
-| 50 | `AlertClinicianBriefHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 |
-| 51 | `AlertReceiptHive` | `alerts` | Reserved for `feat/infra`; model lands in CRQ-0049 (local only) |
-| 52 | `NotifiableFindingHive` | `reports` | Reserved for `feat/infra`; model lands in CRQ-0049 |
+| 46 | `PublicAlertHive` | `alerts` | Added 2026-11-01 (CRQ-0049) |
+| 47 | `AlertTextHive` | `alerts` | Added 2026-11-01 (CRQ-0049) |
+| 48 | `GuidanceBulletHive` | `alerts` | Added 2026-11-01 (CRQ-0049) |
+| 49 | `GuidanceSourceHive` | `alerts` | Added 2026-11-01 (CRQ-0049) |
+| 50 | `AlertClinicianBriefHive` | `alerts` | Added 2026-11-01 (CRQ-0049) |
+| 51 | `AlertReceiptHive` | `alerts` | Added 2026-11-01 (CRQ-0049) (local only) |
+| 52 | `NotifiableFindingHive` | `reports` | Added 2026-11-01 (CRQ-0049) |
 | 53-55 | none | `alerts` | Reserved, unused |
 
 A reserved row becomes "Added" in the commit that creates the class. Reserving
@@ -444,13 +445,16 @@ nothing; a later, unrelated write is not an edge, so it never re-counts. A
 counter added later is `@Default(0)` in its model, so older documents still
 parse.
 
-**Availability (`feat/infra`, planned).** `doctors` gains `workingDays`
+**Availability (`feat/infra`).** `doctors` gains `workingDays`
 (default Monday to Friday), `dayStartMinute` (480) and `dayEndMinute` (1020),
 which the owner writes and the rules validate only when one of them changes,
 and `busySlots`, which only the server writes, as appointments are accepted
 and cancelled. `practitioners` projects all four, dropping past slots, so a
 patient sees busy times on the profile. A one-off admin callable,
-`backfillAvailability`, writes the defaults onto existing documents.
+`backfillAvailability`, writes the defaults onto existing documents. Booking
+is a transaction on the doctor's document: accepting an appointment reads
+`busySlots` and writes it in the same step, so two accepts of one slot
+serialise and exactly one succeeds.
 
 **How each document is created.** Clients never create a `patients`,
 `doctors` or `practitioners` document; callables do, and set the role claim
@@ -462,11 +466,11 @@ in the same step.
 | `completePractitionerSignUp` | A new account | Checks the KMPDC number is unused and the facility exists, then creates `doctors/{uid}` as `Pending`. **No role claim is set**, so a pending account reaches no clinical route |
 | `verifyPractitioner` | Admin only (seed script for the pilot) | Sets `Verified` or `Rejected`; on `Verified`, sets `role: doctor` or `role: pathologist` |
 | `addPatient` | A verified doctor | Same duplicate check, then creates the record with `uid: ''` and the doctor in `doctorUids` |
-| `linkPatientAccount` | A doctor on the record's care team | Attaches a registered account to a doctor-added record, with the patient present. Planned: it then links the record's cases through a resumable job (`linkJobs/{patientId}`), in pages of per-case transactions, which the sweep resumes if it stalls |
-| A patient's `Join` share (planned; replaces `inviteToCase`) | The patient, once their result is released | Shares a case with a verified practitioner through an addressed code (§6.3); redeeming it adds the practitioner to the case's viewers and to `doctorUids` |
+| `linkPatientAccount` | A doctor on the record's care team | Attaches a registered account to a doctor-added record, with the patient present. It then links the record's cases through a resumable job (`linkJobs/{patientId}`), in pages of per-case transactions: the call runs five pages itself, and the `resumeLinkJobs` schedule (its own, not `sweepCases`) finishes a longer history |
+| A patient's `Join` share (replaces `inviteToCase`) | The patient, once their result is released | Shares a case with a verified practitioner through an addressed code (§6.3); redeeming it adds the practitioner to the case's viewers and to `doctorUids` |
 
 `doctorUids` has three server writers: `addPatient`, a patient's `Join`
-share, and a doctor accepting the patient's appointment (planned).
+share, and a doctor accepting the patient's appointment.
 Being in `doctorUids` grants the patient's profile, not their cases. Each
 case's own participant list (§11) still decides who reads which case. A
 second-opinion doctor sees the shared case only. The patient may remove a
@@ -552,7 +556,7 @@ and will price an order, against its own lists rather than trusting a
 client; a test compares them. A patient outside Nairobi can still sign up: they see a pilot notice,
 and the directory lists every practitioner rather than the nearest.
 
-**Planned in `feat/infra`** (CRQ-0039, CRQ-0049), in both `assets/data` and
+**Added in `feat/infra`** (CRQ-0039, CRQ-0049), in both `assets/data` and
 `functions/data`, byte-identical:
 
 | Asset | Holds | Source |
@@ -563,9 +567,10 @@ and the directory lists every practitioner rather than the nearest.
 | `public_health_guidance.json` | Patient and clinician guidance for each disease that may raise a public alert, every bullet with its source | The same |
 | `functions/data/county_adjacency.json` (functions only) | Each county's neighbours, for the clinician audience | Not yet sourced. Until it is, an alert reaches clinicians in its own county only |
 
-### 6.3 The clinical collections (`feat/infra`, planned)
+### 6.3 The clinical collections (`feat/infra`)
 
-None of this is built yet (§16 item 11). The order **is** the case: one
+The models, rules, indexes, cache helpers, data sources and Cloud Functions
+for all of this are built; the blocs and screens are not (§16 item 11). The order **is** the case: one
 `cases/{caseUid}` record carries a patient from order to result, its user-facing
 name stays "order", and its number `ODR-…`. Clients write almost nothing;
 Cloud Functions write the rest. "Role" below means the role claim, which
@@ -712,7 +717,7 @@ cost are controlled:
 | Sign-out | Stop every listener, flush any queued writes while the credentials are still valid, unsubscribe the patient's alert topic before the push token is deleted, then wipe the case-bearing boxes and the cached audio and image files, and rotate the key (§6). |
 | Notification tapped (cold or warm) | Local and push taps share one stream, and `launchPayload` covers both on a cold launch. The payload is the `notificationUid`, and the row's `metadata.deepLink` is the route; it is routed once the case and alert screens exist. |
 
-**The listeners the data layer adds** (planned). Each restarts from its
+**The listeners the data layer adds** (planned, with the blocs). Each restarts from its
 cursor on resume.
 
 | Listener | Starts | Stops |
@@ -775,7 +780,7 @@ In summary:
   The P1 runbook flips **both** templates, server first. This is the first
   step of a P1 response. The app's defaults for all eight live in
   `lib/core/constants/remote_config_defaults.dart`, passed to `setDefaults`
-  in `bootstrap.dart`, with a test that lists all eight (planned).
+  in `bootstrap.dart`, with a test that lists all eight.
 - **Remote Config at startup** (CRQ-0011): `bootstrap` sets in-app defaults,
   then fetches and activates within the bootstrap timeout; on any failure
   the defaults stand. Every parameter the app reads has a default there.
@@ -972,10 +977,10 @@ to see. Greptile is pointed at this section.
 4. **`test_api: any` is listed under `dependencies`**, not
    `dev_dependencies`, and is unconstrained. Move it, or remove it if nothing
    imports it.
-5. **Rules and functions cover identity only, and are not deployed yet**
-   (CRQ-0016). `firestore.rules`, `storage.rules` and `functions/` enforce
-   §6.1, and every other collection is closed. Cases, orders, reports and
-   alerts get their rules with their features. Deploy (`make deploy-rules`,
+5. **Rules and functions are written, and not deployed yet** (CRQ-0016,
+   CRQ-0039 to CRQ-0049). `firestore.rules`, `storage.rules` and `functions/`
+   enforce §6.1 and the §6.3 collections, and any collection they do not name
+   is closed. Deploy (`make deploy-rules`,
    `deploy-storage`, `deploy-functions`) waits for the pull request's
    review; until then the live project runs whatever the console holds.
 6. **Cache wipe on sign-out costs a full re-download on sign-in.** Acceptable
@@ -1004,21 +1009,22 @@ to see. Greptile is pointed at this section.
     install presents Google's certificate, and without its hash every Play
     install terminates. Add it before the first Play build. The Apple
     Developer Team ID is set (`Z5GNM65VQN`, the project's signing team).
-11. **The clinical data layer is designed, not built** (`feat/infra`). What
-    this document describes as planned, and where it stands on 2026-11-01:
+11. **The clinical data layer is built; its blocs and screens are not**
+    (`feat/infra`). What this document describes, and where it stands on
+    2026-11-02:
 
     | Piece | Status |
     |---|---|
-    | The shared enums (`core/constants/enums.dart`) | In progress |
-    | The models, the reference assets (§6.2) and the typeId rows (§6) | Planned (CRQ-0039, CRQ-0049) |
-    | The 21 encrypted boxes and the feature cache helpers (§6.3) | Planned (CRQ-0040) |
-    | The Firebase data sources and the query registry | Planned (CRQ-0048) |
-    | Rules, indexes and TTL for the §6.3 collections | Planned. Until they land, every collection outside identity stays closed (item 5) |
-    | The case, share-code, report, appointment, conversation, notification and alert functions | Planned (CRQ-0041 to CRQ-0047, CRQ-0049) |
-    | The eight client kill-switch defaults (§10) | Planned (CRQ-0047) |
-    | The AI service's new jobs (translation, explanation, intake, notes translation, risk check, speech to text, alert drafting) | The next branch, `feat/ai-service`. Until then, function tests inject a fake AI client |
+    | The shared enums (`core/constants/enums.dart`) | Built (CRQ-0039) |
+    | The models, the reference assets (§6.2) and the typeId rows (§6) | Built (CRQ-0039, CRQ-0049) |
+    | The 21 encrypted boxes and the feature cache helpers (§6.3) | Built (CRQ-0040) |
+    | The Firebase data sources and the query registry | Built (CRQ-0048) |
+    | Rules, indexes and TTL for the §6.3 collections | Written, not deployed (item 5) |
+    | The case, share-code, report, appointment, conversation, notification and alert functions, with the signed-report PDF | Built (CRQ-0041 to CRQ-0047, CRQ-0049); 518 emulator tests |
+    | The eight client kill-switch defaults (§10) | Built (`remote_config_defaults.dart`) |
+    | The AI service's new jobs (translation, explanation, intake, notes translation, risk check, speech to text, alert drafting) | The next branch, `feat/ai-service`. No AI client is wired until then: every AI path records `Failed`, and an alert draft is the template |
     | Voice recording and playback | The voice UI bundle; its two packages are approved and added with it |
-    | The feature screens | Later branches |
+    | The blocs and the feature screens | Later branches |
 
     The deploy order is fixed: indexes (once `READY`), the index smoke check,
     functions, the availability backfill, Firestore rules, Storage rules, the
@@ -1028,6 +1034,7 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-02 | §4, §6 (typeId rows), §6.1 (availability, the link job, booking), §6.2, §6.3, §10 and §16 items 5 and 11 brought up to what `feat/infra` built: the domain functions, the alert engine and the signed-report PDF (CRQ-0041 to CRQ-0049). | Theo |
 | 2026-11-01 | The `feat/infra` data layer, as planned: §4 the clinical features; §6 the append rule for shipped classes, typeIds 4-55 reserved, scoping by `participantUids` and `readerUids`, counters on the edge; §6.1 availability, the link job, the patient's `Join` share; §6.2 the four new assets with their sources; §6.3 the collections, Storage paths and boxes; §9 the tap payload and the listeners; §10 eight kill switches and two templates; §11 the patient's rights and the alert approver; §15 rule 4 signing as a transaction; §16 item 11 (CRQ-0039 to CRQ-0049). | Theo |
 | 2026-10-29 | §6.2: the lab test catalogue, with benchmark prices (CRQ-0033). | Theo |
 | 2026-10-29 | §8: email verification in the landing order (CRQ-0032). | Theo |

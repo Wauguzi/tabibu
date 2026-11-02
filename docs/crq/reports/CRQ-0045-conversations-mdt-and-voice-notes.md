@@ -6,16 +6,16 @@
 | Title | Conversations, MDT and voice notes |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-10-30 |
-| Date implemented | 2026-11-01 |
+| Date implemented | 2026-11-02 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/infra`: 8072288, c755bde, fe013dd, 155630b, bd353e0, af2b1d8 |
+| Commit(s) / PR | `feat/infra`: 8072288, c755bde, fe013dd, 155630b, bd353e0, af2b1d8, d05d289 |
 
 ## 1. Description of change
 
-Case conversations and the voice notes inside them. The membership,
-flag and withdraw callables are planned; this change lands the shapes,
-reads, rules and shared writers they will enforce.
+Case conversations and the voice notes inside them. This change lands
+the shapes, reads, rules and shared writers, and the membership, share
+and withdraw callables that enforce them.
 
 1. **Models** (8072288): conversations with members and the
    de-identified case summary, messages with `kind`, duration, peaks,
@@ -46,6 +46,19 @@ reads, rules and shared writers they will enforce.
    conversation's clinicians directly, as a clinician's does; a
    patient reads a clinician's transcript only once the sender
    shares it (one tap, `acceptedUnchanged`).
+6. **Callables, triggers and sweeps** (d05d289): `openDirectConversation`,
+   `openMdt`, `inviteToMdt`, `respondToMdtInvite`, `leaveMdt`,
+   `removeFromMdt`, `closeConversation`, `withdrawMessage` and
+   `shareTranscript`. `onMessageCreated` takes the message quotas
+   (text, and the voice-note hourly and daily limits), fans out the
+   delivery or withholds the message, and queues the voice note's
+   transcript, flagging one that still holds an identifier.
+   A direct thread or an MDT closes when its pathologist, a viewer or
+   its case leaves, and a person who leaves reads nothing more.
+   `sweepConversations` (every five minutes) expires open invites,
+   unblocks quotas, fails stale transcripts and deletes orphaned media
+   in pages, resuming from a stored page token. With no AI service a
+   transcript records `Failed`; the voice note itself is delivered.
 
 ## 2. Business justification
 
@@ -58,9 +71,10 @@ attached to every word.
 
 **In scope:** everything in §1.
 
-**Explicitly out of scope:** the membership, flag, share and
-withdraw callables and the transcription job (planned;
-`feat/ai-service` for the model side).
+**Explicitly out of scope:** the thread, MDT and voice-note screens
+and the voice recording UI (the blocs and voice bundles), and the
+transcription model itself (`feat/ai-service`): every transcript
+records `Failed` until the service exists.
 
 ## 4. Impact assessment
 
@@ -68,8 +82,8 @@ withdraw callables and the transcription job (planned;
 |---|---|---|
 | Data model (Firestore, Hive) | **Affected** | Conversation, message, cursor and transcript shapes; Hive 32-38 |
 | Roles & case scoping | **Affected** | Participation plus role on every read; transcripts split by reader |
-| Clinical safety | None | No result or alert path changed; transcripts labelled AI (S-8) |
-| AI service (prompts, models, thresholds) | None | Jobs planned in the next branch |
+| Clinical safety | **Affected** | A voice-note transcript is an AI draft that reaches clinicians directly, labelled AI (S-8); it records `Failed` until the service exists. No result or alert path changed |
+| AI service (prompts, models, thresholds) | None | The seam is called with the voice note; no client or prompt is added |
 | Security (rules, App Check, RASP, secrets) | **Affected** | Media rules with exact paths; quotas (T-7); T-17 controls |
 | Data protection (PHI, de-identification, model endpoints) | **Affected** | De-identified MDT summary; scrubbed excerpts; no transcript on the message |
 | Design system / UI consistency | None | — |
@@ -98,10 +112,11 @@ writers.
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass — each bundle's scoped gates before its report; full-tree run with the PR |
-| `make test` | Pending — reviewer's full run |
+| `make test` | Pass — 1,364 app tests, the whole suite, observed 2026-11-01 |
+| `make functions-test` | Pass — 518 emulator tests across the functions suite (d05d289), covering membership and closing, quotas, voice-note transcripts, withdrawal and the paged media sweep |
 | Rules tests | Pass — RT-139..143, RT-159..171, RT-187..193 within RT-45..RT-200 |
 | Secrets | No secret committed; `gitleaks` pending with the PR |
-| Manual run (device / simulator / web) | N/A — no UI yet |
+| Manual run (device / simulator / web) | N/A — no screen calls the callables yet |
 | Certification | Pending — Theo |
 
 ## 8. Approval
@@ -110,7 +125,7 @@ writers.
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-01 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
-| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | N/A | — | Transcripts labelled AI; no result path |
+| Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Covered by CTO | Pending | Transcripts labelled AI (S-8); no result path |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | Media rules; quotas; T-17 controls |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | De-identified summaries; split transcripts |
 | Lead Designer | §4 flags design-system impact | N/A | — | No UI change |
@@ -124,6 +139,13 @@ writers.
   Android recorders; the fallback is the speech service's duration.
 - **Residual (T-17)**: clinician free text and speech stay outside
   the scrub. Reopen if a review finds identity in either.
+- **Review findings fixed** (three adversarial reviews, d05d289):
+  conversations did not close when someone left (a pathologist, a
+  viewer or the case), and the orphan-media sweep did not page.
+- **Accepted deviation**: a departing pathologist's MDTs close rather
+  than pass on to someone else. The owner leaving closes the MDT; any
+  other member is removed.
+- **Follow-up**: the AI service client, for the voice-note transcript.
 - **Later**: a pre-send identifier check for typed MDT messages
   (Q-22); de-identified slides in the MDT (§13).
 

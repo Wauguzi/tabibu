@@ -6,10 +6,10 @@
 | Title | Notification model v2 and the push trigger |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-10-30 |
-| Date implemented | 2026-11-01 |
+| Date implemented | 2026-11-02 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/infra`: 965d919, c755bde, 155630b, ac146ae, af2b1d8 |
+| Commit(s) / PR | `feat/infra`: 965d919, c755bde, 155630b, ac146ae, af2b1d8, d05d289 |
 
 ## 1. Description of change
 
@@ -28,7 +28,17 @@ idempotency-keyed writer, and fixed bilingual push copy.
    county.
 3. **Sources** (c755bde): the inbox delta scoped to the recipient,
    targeted read updates that stamp `lastUpdatedAt` (R-4).
-4. **Docs** (ac146ae, af2b1d8): the engine moves to v2 with its event
+4. **The push trigger** (d05d289): `sendPush` sends the copy the row
+   already carries, so it names no diagnosis, person, order number or
+   model text. It acts only on a push request (`pushRequestedAt` set or
+   moved), takes its claim (`pushSentAt`) only after it has found a
+   token, and releases it only when still its own. A recipient with no
+   device, or who turned notifications off, costs nothing and is never
+   marked as pushed; a dead token is removed from the profile. An
+   approver's tokens come from the staff record that
+   `registerStaffToken` writes. A message from a thread collapses on
+   the device by thread.
+5. **Docs** (ac146ae, af2b1d8): the engine moves to v2 with its event
    list; a public outbreak alert's push may name the disease and the
    county (the push exception); the notifiable event adds the alert
    request and status, with the case link server-only.
@@ -44,8 +54,9 @@ leaking what the inbox does not show.
 
 **In scope:** everything in §1.
 
-**Explicitly out of scope:** the alert delivery fan-out (CRQ-0049);
-the inbox screens (the blocs branch).
+**Explicitly out of scope:** the inbox screens and the push handling in
+the app (the blocs branch). The alert delivery fan-out is CRQ-0049's.
+No AI path is involved.
 
 ## 4. Impact assessment
 
@@ -63,8 +74,8 @@ the inbox screens (the blocs branch).
 
 ## 5. Risk & rollback plan
 
-**Risk level:** Low: additive row shape; the writer runs only in
-tests so far.
+**Risk level:** Low: an additive row shape; the writer and the
+trigger exist, though no screen reads the rows yet.
 
 **Rollback plan:** revert the commits. Rows written by this branch
 stay readable: the v1 readers ignore the new fields.
@@ -74,16 +85,18 @@ stay readable: the v1 readers ignore the new fields.
 1. The model with its expiry and actionable checks.
 2. The idempotent writer with fixed copy, then the sources.
 3. The engine doc to v2 with the branch (af2b1d8).
+4. The push trigger, with its claim and release tested against a
+   redelivered event.
 
 ## 7. Testing & verification evidence
 
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass — each bundle's scoped gates before its report; full-tree run with the PR |
-| `make test` | Pending — reviewer's full run |
-| `make functions-test` | Pass — 125, observed 2026-11-01: idempotent writes, claim clearing, fixed copy |
+| `make test` | Pass — 1,364 app tests, the whole suite, observed 2026-11-01 |
+| `make functions-test` | Pass — 518 emulator tests across the functions suite (d05d289), covering idempotent writes, claim and release, fixed copy, dead tokens and a push that never re-fires itself |
 | Secrets | No secret committed; `gitleaks` pending with the PR |
-| Manual run (device / simulator / web) | N/A — no UI yet |
+| Manual run (device / simulator / web) | N/A — no screen reads the rows yet |
 | Certification | Pending — Theo |
 
 ## 8. Approval
@@ -106,6 +119,10 @@ stay readable: the v1 readers ignore the new fields.
 - **F-26.8 kept**: local keys include the resource uid, so two rows
   for one resource in one minute collapse by design (the one-minute
   dedupe).
+- **Review finding fixed** (d05d289): the push re-fire loop. The claim
+  and its release also write the notification, and neither may start
+  another send, so one failure now waits for the platform's backoff
+  instead of looping at once.
 
 ## 10. Related records
 

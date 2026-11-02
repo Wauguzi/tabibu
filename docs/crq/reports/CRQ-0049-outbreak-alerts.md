@@ -7,17 +7,17 @@
 | Title | Outbreak alerts |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-10-30 |
-| Date implemented | 2026-11-01 |
+| Date implemented | 2026-11-02 |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/infra`: f1106c9, a5bf9ba, c755bde, fe013dd, 155630b, af2b1d8 |
+| Commit(s) / PR | `feat/infra`: f1106c9, a5bf9ba, c755bde, fe013dd, 155630b, af2b1d8, d05d289 |
 
 ## 1. Description of change
 
-The data the outbreak detector will run on, and the guidance its
-alerts will carry. The detector, drafting, approval and delivery are
-planned; this change lands the disease bundle, the sources, the
-reads and the rules they will enforce.
+The data the outbreak detector runs on, the guidance its alerts carry,
+and the engine itself. This change lands the disease bundle, the
+sources, the reads and the rules, and the detector, drafting, approval
+and delivery functions that enforce them.
 
 1. **`notifiable_diseases.json`** (a5bf9ba): 38 diseases in plan §1.4
    order with IHR status, reporting category, Kenya group, the S1
@@ -47,6 +47,40 @@ reads and the rules they will enforce.
    drafting with cited sentences (T-20), approval by an authorised
    public-health officer, two-phase delivery, `updatePatientArea`
    and `setAlertApprover`. Threat model T-19/T-20 dated.
+7. **The engine** (d05d289), as specified:
+   - **Events:** `signReport` writes the anonymous, allow-listed
+     notifiable events in its own transaction. A new finding creates an
+     event and a link, a kept one moves its link to the new version,
+     and a dropped one retracts both.
+   - **Detector:** `onNotifiableEventWritten` counts each edge once and
+     applies Rules A, B and M to weekly counts, then reconciles the
+     signal and the alert. Eligibility is Q-23's: only epidemic-prone
+     diseases can raise an alert, and HIV, STIs, hepatitis B and C, TB
+     and leprosy are counted, never broadcast. A count that falls back
+     to zero withdraws a draft.
+   - **Drafts:** the draft is the model's, or the template when the
+     model is off, fails or writes off-schema, so an approver always
+     gets one. An authorised public-health officer (MoH or county
+     health department) approves it in one tap, edits it, or rejects
+     it, and `requestAlertDraft` redrafts up to three rounds. Nobody
+     approves an alert raised from their own finding.
+   - **Delivery:** the county's clinicians first, then, after the
+     patient delay, one topic push per language and the `publicAlerts`
+     read model for patients. A lease serialises runners, and keyed
+     rows and once-only topic claims make every send at-most-once.
+     The kill switch fails closed to `Held`. Delivery reaches the alert
+     county only until adjacency is sourced (§9).
+   - **Sweep and signals:** the alert sweep runs on `sweepCases`'
+     schedule (reminder, expiry, a stuck draft turned into the
+     template draft, delivery resumes, a held-too-long page);
+     `aggregateModelSignals` is CRQ-0047's.
+   - **Accounts:** `setAlertApprover` grants the permission on an admin
+     account, `updatePatientArea` moves a patient's county, and the
+     seed moves the approver role to the admin account and seeds the
+     demo accounts synthetic alerts reach.
+   - **No AI client is wired**, so every draft is the template until
+     the service exists. An in-app alert never replaces the facility's
+     statutory report.
 
 The scope default (Q-23): county-level scope for Rule A unless the
 Kenya clinical advisor names counted cross-border detector scope —
@@ -65,9 +99,11 @@ gate after it.
 
 **In scope:** everything in §1.
 
-**Explicitly out of scope:** the detector, drafting, approval and
-delivery functions; the county-adjacency source (still unsourced,
-§12 U-12); the OCR PDF check (step 1l).
+**Explicitly out of scope:** the approval queue and alert screens (the
+blocs branch); the alert attribution line, which is app copy on the UI
+branch; the AI service that drafts (`feat/ai-service`); the
+county-adjacency source (still unsourced, §12 U-12); the OCR PDF check
+(step 1l).
 
 ## 4. Impact assessment
 
@@ -76,8 +112,8 @@ delivery functions; the county-adjacency source (still unsourced,
 | Data model (Firestore, Hive) | **Affected** | Alert, brief, receipt and working-record shapes; Hive 46-51 |
 | Roles & case scoping | **Affected** | Public alerts to the county; briefs and approvals by role |
 | Clinical safety | **Affected** | Guidance text authored; S-8 names clinician transcripts to clinicians |
-| AI service (prompts, models, thresholds) | None | Drafting planned in the next branch |
-| Security (rules, App Check, RASP, secrets) | **Affected** | Approver records approver-only; T-19/T-20 controls specified |
+| AI service (prompts, models, thresholds) | None | The drafting seam is called with disease and county names and guidance only; no client or prompt is added, so drafts are the template |
+| Security (rules, App Check, RASP, secrets) | **Affected** | Approver records approver-only; T-19/T-20 controls built |
 | Data protection (PHI, de-identification, model endpoints) | **Affected** | Alerts carry disease and county only; drafts never cached (F-39) |
 | Design system / UI consistency | None | — |
 | Localisation (en, sw) | **Affected** | Every name, definition and bullet in both; ours, labelled so |
@@ -85,11 +121,14 @@ delivery functions; the county-adjacency source (still unsourced,
 
 ## 5. Risk & rollback plan
 
-**Risk level:** Medium: authored clinical wording, though unread by
-any live path yet.
+**Risk level:** High: this is the one message Tabibu sends unasked.
+Delivery fails closed to `Held`, an approver decides every alert, and
+no screen calls the callables yet.
 
-**Rollback plan:** revert the commits. No alert can fire: the
-detector does not exist.
+**Rollback plan:** turn `alerts_delivery_enabled` off on both templates,
+server first, so every alert is `Held`; then revert the commits. Deploy
+order: indexes → smoke → functions → backfill → Firestore rules →
+Storage rules → server Remote Config → app (§8 5e).
 
 ## 6. Implementation plan
 
@@ -99,18 +138,21 @@ detector does not exist.
    the quarantine test.
 3. Sources, rules with a test per reader, then the threat-model
    rows.
+4. The engine on the shared core: events, then the detector, drafting
+   and decisions, delivery and the sweep, each proved on the emulator,
+   with the model seam faked.
 
 ## 7. Testing & verification evidence
 
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass — each bundle's scoped gates before its report; full-tree run with the PR |
-| `make test` | Pending — reviewer's full run. Observed in-session: the alert assets (4) |
-| `make functions-test` | Pass — 125, observed 2026-11-01, incl. byte-identical over both assets |
+| `make test` | Pass — 1,364 app tests, the whole suite, observed 2026-11-01, including the alert assets (4) |
+| `make functions-test` | Pass — 518 emulator tests across the functions suite (d05d289), including byte-identical over both assets and the events, detector, drafting, decisions, delivery and sweep |
 | Rules tests | Pass — RT-172..185/186 within RT-45..RT-200 |
 | Release check | Pass — the quarantine and idempotence tests run under `make release-check` |
 | Secrets | No secret committed; `gitleaks` pending with the PR |
-| Manual run (device / simulator / web) | N/A — no UI yet |
+| Manual run (device / simulator / web) | N/A — no screen calls the callables yet |
 | Certification | Pending — Theo |
 
 ## 8. Approval
@@ -120,7 +162,7 @@ detector does not exist.
 | Author | Always | Theo | 2026-11-01 | — |
 | Engineering reviewer | Always, on the pull request | Greptile | Pending | Recorded on `main` after the merge (CRQ-0038) |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Pending | — | §13 clinical pass after the demo build |
-| Security Analyst | §4 flags security impact | Covered by CTO | Pending | Approver-only working records; T-19/T-20 specified |
+| Security Analyst | §4 flags security impact | Covered by CTO | Pending | Approver-only working records; T-19/T-20 controls built |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | Disease and county only; drafts uncached |
 | Lead Designer | §4 flags design-system impact | N/A | — | No UI change |
 
@@ -146,6 +188,24 @@ detector does not exist.
 - **Q-23 demo rule**: non-demo accounts see nothing synthetic, so a
   synthetic drill cannot leak through a mis-set flag; the demo build
   clears the flag on every sign-in.
+- **Review findings fixed** (three adversarial reviews, d05d289):
+  delivery dropped `templateArgs` from the rows it wrote (they now
+  carry the disease and county ids); an evidence write that changed
+  nothing rewrote the alert, and a no-op redelivery now never blocks a
+  one-tap approve; `epiCounts` drifted from the events; the topic
+  claim was read wrongly, so only a `{id, at}` claim now counts and
+  anything else reads as absent; and an alert could be released at
+  zero evidence, which approval now refuses with `noEvidence`.
+- **Accepted deviation: county-only delivery.** Clinicians in the
+  alert county only, until county adjacency is sourced (U-12).
+- **Accepted deviation: the attribution line.** The line that tells a
+  reader who approved an alert is app copy, to come on the UI branch.
+- **Accepted deviation: zero-evidence redraft.** A redraft from
+  `Withdrawn` cannot release to patients on zero evidence: approval is
+  refused with `noEvidence`, which fails closed.
+- **Follow-ups**: the AI service client, so drafts stop being the
+  template; county adjacency; an index for a notes-AI `Running` sweep
+  (CRQ-0041 §9).
 - **Source links corrected before commit.** The first build of the
   guidance carried social-media links for the Ministry's sources; every
   Ministry and county source now points at its published document

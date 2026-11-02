@@ -53,7 +53,8 @@ another or caching what their role may not read.
 **In scope:** everything in §1.
 
 **Explicitly out of scope:** the blocs that call the helpers (the next
-branch); the domain callables the replays target.
+branch). The domain callables the replays target are built in this
+branch (CRQ-0041 to CRQ-0047, CRQ-0049); no screen calls them yet.
 
 ## 4. Impact assessment
 
@@ -92,7 +93,7 @@ them.
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass — each bundle's scoped gates before its report; full-tree run with the PR |
-| `make test` | Pending — reviewer's full run. Observed in-session: the four helpers (99) |
+| `make test` | Pass — 1,364 app tests, the whole suite, observed 2026-11-01, including the four helpers (99) |
 | Replay mapping | Pass — drop-and-refetch, evict on a denied refetch, stay queued; patient-box and transcript gates covered |
 | Secrets | No secret committed; `gitleaks` pending with the PR |
 | Manual run (device / simulator / web) | N/A — no UI; bloc behaviour follows in the next branch |

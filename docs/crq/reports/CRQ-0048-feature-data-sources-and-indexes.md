@@ -6,10 +6,10 @@
 | Title | Firebase feature data sources and the index check |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-10-30 |
-| Date implemented | 2026-11-01 |
+| Date implemented | 2026-11-02 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/infra`: c6dfc8e, c755bde, b41c233, af2b1d8 |
+| Commit(s) / PR | `feat/infra`: c6dfc8e, c755bde, b41c233, af2b1d8, d05d289 |
 
 ## 1. Description of change
 
@@ -36,7 +36,9 @@ that every query it runs has an index.
    deliveries.
 4. **The check** (F-13): function queries go through one registry,
    tested against the index file, with the identity handlers' queries
-   moved onto it unchanged; the app's registry has the same test;
+   moved onto it unchanged, and every query the domain functions run
+   registered beside them (d05d289, with one more field exemption, on
+   `reportDrafts.createdAt`); the app's registry has the same test;
    `make smoke-indexes` runs every registered query against a
    deployed project, since the emulator never enforces indexes.
 5. **Docs** (af2b1d8, 72082f5): the architecture lists every
@@ -55,9 +57,9 @@ rules the threat model names.
 
 **In scope:** everything in §1.
 
-**Explicitly out of scope:** the callables the sources invoke
-(planned per domain); the `ttl` fallback target (U-5, Theo runs it
-if needed).
+**Explicitly out of scope:** the callables the sources invoke (built
+in this branch, CRQ-0041 to CRQ-0047 and CRQ-0049); the `ttl` fallback
+target (U-5, Theo runs it if needed).
 
 ## 4. Impact assessment
 
@@ -94,7 +96,8 @@ harmless. Deploy order stays indexes (`READY`) → smoke → functions
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass — each bundle's scoped gates before its report; full-tree run with the PR |
-| `make test` | Pending — reviewer's full run |
+| `make test` | Pass — 1,364 app tests, the whole suite, observed 2026-11-01 |
+| `make functions-test` | Pass — 518 emulator tests across the functions suite (d05d289), including the registry-against-index test over the domain functions' queries |
 | Index proof | Pass — registry tests on both sides; `make smoke-indexes` on the dev project |
 | Secrets | No secret committed; `gitleaks` pending with the PR |
 | Manual run (device / simulator / web) | The web build test of `AlertTopicService` (U-20); device run pending — Theo |
@@ -116,6 +119,9 @@ harmless. Deploy order stays indexes (`READY`) → smoke → functions
 - **U-17**: FCM topic limits for 47 × 2 topics still need the dev
   send test; topics already carry ids only, never names.
 - **U-5** (TTL deploy) stays open as in CRQ-0046 §9.
+- **Smoke run**: the dev-project run predates the queries the domain
+  functions added (d05d289). Run `make smoke-indexes` again, with the
+  indexes `READY`, before the functions deploy.
 
 ## 10. Related records
 

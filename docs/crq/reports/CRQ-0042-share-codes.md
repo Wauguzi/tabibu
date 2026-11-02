@@ -6,10 +6,10 @@
 | Title | Share codes |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-10-30 |
-| Date implemented | 2026-11-01 |
+| Date implemented | 2026-11-02 |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/infra`: 155630b, c6dfc8e, fe013dd, af2b1d8 |
+| Commit(s) / PR | `feat/infra`: 155630b, c6dfc8e, fe013dd, af2b1d8, d05d289 |
 
 ## 1. Description of change
 
@@ -30,8 +30,17 @@ recipient, not a credential (T-18 reworded, F-15).
    controls; redemption and reissue are transactions in the review
    rules.
 
+5. **Callables** (d05d289): `createShareCode`, `redeemShareCode`,
+   `revokeShareCode` and `reissueShareCode`, with the hashing key
+   injected into the three that mint, redeem or reissue one. A `Join` share
+   is the patient's; a `ReportUnlock` is made by the signer for the
+   ordering doctor, and refuses revocation, so a released report can
+   never be stranded. Only signing a newer version retires one.
+   `sweepCases` expires pending shares.
+
 An `isCritical` version unopened after 24 hours re-notifies the doctor
-and the signer daily, with no "critical" in the push (F-15).
+and the signer daily, with no "critical" in the push (F-15); the
+`sweepCases` schedule runs it (d05d289).
 
 ## 2. Business justification
 
@@ -44,7 +53,7 @@ expired. Binding, attempt limits and reissue give both.
 **In scope:** everything in §1.
 
 **Explicitly out of scope:** the join/accept screens that redeem the
-code (the blocs branch).
+code (the blocs branch). No AI path is involved.
 
 ## 4. Impact assessment
 
@@ -62,8 +71,8 @@ code (the blocs branch).
 
 ## 5. Risk & rollback plan
 
-**Risk level:** Medium: a secret-handling path, though with no live
-callers yet.
+**Risk level:** Medium: a secret-handling path. The callables exist,
+though no screen calls them yet.
 
 **Rollback plan:** revert the commits. Rotate the HMAC key if a code
 was ever issued against it.
@@ -71,7 +80,7 @@ was ever issued against it.
 ## 6. Implementation plan
 
 1. The server hashing and redemption first, with lockout and reissue
-   tests.
+   tests, then the callables over them.
 2. The app's read-only sources, with the secret excluded by
    construction and by test.
 3. Rules and their tests, then docs.
@@ -81,11 +90,11 @@ was ever issued against it.
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass — each bundle's scoped gates before its report; full-tree run with the PR |
-| `make test` | Pending — reviewer's full run |
-| `make functions-test` | Pass — 125, observed 2026-11-01: hashing, lockout, reissue, recipient binding |
+| `make test` | Pass — 1,364 app tests, the whole suite, observed 2026-11-01 |
+| `make functions-test` | Pass — 518 emulator tests across the functions suite (d05d289), covering hashing, lockout, reissue, recipient binding and the four callables |
 | Rules tests | Pass — RT-58, RT-69/70 (two equalities, delta queries) within RT-45..RT-200 |
 | Secrets | Injected key; emulator `.secret.local` ignored; `gitleaks` pending with the PR |
-| Manual run (device / simulator / web) | N/A — no UI yet |
+| Manual run (device / simulator / web) | N/A — no screen calls the callables yet |
 | Certification | Pending — Theo |
 
 ## 8. Approval
@@ -106,6 +115,10 @@ was ever issued against it.
   seen redeemed by strangers: shorten the expiry.
 - **`pendingShares` counts `Join` only** (F-11b F-23); `signReport`
   revokes the previous version's pending unlock when it lands.
+- **Review finding fixed** (d05d289): a stranded report unlock. The
+  signer's `ReportUnlock` can no longer be revoked, and a reissue
+  replaces a lapsed code in place, so the ordering doctor always has a
+  way to open the report.
 
 ## 10. Related records
 

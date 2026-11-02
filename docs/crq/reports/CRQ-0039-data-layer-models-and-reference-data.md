@@ -131,7 +131,7 @@ builds never wrote the new fields.
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass — each bundle's scoped gates before its report; full-tree run with the PR |
-| `make test` | Pending — reviewer's full run. Observed in-session: the reference-data loader (6) |
+| `make test` | Pass — 1,364 app tests, the whole suite, observed 2026-11-01, including the reference-data loader (6) |
 | Parsing tests | Pass — every row of the real lab catalogue, insurers and templates parses (d0bd1e7, 622100f) |
 | Legacy adapter | Pass — an old Hive row loads under the new mirrors (c000a7e) |
 | Secrets | No secret in the branch's assets; `gitleaks` pending with the PR |
