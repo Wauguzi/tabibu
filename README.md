@@ -55,6 +55,21 @@ make run-dev    # the development flavor (also: make run-web)
 There are three flavors, `development`, `staging` and `production`, each with its own entry point
 in `lib/main_<flavor>.dart`.
 
+## Trying it
+
+The live project has one demo account per role, all with demo data only. Sign in with email and
+password:
+
+| Role | Email | Who |
+|---|---|---|
+| Patient | `tabibu.demo+patient@gmail.com` | Amina Otieno, Nairobi |
+| Doctor | `tabibu.demo+doctor@gmail.com` | Dr. Achieng Odhiambo, Mbagathi District Hospital |
+| Pathologist | `tabibu.demo+pathologist@gmail.com` | Dr. Wanjiru Kamau, Kenyatta National Hospital |
+
+The password is shared with the judges alongside the submission, never in this repository. The
+accounts come from `make seed-live`, which also adds two clinic patients and an admin account for
+the Firebase console.
+
 ## Checking it
 
 ```sh
