@@ -19,6 +19,9 @@ import 'package:tabibu/features/notifications/blocs/notifications_bloc/notificat
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_bloc.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_event.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_state.dart';
+import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_bloc.dart';
+import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_event.dart';
+import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_state.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_bloc.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_event.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_state.dart';
@@ -44,6 +47,10 @@ class MockCasesBloc extends MockBloc<CasesEvent, CasesState>
 class MockAlertReviewBloc extends MockBloc<AlertReviewEvent, AlertReviewState>
     implements AlertReviewBloc {}
 
+class MockCaseWorkspaceBloc
+    extends MockBloc<CaseWorkspaceEvent, CaseWorkspaceState>
+    implements CaseWorkspaceBloc {}
+
 class MockDeskBloc extends MockBloc<DeskEvent, DeskState> implements DeskBloc {}
 
 /// The app-wide feature blocs as mocks, each starting in its initial state.
@@ -59,6 +66,7 @@ class FeatureBlocs {
     when(() => cases.state).thenReturn(const CasesInitial());
     when(() => desk.state).thenReturn(const DeskInitial());
     when(() => alertReview.state).thenReturn(const AlertReviewInitial());
+    when(() => caseWorkspace.state).thenReturn(const CaseWorkspaceInitial());
   }
 
   final notifications = MockNotificationsBloc();
@@ -68,6 +76,7 @@ class FeatureBlocs {
   final cases = MockCasesBloc();
   final desk = MockDeskBloc();
   final alertReview = MockAlertReviewBloc();
+  final caseWorkspace = MockCaseWorkspaceBloc();
 
   List<BlocProvider> get providers => [
     BlocProvider<NotificationsBloc>.value(value: notifications),
@@ -77,5 +86,6 @@ class FeatureBlocs {
     BlocProvider<CasesBloc>.value(value: cases),
     BlocProvider<DeskBloc>.value(value: desk),
     BlocProvider<AlertReviewBloc>.value(value: alertReview),
+    BlocProvider<CaseWorkspaceBloc>.value(value: caseWorkspace),
   ];
 }
