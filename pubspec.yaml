@@ -14,7 +14,7 @@ dependencies:
   cloud_firestore: ^6.10.2
   cloud_functions: ^6.5.1
   collection: ^1.19.1
-  cupertino_ui: ^1.1.4
+  cupertino_ui: ^1.1.5
   device_info_plus: ^13.3.0
   equatable: ^2.1.0
   fast_contacts: ^6.0.0
