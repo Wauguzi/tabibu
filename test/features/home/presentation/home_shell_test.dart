@@ -91,7 +91,7 @@ void main() {
       await tester.binding.handlePopRoute();
       await _settle(tester);
 
-      expect(find.text('Habari, Dr. Odhiambo'), findsOneWidget);
+      expect(find.text('Hi, Dr. Odhiambo'), findsOneWidget);
     });
 
     testWidgets('a tab keeps its state across a tab change', (tester) async {

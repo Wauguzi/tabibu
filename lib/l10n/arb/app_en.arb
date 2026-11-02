@@ -384,6 +384,14 @@
     "@notificationWelcomeMessage": {
         "description": "Body of the welcome notification"
     },
+    "notificationWelcomeBackTitle": "Welcome back to Tabibu",
+    "@notificationWelcomeBackTitle": {
+        "description": "Local notification after signing in; no personal details (lock screens are public)"
+    },
+    "notificationWelcomeBackMessage": "Good to see you again.",
+    "@notificationWelcomeBackMessage": {
+        "description": "Body of the welcome-back notification"
+    },
     "notificationLicenceReceivedTitle": "Licence received",
     "@notificationLicenceReceivedTitle": {
         "description": "Local notification after a practitioner submits sign-up"
@@ -1696,7 +1704,7 @@
     "@listAnd": {
         "description": "Join word inside an area list"
     },
-    "splashTagline": "Trusted care, from your first visit to a signed result",
+    "splashTagline": "Trusted care, from your first visit to a signed result.",
     "@splashTagline": {
         "description": "A1 tagline under the wordmark"
     },
@@ -1794,7 +1802,7 @@
     "@tabProfile": {
         "description": "Every role's profile tab"
     },
-    "homeGreeting": "Habari, {name}",
+    "homeGreeting": "Hi, {name}",
     "@homeGreeting": {
         "description": "Home header greeting; name is a first name, or a title and last name",
         "placeholders": {
@@ -2685,7 +2693,7 @@
     "@notificationsLoadingLabel": {
         "description": "Notifications screen: semantic label announced while loading"
     },
-    "patientHomeGreeting": "Habari, {firstName}",
+    "patientHomeGreeting": "Hi, {firstName}",
     "@patientHomeGreeting": {
         "description": "Patient home: header greeting",
         "placeholders": {
@@ -2825,5 +2833,963 @@
     "patientHomeLoadingLabel": "Loading home",
     "@patientHomeLoadingLabel": {
         "description": "Patient home: semantic label announced while the hero loads"
+    },
+    "resultsSubtitle": "Shared by your doctor",
+    "@resultsSubtitle": {
+        "description": "Results tab: subtitle under the title"
+    },
+    "resultsSearchHint": "Search tests or doctors",
+    "@resultsSearchHint": {
+        "description": "Results tab: search field hint"
+    },
+    "resultsFilterAll": "All · {count}",
+    "@resultsFilterAll": {
+        "description": "Results tab: All filter chip with the result count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "resultsFilterWithDoctor": "With your doctor · {count}",
+    "@resultsFilterWithDoctor": {
+        "description": "Results tab: With your doctor filter chip with the result count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "resultsFilterShared": "Shared · {count}",
+    "@resultsFilterShared": {
+        "description": "Results tab: Shared filter chip with the result count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "resultsSlideTitle": "{testName} results",
+    "@resultsSlideTitle": {
+        "description": "Results tab: with-doctor slide title",
+        "placeholders": {
+            "testName": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsSlideBody": "{doctor} will go through them with you on {date}. Then you can read them here.",
+    "@resultsSlideBody": {
+        "description": "Results tab: with-doctor slide body",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsWithDoctor": "With your doctor",
+    "@resultsWithDoctor": {
+        "description": "Results: status chip for a case with the doctor, also the slide chip"
+    },
+    "resultsShared": "Shared",
+    "@resultsShared": {
+        "description": "Results: row chip for a released report"
+    },
+    "resultsWaiting": "Waiting",
+    "@resultsWaiting": {
+        "description": "Results: row chip for a pending case"
+    },
+    "resultsAllResults": "All results",
+    "@resultsAllResults": {
+        "description": "Results tab: list section title"
+    },
+    "resultsRowSharedBy": "Shared by {doctor} · {date}",
+    "@resultsRowSharedBy": {
+        "description": "Results tab: shared row subtitle",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsRowOrderedBy": "Ordered by {doctor} · waiting for {item}",
+    "@resultsRowOrderedBy": {
+        "description": "Results tab: waiting row subtitle",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "item": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsPrivacyFooter": "Only you and your care team can see your results.",
+    "@resultsPrivacyFooter": {
+        "description": "Results tab: privacy footer under the list"
+    },
+    "resultsNoResultsTitle": "No results for \"{query}\"",
+    "@resultsNoResultsTitle": {
+        "description": "Results tab: empty title when search matches nothing",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsNoResultsBody": "You don't have a {query} test yet. Results show here after your doctor orders a test and it is reviewed.",
+    "@resultsNoResultsBody": {
+        "description": "Results tab: empty body when search matches nothing",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsEmptyTipsTitle": "Try this",
+    "@resultsEmptyTipsTitle": {
+        "description": "Results tab: empty-state tips box title"
+    },
+    "resultsEmptyTipSearch": "Search the test name or your doctor's name",
+    "@resultsEmptyTipSearch": {
+        "description": "Results tab: empty-state search tip"
+    },
+    "resultsClearSearch": "Clear search",
+    "@resultsClearSearch": {
+        "description": "Results tab: empty-state button clearing the search"
+    },
+    "resultsOfflineTitle": "You're offline",
+    "@resultsOfflineTitle": {
+        "description": "Results tab: offline banner title"
+    },
+    "resultsOfflineBody": "Showing your saved results.",
+    "@resultsOfflineBody": {
+        "description": "Results tab: offline banner body"
+    },
+    "resultsRetry": "Retry",
+    "@resultsRetry": {
+        "description": "Results tab: offline banner retry button"
+    },
+    "resultsLoadingLabel": "Loading results",
+    "@resultsLoadingLabel": {
+        "description": "Results tab: semantic label announced while loading"
+    },
+    "resultsWaitingTitle": "{testName} results",
+    "@resultsWaitingTitle": {
+        "description": "Result waiting: app bar title",
+        "placeholders": {
+            "testName": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsWaitingSubtitle": "Ordered by {doctor}",
+    "@resultsWaitingSubtitle": {
+        "description": "Result waiting: app bar subtitle",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsWaitingHeadline": "Your doctor will go through this with you first",
+    "@resultsWaitingHeadline": {
+        "description": "Result waiting: gradient card headline"
+    },
+    "resultsWaitingBody": "{doctor} has your reviewed results. You can read them here after your appointment on {date}.",
+    "@resultsWaitingBody": {
+        "description": "Result waiting: gradient card body",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsWaitingExplanation": "Your doctor will share an explanation.",
+    "@resultsWaitingExplanation": {
+        "description": "Result waiting: design system line for this state"
+    },
+    "resultsTimelineTitle": "Where things are",
+    "@resultsTimelineTitle": {
+        "description": "Result waiting: timeline card title"
+    },
+    "resultsStepDone": "Done",
+    "@resultsStepDone": {
+        "description": "Result waiting: timeline chip for a finished step"
+    },
+    "resultsStepNext": "Next",
+    "@resultsStepNext": {
+        "description": "Result waiting: timeline chip for the current step"
+    },
+    "resultsStepLater": "Later",
+    "@resultsStepLater": {
+        "description": "Result waiting: timeline chip for a later step"
+    },
+    "resultsStepSample": "Sample taken",
+    "@resultsStepSample": {
+        "description": "Result waiting: first timeline step"
+    },
+    "resultsStepSampleDetail": "{date} · at {facility}",
+    "@resultsStepSampleDetail": {
+        "description": "Result waiting: first timeline step detail",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsStepReviewed": "Reviewed by a pathologist",
+    "@resultsStepReviewed": {
+        "description": "Result waiting: second timeline step"
+    },
+    "resultsStepReviewedDetail": "{date} · {doctor}, {lab}",
+    "@resultsStepReviewedDetail": {
+        "description": "Result waiting: second timeline step detail",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "doctor": {
+                "type": "String"
+            },
+            "lab": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsStepTalk": "Talk with {doctor}",
+    "@resultsStepTalk": {
+        "description": "Result waiting: third timeline step",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsStepTalkDetail": "{date}, {time} · your appointment",
+    "@resultsStepTalkDetail": {
+        "description": "Result waiting: third timeline step detail",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "resultsStepRead": "Read your results here",
+    "@resultsStepRead": {
+        "description": "Result waiting: fourth timeline step"
+    },
+    "resultsStepReadDetail": "In English or Kiswahili, after your appointment",
+    "@resultsStepReadDetail": {
+        "description": "Result waiting: fourth timeline step detail"
+    },
+    "resultsSeeAppointment": "See my appointment",
+    "@resultsSeeAppointment": {
+        "description": "Result waiting: primary button to the discussion appointment"
+    },
+    "resultDetailShared": "Shared",
+    "@resultDetailShared": {
+        "description": "Shared result: status chip"
+    },
+    "resultDetailSharedBy": "Shared by {doctor}",
+    "@resultDetailSharedBy": {
+        "description": "Shared result: title naming the doctor",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "resultDetailFromDoctor": "From {doctor}",
+    "@resultDetailFromDoctor": {
+        "description": "Shared result: doctor note byline",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "resultDetailListenTitle": "Listen to this summary",
+    "@resultDetailListenTitle": {
+        "description": "Shared result: listen card title"
+    },
+    "resultDetailListenMeta": "{language} · {duration}",
+    "@resultDetailListenMeta": {
+        "description": "Shared result: listen card language and duration",
+        "placeholders": {
+            "language": {
+                "type": "String"
+            },
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "resultDetailNextSteps": "Next steps from {doctor}",
+    "@resultDetailNextSteps": {
+        "description": "Shared result: checklist title",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "resultDetailFullReport": "Full report",
+    "@resultDetailFullReport": {
+        "description": "Shared result: report file card title"
+    },
+    "resultDetailFileMeta": "PDF · {size} · from {facility}",
+    "@resultDetailFileMeta": {
+        "description": "Shared result: report file size and source",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            },
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "resultDetailDownload": "Download",
+    "@resultDetailDownload": {
+        "description": "Shared result: report file download button"
+    },
+    "resultDetailShare": "Share",
+    "@resultDetailShare": {
+        "description": "Shared result: report file share button"
+    },
+    "resultDetailBookFollowUp": "Book a follow-up",
+    "@resultDetailBookFollowUp": {
+        "description": "Shared result: primary button to book again"
+    },
+    "doctorHomeBellUnread": "Notifications, unread",
+    "@doctorHomeBellUnread": {
+        "description": "Doctor home: bell label while notifications are unread"
+    },
+    "doctorHomeAppointmentsToday": "{count, plural, =0{No appointments today.} =1{1 appointment today.} other{{count} appointments today.}}",
+    "@doctorHomeAppointmentsToday": {
+        "description": "Doctor home: headline first line with today's appointment count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorHomeReportsReady": "{count, plural, =0{No reports ready.} =1{1 report ready.} other{{count} reports ready.}}",
+    "@doctorHomeReportsReady": {
+        "description": "Doctor home: headline second line with the reports-ready count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorHomeNowPill": "Now · {time}",
+    "@doctorHomeNowPill": {
+        "description": "Doctor home: now card pill with the current appointment start",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorHomeAppointmentCount": "Appointment {index} of {count}",
+    "@doctorHomeAppointmentCount": {
+        "description": "Doctor home: now card position in today's appointments",
+        "placeholders": {
+            "index": {
+                "type": "int"
+            },
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorHomeReportSigned": "report signed",
+    "@doctorHomeReportSigned": {
+        "description": "Doctor home: now card suffix when the case has a signed report"
+    },
+    "doctorHomeOpenReport": "Open report and start",
+    "@doctorHomeOpenReport": {
+        "description": "Doctor home: now card primary button"
+    },
+    "doctorHomeStartAppointment": "Start appointment",
+    "@doctorHomeStartAppointment": {
+        "description": "Doctor home: now card button when no report is signed yet"
+    },
+    "doctorHomeYourDay": "Your day",
+    "@doctorHomeYourDay": {
+        "description": "Doctor home: day timeline section title"
+    },
+    "doctorHomeNow": "Now",
+    "@doctorHomeNow": {
+        "description": "Doctor home: timeline pill for the current appointment"
+    },
+    "doctorHomeFreeGap": "Free · {minutes} min",
+    "@doctorHomeFreeGap": {
+        "description": "Doctor home: timeline free-gap card title",
+        "placeholders": {
+            "minutes": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorHomeFreeHint": "Good time to read reports",
+    "@doctorHomeFreeHint": {
+        "description": "Doctor home: timeline free-gap card body"
+    },
+    "doctorHomeBookedAgo": "booked {when}",
+    "@doctorHomeBookedAgo": {
+        "description": "Doctor home: upcoming row suffix naming when it was booked",
+        "placeholders": {
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorHomeNeedsYou": "Needs you",
+    "@doctorHomeNeedsYou": {
+        "description": "Doctor home: shortcut tiles section title"
+    },
+    "doctorHomeReportsTile": "Reports ready",
+    "@doctorHomeReportsTile": {
+        "description": "Doctor home: reports ready tile title"
+    },
+    "doctorHomeBookingsTile": "Booking requests",
+    "@doctorHomeBookingsTile": {
+        "description": "Doctor home: booking requests tile title"
+    },
+    "doctorHomeNewToday": "{count, plural, =1{1 new today} other{{count} new today}}",
+    "@doctorHomeNewToday": {
+        "description": "Doctor home: booking requests tile body with today's new count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorHomeAlertTile": "Alert to approve",
+    "@doctorHomeAlertTile": {
+        "description": "Doctor home: alert tile title"
+    },
+    "doctorHomeAlertNew": "{count, plural, =1{1 new} other{{count} new}}",
+    "@doctorHomeAlertNew": {
+        "description": "Doctor home: alert tile chip with the awaiting count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorHomeEmptyTitle": "No appointments yet",
+    "@doctorHomeEmptyTitle": {
+        "description": "Doctor home: empty state title"
+    },
+    "doctorHomeEmptyBody": "Patients near {facility} can find you now. New bookings show here.",
+    "@doctorHomeEmptyBody": {
+        "description": "Doctor home: empty state body",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorHomeEmptyAction": "Set clinic hours",
+    "@doctorHomeEmptyAction": {
+        "description": "Doctor home: empty state primary button"
+    },
+    "doctorHomeOfflineTitle": "You're offline",
+    "@doctorHomeOfflineTitle": {
+        "description": "Doctor home: offline banner title"
+    },
+    "doctorHomeOfflineBody": "Today's schedule and notes saved at {time}",
+    "@doctorHomeOfflineBody": {
+        "description": "Doctor home: offline banner body",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorHomeRetry": "Retry",
+    "@doctorHomeRetry": {
+        "description": "Doctor home: offline banner retry button"
+    },
+    "doctorHomeLoadingLabel": "Loading today",
+    "@doctorHomeLoadingLabel": {
+        "description": "Doctor home: semantic label announced while loading"
+    },
+    "reportsReadyTitle": "Reports ready",
+    "@reportsReadyTitle": {
+        "description": "Reports ready: app bar title"
+    },
+    "reportsReadySubtitle": "{count, plural, =1{1 signed · discuss with patients} other{{count} signed · discuss with patients}}",
+    "@reportsReadySubtitle": {
+        "description": "Reports ready: app bar subtitle with the signed count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "reportsReadySignedToday": "Signed today",
+    "@reportsReadySignedToday": {
+        "description": "Reports ready: group label for today's reports"
+    },
+    "reportsReadyDiscuss": "Discuss",
+    "@reportsReadyDiscuss": {
+        "description": "Reports ready: row chip asking the doctor to discuss"
+    },
+    "reportsReadySigned": "Signed",
+    "@reportsReadySigned": {
+        "description": "Reports ready: row chip for a signed report"
+    },
+    "reportsReadyNotice": "Patients see a report after you mark it as discussed.",
+    "@reportsReadyNotice": {
+        "description": "Reports ready: notice under the list"
+    },
+    "reportsReadyEmptyTitle": "No reports ready",
+    "@reportsReadyEmptyTitle": {
+        "description": "Reports ready: empty state title"
+    },
+    "reportsReadyEmptyBody": "Signed reports to discuss with patients will show here.",
+    "@reportsReadyEmptyBody": {
+        "description": "Reports ready: empty state body"
+    },
+    "reportsReadyLoadingLabel": "Loading reports",
+    "@reportsReadyLoadingLabel": {
+        "description": "Reports ready: semantic label announced while loading"
+    },
+    "bookingRequestsTitle": "Booking requests",
+    "@bookingRequestsTitle": {
+        "description": "Booking requests: app bar title"
+    },
+    "bookingRequestsNewToday": "{count, plural, =1{1 new today} other{{count} new today}}",
+    "@bookingRequestsNewToday": {
+        "description": "Booking requests: app bar subtitle with today's new count",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "bookingRequestsSpeaks": "Speaks {language}",
+    "@bookingRequestsSpeaks": {
+        "description": "Booking requests: card language chip",
+        "placeholders": {
+            "language": {
+                "type": "String"
+            }
+        }
+    },
+    "bookingRequestsAccept": "Accept",
+    "@bookingRequestsAccept": {
+        "description": "Booking requests: card accept button"
+    },
+    "bookingRequestsDecline": "Decline",
+    "@bookingRequestsDecline": {
+        "description": "Booking requests: card decline button"
+    },
+    "bookingRequestsFootnote": "Patients get an SMS when you accept or decline.",
+    "@bookingRequestsFootnote": {
+        "description": "Booking requests: footnote under the list"
+    },
+    "bookingRequestsAcceptedTitle": "Accepted · on your Today for {date}",
+    "@bookingRequestsAcceptedTitle": {
+        "description": "Booking requests: accepted strip title",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "bookingRequestsAcceptedBody": "{name} got an SMS confirming {time}.",
+    "@bookingRequestsAcceptedBody": {
+        "description": "Booking requests: accepted strip body",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "bookingRequestsEmptyTitle": "No booking requests",
+    "@bookingRequestsEmptyTitle": {
+        "description": "Booking requests: empty state title"
+    },
+    "bookingRequestsEmptyBody": "When a patient asks for a time, you can accept or decline it here.",
+    "@bookingRequestsEmptyBody": {
+        "description": "Booking requests: empty state body"
+    },
+    "bookingRequestsDeclineTitle": "Decline {name}'s request",
+    "@bookingRequestsDeclineTitle": {
+        "description": "Booking requests: decline sheet title",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "bookingRequestsDeclineNoteLabel": "Note (optional)",
+    "@bookingRequestsDeclineNoteLabel": {
+        "description": "Booking requests: decline sheet note field label"
+    },
+    "bookingRequestsDeclineNoteHint": "Write a note for {name}",
+    "@bookingRequestsDeclineNoteHint": {
+        "description": "Booking requests: decline sheet note field hint",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "bookingRequestsDeclineSend": "Send",
+    "@bookingRequestsDeclineSend": {
+        "description": "Booking requests: decline sheet send button"
+    },
+    "bookingRequestsAcceptLabel": "Accept {name}'s request",
+    "@bookingRequestsAcceptLabel": {
+        "description": "Booking requests: accept button announcement with the patient name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "bookingRequestsDeclineLabel": "Decline {name}'s request",
+    "@bookingRequestsDeclineLabel": {
+        "description": "Booking requests: decline button announcement with the patient name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "bookingRequestsLoadingLabel": "Loading booking requests",
+    "@bookingRequestsLoadingLabel": {
+        "description": "Booking requests: semantic label announced while loading"
+    },
+    "findDoctorTitle": "Find a doctor",
+    "@findDoctorTitle": {
+        "description": "Find a doctor: title"
+    },
+    "findDoctorSubtitle": "KMPDC verified doctors near {area}",
+    "@findDoctorSubtitle": {
+        "description": "Find a doctor: subtitle naming the patient's area",
+        "placeholders": {
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "findDoctorSearchHint": "Search by name, specialty or hospital",
+    "@findDoctorSearchHint": {
+        "description": "Find a doctor: search field hint"
+    },
+    "findDoctorAll": "All",
+    "@findDoctorAll": {
+        "description": "Find a doctor: filter chip clearing the specialty"
+    },
+    "findDoctorNoResultsTitle": "No doctors match \"{query}\"",
+    "@findDoctorNoResultsTitle": {
+        "description": "Find a doctor: empty title when nothing matches",
+        "placeholders": {
+            "query": {
+                "type": "String"
+            }
+        }
+    },
+    "findDoctorNoResultsBody": "Check the spelling, or search by hospital or town.",
+    "@findDoctorNoResultsBody": {
+        "description": "Find a doctor: empty body when nothing matches"
+    },
+    "findDoctorTipsTitle": "Try this",
+    "@findDoctorTipsTitle": {
+        "description": "Find a doctor: empty-state tips box title"
+    },
+    "findDoctorTipSpecialty": "Try a specialty, like \"breast surgeon\"",
+    "@findDoctorTipSpecialty": {
+        "description": "Find a doctor: empty-state specialty tip"
+    },
+    "findDoctorTipHospital": "Search a hospital: Aga Khan, KNH",
+    "@findDoctorTipHospital": {
+        "description": "Find a doctor: empty-state hospital tip"
+    },
+    "findDoctorTipArea": "Or browse doctors near {area}",
+    "@findDoctorTipArea": {
+        "description": "Find a doctor: empty-state area tip",
+        "placeholders": {
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "findDoctorClearSearch": "Clear search",
+    "@findDoctorClearSearch": {
+        "description": "Find a doctor: empty-state pill clearing query and chip"
+    },
+    "findDoctorOfflineTitle": "You're offline",
+    "@findDoctorOfflineTitle": {
+        "description": "Find a doctor: offline banner title"
+    },
+    "findDoctorOfflineBody": "Showing your saved doctors.",
+    "@findDoctorOfflineBody": {
+        "description": "Find a doctor: offline banner body"
+    },
+    "findDoctorRetry": "Retry",
+    "@findDoctorRetry": {
+        "description": "Find a doctor: offline banner retry button"
+    },
+    "findDoctorLoadingLabel": "Loading doctors",
+    "@findDoctorLoadingLabel": {
+        "description": "Find a doctor: semantic label announced while loading"
+    },
+    "doctorProfileVerified": "KMPDC verified",
+    "@doctorProfileVerified": {
+        "description": "Doctor profile: verification chip"
+    },
+    "doctorProfileAbout": "About",
+    "@doctorProfileAbout": {
+        "description": "Doctor profile: bio section title"
+    },
+    "doctorProfileReadMore": "Read more",
+    "@doctorProfileReadMore": {
+        "description": "Doctor profile: bio expander"
+    },
+    "doctorProfilePickDay": "Pick a day",
+    "@doctorProfilePickDay": {
+        "description": "Doctor profile: day picker section title"
+    },
+    "doctorProfileTimesFree": "{day} · {count, plural, =1{1 time free} other{{count} times free}}",
+    "@doctorProfileTimesFree": {
+        "description": "Doctor profile: free times line under the day strip",
+        "placeholders": {
+            "day": {
+                "type": "String"
+            },
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "doctorProfileSymptomsLabel": "Symptoms or questions",
+    "@doctorProfileSymptomsLabel": {
+        "description": "Doctor profile: symptom field label"
+    },
+    "doctorProfileSymptomsHint": "Type your symptoms or questions",
+    "@doctorProfileSymptomsHint": {
+        "description": "Doctor profile: symptom field hint"
+    },
+    "doctorProfileBook": "Book {date}, {time}",
+    "@doctorProfileBook": {
+        "description": "Doctor profile: book button carrying the chosen slot",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorProfileChooseTime": "Choose a time",
+    "@doctorProfileChooseTime": {
+        "description": "Doctor profile: disabled book button before a slot is picked"
+    },
+    "doctorProfileBookedTitle": "You're booked with {doctor}",
+    "@doctorProfileBookedTitle": {
+        "description": "Doctor profile: booked notice title",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorProfileBookedBody": "{date} · {time}",
+    "@doctorProfileBookedBody": {
+        "description": "Doctor profile: booked notice body",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorProfileViewAppointment": "View appointment",
+    "@doctorProfileViewAppointment": {
+        "description": "Doctor profile: booked notice button"
+    },
+    "doctorProfileNotFoundTitle": "Doctor not found",
+    "@doctorProfileNotFoundTitle": {
+        "description": "Doctor profile: empty title when the uid matches nothing"
+    },
+    "doctorProfileNotFoundBody": "This doctor isn't in the directory.",
+    "@doctorProfileNotFoundBody": {
+        "description": "Doctor profile: empty body when the uid matches nothing"
+    },
+    "doctorProfileLoadingLabel": "Loading doctor",
+    "@doctorProfileLoadingLabel": {
+        "description": "Doctor profile: semantic label announced while loading"
+    },
+    "pickTimeSlotTaken": "{time}, taken",
+    "@pickTimeSlotTaken": {
+        "description": "Pick a time: taken slot announcement",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "pickTimeOfflineTitle": "Booking needs internet",
+    "@pickTimeOfflineTitle": {
+        "description": "Pick a time: offline banner title"
+    },
+    "pickTimeOfflineBody": "Reconnect to book this appointment.",
+    "@pickTimeOfflineBody": {
+        "description": "Pick a time: offline banner body"
+    },
+    "pickTimeRetry": "Retry",
+    "@pickTimeRetry": {
+        "description": "Pick a time: offline banner retry button"
+    },
+    "bookedTitle": "You're booked, {name}",
+    "@bookedTitle": {
+        "description": "Booked: success title with the patient first name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "bookedBody": "We'll remind you the day before.",
+    "@bookedBody": {
+        "description": "Booked: success subtitle"
+    },
+    "bookedBring": "Bring your ID, medical cover certificate and any past results.",
+    "@bookedBring": {
+        "description": "Booked: what-to-bring notice in the appointment card"
+    },
+    "bookedViewAppointment": "View appointment",
+    "@bookedViewAppointment": {
+        "description": "Booked: primary button to the appointment"
+    },
+    "bookedBackHome": "Back home",
+    "@bookedBackHome": {
+        "description": "Booked: button back to the home tab"
+    },
+    "bookedLoadingLabel": "Loading appointment",
+    "@bookedLoadingLabel": {
+        "description": "Booked: semantic label announced while loading"
+    },
+    "appointmentsSubtitle": "{upcoming, plural, =1{1 coming up} other{{upcoming} coming up}} · {past, plural, =1{1 past} other{{past} past}}",
+    "@appointmentsSubtitle": {
+        "description": "Appointments tab: subtitle with upcoming and past counts",
+        "placeholders": {
+            "upcoming": {
+                "type": "int"
+            },
+            "past": {
+                "type": "int"
+            }
+        }
+    },
+    "appointmentsTypeConsultation": "Consultation",
+    "@appointmentsTypeConsultation": {
+        "description": "Appointments: consultation type label"
+    },
+    "appointmentsTypeCaseDiscussion": "Results discussion",
+    "@appointmentsTypeCaseDiscussion": {
+        "description": "Appointments: case discussion type label"
+    },
+    "appointmentsViewAppointment": "View appointment",
+    "@appointmentsViewAppointment": {
+        "description": "Appointments tab: hero button to the appointment"
+    },
+    "appointmentsWaitingDoctor": "Waiting for the doctor",
+    "@appointmentsWaitingDoctor": {
+        "description": "Appointments: chip on a requested upcoming appointment"
+    },
+    "appointmentsPastTitle": "Past appointments",
+    "@appointmentsPastTitle": {
+        "description": "Appointments tab: past section title"
+    },
+    "appointmentsDeclined": "Declined",
+    "@appointmentsDeclined": {
+        "description": "Appointments: row chip for a declined request"
+    },
+    "appointmentsCancelled": "Cancelled",
+    "@appointmentsCancelled": {
+        "description": "Appointments: row chip for a cancelled appointment"
+    },
+    "appointmentsExpired": "Expired",
+    "@appointmentsExpired": {
+        "description": "Appointments: row chip for an expired request"
+    },
+    "appointmentsBookAppointment": "Book an appointment",
+    "@appointmentsBookAppointment": {
+        "description": "Appointments tab: book button and new-booking fab label"
+    },
+    "appointmentsEmptyTitle": "No upcoming appointments",
+    "@appointmentsEmptyTitle": {
+        "description": "Appointments tab: empty card title"
+    },
+    "appointmentsEmptyBody": "When you book, it shows here.",
+    "@appointmentsEmptyBody": {
+        "description": "Appointments tab: empty card body"
+    },
+    "appointmentsLoadingLabel": "Loading appointments",
+    "@appointmentsLoadingLabel": {
+        "description": "Appointments tab: semantic label announced while loading"
+    },
+    "appointmentDetailBeforeYouCome": "Before you come",
+    "@appointmentDetailBeforeYouCome": {
+        "description": "Appointment detail: checklist title for an upcoming visit"
+    },
+    "appointmentDetailBeforeEarly": "Arrive 10 minutes early",
+    "@appointmentDetailBeforeEarly": {
+        "description": "Appointment detail: checklist item"
+    },
+    "appointmentDetailBeforeBring": "Bring your ID and any medicines you take",
+    "@appointmentDetailBeforeBring": {
+        "description": "Appointment detail: checklist item"
+    },
+    "appointmentDetailBeforeGuest": "You can bring someone with you",
+    "@appointmentDetailBeforeGuest": {
+        "description": "Appointment detail: checklist item"
+    },
+    "appointmentDetailSeeResults": "See your results",
+    "@appointmentDetailSeeResults": {
+        "description": "Appointment detail: row to the linked results"
+    },
+    "appointmentDetailNotFoundTitle": "Appointment not found",
+    "@appointmentDetailNotFoundTitle": {
+        "description": "Appointment detail: empty title for an unknown id"
+    },
+    "appointmentDetailNotFoundBody": "This appointment isn't here.",
+    "@appointmentDetailNotFoundBody": {
+        "description": "Appointment detail: empty body for an unknown id"
+    },
+    "appointmentDetailLoadingLabel": "Loading appointment",
+    "@appointmentDetailLoadingLabel": {
+        "description": "Appointment detail: semantic label announced while loading"
     }
 }

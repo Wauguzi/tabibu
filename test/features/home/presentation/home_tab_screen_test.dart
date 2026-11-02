@@ -12,6 +12,20 @@ import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_sta
 
 import '../../../helpers/helpers.dart';
 
+/// The doctor tab now shows its screen: its blocs settled past loading (the
+/// spinner never settles).
+FeatureBlocs _loadedDoctorBlocs() {
+  final blocs = FeatureBlocs();
+  when(
+    () => blocs.notifications.state,
+  ).thenReturn(const NotificationsLoadSuccess());
+  when(
+    () => blocs.appointments.state,
+  ).thenReturn(const AppointmentsLoadSuccess());
+  when(() => blocs.cases.state).thenReturn(const CasesLoadSuccess());
+  return blocs;
+}
+
 void main() {
   group('HomeTabScreen', () {
     // After a pump: the app's delegates load the date symbols.
@@ -40,7 +54,7 @@ void main() {
       await tester.pumpAndSettle();
 
       final nairobiToday = DateFormat('EEE d MMM', 'en').format(nairobiNow());
-      expect(find.text('Habari, Amina'), findsOneWidget);
+      expect(find.text('Hi, Amina'), findsOneWidget);
       expect(find.text('Embakasi · $nairobiToday'), findsOneWidget);
       expect(
         find.byWidgetPredicate(
@@ -51,10 +65,14 @@ void main() {
     });
 
     testWidgets('greets a doctor by title with their facility', (tester) async {
-      await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor');
+      await tester.pumpRoleApp(
+        RoleSessions.doctor(),
+        '/doctor',
+        blocs: _loadedDoctorBlocs(),
+      );
       await tester.pumpAndSettle();
 
-      expect(find.text('Habari, Dr. Kamau'), findsOneWidget);
+      expect(find.text('Hi, Dr. Kamau'), findsOneWidget);
       expect(
         find.text('${today()} · Aga Khan University Hospital'),
         findsOneWidget,
@@ -65,10 +83,14 @@ void main() {
       tester.platformDispatcher.localesTestValue = [const Locale('sw')];
       addTearDown(tester.platformDispatcher.clearLocalesTestValue);
 
-      await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor');
+      await tester.pumpRoleApp(
+        RoleSessions.doctor(),
+        '/doctor',
+        blocs: _loadedDoctorBlocs(),
+      );
       await tester.pumpAndSettle();
 
-      final today = DateFormat('EEE d MMM', 'sw').format(DateTime.now());
+      final today = DateFormat('EEE d MMM', 'sw').format(nairobiNow());
       expect(
         find.text('$today · Aga Khan University Hospital'),
         findsOneWidget,
