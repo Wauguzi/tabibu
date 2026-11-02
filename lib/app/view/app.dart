@@ -10,6 +10,7 @@ import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/constants/theme_builder.dart';
+import 'package:tabibu/core/helpers/blocs_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/routing/app_router.dart';
@@ -120,8 +121,11 @@ class _AppState extends State<App> with WidgetsBindingObserver {
           case LanguageChangeSuccess(:final language):
             setState(() => _locale = Locale(language.value));
           // Photos and license scans leave memory once no longer needed.
-          case SignUpSuccess() || SignOutSuccess():
+          case SignUpSuccess():
             context.read<SignUpBloc>().add(const SignUpDraftCleared());
+          case SignOutSuccess():
+            context.read<SignUpBloc>().add(const SignUpDraftCleared());
+            BlocsHelper.resetFeatureBlocs(context);
           default:
         }
       },

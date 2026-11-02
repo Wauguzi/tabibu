@@ -18,6 +18,8 @@ import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
+import 'feature_blocs.dart';
+
 class MockAuthBloc extends MockBloc<AuthEvent, AuthState> implements AuthBloc {}
 
 /// A signed-in session for each role, as the role shells read them.
@@ -85,6 +87,7 @@ extension PumpRoleApp on WidgetTester {
     String location, {
     ThemeMode themeMode = ThemeMode.light,
     List<AuthState>? states,
+    FeatureBlocs? blocs,
   }) async {
     PackageInfo.setMockInitialValues(
       appName: 'Tabibu',
@@ -104,8 +107,11 @@ extension PumpRoleApp on WidgetTester {
     addTearDown(router.dispose);
     // As pumpRouterApp, with the bloc above the app as in the real tree.
     await pumpWidget(
-      BlocProvider<AuthBloc>.value(
-        value: bloc,
+      MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: bloc),
+          ...(blocs ?? FeatureBlocs()).providers,
+        ],
         child: MaterialApp.router(
           theme: buildTheme(Brightness.light),
           darkTheme: buildTheme(Brightness.dark),
