@@ -139,4 +139,10 @@ const queryRegistry = <QuerySpec>[
     filters: ['pathologistUid ==', 'lastUpdatedAt >='],
     orderBy: ['lastUpdatedAt ASC'],
   ),
+  QuerySpec(
+    id: 'practitioners.delta',
+    collection: 'practitioners',
+    filters: ['lastUpdatedAt >='],
+    orderBy: ['lastUpdatedAt ASC'],
+  ),
 ];

@@ -19,9 +19,10 @@ bool needsCompositeIndex(QuerySpec spec) {
   return false;
 }
 
-/// Equality-only on one collection: at most one `==`/`array-contains` filter
-/// and either no orderBy or orderBy on that same field — no composite needed.
-bool isEqualityOnly(QuerySpec spec) {
+/// Single-field on one collection: at most one equality, array-contains or
+/// range filter, and either no orderBy or orderBy on that same field — no
+/// composite needed (Firestore's automatic single-field indexes cover it).
+bool isSingleField(QuerySpec spec) {
   if (spec.scope != 'collection' && spec.scope != 'nested') return false;
   if (spec.filters.length > 1) return false;
   if (spec.filters.isEmpty) {
@@ -29,7 +30,8 @@ bool isEqualityOnly(QuerySpec spec) {
   }
   final filterField = spec.filters.single.split(' ').first;
   final op = spec.filters.single.split(' ').skip(1).join(' ');
-  if (op != '==' && op != 'array-contains') return false;
+  const allowed = {'==', 'array-contains', '>=', '>', '<=', '<'};
+  if (!allowed.contains(op)) return false;
   return spec.orderBy.every((o) => o.split(' ').first == filterField);
 }
 
@@ -91,7 +93,7 @@ void main() {
 
   test('each QuerySpec has a matching composite index or is equality-only', () {
     for (final spec in queryRegistry) {
-      if (isEqualityOnly(spec) && !needsCompositeIndex(spec)) {
+      if (isSingleField(spec) && !needsCompositeIndex(spec)) {
         continue;
       }
       // App deltas use ==/array-contains plus orderBy on the inequality field.

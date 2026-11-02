@@ -62,6 +62,10 @@ import 'package:tabibu/features/notifications/data/cache/notification_cache_help
     as _i219;
 import 'package:tabibu/features/notifications/data/datasources/notification_firebase.dart'
     as _i1063;
+import 'package:tabibu/features/practitioners/data/cache/practitioner_cache_helper.dart'
+    as _i750;
+import 'package:tabibu/features/practitioners/data/datasources/practitioner_firebase.dart'
+    as _i821;
 import 'package:tabibu/features/reports/data/cache/report_cache_helper.dart'
     as _i726;
 import 'package:tabibu/features/reports/data/datasources/report_firebase.dart'
@@ -164,6 +168,10 @@ extension GetItInjectableX on _i174.GetIt {
       () =>
           _i1063.NotificationFirebase(firestore: gh<_i974.FirebaseFirestore>()),
     );
+    gh.lazySingleton<_i821.PractitionerFirebase>(
+      () =>
+          _i821.PractitionerFirebase(firestore: gh<_i974.FirebaseFirestore>()),
+    );
     gh.lazySingleton<_i638.WorklistFirebase>(
       () => _i638.WorklistFirebase(firestore: gh<_i974.FirebaseFirestore>()),
     );
@@ -207,6 +215,12 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i219.NotificationCacheHelper(
         db: gh<_i705.DBHelper>(),
         remote: gh<_i1063.NotificationFirebase>(),
+      ),
+    );
+    gh.lazySingleton<_i750.PractitionerCacheHelper>(
+      () => _i750.PractitionerCacheHelper(
+        hive: gh<_i418.HiveHelper>(),
+        remote: gh<_i821.PractitionerFirebase>(),
       ),
     );
     gh.lazySingleton<_i210.NotificationsHelper>(
