@@ -83,10 +83,10 @@ void main() {
       expect(tester.getSize(arrowFinder()), const Size(36, 36));
       final arrow = tester.widget<AssetIcon>(
         find.byWidgetPredicate(
-          (w) => w is AssetIcon && w.asset == Assets.icons.forwardIcon,
+          (w) => w is AssetIcon && w.asset == Assets.icons.arrowUpRightIcon,
         ),
       );
-      expect(arrow.size, 18);
+      expect(arrow.size, 14);
     });
 
     testWidgets('is a button only with a tap', (tester) async {

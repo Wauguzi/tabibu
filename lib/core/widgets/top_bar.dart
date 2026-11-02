@@ -68,9 +68,8 @@ class MoreButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // dropDownIcon stands in for the `more` icon until it lands (T-1).
     return CircleIconButton(
-      icon: Assets.icons.dropDownIcon,
+      icon: Assets.icons.moreIcon,
       onTap: onTap,
       semanticLabel: semanticLabel,
     );

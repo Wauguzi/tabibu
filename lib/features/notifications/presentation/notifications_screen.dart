@@ -82,7 +82,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
         ),
         OptionsAction(
           value: _MenuAction.refresh,
-          icon: Assets.icons.inProgressIcon,
+          icon: Assets.icons.refreshIcon,
           label: context.l10n.notificationsRefresh,
         ),
       ],

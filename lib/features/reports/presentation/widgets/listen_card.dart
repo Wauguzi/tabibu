@@ -33,7 +33,7 @@ class ListenCard extends StatelessWidget {
     final status = Theme.of(context).extension<AppStatusColors>()!;
     final textTheme = Theme.of(context).textTheme;
     final isDark = scheme.brightness == .dark;
-    final onInk = isDark ? AppColors.inkLight : Colors.white;
+    final onInk = isDark ? AppColors.inkLight : AppColors.white;
     final onToggle = this.onToggle;
     final label = playing ? pauseLabel : playLabel;
 
@@ -64,9 +64,11 @@ class ListenCard extends StatelessWidget {
                   child: Tappable(
                     onTap: onToggle,
                     child: Center(
-                      // inProgressIcon stands in for play/pause until they land (T-1).
+                      // No pause glyph yet: playing keeps the in-progress mark.
                       child: AssetIcon(
-                        Assets.icons.inProgressIcon,
+                        playing
+                            ? Assets.icons.inProgressIcon
+                            : Assets.icons.playIcon,
                         size: 24,
                         color: onInk,
                       ),

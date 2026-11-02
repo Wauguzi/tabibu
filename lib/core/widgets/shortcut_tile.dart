@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
@@ -60,7 +58,6 @@ class ShortcutTile extends StatelessWidget {
             mainAxisAlignment: .spaceBetween,
             children: [
               IconTile(icon: icon, tone: .white),
-              // forwardIcon stands in for `arrowUpRight` until it lands (T-1).
               if (onTap != null)
                 ExcludeSemantics(
                   child: Container(
@@ -71,13 +68,10 @@ class ShortcutTile extends StatelessWidget {
                       color: scheme.surfaceContainerLowest,
                     ),
                     alignment: .center,
-                    child: Transform.rotate(
-                      angle: -math.pi / 4,
-                      child: AssetIcon(
-                        Assets.icons.forwardIcon,
-                        size: 18,
-                        color: scheme.onSurface,
-                      ),
+                    child: AssetIcon(
+                      Assets.icons.arrowUpRightIcon,
+                      size: 14,
+                      color: scheme.onSurface,
                     ),
                   ),
                 ),
@@ -178,7 +172,7 @@ Color _toneFill(IconTone tone, bool isDark) => switch ((tone, isDark)) {
   (.peach, true) => AppColors.peachDark,
   (.white, false) => AppColors.surfaceLowestLight,
   (.white, true) => AppColors.surfaceHighDark,
-  (.glass, _) => Colors.white.withValues(alpha: 0.16),
+  (.glass, _) => AppColors.white.withValues(alpha: 0.16),
   (.neutral, false) => AppColors.surfaceLowLight,
   (.neutral, true) => AppColors.surfaceLowDark,
   (.danger, false) => AppColors.peachLight,

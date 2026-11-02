@@ -138,7 +138,7 @@ void main() {
       final button = tester.widget<CircleIconButton>(
         find.byType(CircleIconButton),
       );
-      expect(button.icon, Assets.icons.dropDownIcon);
+      expect(button.icon, Assets.icons.moreIcon);
       expect(
         tester.getSemantics(find.byType(MoreButton)),
         matchesSemantics(

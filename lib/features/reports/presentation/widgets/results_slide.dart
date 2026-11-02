@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
@@ -64,15 +62,10 @@ class ResultsSlide extends StatelessWidget {
                         shape: .circle,
                       ),
                       alignment: .center,
-                      // forwardIcon stands in for arrowUpRight until T-1 lands.
-                      child: Transform.rotate(
-                        angle: -math.pi / 4,
-                        child: AssetIcon(
-                          Assets.icons.forwardIcon,
-                          size: 20,
-                          scaleUp: false,
-                          color: scheme.onSurface,
-                        ),
+                      child: AssetIcon(
+                        Assets.icons.arrowUpRightIcon,
+                        size: 16,
+                        color: scheme.onSurface,
                       ),
                     ),
                   ),

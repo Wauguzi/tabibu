@@ -43,7 +43,7 @@ class _AiDraftFrameState extends State<AiDraftFrame> {
 
     final label = Row(
       children: [
-        AssetIcon(Assets.icons.inProgressIcon, size: 18, color: status.aiDraft),
+        AssetIcon(Assets.icons.sparkleIcon, size: 18, color: status.aiDraft),
         const SizedBox(width: AppSpacing.xs),
         Expanded(
           child: Text(

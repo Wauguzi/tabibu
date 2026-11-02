@@ -56,7 +56,7 @@ void main() {
         expect(frame.color, status.draftBorder);
 
         final icon = tester.widget<AssetIcon>(find.byType(AssetIcon));
-        expect(icon.asset, Assets.icons.inProgressIcon);
+        expect(icon.asset, Assets.icons.sparkleIcon);
       }
     });
 

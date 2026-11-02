@@ -37,7 +37,7 @@ class ConnectivityBanner extends StatelessWidget {
       ConnectivityState.offline => (
         status.neutralContainer,
         status.neutralText,
-        Assets.icons.infoIcon,
+        Assets.icons.cloudOffIcon,
       ),
       ConnectivityState.slow => (
         status.attentionContainer,
