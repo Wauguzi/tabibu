@@ -2,6 +2,11 @@
 // reviewed source tables in this directory (make alerts-data). Every rule
 // the bundle states is enforced here, loudly: a broken source fails the
 // build naming the entry, never ships a half-true asset.
+//
+// Primary-source-only: a bullet may list corroborating sources in
+// alsoCites (checked to exist), but only its primary sourceId ships, so
+// every built line traces to exactly one checked source. Sources nothing
+// shipped cites leave with the bullets that cited them.
 
 const fs = require('node:fs');
 const path = require('node:path');

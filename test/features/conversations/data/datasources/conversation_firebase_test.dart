@@ -99,6 +99,58 @@ void main() {
       final rows = await remote.fetchMessages(conversationUid: 'c1');
       expect(rows.map((r) => r.uid), ['m1', 'm2']);
     });
+
+    test('messages page by limit and an inclusive cursor', () async {
+      final col = firestore
+          .collection('conversations')
+          .doc('c1')
+          .collection('messages');
+      // m2 and m3 share a stamp across the page boundary.
+      const stamps = {
+        'm1': '2026-11-01T11:00:00.000Z',
+        'm2': '2026-11-01T12:00:00.000Z',
+        'm3': '2026-11-01T12:00:00.000Z',
+      };
+      for (final entry in stamps.entries) {
+        await col.doc(entry.key).set({
+          'senderUid': 'u1',
+          'sentAt': entry.value,
+          'text': entry.key,
+        });
+      }
+
+      final first = await remote.fetchMessages(conversationUid: 'c1', limit: 2);
+      expect(first.map((r) => r.uid), ['m1', 'm2']);
+      final rest = await remote.fetchMessages(
+        conversationUid: 'c1',
+        limit: 2,
+        fromSentAt: first.last.sentAt,
+      );
+      expect(rest.map((r) => r.uid).toSet(), {'m2', 'm3'});
+    });
+
+    test('one message by id, null when missing', () async {
+      final col = firestore
+          .collection('conversations')
+          .doc('c1')
+          .collection('messages');
+      await col.doc('m1').set({
+        'senderUid': 'u1',
+        'sentAt': '2026-11-01T10:00:00.000Z',
+        'text': 'first',
+      });
+
+      final hit = await remote.fetchMessage(
+        conversationUid: 'c1',
+        messageUid: 'm1',
+      );
+      expect(hit?.text, 'first');
+      final miss = await remote.fetchMessage(
+        conversationUid: 'c1',
+        messageUid: 'nope',
+      );
+      expect(miss, isNull);
+    });
   });
 
   group('cursor', () {

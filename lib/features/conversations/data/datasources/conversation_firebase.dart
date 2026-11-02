@@ -98,15 +98,36 @@ class ConversationFirebase {
     ];
   });
 
-  /// Messages in a conversation, ordered by `sentAt`.
-  Future<List<MessageModel>> fetchMessages({required String conversationUid}) =>
-      _guard('Conversation messages', () async {
-        final snap = await _messages(conversationUid).orderBy('sentAt').get();
-        return [
-          for (final doc in snap.docs)
-            MessageModel.fromJson({'uid': doc.id, ...doc.data()}),
-        ];
-      });
+  /// Messages in a conversation, ordered by `sentAt`; pass [limit] with
+  /// [fromSentAt] to page long threads one bounded read at a time. The
+  /// cursor is inclusive, so messages sharing the boundary stamp are never
+  /// skipped; the caller dedupes by id.
+  Future<List<MessageModel>> fetchMessages({
+    required String conversationUid,
+    int? limit,
+    String? fromSentAt,
+  }) => _guard('Conversation messages', () async {
+    var query = _messages(conversationUid).orderBy('sentAt');
+    if (fromSentAt != null && fromSentAt.isNotEmpty) {
+      query = query.startAt([fromSentAt]);
+    }
+    if (limit != null) query = query.limit(limit);
+    final snap = await query.get();
+    return [
+      for (final doc in snap.docs)
+        MessageModel.fromJson({'uid': doc.id, ...doc.data()}),
+    ];
+  });
+
+  /// One message by id, or null when the server never saw it.
+  Future<MessageModel?> fetchMessage({
+    required String conversationUid,
+    required String messageUid,
+  }) => _guard('Conversation message', () async {
+    final doc = await _messages(conversationUid).doc(messageUid).get();
+    if (!doc.exists) return null;
+    return MessageModel.fromJson({'uid': doc.id, ...?doc.data()});
+  });
 
   /// Forward-only cursor write: create or update `lastReadAt` + stamp.
   Future<void> updateCursor({

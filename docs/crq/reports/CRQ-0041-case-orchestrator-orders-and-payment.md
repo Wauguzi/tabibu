@@ -135,6 +135,13 @@ Config → app (§8 5e).
   The report-side findings are in CRQ-0042 and CRQ-0043.
 - **Accepted deviation**: a departing pathologist's MDTs close rather
   than pass on (CRQ-0045 §9).
+- **Pre-review (44a3127)**: the Storage rule compared the full object
+  name with the bare ids `reserveSlideUploads` stores, so every real
+  slide upload was refused. It now checks the name's stem. Accepted
+  risk: between reserving and `registerSlides`, the case's own clinician
+  could store both `{id}.jpg` and `{id}.png`; one is registered and the
+  reservation cleared, the other is left unreferenced. Bounded by the
+  20-slide cap and an authorised writer.
 - **Follow-ups**: the AI service client; an index for a sweep of notes
   translations stuck `Running` (today a stale run fails when the next
   write retriggers it, and `sweepCases` covers the pre-read and report

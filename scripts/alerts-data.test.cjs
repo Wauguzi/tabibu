@@ -143,9 +143,10 @@ test('guidance fails loudly on broken references', () => {
 test('case-definition and statutory bullets must match exactly', () => {
   const d = disease();
   const byId = new Map([[d.diseaseId, d]]);
+  const statutory = clinicianPair(d)[1];
   assert.throws(
     () => buildGuidance(
-      guidanceEntry([bullet(), bullet({
+      guidanceEntry([bullet(), statutory, bullet({
         bulletId: 'test_disease-c1',
         audience: 'Clinician',
         textEn: 'Drifted wording.',
@@ -153,7 +154,70 @@ test('case-definition and statutory bullets must match exactly', () => {
       })], [source()]),
       byId,
     ),
-    /drifted|statutory/,
+    /drifted from the disease row/,
+  );
+  assert.throws(
+    () => buildGuidance(
+      guidanceEntry([bullet(), statutory, bullet({
+        bulletId: 'test_disease-c1',
+        audience: 'Clinician',
+        textEn: d.caseDefinitionEn,
+        textSw: 'Drifted wording.',
+      })], [source()]),
+      byId,
+    ),
+    /drifted from the disease row/,
+  );
+  assert.throws(
+    () => buildGuidance(
+      guidanceEntry([bullet(), statutory, bullet({
+        bulletId: 'test_disease-c1',
+        audience: 'Clinician',
+        textEn: d.caseDefinitionEn,
+        textSw: d.caseDefinitionSw,
+      }), bullet({
+        bulletId: 'test_disease-c3',
+        audience: 'Clinician',
+        textEn: 'A second case-definition bullet.',
+        textSw: 'A second case-definition bullet, in Swahili.',
+      })], [source()]),
+      byId,
+    ),
+    /expected one case-definition bullet, found 2/,
+  );
+  assert.doesNotThrow(
+    () => buildGuidance(
+      guidanceEntry([bullet(), ...clinicianPair(d)], [source()]),
+      byId,
+    ),
+  );
+  assert.throws(
+    () => buildGuidance(
+      guidanceEntry([bullet(), bullet({
+        bulletId: 'test_disease-c1',
+        audience: 'Clinician',
+        textEn: d.caseDefinitionEn,
+        textSw: d.caseDefinitionSw,
+      }), bullet({
+        ...statutory,
+        textSw: 'Wrong Swahili.',
+      })], [source()]),
+      byId,
+    ),
+    /statutory reminder Swahili does not match/,
+  );
+  const noDefinition = disease({caseDefinitionEn: '', caseDefinitionSw: ''});
+  assert.throws(
+    () => buildGuidance(
+      guidanceEntry([bullet(), statutory, bullet({
+        bulletId: 'test_disease-c1',
+        audience: 'Clinician',
+        textEn: 'A bullet with no definition behind it.',
+        textSw: 'A bullet with no definition behind it, in Swahili.',
+      })], [source()]),
+      new Map([[noDefinition.diseaseId, noDefinition]]),
+    ),
+    /no case definition/,
   );
   assert.throws(
     () => buildGuidance(guidanceEntry([bullet()], [source()]), byId),

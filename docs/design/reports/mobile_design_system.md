@@ -366,7 +366,7 @@ Quotation marks are straight double quotes in both languages.
 
 | Date | Change | Author |
 |---|---|---|
-| 2026-11-01 | For the `feat/infra` data layer: §4.1 the surfaces `AiDraftFrame` wraps, Approve as is first, the approval attributions, the draft-and-diff link for the signer and admins only, the PDF's own layout; §4.4 the explanation approved by the doctor and the update banner; §4.5 the alert screens (CRQ-0043, CRQ-0047, CRQ-0049). | Theo |
+| 2026-11-01 | For the `feat/infra` data layer: §4.1 the surfaces `AiDraftFrame` wraps, Approve as is first, the approval attributions, the draft-and-diff link for the signer and admins only, the PDF's own layout; §4.4 the explanation approved by the doctor and the update banner; §4.5 the alert screens (CRQ-0043, CRQ-0045, CRQ-0049). | Theo |
 | 2026-10-28 | §2.1, §6 and §8 item 6: draft versus signed made structural (CRQ-0030). | Theo |
 | 2026-10-28 | §2 rewritten to the sheet's tokens (colour, Manrope type, spacing, radii, iconography); sheet rules added to §5 and §6; §8 items 1, 5 and 6 (brief 03). | Theo |
 | 2026-10-27 | §2.1 provisional palette and the draft-versus-signed panel; §8 items 1, 2 and 4 updated (CRQ-0017). | Theo |

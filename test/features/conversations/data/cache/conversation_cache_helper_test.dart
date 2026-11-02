@@ -197,7 +197,13 @@ void main() {
         senderUid: 'u1',
         text: 'hi',
       );
-      when(() => remote.fetchMessages(conversationUid: 'c1')).thenAnswer(
+      when(
+        () => remote.fetchMessages(
+          conversationUid: 'c1',
+          limit: any(named: 'limit'),
+          fromSentAt: any(named: 'fromSentAt'),
+        ),
+      ).thenAnswer(
         (_) async => [
           _msg(queued.uid, sender: 'u1', status: 'Delivered', stamp: _t3),
         ],
@@ -295,6 +301,8 @@ void main() {
       when(
         () => remote.fetchMessages(
           conversationUid: any(named: 'conversationUid'),
+          limit: any(named: 'limit'),
+          fromSentAt: any(named: 'fromSentAt'),
         ),
       ).thenThrow(AppError.serviceUnavailable);
 
@@ -312,6 +320,8 @@ void main() {
       when(
         () => remote.fetchMessages(
           conversationUid: any(named: 'conversationUid'),
+          limit: any(named: 'limit'),
+          fromSentAt: any(named: 'fromSentAt'),
         ),
       ).thenThrow(AppError.requestTimeout);
 
@@ -359,6 +369,27 @@ void main() {
         (await helper.getMessages('u1', 'c1', before: _t3)).map((m) => m.uid),
         ['m2', 'm1'],
       );
+    });
+
+    test('sync pulls the thread one bounded page at a time', () async {
+      await seedThread();
+      when(
+        () => remote.fetchMessages(
+          conversationUid: any(named: 'conversationUid'),
+          limit: any(named: 'limit'),
+          fromSentAt: any(named: 'fromSentAt'),
+        ),
+      ).thenAnswer((_) async => [_msg('m1')]);
+
+      await helper.syncMessages('u1', 'c1');
+
+      verify(
+        () => remote.fetchMessages(
+          conversationUid: 'c1',
+          limit: ConversationCacheHelper.messagesKeptPerConversation,
+        ),
+      ).called(1);
+      expect((await helper.getMessages('u1', 'c1')).map((m) => m.uid), ['m1']);
     });
 
     test(
@@ -438,16 +469,19 @@ void main() {
           sentAt: any(named: 'sentAt'),
         ),
       ).thenAnswer((_) async {});
-      when(() => remote.fetchMessages(conversationUid: 'c1')).thenAnswer(
-        (i) async => [
-          _msg(
-            // The echo carries the queued uid; the helper finds it by id.
-            (await helper.getQueuedMessages('u1')).single.uid,
-            sender: 'u1',
-            status: 'Delivered',
-            stamp: _t3,
-          ),
-        ],
+      when(
+        () => remote.fetchMessage(
+          conversationUid: 'c1',
+          messageUid: any(named: 'messageUid'),
+        ),
+      ).thenAnswer(
+        (_) async => _msg(
+          // The echo carries the queued uid; the helper fetches it by id.
+          (await helper.getQueuedMessages('u1')).single.uid,
+          sender: 'u1',
+          status: 'Delivered',
+          stamp: _t3,
+        ),
       );
 
       final sent = await helper.queueTextMessage(
@@ -514,14 +548,17 @@ void main() {
           sentAt: any(named: 'sentAt'),
         ),
       ).thenAnswer((_) async {});
-      when(() => remote.fetchMessages(conversationUid: 'c1')).thenAnswer(
-        (_) async => [
-          _msg(
-            (await helper.getQueuedMessages('u1')).single.uid,
-            sender: 'u1',
-            stamp: _t3,
-          ),
-        ],
+      when(
+        () => remote.fetchMessage(
+          conversationUid: 'c1',
+          messageUid: any(named: 'messageUid'),
+        ),
+      ).thenAnswer(
+        (_) async => _msg(
+          (await helper.getQueuedMessages('u1')).single.uid,
+          sender: 'u1',
+          stamp: _t3,
+        ),
       );
 
       final sent = await helper.queueVoiceMessage(
@@ -608,8 +645,11 @@ void main() {
         ),
       ).thenThrow(AppError.permissionDenied);
       when(
-        () => remote.fetchMessages(conversationUid: 'c1'),
-      ).thenAnswer((_) async => [_msg(queued.uid, sender: 'u1', stamp: _t3)]);
+        () => remote.fetchMessage(
+          conversationUid: 'c1',
+          messageUid: any(named: 'messageUid'),
+        ),
+      ).thenAnswer((_) async => _msg(queued.uid, sender: 'u1', stamp: _t3));
 
       await expectLater(
         helper.replayPendingMessages('u1'),
@@ -647,8 +687,9 @@ void main() {
         ),
       ).thenThrow(AppError.permissionDenied);
       when(
-        () => remote.fetchMessages(
+        () => remote.fetchMessage(
           conversationUid: any(named: 'conversationUid'),
+          messageUid: any(named: 'messageUid'),
         ),
       ).thenThrow(AppError.permissionDenied);
 
@@ -688,8 +729,11 @@ void main() {
           ),
         ).thenThrow(AppError.dataNotFound);
         when(
-          () => remote.fetchMessages(conversationUid: 'c1'),
-        ).thenAnswer((_) async => <MessageModel>[]);
+          () => remote.fetchMessage(
+            conversationUid: 'c1',
+            messageUid: any(named: 'messageUid'),
+          ),
+        ).thenAnswer((_) async => null);
 
         await expectLater(
           helper.replayPendingMessages('u1'),
@@ -993,6 +1037,22 @@ void main() {
         '2026-11-02T10:00:00.000Z',
       );
       expect(await helper.messageCursor('u9', 'c1'), isNull);
+    });
+  });
+
+  group('lazy box failures', () {
+    test('a HiveError from the messages box surfaces as AppError', () async {
+      final failingHive = _MockHiveHelper();
+      when(failingHive.messagesBox).thenThrow(HiveError('box closed'));
+      final failing = ConversationCacheHelper(
+        db: DBHelperImpl(),
+        remote: remote,
+        hive: failingHive,
+      );
+      await expectLater(
+        failing.getQueuedMessages('u1'),
+        throwsA(AppError.unknown),
+      );
     });
   });
 }

@@ -10,7 +10,7 @@
 | Date implemented | 2026-11-02 |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/infra`: f1106c9, a5bf9ba, c755bde, fe013dd, 155630b, af2b1d8, d05d289 |
+| Commit(s) / PR | `feat/infra`: f1106c9, a5bf9ba, c755bde, fe013dd, 155630b, af2b1d8, d05d289, 0c3dfe8 |
 
 ## 1. Description of change
 
@@ -26,7 +26,7 @@ and delivery functions that enforce them.
    the `MalariaParasites` pre-read hint. `categoryVerified` is false
    on every row until the second-source check lands.
 2. **`public_health_guidance.json`** (a5bf9ba): 20 guidance entries
-   (smallpox has none and cannot be raised), each with patient
+   (no confirming test exists for smallpox, so no report can raise it), each with patient
    bullets, the case definition plus the statutory reminder for
    clinicians, and sources with a url, a publisher and a date.
    Ebola ships its S15 bullets only; every OCR-sourced bullet stays
@@ -198,6 +198,12 @@ Storage rules → server Remote Config → app (§8 5e).
   zero evidence, which approval now refuses with `noEvidence`.
 - **Accepted deviation: county-only delivery.** Clinicians in the
   alert county only, until county adjacency is sourced (U-12).
+- **alsoCites is review trail, not shipped citations.** A bullet may list
+  corroborating sources in `alsoCites` (the build checks they exist), but
+  only the primary `sourceId` ships, so every built line traces to exactly
+  one checked source. The RVF patient bullet's WHO sheet
+  (`who-rvf-2024-12-20`) stays out on that rule: the nets-and-repellent
+  advice is already carried by its primary MoH source (S17).
 - **Accepted deviation: the attribution line.** The line that tells a
   reader who approved an alert is app copy, to come on the UI branch.
 - **Accepted deviation: zero-evidence redraft.** A redraft from
@@ -235,8 +241,8 @@ but nothing cites them.
 | S9 | IHR Annex 2, right box | UK Government and Bahrain MoH copies | Current pages | Search extracts |
 | S10 | R&D Blueprint priority-disease list | WHO | 2018, COVID-19 added 2020 | Read |
 | S11 | Pathogens prioritization framework | WHO R&D Blueprint | 30 July 2024 | Listing page only; full list not opened |
-| S12 | Ebola case in Nairobi (press release) | MoH Kenya, Cabinet Secretary | 2026-10-06 | OCR scan — held |
-| S13 | Second Ebola case detected early (press release) | MoH Kenya, Director General for Health | 2026-10-14 | OCR scan — held |
+| S12 | MoH press release, 2026-10-06 (held, not cited) | MoH Kenya, Cabinet Secretary | 2026-10-06 | OCR scan — held |
+| S13 | MoH press release, 2026-10-14 (held, not cited) | MoH Kenya, Director General for Health | 2026-10-14 | OCR scan — held |
 | S14 | EVD preparedness status in Kenya (press statement) | MoH Kenya, Cabinet Secretary | 2026-05-19 | OCR scan — held |
 | S15 | EVD outbreak in Ituri Province, DRC: public health advisory | MoH Kenya, Director General | 2026-05-18 | Full text |
 | S16 | Cholera outbreak in parts of the country (press statement) | MoH Kenya, Cabinet Secretary | 2025-04-08 | OCR scan — held |
@@ -245,7 +251,7 @@ but nothing cites them.
 | S19 | Mpox response and Marburg preparedness (press statement) | MoH Kenya, PS | 2024-10-31 | Full text |
 | S20 | Indoor residual spraying and chemoprevention (press statement) | MoH Kenya, PS | 2025-03-08 | OCR scan — held |
 | S21 | Siaya anthrax advisory (news relay of a joint county statement) | The Star (Kenya) | 2026-04-17 | Full text |
-| W | WHO fact sheets (16 cited: Marburg, Lassa, CCHF, RVF, yellow fever, dengue, chikungunya, plague, typhoid, diarrhoeal, meningitis, malaria, measles, polio, COVID-19, avian flu) | WHO | per sheet 2023–2026 | Full text |
+| W | WHO fact sheets (16 read: Marburg, Lassa, CCHF, RVF, yellow fever, dengue, chikungunya, plague, typhoid, diarrhoeal, meningitis, malaria, measles, polio, COVID-19, avian flu; 15 ship — RVF corroborates via alsoCites, see §9) | WHO | per sheet 2023–2026 | Full text |
 
 The disease rows keep the §3 table's `W` token; the guidance build
 cites each WHO sheet by its own id and fetched every URL (all 200,

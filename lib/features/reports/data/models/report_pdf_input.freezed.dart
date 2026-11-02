@@ -1948,7 +1948,7 @@ as List<int>,
 /// @nodoc
 mixin _$PdfFooter {
 
-@JsonKey(name: 'patientName') String get patientName;@JsonKey(name: 'labAccessionNo') String get labAccessionNo;@JsonKey(name: 'disclaimer') String get disclaimer;@JsonKey(name: 'supportContact') String get supportContact;
+@JsonKey(name: 'patientName') String get patientName;@JsonKey(name: 'labAccessionNo') String get labAccessionNo;@JsonKey(name: 'supportContact') String get supportContact;
 /// Create a copy of PdfFooter
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -1961,16 +1961,16 @@ $PdfFooterCopyWith<PdfFooter> get copyWith => _$PdfFooterCopyWithImpl<PdfFooter>
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.disclaimer, disclaimer) || other.disclaimer == disclaimer)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,disclaimer,supportContact);
+int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,supportContact);
 
 @override
 String toString() {
-  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, disclaimer: $disclaimer, supportContact: $supportContact)';
+  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, supportContact: $supportContact)';
 }
 
 
@@ -1981,7 +1981,7 @@ abstract mixin class $PdfFooterCopyWith<$Res>  {
   factory $PdfFooterCopyWith(PdfFooter value, $Res Function(PdfFooter) _then) = _$PdfFooterCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'disclaimer') String disclaimer,@JsonKey(name: 'supportContact') String supportContact
+@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'supportContact') String supportContact
 });
 
 
@@ -1998,11 +1998,10 @@ class _$PdfFooterCopyWithImpl<$Res>
 
 /// Create a copy of PdfFooter
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? disclaimer = null,Object? supportContact = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? supportContact = null,}) {
   return _then(_self.copyWith(
 patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
 as String,labAccessionNo: null == labAccessionNo ? _self.labAccessionNo : labAccessionNo // ignore: cast_nullable_to_non_nullable
-as String,disclaimer: null == disclaimer ? _self.disclaimer : disclaimer // ignore: cast_nullable_to_non_nullable
 as String,supportContact: null == supportContact ? _self.supportContact : supportContact // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -2089,10 +2088,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'supportContact')  String supportContact)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PdfFooter() when $default != null:
-return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.supportContact);case _:
+return $default(_that.patientName,_that.labAccessionNo,_that.supportContact);case _:
   return orElse();
 
 }
@@ -2110,10 +2109,10 @@ return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.su
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'supportContact')  String supportContact)  $default,) {final _that = this;
 switch (_that) {
 case _PdfFooter():
-return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.supportContact);case _:
+return $default(_that.patientName,_that.labAccessionNo,_that.supportContact);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2130,10 +2129,10 @@ return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.su
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'disclaimer')  String disclaimer, @JsonKey(name: 'supportContact')  String supportContact)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'patientName')  String patientName, @JsonKey(name: 'labAccessionNo')  String labAccessionNo, @JsonKey(name: 'supportContact')  String supportContact)?  $default,) {final _that = this;
 switch (_that) {
 case _PdfFooter() when $default != null:
-return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.supportContact);case _:
+return $default(_that.patientName,_that.labAccessionNo,_that.supportContact);case _:
   return null;
 
 }
@@ -2145,12 +2144,11 @@ return $default(_that.patientName,_that.labAccessionNo,_that.disclaimer,_that.su
 @JsonSerializable()
 
 class _PdfFooter extends PdfFooter {
-  const _PdfFooter({@JsonKey(name: 'patientName') this.patientName = '', @JsonKey(name: 'labAccessionNo') this.labAccessionNo = '', @JsonKey(name: 'disclaimer') this.disclaimer = '', @JsonKey(name: 'supportContact') this.supportContact = ''}): super._();
+  const _PdfFooter({@JsonKey(name: 'patientName') this.patientName = '', @JsonKey(name: 'labAccessionNo') this.labAccessionNo = '', @JsonKey(name: 'supportContact') this.supportContact = ''}): super._();
   factory _PdfFooter.fromJson(Map<String, dynamic> json) => _$PdfFooterFromJson(json);
 
 @override@JsonKey(name: 'patientName') final  String patientName;
 @override@JsonKey(name: 'labAccessionNo') final  String labAccessionNo;
-@override@JsonKey(name: 'disclaimer') final  String disclaimer;
 @override@JsonKey(name: 'supportContact') final  String supportContact;
 
 /// Create a copy of PdfFooter
@@ -2166,16 +2164,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.disclaimer, disclaimer) || other.disclaimer == disclaimer)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _PdfFooter&&(identical(other.patientName, patientName) || other.patientName == patientName)&&(identical(other.labAccessionNo, labAccessionNo) || other.labAccessionNo == labAccessionNo)&&(identical(other.supportContact, supportContact) || other.supportContact == supportContact));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,disclaimer,supportContact);
+int get hashCode => Object.hash(runtimeType,patientName,labAccessionNo,supportContact);
 
 @override
 String toString() {
-  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, disclaimer: $disclaimer, supportContact: $supportContact)';
+  return 'PdfFooter(patientName: $patientName, labAccessionNo: $labAccessionNo, supportContact: $supportContact)';
 }
 
 
@@ -2186,7 +2184,7 @@ abstract mixin class _$PdfFooterCopyWith<$Res> implements $PdfFooterCopyWith<$Re
   factory _$PdfFooterCopyWith(_PdfFooter value, $Res Function(_PdfFooter) _then) = __$PdfFooterCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'disclaimer') String disclaimer,@JsonKey(name: 'supportContact') String supportContact
+@JsonKey(name: 'patientName') String patientName,@JsonKey(name: 'labAccessionNo') String labAccessionNo,@JsonKey(name: 'supportContact') String supportContact
 });
 
 
@@ -2203,11 +2201,10 @@ class __$PdfFooterCopyWithImpl<$Res>
 
 /// Create a copy of PdfFooter
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? disclaimer = null,Object? supportContact = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? patientName = null,Object? labAccessionNo = null,Object? supportContact = null,}) {
   return _then(_PdfFooter(
 patientName: null == patientName ? _self.patientName : patientName // ignore: cast_nullable_to_non_nullable
 as String,labAccessionNo: null == labAccessionNo ? _self.labAccessionNo : labAccessionNo // ignore: cast_nullable_to_non_nullable
-as String,disclaimer: null == disclaimer ? _self.disclaimer : disclaimer // ignore: cast_nullable_to_non_nullable
 as String,supportContact: null == supportContact ? _self.supportContact : supportContact // ignore: cast_nullable_to_non_nullable
 as String,
   ));
@@ -2220,7 +2217,9 @@ as String,
 /// @nodoc
 mixin _$ReportPdfInput {
 
-@JsonKey(name: 'locale') String get locale;@JsonKey(name: 'viewerRole') String get viewerRole;@JsonKey(name: 'header') PdfHeader get header;@JsonKey(name: 'subject') PdfSubject get subject;@JsonKey(name: 'blocks') List<PdfBlock> get blocks;@JsonKey(name: 'measurements') List<PdfMeasurement> get measurements;@JsonKey(name: 'addenda') List<PdfAddendum> get addenda;@JsonKey(name: 'amendmentReason') String get amendmentReason;@JsonKey(name: 'isCritical') bool get isCritical;@JsonKey(name: 'signature') PdfSignature get signature;@JsonKey(name: 'translation') Map<String, String> get translation;@JsonKey(name: 'translationApproverName') String get translationApproverName;@JsonKey(name: 'translationLanguage') String get translationLanguage;@JsonKey(name: 'watermark') String get watermark;@JsonKey(name: 'footer') PdfFooter get footer;@JsonKey(name: 'generatedAtLabel') String get generatedAtLabel;
+/// Wire value from [ActorRole] (`'Doctor'`, `'Patient'`, …), never
+/// [Role.name]: anything else reads as the patient (fail closed).
+@JsonKey(name: 'viewerRole') String get viewerRole;@JsonKey(name: 'header') PdfHeader get header;@JsonKey(name: 'subject') PdfSubject get subject;@JsonKey(name: 'blocks') List<PdfBlock> get blocks;@JsonKey(name: 'measurements') List<PdfMeasurement> get measurements;@JsonKey(name: 'addenda') List<PdfAddendum> get addenda;@JsonKey(name: 'amendmentReason') String get amendmentReason;@JsonKey(name: 'isCritical') bool get isCritical;@JsonKey(name: 'signature') PdfSignature get signature;@JsonKey(name: 'translation') Map<String, String> get translation;@JsonKey(name: 'translationApproverName') String get translationApproverName;@JsonKey(name: 'translationLanguage') String get translationLanguage;@JsonKey(name: 'watermark') String get watermark;@JsonKey(name: 'footer') PdfFooter get footer;
 /// Create a copy of ReportPdfInput
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -2233,16 +2232,16 @@ $ReportPdfInputCopyWith<ReportPdfInput> get copyWith => _$ReportPdfInputCopyWith
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportPdfInput&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other.blocks, blocks)&&const DeepCollectionEquality().equals(other.measurements, measurements)&&const DeepCollectionEquality().equals(other.addenda, addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other.translation, translation)&&(identical(other.translationApproverName, translationApproverName) || other.translationApproverName == translationApproverName)&&(identical(other.translationLanguage, translationLanguage) || other.translationLanguage == translationLanguage)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer)&&(identical(other.generatedAtLabel, generatedAtLabel) || other.generatedAtLabel == generatedAtLabel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReportPdfInput&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other.blocks, blocks)&&const DeepCollectionEquality().equals(other.measurements, measurements)&&const DeepCollectionEquality().equals(other.addenda, addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other.translation, translation)&&(identical(other.translationApproverName, translationApproverName) || other.translationApproverName == translationApproverName)&&(identical(other.translationLanguage, translationLanguage) || other.translationLanguage == translationLanguage)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,locale,viewerRole,header,subject,const DeepCollectionEquality().hash(blocks),const DeepCollectionEquality().hash(measurements),const DeepCollectionEquality().hash(addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(translation),translationApproverName,translationLanguage,watermark,footer,generatedAtLabel);
+int get hashCode => Object.hash(runtimeType,viewerRole,header,subject,const DeepCollectionEquality().hash(blocks),const DeepCollectionEquality().hash(measurements),const DeepCollectionEquality().hash(addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(translation),translationApproverName,translationLanguage,watermark,footer);
 
 @override
 String toString() {
-  return 'ReportPdfInput(locale: $locale, viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, translationApproverName: $translationApproverName, translationLanguage: $translationLanguage, watermark: $watermark, footer: $footer, generatedAtLabel: $generatedAtLabel)';
+  return 'ReportPdfInput(viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, translationApproverName: $translationApproverName, translationLanguage: $translationLanguage, watermark: $watermark, footer: $footer)';
 }
 
 
@@ -2253,7 +2252,7 @@ abstract mixin class $ReportPdfInputCopyWith<$Res>  {
   factory $ReportPdfInputCopyWith(ReportPdfInput value, $Res Function(ReportPdfInput) _then) = _$ReportPdfInputCopyWithImpl;
 @useResult
 $Res call({
-@JsonKey(name: 'locale') String locale,@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<PdfMeasurement> measurements,@JsonKey(name: 'addenda') List<PdfAddendum> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'translationApproverName') String translationApproverName,@JsonKey(name: 'translationLanguage') String translationLanguage,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer,@JsonKey(name: 'generatedAtLabel') String generatedAtLabel
+@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<PdfMeasurement> measurements,@JsonKey(name: 'addenda') List<PdfAddendum> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'translationApproverName') String translationApproverName,@JsonKey(name: 'translationLanguage') String translationLanguage,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer
 });
 
 
@@ -2270,10 +2269,9 @@ class _$ReportPdfInputCopyWithImpl<$Res>
 
 /// Create a copy of ReportPdfInput
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? locale = null,Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? translationApproverName = null,Object? translationLanguage = null,Object? watermark = null,Object? footer = null,Object? generatedAtLabel = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? translationApproverName = null,Object? translationLanguage = null,Object? watermark = null,Object? footer = null,}) {
   return _then(_self.copyWith(
-locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
-as String,viewerRole: null == viewerRole ? _self.viewerRole : viewerRole // ignore: cast_nullable_to_non_nullable
+viewerRole: null == viewerRole ? _self.viewerRole : viewerRole // ignore: cast_nullable_to_non_nullable
 as String,header: null == header ? _self.header : header // ignore: cast_nullable_to_non_nullable
 as PdfHeader,subject: null == subject ? _self.subject : subject // ignore: cast_nullable_to_non_nullable
 as PdfSubject,blocks: null == blocks ? _self.blocks : blocks // ignore: cast_nullable_to_non_nullable
@@ -2287,8 +2285,7 @@ as Map<String, String>,translationApproverName: null == translationApproverName 
 as String,translationLanguage: null == translationLanguage ? _self.translationLanguage : translationLanguage // ignore: cast_nullable_to_non_nullable
 as String,watermark: null == watermark ? _self.watermark : watermark // ignore: cast_nullable_to_non_nullable
 as String,footer: null == footer ? _self.footer : footer // ignore: cast_nullable_to_non_nullable
-as PdfFooter,generatedAtLabel: null == generatedAtLabel ? _self.generatedAtLabel : generatedAtLabel // ignore: cast_nullable_to_non_nullable
-as String,
+as PdfFooter,
   ));
 }
 /// Create a copy of ReportPdfInput
@@ -2409,10 +2406,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function(@JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReportPdfInput() when $default != null:
-return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
+return $default(_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer);case _:
   return orElse();
 
 }
@@ -2430,10 +2427,10 @@ return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function(@JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer)  $default,) {final _that = this;
 switch (_that) {
 case _ReportPdfInput():
-return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
+return $default(_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -2450,10 +2447,10 @@ return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.b
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'locale')  String locale, @JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer, @JsonKey(name: 'generatedAtLabel')  String generatedAtLabel)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function(@JsonKey(name: 'viewerRole')  String viewerRole, @JsonKey(name: 'header')  PdfHeader header, @JsonKey(name: 'subject')  PdfSubject subject, @JsonKey(name: 'blocks')  List<PdfBlock> blocks, @JsonKey(name: 'measurements')  List<PdfMeasurement> measurements, @JsonKey(name: 'addenda')  List<PdfAddendum> addenda, @JsonKey(name: 'amendmentReason')  String amendmentReason, @JsonKey(name: 'isCritical')  bool isCritical, @JsonKey(name: 'signature')  PdfSignature signature, @JsonKey(name: 'translation')  Map<String, String> translation, @JsonKey(name: 'translationApproverName')  String translationApproverName, @JsonKey(name: 'translationLanguage')  String translationLanguage, @JsonKey(name: 'watermark')  String watermark, @JsonKey(name: 'footer')  PdfFooter footer)?  $default,) {final _that = this;
 switch (_that) {
 case _ReportPdfInput() when $default != null:
-return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer,_that.generatedAtLabel);case _:
+return $default(_that.viewerRole,_that.header,_that.subject,_that.blocks,_that.measurements,_that.addenda,_that.amendmentReason,_that.isCritical,_that.signature,_that.translation,_that.translationApproverName,_that.translationLanguage,_that.watermark,_that.footer);case _:
   return null;
 
 }
@@ -2465,10 +2462,11 @@ return $default(_that.locale,_that.viewerRole,_that.header,_that.subject,_that.b
 
 @JsonSerializable(explicitToJson: true)
 class _ReportPdfInput extends ReportPdfInput {
-  const _ReportPdfInput({@JsonKey(name: 'locale') this.locale = 'en', @JsonKey(name: 'viewerRole') this.viewerRole = '', @JsonKey(name: 'header') this.header = const PdfHeader(), @JsonKey(name: 'subject') this.subject = const PdfSubject(), @JsonKey(name: 'blocks') final  List<PdfBlock> blocks = const <PdfBlock>[], @JsonKey(name: 'measurements') final  List<PdfMeasurement> measurements = const <PdfMeasurement>[], @JsonKey(name: 'addenda') final  List<PdfAddendum> addenda = const <PdfAddendum>[], @JsonKey(name: 'amendmentReason') this.amendmentReason = '', @JsonKey(name: 'isCritical') this.isCritical = false, @JsonKey(name: 'signature') this.signature = const PdfSignature(), @JsonKey(name: 'translation') final  Map<String, String> translation = const <String, String>{}, @JsonKey(name: 'translationApproverName') this.translationApproverName = '', @JsonKey(name: 'translationLanguage') this.translationLanguage = '', @JsonKey(name: 'watermark') this.watermark = '', @JsonKey(name: 'footer') this.footer = const PdfFooter(), @JsonKey(name: 'generatedAtLabel') this.generatedAtLabel = ''}): _blocks = blocks,_measurements = measurements,_addenda = addenda,_translation = translation,super._();
+  const _ReportPdfInput({@JsonKey(name: 'viewerRole') this.viewerRole = '', @JsonKey(name: 'header') this.header = const PdfHeader(), @JsonKey(name: 'subject') this.subject = const PdfSubject(), @JsonKey(name: 'blocks') final  List<PdfBlock> blocks = const <PdfBlock>[], @JsonKey(name: 'measurements') final  List<PdfMeasurement> measurements = const <PdfMeasurement>[], @JsonKey(name: 'addenda') final  List<PdfAddendum> addenda = const <PdfAddendum>[], @JsonKey(name: 'amendmentReason') this.amendmentReason = '', @JsonKey(name: 'isCritical') this.isCritical = false, @JsonKey(name: 'signature') this.signature = const PdfSignature(), @JsonKey(name: 'translation') final  Map<String, String> translation = const <String, String>{}, @JsonKey(name: 'translationApproverName') this.translationApproverName = '', @JsonKey(name: 'translationLanguage') this.translationLanguage = '', @JsonKey(name: 'watermark') this.watermark = '', @JsonKey(name: 'footer') this.footer = const PdfFooter()}): _blocks = blocks,_measurements = measurements,_addenda = addenda,_translation = translation,super._();
   factory _ReportPdfInput.fromJson(Map<String, dynamic> json) => _$ReportPdfInputFromJson(json);
 
-@override@JsonKey(name: 'locale') final  String locale;
+/// Wire value from [ActorRole] (`'Doctor'`, `'Patient'`, …), never
+/// [Role.name]: anything else reads as the patient (fail closed).
 @override@JsonKey(name: 'viewerRole') final  String viewerRole;
 @override@JsonKey(name: 'header') final  PdfHeader header;
 @override@JsonKey(name: 'subject') final  PdfSubject subject;
@@ -2507,7 +2505,6 @@ class _ReportPdfInput extends ReportPdfInput {
 @override@JsonKey(name: 'translationLanguage') final  String translationLanguage;
 @override@JsonKey(name: 'watermark') final  String watermark;
 @override@JsonKey(name: 'footer') final  PdfFooter footer;
-@override@JsonKey(name: 'generatedAtLabel') final  String generatedAtLabel;
 
 /// Create a copy of ReportPdfInput
 /// with the given fields replaced by the non-null parameter values.
@@ -2522,16 +2519,16 @@ Map<String, dynamic> toJson() {
 
 @override
 bool operator ==(Object other) {
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportPdfInput&&(identical(other.locale, locale) || other.locale == locale)&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other._blocks, _blocks)&&const DeepCollectionEquality().equals(other._measurements, _measurements)&&const DeepCollectionEquality().equals(other._addenda, _addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other._translation, _translation)&&(identical(other.translationApproverName, translationApproverName) || other.translationApproverName == translationApproverName)&&(identical(other.translationLanguage, translationLanguage) || other.translationLanguage == translationLanguage)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer)&&(identical(other.generatedAtLabel, generatedAtLabel) || other.generatedAtLabel == generatedAtLabel));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReportPdfInput&&(identical(other.viewerRole, viewerRole) || other.viewerRole == viewerRole)&&(identical(other.header, header) || other.header == header)&&(identical(other.subject, subject) || other.subject == subject)&&const DeepCollectionEquality().equals(other._blocks, _blocks)&&const DeepCollectionEquality().equals(other._measurements, _measurements)&&const DeepCollectionEquality().equals(other._addenda, _addenda)&&(identical(other.amendmentReason, amendmentReason) || other.amendmentReason == amendmentReason)&&(identical(other.isCritical, isCritical) || other.isCritical == isCritical)&&(identical(other.signature, signature) || other.signature == signature)&&const DeepCollectionEquality().equals(other._translation, _translation)&&(identical(other.translationApproverName, translationApproverName) || other.translationApproverName == translationApproverName)&&(identical(other.translationLanguage, translationLanguage) || other.translationLanguage == translationLanguage)&&(identical(other.watermark, watermark) || other.watermark == watermark)&&(identical(other.footer, footer) || other.footer == footer));
 }
 
 @JsonKey(includeFromJson: false, includeToJson: false)
 @override
-int get hashCode => Object.hash(runtimeType,locale,viewerRole,header,subject,const DeepCollectionEquality().hash(_blocks),const DeepCollectionEquality().hash(_measurements),const DeepCollectionEquality().hash(_addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(_translation),translationApproverName,translationLanguage,watermark,footer,generatedAtLabel);
+int get hashCode => Object.hash(runtimeType,viewerRole,header,subject,const DeepCollectionEquality().hash(_blocks),const DeepCollectionEquality().hash(_measurements),const DeepCollectionEquality().hash(_addenda),amendmentReason,isCritical,signature,const DeepCollectionEquality().hash(_translation),translationApproverName,translationLanguage,watermark,footer);
 
 @override
 String toString() {
-  return 'ReportPdfInput(locale: $locale, viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, translationApproverName: $translationApproverName, translationLanguage: $translationLanguage, watermark: $watermark, footer: $footer, generatedAtLabel: $generatedAtLabel)';
+  return 'ReportPdfInput(viewerRole: $viewerRole, header: $header, subject: $subject, blocks: $blocks, measurements: $measurements, addenda: $addenda, amendmentReason: $amendmentReason, isCritical: $isCritical, signature: $signature, translation: $translation, translationApproverName: $translationApproverName, translationLanguage: $translationLanguage, watermark: $watermark, footer: $footer)';
 }
 
 
@@ -2542,7 +2539,7 @@ abstract mixin class _$ReportPdfInputCopyWith<$Res> implements $ReportPdfInputCo
   factory _$ReportPdfInputCopyWith(_ReportPdfInput value, $Res Function(_ReportPdfInput) _then) = __$ReportPdfInputCopyWithImpl;
 @override @useResult
 $Res call({
-@JsonKey(name: 'locale') String locale,@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<PdfMeasurement> measurements,@JsonKey(name: 'addenda') List<PdfAddendum> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'translationApproverName') String translationApproverName,@JsonKey(name: 'translationLanguage') String translationLanguage,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer,@JsonKey(name: 'generatedAtLabel') String generatedAtLabel
+@JsonKey(name: 'viewerRole') String viewerRole,@JsonKey(name: 'header') PdfHeader header,@JsonKey(name: 'subject') PdfSubject subject,@JsonKey(name: 'blocks') List<PdfBlock> blocks,@JsonKey(name: 'measurements') List<PdfMeasurement> measurements,@JsonKey(name: 'addenda') List<PdfAddendum> addenda,@JsonKey(name: 'amendmentReason') String amendmentReason,@JsonKey(name: 'isCritical') bool isCritical,@JsonKey(name: 'signature') PdfSignature signature,@JsonKey(name: 'translation') Map<String, String> translation,@JsonKey(name: 'translationApproverName') String translationApproverName,@JsonKey(name: 'translationLanguage') String translationLanguage,@JsonKey(name: 'watermark') String watermark,@JsonKey(name: 'footer') PdfFooter footer
 });
 
 
@@ -2559,10 +2556,9 @@ class __$ReportPdfInputCopyWithImpl<$Res>
 
 /// Create a copy of ReportPdfInput
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? locale = null,Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? translationApproverName = null,Object? translationLanguage = null,Object? watermark = null,Object? footer = null,Object? generatedAtLabel = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? viewerRole = null,Object? header = null,Object? subject = null,Object? blocks = null,Object? measurements = null,Object? addenda = null,Object? amendmentReason = null,Object? isCritical = null,Object? signature = null,Object? translation = null,Object? translationApproverName = null,Object? translationLanguage = null,Object? watermark = null,Object? footer = null,}) {
   return _then(_ReportPdfInput(
-locale: null == locale ? _self.locale : locale // ignore: cast_nullable_to_non_nullable
-as String,viewerRole: null == viewerRole ? _self.viewerRole : viewerRole // ignore: cast_nullable_to_non_nullable
+viewerRole: null == viewerRole ? _self.viewerRole : viewerRole // ignore: cast_nullable_to_non_nullable
 as String,header: null == header ? _self.header : header // ignore: cast_nullable_to_non_nullable
 as PdfHeader,subject: null == subject ? _self.subject : subject // ignore: cast_nullable_to_non_nullable
 as PdfSubject,blocks: null == blocks ? _self._blocks : blocks // ignore: cast_nullable_to_non_nullable
@@ -2576,8 +2572,7 @@ as Map<String, String>,translationApproverName: null == translationApproverName 
 as String,translationLanguage: null == translationLanguage ? _self.translationLanguage : translationLanguage // ignore: cast_nullable_to_non_nullable
 as String,watermark: null == watermark ? _self.watermark : watermark // ignore: cast_nullable_to_non_nullable
 as String,footer: null == footer ? _self.footer : footer // ignore: cast_nullable_to_non_nullable
-as PdfFooter,generatedAtLabel: null == generatedAtLabel ? _self.generatedAtLabel : generatedAtLabel // ignore: cast_nullable_to_non_nullable
-as String,
+as PdfFooter,
   ));
 }
 

@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:collection/collection.dart';
 import 'package:flutter/foundation.dart';
+import 'package:hive_ce/hive.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/constants/enums.dart';
@@ -57,6 +57,29 @@ class ConversationCacheHelper {
 
   /// Messages kept per conversation; every queued row survives regardless.
   static const messagesKeptPerConversation = 200;
+
+  /// Lazy-box calls surface as [AppError], like the guarded eager boxes: a
+  /// box closed mid-sync raises HiveError, which is an Error. Deliberate
+  /// [AppError]s pass through untouched.
+  Future<R> _guardLazy<R>(
+    String operation,
+    Future<R> Function(LazyBox<MessageHive> box) body,
+  ) async {
+    try {
+      return await body(await _hive.messagesBox());
+    } on AppError {
+      rethrow;
+      // A closed box raises HiveError, which is an Error; catching it here
+      // keeps the failure an AppError like every other box failure.
+      // ignore: avoid_catching_errors
+    } on HiveError catch (e) {
+      if (kDebugMode) _logger.e('DB $operation failed: $e');
+      throw AppError.unknown;
+    } on Exception catch (e) {
+      if (kDebugMode) _logger.e('DB $operation failed: $e');
+      throw AppError.unknown;
+    }
+  }
 
   /// Whether [incoming] may replace [cached] (sync rule, §6).
   bool _accepts({
@@ -159,20 +182,21 @@ class ConversationCacheHelper {
     if (!await _isParticipant(uid, conversationUid)) return 0;
     final cursor = await getCursor(uid, conversationUid);
     final lastReadAt = cursor?.lastReadAt ?? '';
-    final box = await _hive.messagesBox();
-    var count = 0;
-    for (final key in box.keys) {
-      final row = await box.get(key);
-      if (row == null ||
-          row.conversationUid != conversationUid ||
-          row.senderUid == uid ||
-          row.status == MessageStatus.withheld.value ||
-          row.sentAt.compareTo(lastReadAt) <= 0) {
-        continue;
+    return await _guardLazy('unreadCount', (box) async {
+      var count = 0;
+      for (final key in box.keys) {
+        final row = await box.get(key);
+        if (row == null ||
+            row.conversationUid != conversationUid ||
+            row.senderUid == uid ||
+            row.status == MessageStatus.withheld.value ||
+            row.sentAt.compareTo(lastReadAt) <= 0) {
+          continue;
+        }
+        count++;
       }
-      count++;
-    }
-    return count;
+      return count;
+    });
   }
 
   /// One cached page, newest first; empty outside the thread.
@@ -183,35 +207,37 @@ class ConversationCacheHelper {
     int? limit,
   }) async {
     if (!await _isParticipant(uid, conversationUid)) return const [];
-    final box = await _hive.messagesBox();
-    final rows = <MessageModel>[];
-    for (final key in box.keys) {
-      final row = await box.get(key);
-      if (row == null || row.conversationUid != conversationUid) continue;
-      if (before != null &&
-          before.isNotEmpty &&
-          row.sentAt.compareTo(before) >= 0) {
-        continue;
+    return await _guardLazy('getMessages', (box) async {
+      final rows = <MessageModel>[];
+      for (final key in box.keys) {
+        final row = await box.get(key);
+        if (row == null || row.conversationUid != conversationUid) continue;
+        if (before != null &&
+            before.isNotEmpty &&
+            row.sentAt.compareTo(before) >= 0) {
+          continue;
+        }
+        rows.add(row.toModel());
       }
-      rows.add(row.toModel());
-    }
-    rows.sort((a, b) => b.sentAt.compareTo(a.sentAt));
-    if (limit != null && rows.length > limit) rows.length = limit;
-    return rows;
+      rows.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+      if (limit != null && rows.length > limit) rows.length = limit;
+      return rows;
+    });
   }
 
   /// The sender's queued rows, oldest first (flush order).
   Future<List<MessageModel>> getQueuedMessages(String uid) async {
     if (uid.isEmpty) return const [];
-    final box = await _hive.messagesBox();
-    final rows = <MessageModel>[];
-    for (final key in box.keys) {
-      final row = await box.get(key);
-      if (row == null || row.senderUid != uid || row.synced) continue;
-      rows.add(row.toModel());
-    }
-    rows.sort((a, b) => a.sentAt.compareTo(b.sentAt));
-    return rows;
+    return await _guardLazy('getQueuedMessages', (box) async {
+      final rows = <MessageModel>[];
+      for (final key in box.keys) {
+        final row = await box.get(key);
+        if (row == null || row.senderUid != uid || row.synced) continue;
+        rows.add(row.toModel());
+      }
+      rows.sort((a, b) => a.sentAt.compareTo(b.sentAt));
+      return rows;
+    });
   }
 
   /// Delta cursor for the conversation list, or null to pull everything.
@@ -222,14 +248,15 @@ class ConversationCacheHelper {
   /// is outside the thread).
   Future<String?> messageCursor(String uid, String conversationUid) async {
     if (!await _isParticipant(uid, conversationUid)) return null;
-    final box = await _hive.messagesBox();
-    final stamps = <String>[];
-    for (final key in box.keys) {
-      final row = await box.get(key);
-      if (row == null || row.conversationUid != conversationUid) continue;
-      stamps.add(row.lastUpdatedAt);
-    }
-    return syncCursorFrom(stamps);
+    return await _guardLazy('messageCursor', (box) async {
+      final stamps = <String>[];
+      for (final key in box.keys) {
+        final row = await box.get(key);
+        if (row == null || row.conversationUid != conversationUid) continue;
+        stamps.add(row.lastUpdatedAt);
+      }
+      return syncCursorFrom(stamps);
+    });
   }
 
   /// Remote first; the cache answers only when the cloud cannot be reached.
@@ -241,10 +268,22 @@ class ConversationCacheHelper {
       throw AppError.dataNotFound;
     }
     try {
-      final remote = await _remote.fetchMessages(
-        conversationUid: conversationUid,
-      );
-      await cacheMessages(remote, fromCloud: true);
+      // Page to a short page: every read stays bounded no matter how long
+      // the thread grows.
+      String? cursor;
+      for (;;) {
+        final page = await _remote.fetchMessages(
+          conversationUid: conversationUid,
+          limit: messagesKeptPerConversation,
+          fromSentAt: cursor,
+        );
+        if (page.isEmpty) break;
+        await cacheMessages(page, fromCloud: true);
+        if (page.length < messagesKeptPerConversation) break;
+        // A full page on one stamp cannot advance an inclusive cursor.
+        if (page.last.sentAt == cursor) break;
+        cursor = page.last.sentAt;
+      }
     } on AppError catch (e) {
       if (!_offline.contains(e)) rethrow;
       final cached = await getMessages(uid, conversationUid);
@@ -285,8 +324,7 @@ class ConversationCacheHelper {
   Future<void> cacheMessages(
     List<MessageModel> messages, {
     required bool fromCloud,
-  }) async {
-    final box = await _hive.messagesBox();
+  }) => _guardLazy('cacheMessages', (box) async {
     final touched = <String>{};
     for (final m in messages) {
       if (m.uid.isEmpty) continue;
@@ -322,28 +360,28 @@ class ConversationCacheHelper {
     for (final conversationUid in touched) {
       if (conversationUid.isNotEmpty) await _prune(conversationUid);
     }
-  }
+  });
 
   /// Keeps the newest [messagesKeptPerConversation] synced rows per thread;
   /// queued rows are never pruned.
-  Future<void> _prune(String conversationUid) async {
-    final box = await _hive.messagesBox();
-    final synced = <MessageHive>[];
-    for (final key in box.keys) {
-      final row = await box.get(key);
-      if (row == null ||
-          row.conversationUid != conversationUid ||
-          !row.synced) {
-        continue;
-      }
-      synced.add(row);
-    }
-    if (synced.length <= messagesKeptPerConversation) return;
-    synced.sort((a, b) => b.sentAt.compareTo(a.sentAt));
-    for (final row in synced.skip(messagesKeptPerConversation)) {
-      await box.delete(row.uid);
-    }
-  }
+  Future<void> _prune(String conversationUid) =>
+      _guardLazy('pruneMessages', (box) async {
+        final synced = <MessageHive>[];
+        for (final key in box.keys) {
+          final row = await box.get(key);
+          if (row == null ||
+              row.conversationUid != conversationUid ||
+              !row.synced) {
+            continue;
+          }
+          synced.add(row);
+        }
+        if (synced.length <= messagesKeptPerConversation) return;
+        synced.sort((a, b) => b.sentAt.compareTo(a.sentAt));
+        for (final row in synced.skip(messagesKeptPerConversation)) {
+          await box.delete(row.uid);
+        }
+      });
 
   /// Queues a text message and sends it at once; offline it stays queued
   /// and the optimistic row is returned.
@@ -489,43 +527,46 @@ class ConversationCacheHelper {
   /// The create landed: prefer the server echo, else mark our row sent. A
   /// later sync converges the stamps either way.
   Future<void> _cacheSentEcho(MessageModel row) async {
-    final box = await _hive.messagesBox();
     MessageModel? echo;
     try {
-      echo = (await _remote.fetchMessages(
+      echo = await _remote.fetchMessage(
         conversationUid: row.conversationUid,
-      )).where((m) => m.uid == row.uid).firstOrNull;
+        messageUid: row.uid,
+      );
     } on AppError catch (_) {
       echo = null;
     }
-    if (echo != null) {
-      // Direct: the merge guard would keep the queued row this replaces.
-      // The echo carries no local path; keep ours so a recording still
-      // plays offline.
-      final kept = await box.get(row.uid);
+    final found = echo;
+    return await _guardLazy('cacheSentEcho', (box) async {
+      if (found != null) {
+        // Direct: the merge guard would keep the queued row this replaces.
+        // The echo carries no local path; keep ours so a recording still
+        // plays offline.
+        final kept = await box.get(row.uid);
+        await box.put(
+          row.uid,
+          MessageHive.fromModel(
+            found.copyWith(
+              localAttachmentPath: kept?.localAttachmentPath ?? '',
+              synced: true,
+            ),
+          ),
+        );
+        return;
+      }
+      final cached = await box.get(row.uid);
+      if (cached == null) return;
       await box.put(
         row.uid,
         MessageHive.fromModel(
-          echo.copyWith(
-            localAttachmentPath: kept?.localAttachmentPath ?? '',
+          cached.toModel().copyWith(
+            status: MessageStatus.sent.value,
+            lastUpdatedAt: syncTimestamp(),
             synced: true,
           ),
         ),
       );
-      return;
-    }
-    final cached = await box.get(row.uid);
-    if (cached == null) return;
-    await box.put(
-      row.uid,
-      MessageHive.fromModel(
-        cached.toModel().copyWith(
-          status: MessageStatus.sent.value,
-          lastUpdatedAt: syncTimestamp(),
-          synced: true,
-        ),
-      ),
-    );
+    });
   }
 
   /// Drops the refused send for the server truth: the refetch runs first, so
@@ -533,9 +574,12 @@ class ConversationCacheHelper {
   /// create the server never saw becomes `Failed`, kept: the user's words
   /// stay visible instead of vanishing.
   Future<void> _dropAndRefetchMessage(MessageModel row) async {
-    List<MessageModel> fresh;
+    MessageModel? match;
     try {
-      fresh = await _remote.fetchMessages(conversationUid: row.conversationUid);
+      match = await _remote.fetchMessage(
+        conversationUid: row.conversationUid,
+        messageUid: row.uid,
+      );
     } on AppError catch (e) {
       // A denied refetch evicts the row; anything else stays queued.
       if (e == AppError.permissionDenied) {
@@ -543,50 +587,54 @@ class ConversationCacheHelper {
       }
       return;
     }
-    final match = fresh.where((m) => m.uid == row.uid).firstOrNull;
     if (match == null) {
       await _markFailed(row.uid, 'send refused');
       return;
     }
+    final found = match;
     // Direct: the merge guard would keep the queued row this replaces. The
     // echo carries no local path; keep ours so a recording still plays.
-    final box = await _hive.messagesBox();
-    final kept = await box.get(row.uid);
-    await box.put(
-      row.uid,
-      MessageHive.fromModel(
-        match.copyWith(
-          localAttachmentPath: kept?.localAttachmentPath ?? '',
-          synced: true,
+    return await _guardLazy('dropAndRefetchMessage', (box) async {
+      final kept = await box.get(row.uid);
+      await box.put(
+        row.uid,
+        MessageHive.fromModel(
+          found.copyWith(
+            localAttachmentPath: kept?.localAttachmentPath ?? '',
+            synced: true,
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Future<void> _markFailed(String messageUid, String reason) async {
     if (kDebugMode) _logger.i('Message $messageUid failed: $reason.');
-    final box = await _hive.messagesBox();
-    final cached = await box.get(messageUid);
-    if (cached == null) return;
-    await box.put(
-      messageUid,
-      MessageHive.fromModel(
-        cached.toModel().copyWith(
-          status: MessageStatus.failed.value,
-          lastUpdatedAt: syncTimestamp(),
-          synced: true,
+    return await _guardLazy('markMessageFailed', (box) async {
+      final cached = await box.get(messageUid);
+      if (cached == null) return;
+      await box.put(
+        messageUid,
+        MessageHive.fromModel(
+          cached.toModel().copyWith(
+            status: MessageStatus.failed.value,
+            lastUpdatedAt: syncTimestamp(),
+            synced: true,
+          ),
         ),
-      ),
-    );
+      );
+    });
   }
 
   Future<void> _evictMessage(String messageUid, String reason) async {
     if (kDebugMode) _logger.i('Evicting message $messageUid: $reason.');
-    await (await _hive.messagesBox()).delete(messageUid);
+    return await _guardLazy('evictMessage', (box) => box.delete(messageUid));
   }
 
-  Future<MessageModel?> _fresh(String messageUid) async =>
-      (await (await _hive.messagesBox()).get(messageUid))?.toModel();
+  Future<MessageModel?> _fresh(String messageUid) => _guardLazy(
+    'freshMessage',
+    (box) async => (await box.get(messageUid))?.toModel(),
+  );
 
   /// Withdraws online only (the 15-minute window cannot queue), then clears
   /// the local text and transcripts: a withdrawn transcript cannot come back.
@@ -595,25 +643,30 @@ class ConversationCacheHelper {
     required String messageUid,
     required String senderUid,
   }) async {
-    final box = await _hive.messagesBox();
-    final cached = await box.get(messageUid);
-    if (cached == null || cached.conversationUid != conversationUid) {
-      throw AppError.dataNotFound;
-    }
-    if (cached.senderUid != senderUid) throw AppError.permissionDenied;
+    final cached = await _guardLazy('withdrawMessage', (box) async {
+      final row = await box.get(messageUid);
+      if (row == null || row.conversationUid != conversationUid) {
+        throw AppError.dataNotFound;
+      }
+      if (row.senderUid != senderUid) throw AppError.permissionDenied;
+      return row;
+    });
     await _remote.withdrawMessage(
       conversationUid: conversationUid,
       messageUid: messageUid,
     );
-    await box.put(
-      messageUid,
-      MessageHive.fromModel(
-        cached.toModel().copyWith(
-          text: '',
-          status: MessageStatus.withheld.value,
-          withheldReason: 'withdrawn',
-          lastUpdatedAt: syncTimestamp(),
-          synced: true,
+    await _guardLazy(
+      'withdrawMessage',
+      (box) => box.put(
+        messageUid,
+        MessageHive.fromModel(
+          cached.toModel().copyWith(
+            text: '',
+            status: MessageStatus.withheld.value,
+            withheldReason: 'withdrawn',
+            lastUpdatedAt: syncTimestamp(),
+            synced: true,
+          ),
         ),
       ),
     );

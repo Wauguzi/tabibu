@@ -122,7 +122,6 @@ Map<String, dynamic> _$PdfSignatureToJson(_PdfSignature instance) =>
 _PdfFooter _$PdfFooterFromJson(Map<String, dynamic> json) => _PdfFooter(
   patientName: json['patientName'] as String? ?? '',
   labAccessionNo: json['labAccessionNo'] as String? ?? '',
-  disclaimer: json['disclaimer'] as String? ?? '',
   supportContact: json['supportContact'] as String? ?? '',
 );
 
@@ -130,13 +129,11 @@ Map<String, dynamic> _$PdfFooterToJson(_PdfFooter instance) =>
     <String, dynamic>{
       'patientName': instance.patientName,
       'labAccessionNo': instance.labAccessionNo,
-      'disclaimer': instance.disclaimer,
       'supportContact': instance.supportContact,
     };
 
 _ReportPdfInput _$ReportPdfInputFromJson(Map<String, dynamic> json) =>
     _ReportPdfInput(
-      locale: json['locale'] as String? ?? 'en',
       viewerRole: json['viewerRole'] as String? ?? '',
       header: json['header'] == null
           ? const PdfHeader()
@@ -175,12 +172,10 @@ _ReportPdfInput _$ReportPdfInputFromJson(Map<String, dynamic> json) =>
       footer: json['footer'] == null
           ? const PdfFooter()
           : PdfFooter.fromJson(json['footer'] as Map<String, dynamic>),
-      generatedAtLabel: json['generatedAtLabel'] as String? ?? '',
     );
 
 Map<String, dynamic> _$ReportPdfInputToJson(_ReportPdfInput instance) =>
     <String, dynamic>{
-      'locale': instance.locale,
       'viewerRole': instance.viewerRole,
       'header': instance.header.toJson(),
       'subject': instance.subject.toJson(),
@@ -195,5 +190,4 @@ Map<String, dynamic> _$ReportPdfInputToJson(_ReportPdfInput instance) =>
       'translationLanguage': instance.translationLanguage,
       'watermark': instance.watermark,
       'footer': instance.footer.toJson(),
-      'generatedAtLabel': instance.generatedAtLabel,
     };

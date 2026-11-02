@@ -175,7 +175,6 @@ abstract class PdfFooter with _$PdfFooter {
   const factory PdfFooter({
     @JsonKey(name: 'patientName') @Default('') String patientName,
     @JsonKey(name: 'labAccessionNo') @Default('') String labAccessionNo,
-    @JsonKey(name: 'disclaimer') @Default('') String disclaimer,
     @JsonKey(name: 'supportContact') @Default('') String supportContact,
   }) = _PdfFooter;
 
@@ -194,7 +193,8 @@ abstract class ReportPdfInput with _$ReportPdfInput {
   // ignore: invalid_annotation_target
   @JsonSerializable(explicitToJson: true)
   const factory ReportPdfInput({
-    @JsonKey(name: 'locale') @Default('en') String locale,
+    /// Wire value from [ActorRole] (`'Doctor'`, `'Patient'`, …), never
+    /// [Role.name]: anything else reads as the patient (fail closed).
     @JsonKey(name: 'viewerRole') @Default('') String viewerRole,
     @JsonKey(name: 'header') @Default(PdfHeader()) PdfHeader header,
     @JsonKey(name: 'subject') @Default(PdfSubject()) PdfSubject subject,
@@ -219,7 +219,6 @@ abstract class ReportPdfInput with _$ReportPdfInput {
     String translationLanguage,
     @JsonKey(name: 'watermark') @Default('') String watermark,
     @JsonKey(name: 'footer') @Default(PdfFooter()) PdfFooter footer,
-    @JsonKey(name: 'generatedAtLabel') @Default('') String generatedAtLabel,
   }) = _ReportPdfInput;
 
   const ReportPdfInput._();
@@ -232,7 +231,6 @@ abstract class ReportPdfInput with _$ReportPdfInput {
   /// Builds PDF input from a signed report, or throws [AppError] when refused.
   factory ReportPdfInput.fromSignedReport({
     required PathologyReportModel report,
-    required String locale,
     required String viewerRole,
     required String viewerUid,
     required String patientUid,
@@ -244,8 +242,6 @@ abstract class ReportPdfInput with _$ReportPdfInput {
     required String doctorName,
     required String doctorFacilityName,
     required String clinicalNotes,
-    required String disclaimer,
-    required String generatedAtLabel,
     required DateTime now,
     bool isDraft = false,
     ReportTextApprovedModel? translation,
@@ -259,7 +255,12 @@ abstract class ReportPdfInput with _$ReportPdfInput {
       throw AppError.dataNotFound;
     }
 
-    final role = ActorRole.fromValue(viewerRole);
+    // Unknown roles read as the patient: failing closed keeps the release
+    // gate for callers that pass Role.name ('patient') or a typo instead of
+    // the wire value.
+    final role = ActorRole.values.any((r) => r.value == viewerRole)
+        ? ActorRole.fromValue(viewerRole)
+        : ActorRole.patient;
     final isReportReader = report.isReader(viewerUid);
     final isReleasedPatient =
         role == ActorRole.patient &&
@@ -303,7 +304,6 @@ abstract class ReportPdfInput with _$ReportPdfInput {
     final age = PdfSubject.ageFromDateOfBirth(dateOfBirth, now);
 
     return ReportPdfInput(
-      locale: locale,
       viewerRole: viewerRole,
       header: PdfHeader(
         orderNumber: report.orderNumber,
@@ -349,10 +349,8 @@ abstract class ReportPdfInput with _$ReportPdfInput {
       footer: PdfFooter(
         patientName: patientDisplayName,
         labAccessionNo: report.labAccessionNo,
-        disclaimer: disclaimer,
         supportContact: supportContact,
       ),
-      generatedAtLabel: generatedAtLabel,
     );
   }
 }

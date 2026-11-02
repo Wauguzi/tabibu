@@ -810,7 +810,7 @@ In summary:
 | Pending practitioner (no role claim) | Edit their own `doctors` profile, KMPDC number and license | Reach any clinical route or read any patient |
 | Doctor | Add a patient; read the profiles of patients whose care team they are on; accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
 | Pathologist | Work the ranked list of cases assigned to them; review, edit and sign reports; mark a result notifiable | Release a result to a patient |
-| Alert approver (a permission on an admin, held by an authorised public-health officer: MoH or a county health department) | Read a drafted alert and its evidence; approve it as is in one tap, edit it, or reject it; choose clinicians only | Approve an alert raised from their own finding; grant or revoke their own permission; write an alert's status |
+| Alert approver (a permission on an admin, held by an authorised public-health officer (MoH or county health department)) | Read a drafted alert and its evidence; approve it as is in one tap, edit it, or reject it; choose clinicians only | Approve an alert raised from their own finding; grant or revoke their own permission; write an alert's status |
 
 **Scope is participation.** Participation is `participantUids` (the doctor,
 the linked patient, the requested and the accepted pathologist, and viewers),

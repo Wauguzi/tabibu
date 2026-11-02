@@ -367,15 +367,15 @@ class _Page {
   pw.Widget fullHeader() {
     final header = input.header;
     return pw.Row(
-      mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      mainAxisAlignment: .spaceBetween,
+      crossAxisAlignment: .start,
       children: [
         pw.Row(
           children: [
             pw.SvgImage(svg: logoSvg, width: 27, height: 27),
             pw.SizedBox(width: 9),
             pw.Column(
-              crossAxisAlignment: pw.CrossAxisAlignment.start,
+              crossAxisAlignment: .start,
               children: [
                 pw.Text(
                   'Tabibu',
@@ -396,7 +396,7 @@ class _Page {
           ],
         ),
         pw.Column(
-          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          crossAxisAlignment: .end,
           children: [
             pw.Text(
               l10n.reportPdfOrderNumber.toUpperCase(),
@@ -439,7 +439,7 @@ class _Page {
     return pw.Column(
       children: [
         pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: .spaceBetween,
           children: [
             pw.Row(
               children: [
@@ -494,7 +494,7 @@ class _Page {
         _rule(),
         pw.SizedBox(height: 6),
         pw.Row(
-          mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+          mainAxisAlignment: .spaceBetween,
           children: [
             pw.Expanded(
               child: pw.RichText(
@@ -600,7 +600,7 @@ class _Page {
       ),
       padding: const pw.EdgeInsets.fromLTRB(10.5, 7.5, 10.5, 7.5),
       child: pw.Row(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           pw.Text(label.toUpperCase(), style: _eyebrow(ReportPdfBuilder._ink)),
           pw.SizedBox(width: 9),
@@ -658,7 +658,7 @@ class _Page {
       _orMissing(header.signedByFacilityName),
     );
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
         pw.Text(
           _orMissing(header.testName),
@@ -694,7 +694,7 @@ class _Page {
     final subject = input.subject;
     final header = input.header;
     return pw.Row(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
         pw.Expanded(
           child: _card(l10n.reportPdfPatient, [
@@ -733,7 +733,7 @@ class _Page {
       ),
       padding: const pw.EdgeInsets.fromLTRB(12, 10.5, 12, 10.5),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           pw.Text(
             title.toUpperCase(),
@@ -766,7 +766,7 @@ class _Page {
       ),
       padding: const pw.EdgeInsets.fromLTRB(13.5, 12, 13.5, 12),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           pw.Text(
             (type.isEmpty ? title : '$title${ReportPdfBuilder._dot}$type')
@@ -790,7 +790,7 @@ class _Page {
 
   pw.Widget _proseBlock(PdfBlock block) {
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
         pw.Text(
           _sectionLabel(block.sectionKey),
@@ -816,7 +816,7 @@ class _Page {
 
   pw.Widget _templateSection(int number, PdfBlock block) {
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
         pw.Row(
           children: [
@@ -880,7 +880,7 @@ class _Page {
 
   pw.Widget _measurementsBlock() {
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
         pw.Text(
           l10n.reportPdfMeasurements,
@@ -908,12 +908,12 @@ class _Page {
                 _measureCell(
                   l10n.reportPdfMeasure,
                   font: fonts.bold,
-                  align: pw.TextAlign.left,
+                  align: .left,
                 ),
                 _measureCell(
                   l10n.reportPdfValue,
                   font: fonts.bold,
-                  align: pw.TextAlign.right,
+                  align: .right,
                 ),
               ],
             ),
@@ -923,12 +923,12 @@ class _Page {
                   _measureCell(
                     _orMissing(measurement.key),
                     font: fonts.regular,
-                    align: pw.TextAlign.left,
+                    align: .left,
                   ),
                   _measureCell(
                     _orMissing(measurement.value),
                     font: fonts.regular,
-                    align: pw.TextAlign.right,
+                    align: .right,
                   ),
                 ],
               ),
@@ -959,7 +959,7 @@ class _Page {
       ),
       padding: const pw.EdgeInsets.fromLTRB(12, 10.5, 12, 10.5),
       child: pw.Column(
-        crossAxisAlignment: pw.CrossAxisAlignment.start,
+        crossAxisAlignment: .start,
         children: [
           pw.Text(
             l10n.reportPdfAddendum(_nairobiDate(addendum.signedAt)),
@@ -986,7 +986,7 @@ class _Page {
 
   pw.Widget _translationBlock() {
     return pw.Column(
-      crossAxisAlignment: pw.CrossAxisAlignment.start,
+      crossAxisAlignment: .start,
       children: [
         pw.Text(
           '${l10n.reportPdfTranslation}${ReportPdfBuilder._dot}'
@@ -1029,11 +1029,11 @@ class _Page {
         ),
         padding: const pw.EdgeInsets.fromLTRB(15, 13.5, 15, 13.5),
         child: pw.Row(
-          crossAxisAlignment: pw.CrossAxisAlignment.end,
+          crossAxisAlignment: .end,
           children: [
             pw.Expanded(
               child: pw.Column(
-                crossAxisAlignment: pw.CrossAxisAlignment.start,
+                crossAxisAlignment: .start,
                 children: [
                   pw.Text(
                     l10n.reportPdfSignedReport.toUpperCase(),
@@ -1116,7 +1116,7 @@ class _Page {
           border: pw.Border.all(
             color: ReportPdfBuilder._outlineVariant,
             width: 0.75,
-            style: pw.BorderStyle.dashed,
+            style: .dashed,
           ),
           borderRadius: pw.BorderRadius.circular(6),
         ),

@@ -42,8 +42,10 @@ finding.
   summary and the risk advice to the doctor, the notes translation to the doctor and the
   pathologist, a speaker's own transcript, and any voice-note transcript to the clinicians in that
   conversation, who also hear the audio. Each is labelled as AI, and its input is de-identified. A
-  patient reads a clinician's transcript only after the sender shares it. Any other path from model
-  output to a person without an approval is the P1 above.
+  patient reads a clinician's transcript only after the sender shares it. Speech is the one exception:
+  it goes to the transcription model only, symptom audio is deleted after transcription, and voice
+  notes are stored as the sender's message. Any other path from model output to a person without an
+  approval is the P1 above.
 
 ## Architecture boundaries
 

@@ -5,9 +5,7 @@ import 'package:logger/logger.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/worklist/data/models/worklist_entry_model.dart';
 
-/// Pathologist worklist reads. Bundle 15 left no datasources/ file for this
-/// collection; lives beside the cache helper until one is added (and the
-/// I-14 query is registered).
+/// Pathologist worklist reads: the desk delta and single entries (I-14).
 @lazySingleton
 class WorklistFirebase {
   WorklistFirebase({required this._firestore});

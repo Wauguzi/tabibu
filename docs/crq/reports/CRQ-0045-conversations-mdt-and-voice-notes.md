@@ -34,8 +34,9 @@ and withdraw callables that enforce them.
 3. **Voice notes**: stored at `conversations/{c}/voice/{m}.m4a`,
    written once, never updated or deleted by a client; 2-minute cap
    at AAC 32 kbps mono with a 512 KB Storage cap and a 20/hour,
-   30 min/day quota (T-7). Playback streams through a download URL
-   fetched at play time; offline recording queues the local file.
+   30 min/day quota (T-7). Playback fetches the bytes through the SDK
+   (`getData`, never a download URL) into the private cache at play
+   time; offline recording queues the local file.
 4. **Identity safety**: the MDT summary is allow-listed, the case is
    never read for it, and the excerpt is scrubbed (T-17); the
    identifier flag runs after send on the transcript, with

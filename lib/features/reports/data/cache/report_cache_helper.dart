@@ -6,12 +6,14 @@ import 'package:tabibu/core/helpers/db_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
 import 'package:tabibu/features/reports/data/datasources/report_firebase.dart';
+import 'package:tabibu/features/reports/data/models/notifiable_finding_model.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_hive.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/data/models/preread_score_hive.dart';
 import 'package:tabibu/features/reports/data/models/preread_score_model.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_hive.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_model.dart';
+import 'package:tabibu/features/reports/data/models/report_response_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_hive.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
 
@@ -375,12 +377,24 @@ class ReportCacheHelper {
     'diagnosisType' => draft.copyWith(diagnosisType: value as String),
     'diagnosis' => draft.copyWith(diagnosis: value as String),
     'comments' => draft.copyWith(comments: value as String),
+    'responses' => draft.copyWith(
+      responses: [
+        for (final r in value as List)
+          ReportResponseModel.fromJson(Map<String, dynamic>.from(r as Map)),
+      ],
+    ),
     'isCritical' => draft.copyWith(isCritical: value as bool),
     'diagnosisStartedAt' => draft.copyWith(diagnosisStartedAt: value as String),
     'startedFromPreread' => draft.copyWith(startedFromPreread: value as bool),
     'language' => draft.copyWith(language: value as String),
     'amendmentReason' => draft.copyWith(amendmentReason: value as String),
     'addendumText' => draft.copyWith(addendumText: value as String),
+    'notifiableFindings' => draft.copyWith(
+      notifiableFindings: [
+        for (final f in value as List)
+          NotifiableFindingModel.fromJson(Map<String, dynamic>.from(f as Map)),
+      ],
+    ),
     'labelOverrides' => draft.copyWith(
       labelOverrides: Map<String, String>.from(value as Map),
     ),

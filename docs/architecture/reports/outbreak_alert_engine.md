@@ -10,7 +10,7 @@
 | Field | Value |
 |---|---|
 | Owner | Theo — CTO, Mobile Engineer |
-| Status | Draft — designed for the `feat/infra` data layer (CRQ-0049); not built yet |
+| Status | Built on `feat/infra` (CRQ-0049); blocs and screens pending |
 | Last reviewed | 2026-11-01 |
 | Collections | `notifiableEvents`, `notifiableEventLinks`, `epiCounts`, `alertSignals`, `alerts`, `publicAlerts`, `alertDeliveries`, `alertApprovers`, `demoAccounts` |
 | Bundled data | `notifiable_diseases.json`, `public_health_guidance.json` (§2) |

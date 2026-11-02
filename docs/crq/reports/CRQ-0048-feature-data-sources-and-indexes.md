@@ -37,7 +37,7 @@ that every query it runs has an index.
 4. **The check** (F-13): function queries go through one registry,
    tested against the index file, with the identity handlers' queries
    moved onto it unchanged, and every query the domain functions run
-   registered beside them (d05d289, with one more field exemption, on
+   registered beside them (d05d289, with one more field override, on
    `reportDrafts.createdAt`); the app's registry has the same test;
    `make smoke-indexes` runs every registered query against a
    deployed project, since the emulator never enforces indexes.

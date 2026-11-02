@@ -25,7 +25,6 @@ void main() {
     );
     return ReportPdfInput.fromSignedReport(
       report: r,
-      locale: 'en',
       viewerRole: viewerRole,
       viewerUid: viewerUid,
       patientUid: 'patient-1',
@@ -37,8 +36,6 @@ void main() {
       doctorName: 'Dr Doc',
       doctorFacilityName: 'Clinic One',
       clinicalNotes: 'Notes',
-      disclaimer: 'Disclaimer',
-      generatedAtLabel: '2026-11-01 15:00',
       now: now,
       isDraft: isDraft,
       translation: translation,
@@ -185,6 +182,23 @@ void main() {
         () => build(viewerUid: 'stranger'),
         throwsA(AppError.permissionDenied),
       );
+    });
+
+    test('reads a lowercase or unknown role as the patient', () {
+      expect(
+        () => build(viewerRole: 'patient', viewerUid: 'patient-1'),
+        throwsA(AppError.permissionDenied),
+      );
+      expect(
+        () => build(viewerRole: 'nurse', viewerUid: 'stranger'),
+        throwsA(AppError.permissionDenied),
+      );
+      final pdf = build(
+        viewerRole: 'patient',
+        viewerUid: 'patient-1',
+        released: true,
+      );
+      expect(pdf.viewerRole, 'patient');
     });
 
     test('refuses a translation with mismatched sourceSha256', () {

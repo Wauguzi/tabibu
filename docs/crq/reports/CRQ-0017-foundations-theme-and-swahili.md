@@ -9,7 +9,7 @@
 | Date implemented | 2026-10-27 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/auth` |
+| Commit(s) / PR | `feat/auth`; `feat/infra` ccaeb3a (theme default) |
 
 ## 1. Description of change
 
@@ -37,6 +37,8 @@ gated and committed by me.
      `primary`, with the two type families from §2.2 through `FontFamily`
      and Cupertino page transitions on every platform.
    - The app uses light and dark themes and follows the system setting.
+   - `feat/infra` ccaeb3a: until the person picks a theme, the app starts
+     in light (`ThemePreference.fromValue` defaults to light, not system).
 5. **Draft versus signed.** The provisional light `aiDraft` and `signed`
    were 0.002 apart in luminance, which would break §2.1's grayscale rule.
    The signed report becomes a deep green panel and the AI draft stays a

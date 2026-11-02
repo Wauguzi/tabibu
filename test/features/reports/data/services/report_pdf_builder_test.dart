@@ -6,6 +6,7 @@ import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/data/models/report_pdf_input.dart';
 import 'package:tabibu/features/reports/data/models/report_response_model.dart';
@@ -245,7 +246,6 @@ void main() {
   }) {
     return ReportPdfInput.fromSignedReport(
       report: reportOverride ?? report,
-      locale: 'en',
       viewerRole: 'Doctor',
       viewerUid: 'doc-1',
       patientUid: 'patient-1',
@@ -257,8 +257,6 @@ void main() {
       doctorName: 'Dr Doc',
       doctorFacilityName: 'Clinic One',
       clinicalNotes: 'Notes',
-      disclaimer: 'Disclaimer',
-      generatedAtLabel: '2026-11-01 15:00',
       now: now,
       translation: translation,
       signaturePng: signature?.toList() ?? const [],
@@ -453,6 +451,110 @@ void main() {
     expect(text, contains(en.reportQuestionMargins));
   });
 
+  test('every template key resolves to copy in en and sw', () async {
+    final templates =
+        jsonDecode(
+              await File('assets/data/report_templates.json').readAsString(),
+            )
+            as List;
+    final questionKeys = <String>{
+      for (final t in templates)
+        for (final s in (t as Map)['sections'] as List)
+          for (final q in (s as Map)['questions'] as List)
+            (q as Map)['questionKey'] as String,
+    };
+    expect(questionKeys, isNotEmpty);
+
+    String questionCopy(AppLocalizations strings, String key) => switch (key) {
+      'specimenDescription' => strings.reportQuestionSpecimenDescription,
+      'specimenSize' => strings.reportQuestionSpecimenSize,
+      'representativeSections' => strings.reportQuestionRepresentativeSections,
+      'microscopicDescription' => strings.reportQuestionMicroscopicDescription,
+      'tumourGrade' => strings.reportQuestionTumourGrade,
+      'margins' => strings.reportQuestionMargins,
+      'lymphNodes' => strings.reportQuestionLymphNodes,
+      'immunohistochemistry' => strings.reportQuestionImmunohistochemistry,
+      'parasiteSpecies' => strings.reportQuestionParasiteSpecies,
+      'parasiteDensity' => strings.reportQuestionParasiteDensity,
+      'parasiteStages' => strings.reportQuestionParasiteStages,
+      'rapidTestResult' => strings.reportQuestionRapidTestResult,
+      'findings' => strings.reportQuestionFindings,
+      'methodNotes' => strings.reportQuestionMethodNotes,
+      _ => throw StateError('no copy pinned for question $key'),
+    };
+    String diagCopy(AppLocalizations strings, String wire) => switch (wire) {
+      'Final' => strings.reportPdfDiagnosisTypeFinal,
+      'Provisional' => strings.reportPdfDiagnosisTypeProvisional,
+      'Inconclusive' => strings.reportPdfDiagnosisTypeInconclusive,
+      _ => throw StateError('no copy pinned for diagnosis type $wire'),
+    };
+    String templateCopy(AppLocalizations strings, String wire) =>
+        switch (wire) {
+          'Cancer' => strings.reportPdfTemplateCancer,
+          'Malaria' => strings.reportPdfTemplateMalaria,
+          'General' => strings.reportPdfTemplateGeneral,
+          _ => throw StateError('no copy pinned for template $wire'),
+        };
+
+    final cases = [
+      for (final t in ReportTemplate.values)
+        (t.value, DiagnosisType.finalDiagnosis.value),
+      for (final d in DiagnosisType.values.skip(1))
+        (ReportTemplate.cancer.value, d.value),
+    ];
+    final camelCase = RegExp('[a-z][A-Z]');
+    for (final strings in [en, sw]) {
+      for (final (template, diag) in cases) {
+        final base = pdfInput();
+        final input = base.copyWith(
+          header: base.header.copyWith(templateLabel: template),
+          blocks: [
+            PdfBlock(
+              sectionKey: 'Diagnosis',
+              lines: [PdfLine(label: diag, value: 'dx')],
+            ),
+            for (final section in ReportSection.values)
+              PdfBlock(
+                sectionKey: section.value,
+                lines: const [PdfLine(label: 'note', value: 'v')],
+              ),
+            PdfBlock(
+              sectionKey: 'Macroscopic',
+              lines: [
+                for (final key in questionKeys) PdfLine(label: key, value: 'a'),
+              ],
+            ),
+          ],
+        );
+        final text = _pageTexts(await builder.build(input, strings)).join('\n');
+        for (final section in ReportSection.values) {
+          expect(
+            text,
+            contains(section.description(strings)),
+            reason: '${section.value} in ${strings.localeName}',
+          );
+        }
+        for (final key in questionKeys) {
+          expect(
+            text,
+            contains(questionCopy(strings, key)),
+            reason: '$key in ${strings.localeName}',
+          );
+          if (camelCase.hasMatch(key)) {
+            expect(
+              text,
+              isNot(contains(key)),
+              reason: '$key must not leak raw',
+            );
+          }
+        }
+        // The diagnosis panel title is upper-cased; the template is not.
+        expect(text, contains(diagCopy(strings, diag).toUpperCase()));
+        expect(text, contains(templateCopy(strings, template)));
+      }
+    }
+  });
+
   test('unknown keys fall back to the key itself', () async {
     final bytes = await builder.build(
       pdfInput(
@@ -508,6 +610,71 @@ void main() {
     expect(pages.length, greaterThan(2));
     for (final page in pages) {
       expect(page, contains('DRAFT'));
+    }
+  });
+
+  test('empty and invalid dates show the missing marker', () async {
+    final base = pdfInput();
+    for (final stamp in ['', 'not-a-date']) {
+      final text = _pageTexts(
+        await builder.build(
+          base.copyWith(header: base.header.copyWith(releasedAtLabel: stamp)),
+          en,
+        ),
+      ).join('\n');
+      expect(
+        text,
+        contains(
+          en.reportPdfVersionReleased(
+            base.header.version,
+            en.reportPdfMissingValue,
+          ),
+        ),
+      );
+    }
+    final unknownAge = _pageTexts(
+      await builder.build(
+        base.copyWith(
+          subject: base.subject.copyWith(ageYears: -1, ageMonths: -1),
+        ),
+        en,
+      ),
+    ).join('\n');
+    expect(
+      unknownAge,
+      contains('${en.reportPdfAgeLabel} ${en.reportPdfMissingValue}'),
+    );
+  });
+
+  test('every sex and translation language resolves to copy', () async {
+    final base = pdfInput();
+    for (final sex in Sex.values) {
+      final text = _pageTexts(
+        await builder.build(
+          base.copyWith(subject: base.subject.copyWith(sex: sex.value)),
+          en,
+        ),
+      ).join('\n');
+      expect(text, contains('${en.reportPdfSex} ${sex.description(en)}'));
+    }
+    for (final language in ReportLanguage.values) {
+      final expected = language == ReportLanguage.sw
+          ? en.languageSw
+          : en.languageEn;
+      final text = _pageTexts(
+        await builder.build(
+          pdfInput(
+            translation: ReportTextApprovedModel(
+              sourceSha256: 'contenthash',
+              approvedText: const {'diagnosis': 'Translated diagnosis.'},
+              approverName: 'Path One',
+              language: language.value,
+            ),
+          ),
+          en,
+        ),
+      ).join('\n');
+      expect(text, contains(expected.toUpperCase()));
     }
   });
 

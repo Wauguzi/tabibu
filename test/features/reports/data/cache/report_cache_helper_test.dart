@@ -295,6 +295,87 @@ void main() {
     });
   });
 
+  group('queued list edits', () {
+    Future<Map<String, dynamic>> queueThenReplay(
+      Map<String, dynamic> fields,
+    ) async {
+      await helper.cacheDraft(
+        _draft(),
+        fromCloud: true,
+        pathologistUid: 'path1',
+      );
+      when(
+        () => remote.updateDraft(
+          caseUid: any(named: 'caseUid'),
+          pathologistUid: any(named: 'pathologistUid'),
+          fields: any(named: 'fields'),
+        ),
+      ).thenThrow(AppError.noInternet);
+      await helper.saveDraftFields(
+        caseUid: 'c1',
+        pathologistUid: 'path1',
+        fields: fields,
+      );
+      when(
+        () => remote.updateDraft(
+          caseUid: any(named: 'caseUid'),
+          pathologistUid: any(named: 'pathologistUid'),
+          fields: any(named: 'fields'),
+        ),
+      ).thenAnswer((_) async {});
+      await helper.replayPendingDraftEdits('path1');
+      final captured = verify(
+        () => remote.updateDraft(
+          caseUid: 'c1',
+          pathologistUid: 'path1',
+          fields: captureAny(named: 'fields'),
+        ),
+      ).captured;
+      return captured.last as Map<String, dynamic>;
+    }
+
+    test(
+      'a queued responses edit lands locally and replays the edited value',
+      () async {
+        const response = {
+          'section': 'history',
+          'question': 'q1',
+          'answer': 'edited answer',
+          'order': 1,
+        };
+        final replayed = await queueThenReplay({
+          'responses': [response],
+        });
+        final row = await helper.getDraft('c1', 'path1');
+        expect(row!.responses, hasLength(1));
+        expect(row.responses.single.answer, 'edited answer');
+        final replayedResponse =
+            (replayed['responses'] as List).single as Map<String, dynamic>;
+        expect(replayedResponse['answer'], 'edited answer');
+      },
+    );
+
+    test(
+      'a queued findings edit lands locally and replays the edited value',
+      () async {
+        const finding = {
+          'diseaseId': 'ebola_virus_disease',
+          'alertRequested': true,
+        };
+        final replayed = await queueThenReplay({
+          'notifiableFindings': [finding],
+        });
+        final row = await helper.getDraft('c1', 'path1');
+        expect(row!.notifiableFindings, hasLength(1));
+        expect(row.notifiableFindings.single.diseaseId, 'ebola_virus_disease');
+        final replayedFinding =
+            (replayed['notifiableFindings'] as List).single
+                as Map<String, dynamic>;
+        expect(replayedFinding['diseaseId'], 'ebola_virus_disease');
+      },
+    );
+  });
+
   group('draft ownership', () {
     test("another pathologist's draft is never cached", () async {
       await helper.cacheDraft(

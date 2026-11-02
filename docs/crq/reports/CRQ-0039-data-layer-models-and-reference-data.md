@@ -9,7 +9,7 @@
 | Date implemented | 2026-11-01 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/infra`: a5e6769, d1d9be6, c7c4bb4, 8072288, 718da1f, 965d919, d0bd1e7, f1106c9, c000a7e, 622100f, af2b1d8 |
+| Commit(s) / PR | `feat/infra`: a5e6769, d1d9be6, c7c4bb4, 8072288, 718da1f, 965d919, d0bd1e7, f1106c9, c000a7e, 622100f, af2b1d8, eef51d7 |
 
 ## 1. Description of change
 
@@ -17,12 +17,14 @@ The shapes every later bundle builds on: wire-value enums, freezed models
 with Hive mirrors, the Doctor/Practitioner availability fields with their
 migration, and the insurers and report-template assets with their loader.
 
-1. **Enums** (a5e6769, d1d9be6, c7c4bb4): 52 wire-value enums for cases,
-   reports, appointments, conversations and notifications, plus decline,
-   cancel and report-section enums with en and sw descriptions, plus the
-   alert bundle's reporting category, IHR status, Kenya group, test
-   strength, guidance audience, alert rule, status, draft source and
-   audience. Every `fromValue` reads an unknown or empty value as a safe
+1. **Enums** (a5e6769, d1d9be6, c7c4bb4, eef51d7): 53 wire-value enums
+   for cases, reports, appointments, conversations and notifications —
+   including the notification template enum with the inbox copy in en and
+   sw — plus decline, cancel and report-section enums with en and sw
+   descriptions, plus the alert bundle's reporting category, IHR status,
+   Kenya group, test strength, guidance audience, alert rule, status,
+   draft source and audience. Every `fromValue` reads an unknown or empty
+   value as a safe
    default, so a document from a newer build never crashes an older one.
    The wire value `Case` is `patientCase` in Dart, since `case` is a
    keyword. A test resolves every value to text in en and sw.
