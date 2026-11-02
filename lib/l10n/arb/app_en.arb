@@ -2684,5 +2684,146 @@
     "notificationsLoadingLabel": "Loading notifications",
     "@notificationsLoadingLabel": {
         "description": "Notifications screen: semantic label announced while loading"
+    },
+    "patientHomeGreeting": "Habari, {firstName}",
+    "@patientHomeGreeting": {
+        "description": "Patient home: header greeting",
+        "placeholders": {
+            "firstName": {
+                "type": "String"
+            }
+        }
+    },
+    "patientHomeSubtitle": "{subCounty} · {date}",
+    "@patientHomeSubtitle": {
+        "description": "Patient home: header subtitle, area and today's date",
+        "placeholders": {
+            "subCounty": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "patientHomeNotificationsLabel": "Notifications",
+    "@patientHomeNotificationsLabel": {
+        "description": "Patient home: semantic label of the notifications bell"
+    },
+    "patientHomeBellUnreadLabel": "Notifications, unread",
+    "@patientHomeBellUnreadLabel": {
+        "description": "Patient home: bell reading while notifications are unread"
+    },
+    "patientHomeOfflineBody": "Showing your saved appointments and results.",
+    "@patientHomeOfflineBody": {
+        "description": "Patient home: offline banner body"
+    },
+    "patientHomeRetry": "Retry",
+    "@patientHomeRetry": {
+        "description": "Patient home: offline banner retry action"
+    },
+    "patientHomeHeadlineFirst": "Your care,",
+    "@patientHomeHeadlineFirst": {
+        "description": "Patient home: headline first line"
+    },
+    "patientHomeHeadlineSecond": "close to home.",
+    "@patientHomeHeadlineSecond": {
+        "description": "Patient home: headline second line"
+    },
+    "patientHomeNoticeLabel": "Health notice · {county}",
+    "@patientHomeNoticeLabel": {
+        "description": "Patient home: health notice strip label",
+        "placeholders": {
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "patientHomeEyebrow": "Next appointment · {days, plural, =0{today} =1{tomorrow} other{in {days} days}}",
+    "@patientHomeEyebrow": {
+        "description": "Patient home: next appointment eyebrow with days until",
+        "placeholders": {
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "patientHomeDetails": "Details",
+    "@patientHomeDetails": {
+        "description": "Patient home: hero button opening the appointment"
+    },
+    "patientHomeWithDoctor": "With your doctor",
+    "@patientHomeWithDoctor": {
+        "description": "Patient home: results slide status chip"
+    },
+    "patientHomeResultsTitle": "{testName} results",
+    "@patientHomeResultsTitle": {
+        "description": "Patient home: results slide title",
+        "placeholders": {
+            "testName": {
+                "type": "String"
+            }
+        }
+    },
+    "patientHomeResultsBody": "{doctor} goes through them with you on {date}. Then you can read them here.",
+    "@patientHomeResultsBody": {
+        "description": "Patient home: results slide body with the discussion date",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "patientHomeResultsBodyNoDate": "{doctor} will go through them with you.",
+    "@patientHomeResultsBodyNoDate": {
+        "description": "Patient home: results slide body without a discussion date yet",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "patientHomeNoAppointments": "No appointments coming up",
+    "@patientHomeNoAppointments": {
+        "description": "Patient home: book prompt title"
+    },
+    "patientHomeBookPromptBody": "Book a verified doctor near you, in English or Kiswahili.",
+    "@patientHomeBookPromptBody": {
+        "description": "Patient home: book prompt body"
+    },
+    "patientHomeBookNow": "Book now",
+    "@patientHomeBookNow": {
+        "description": "Patient home: book prompt action"
+    },
+    "patientHomeDoctorsNearYou": "Doctors near you",
+    "@patientHomeDoctorsNearYou": {
+        "description": "Patient home: doctors section header"
+    },
+    "patientHomeSeeAll": "See all",
+    "@patientHomeSeeAll": {
+        "description": "Patient home: doctors section action"
+    },
+    "patientHomeSearchHint": "Search by name, specialty or hospital",
+    "@patientHomeSearchHint": {
+        "description": "Patient home: search field hint opening the directory"
+    },
+    "patientHomeSlideLabel": "Slide {index} of {count}",
+    "@patientHomeSlideLabel": {
+        "description": "Patient home: carousel slide position announcement",
+        "placeholders": {
+            "index": {
+                "type": "int"
+            },
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "patientHomeLoadingLabel": "Loading home",
+    "@patientHomeLoadingLabel": {
+        "description": "Patient home: semantic label announced while the hero loads"
     }
 }

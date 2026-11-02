@@ -1,7 +1,14 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/features/alerts/blocs/public_alerts_bloc/public_alerts_state.dart';
+import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
+import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
+import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_state.dart';
+import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_state.dart';
 
 import '../../../helpers/helpers.dart';
 
@@ -13,11 +20,28 @@ void main() {
     testWidgets("greets a patient with their area and today's date", (
       tester,
     ) async {
-      await tester.pumpRoleApp(RoleSessions.patient, '/patient');
+      // The patient tab now shows its screen: settle its blocs past loading
+      // (the spinner never settles) and read the Nairobi date it shows.
+      final blocs = FeatureBlocs();
+      when(
+        () => blocs.notifications.state,
+      ).thenReturn(const NotificationsLoadSuccess());
+      when(
+        () => blocs.publicAlerts.state,
+      ).thenReturn(const PublicAlertsLoadSuccess());
+      when(
+        () => blocs.appointments.state,
+      ).thenReturn(const AppointmentsLoadSuccess());
+      when(() => blocs.cases.state).thenReturn(const CasesLoadSuccess());
+      when(
+        () => blocs.directory.state,
+      ).thenReturn(const DirectoryLoadSuccess());
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient', blocs: blocs);
       await tester.pumpAndSettle();
 
+      final nairobiToday = DateFormat('EEE d MMM', 'en').format(nairobiNow());
       expect(find.text('Habari, Amina'), findsOneWidget);
-      expect(find.text('Embakasi · ${today()}'), findsOneWidget);
+      expect(find.text('Embakasi · $nairobiToday'), findsOneWidget);
       expect(
         find.byWidgetPredicate(
           (w) => w is CircleIconButton && w.semanticLabel == 'Notifications',
