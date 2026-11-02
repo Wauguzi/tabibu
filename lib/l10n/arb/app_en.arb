@@ -284,6 +284,66 @@
     "@verificationStatusRejected": {
         "description": "Label for a practitioner whose verification was rejected"
     },
+    "declineReasonSlotUnavailable": "That time is no longer free",
+    "@declineReasonSlotUnavailable": {
+        "description": "Decline reason: the slot is no longer free"
+    },
+    "declineReasonOutsidePractice": "Outside my practice",
+    "@declineReasonOutsidePractice": {
+        "description": "Decline reason: outside the doctor's practice"
+    },
+    "declineReasonReferredElsewhere": "Referred to another doctor",
+    "@declineReasonReferredElsewhere": {
+        "description": "Decline reason: referred to another doctor"
+    },
+    "declineReasonSlotTaken": "Someone else booked that time",
+    "@declineReasonSlotTaken": {
+        "description": "Decline reason: someone else booked the slot"
+    },
+    "declineReasonOther": "Another reason",
+    "@declineReasonOther": {
+        "description": "Decline reason: another reason"
+    },
+    "cancelReasonOrderedInError": "Ordered in error",
+    "@cancelReasonOrderedInError": {
+        "description": "Cancel reason: ordered in error"
+    },
+    "cancelReasonDuplicate": "Duplicate order",
+    "@cancelReasonDuplicate": {
+        "description": "Cancel reason: duplicate order"
+    },
+    "cancelReasonPatientDeclined": "The patient declined",
+    "@cancelReasonPatientDeclined": {
+        "description": "Cancel reason: the patient declined"
+    },
+    "cancelReasonOther": "Another reason",
+    "@cancelReasonOther": {
+        "description": "Cancel reason: another reason"
+    },
+    "reportSectionDiagnosis": "Diagnosis",
+    "@reportSectionDiagnosis": {
+        "description": "Report section: diagnosis"
+    },
+    "reportSectionComments": "Comments",
+    "@reportSectionComments": {
+        "description": "Report section: comments"
+    },
+    "reportSectionClinicalNotes": "Clinical notes",
+    "@reportSectionClinicalNotes": {
+        "description": "Report section: clinical notes"
+    },
+    "reportSectionMacroscopic": "Macroscopic findings",
+    "@reportSectionMacroscopic": {
+        "description": "Report section: macroscopic findings"
+    },
+    "reportSectionMicroscopic": "Microscopic findings",
+    "@reportSectionMicroscopic": {
+        "description": "Report section: microscopic findings"
+    },
+    "reportSectionAncillary": "Ancillary tests",
+    "@reportSectionAncillary": {
+        "description": "Report section: ancillary tests"
+    },
     "languageEn": "English",
     "@languageEn": {
         "description": "Name of the English language option"
@@ -1941,5 +2001,632 @@
     "accountCreatedNotice": "Your account is set up with this email. Continue to the next step.",
     "@accountCreatedNotice": {
         "description": "D2 and E1 once the account exists: why the email cannot change"
+    },
+    "reportQuestionSpecimenDescription": "Specimen description",
+    "@reportQuestionSpecimenDescription": {
+        "description": "Report template question: what the specimen is"
+    },
+    "reportQuestionSpecimenSize": "Specimen size",
+    "@reportQuestionSpecimenSize": {
+        "description": "Report template question: the specimen's dimensions"
+    },
+    "reportQuestionRepresentativeSections": "Representative sections",
+    "@reportQuestionRepresentativeSections": {
+        "description": "Report template question: which sections were taken"
+    },
+    "reportQuestionMicroscopicDescription": "Microscopic description",
+    "@reportQuestionMicroscopicDescription": {
+        "description": "Report template question: what the microscope shows"
+    },
+    "reportQuestionTumourGrade": "Tumour grade",
+    "@reportQuestionTumourGrade": {
+        "description": "Report template question: how aggressive the tumour looks"
+    },
+    "reportQuestionMargins": "Margins",
+    "@reportQuestionMargins": {
+        "description": "Report template question: whether the edges are clear"
+    },
+    "reportQuestionLymphNodes": "Lymph nodes",
+    "@reportQuestionLymphNodes": {
+        "description": "Report template question: lymph node involvement"
+    },
+    "reportQuestionImmunohistochemistry": "Immunohistochemistry",
+    "@reportQuestionImmunohistochemistry": {
+        "description": "Report template question: antibody stain results"
+    },
+    "reportQuestionParasiteSpecies": "Parasite species",
+    "@reportQuestionParasiteSpecies": {
+        "description": "Report template question: which malaria parasite"
+    },
+    "reportQuestionParasiteDensity": "Parasite density",
+    "@reportQuestionParasiteDensity": {
+        "description": "Report template question: parasites per microlitre"
+    },
+    "reportQuestionParasiteStages": "Parasite stages",
+    "@reportQuestionParasiteStages": {
+        "description": "Report template question: life stages seen"
+    },
+    "reportQuestionRapidTestResult": "Rapid test result",
+    "@reportQuestionRapidTestResult": {
+        "description": "Report template question: the rapid test outcome"
+    },
+    "reportQuestionFindings": "Findings",
+    "@reportQuestionFindings": {
+        "description": "Report template question: what was found"
+    },
+    "reportQuestionMethodNotes": "Method notes",
+    "@reportQuestionMethodNotes": {
+        "description": "Report template question: how the test was run"
+    },
+    "notificationOrderCreatedBody": "Your doctor has ordered tests for you.",
+    "@notificationOrderCreatedBody": {
+        "description": "Inbox body for the `orderCreated` push"
+    },
+    "notificationPathologistRequestedBody": "A new case is waiting.",
+    "@notificationPathologistRequestedBody": {
+        "description": "Inbox body for the `pathologistRequested` push"
+    },
+    "notificationPathologistAcceptedBody": "A pathologist accepted your case.",
+    "@notificationPathologistAcceptedBody": {
+        "description": "Inbox body for the `pathologistAccepted` push"
+    },
+    "notificationPathologistAcceptedPatientBody": "A pathologist is working on your tests.",
+    "@notificationPathologistAcceptedPatientBody": {
+        "description": "Inbox body for the `pathologistAcceptedPatient` push"
+    },
+    "notificationPathologistRejectedBody": "A pathologist could not take your case.",
+    "@notificationPathologistRejectedBody": {
+        "description": "Inbox body for the `pathologistRejected` push"
+    },
+    "notificationPathologistRequestExpiredBody": "A pathologist could not take your case.",
+    "@notificationPathologistRequestExpiredBody": {
+        "description": "Inbox body for the `pathologistRequestExpired` push"
+    },
+    "notificationCaseWithdrawnBody": "A case was reassigned.",
+    "@notificationCaseWithdrawnBody": {
+        "description": "Inbox body for the `caseWithdrawn` push"
+    },
+    "notificationPrereadReadyBody": "A case is ready to review.",
+    "@notificationPrereadReadyBody": {
+        "description": "Inbox body for the `prereadReady` push"
+    },
+    "notificationPrereadFailedBody": "A case needs a manual read.",
+    "@notificationPrereadFailedBody": {
+        "description": "Inbox body for the `prereadFailed` push"
+    },
+    "notificationOrderCancelledBody": "An order was cancelled.",
+    "@notificationOrderCancelledBody": {
+        "description": "Inbox body for the `orderCancelled` push"
+    },
+    "notificationCaseSharedBody": "A case was shared with you. Open Tabibu to see your access code.",
+    "@notificationCaseSharedBody": {
+        "description": "Inbox body for the `caseShared` push"
+    },
+    "notificationShareRedeemedBody": "Your shared case was opened.",
+    "@notificationShareRedeemedBody": {
+        "description": "Inbox body for the `shareRedeemed` push"
+    },
+    "notificationReportSignedBody": "A signed report is ready.",
+    "@notificationReportSignedBody": {
+        "description": "Inbox body for the `reportSigned` push"
+    },
+    "notificationReportUpdatedBody": "A report has been updated.",
+    "@notificationReportUpdatedBody": {
+        "description": "Inbox body for the `reportUpdated` push"
+    },
+    "notificationShareCodeReissuedBody": "A new code is ready for a report.",
+    "@notificationShareCodeReissuedBody": {
+        "description": "Inbox body for the `shareCodeReissued` push"
+    },
+    "notificationCriticalReportUnopenedBody": "A signed report is still waiting for you.",
+    "@notificationCriticalReportUnopenedBody": {
+        "description": "Inbox body for the `criticalReportUnopened` push"
+    },
+    "notificationCriticalReportUnopenedSignerBody": "A report you signed has not been opened yet.",
+    "@notificationCriticalReportUnopenedSignerBody": {
+        "description": "Inbox body for the `criticalReportUnopenedSigner` push"
+    },
+    "notificationResultsWithDoctorBody": "Your results are with your doctor. Book a time to discuss them.",
+    "@notificationResultsWithDoctorBody": {
+        "description": "Inbox body for the `resultsWithDoctor` push"
+    },
+    "notificationResultUpdateWithDoctorBody": "There is an update to your results with your doctor.",
+    "@notificationResultUpdateWithDoctorBody": {
+        "description": "Inbox body for the `resultUpdateWithDoctor` push"
+    },
+    "notificationResultReleasedBody": "Your result is ready in Tabibu.",
+    "@notificationResultReleasedBody": {
+        "description": "Inbox body for the `resultReleased` push"
+    },
+    "notificationTranslationReadyBody": "A translation is ready to review.",
+    "@notificationTranslationReadyBody": {
+        "description": "Inbox body for the `translationReady` push"
+    },
+    "notificationExplanationReadyBody": "An explanation is ready to review.",
+    "@notificationExplanationReadyBody": {
+        "description": "Inbox body for the `explanationReady` push"
+    },
+    "notificationAppointmentRequestedTitle": "New appointment request",
+    "@notificationAppointmentRequestedTitle": {
+        "description": "Inbox title for the `appointmentRequested` push"
+    },
+    "notificationAppointmentRequestedBody": "A patient has asked to see you. Reply before the request expires.",
+    "@notificationAppointmentRequestedBody": {
+        "description": "Inbox body for the `appointmentRequested` push"
+    },
+    "notificationCaseDiscussionRequestedTitle": "New discussion request",
+    "@notificationCaseDiscussionRequestedTitle": {
+        "description": "Inbox title for the `caseDiscussionRequested` push"
+    },
+    "notificationCaseDiscussionRequestedBody": "A patient has asked for time to discuss a result.",
+    "@notificationCaseDiscussionRequestedBody": {
+        "description": "Inbox body for the `caseDiscussionRequested` push"
+    },
+    "notificationAppointmentAcceptedTitle": "Appointment confirmed",
+    "@notificationAppointmentAcceptedTitle": {
+        "description": "Inbox title for the `appointmentAccepted` push"
+    },
+    "notificationAppointmentAcceptedBody": "Your appointment request was accepted.",
+    "@notificationAppointmentAcceptedBody": {
+        "description": "Inbox body for the `appointmentAccepted` push"
+    },
+    "notificationAppointmentDeclinedTitle": "Appointment request declined",
+    "@notificationAppointmentDeclinedTitle": {
+        "description": "Inbox title for the `appointmentDeclined` push"
+    },
+    "notificationAppointmentDeclinedBody": "You can choose another time or another doctor.",
+    "@notificationAppointmentDeclinedBody": {
+        "description": "Inbox body for the `appointmentDeclined` push"
+    },
+    "notificationAppointmentExpiredTitle": "Appointment request expired",
+    "@notificationAppointmentExpiredTitle": {
+        "description": "Inbox title for the `appointmentExpired` push"
+    },
+    "notificationAppointmentExpiredBody": "Your request had no reply in time. You can choose another time.",
+    "@notificationAppointmentExpiredBody": {
+        "description": "Inbox body for the `appointmentExpired` push"
+    },
+    "notificationAppointmentCancelledByPatientTitle": "Appointment cancelled",
+    "@notificationAppointmentCancelledByPatientTitle": {
+        "description": "Inbox title for the `appointmentCancelledByPatient` push"
+    },
+    "notificationAppointmentCancelledByPatientBody": "A patient cancelled an appointment.",
+    "@notificationAppointmentCancelledByPatientBody": {
+        "description": "Inbox body for the `appointmentCancelledByPatient` push"
+    },
+    "notificationAppointmentCancelledByDoctorTitle": "Appointment cancelled",
+    "@notificationAppointmentCancelledByDoctorTitle": {
+        "description": "Inbox title for the `appointmentCancelledByDoctor` push"
+    },
+    "notificationAppointmentCancelledByDoctorBody": "Your doctor cancelled your appointment. You can book another time.",
+    "@notificationAppointmentCancelledByDoctorBody": {
+        "description": "Inbox body for the `appointmentCancelledByDoctor` push"
+    },
+    "notificationMdtInvitedBody": "You have been invited to an MDT discussion.",
+    "@notificationMdtInvitedBody": {
+        "description": "Inbox body for the `mdtInvited` push"
+    },
+    "notificationMdtInviteAcceptedBody": "A colleague has joined your MDT discussion.",
+    "@notificationMdtInviteAcceptedBody": {
+        "description": "Inbox body for the `mdtInviteAccepted` push"
+    },
+    "notificationMdtInviteDeclinedBody": "A colleague declined your MDT invitation.",
+    "@notificationMdtInviteDeclinedBody": {
+        "description": "Inbox body for the `mdtInviteDeclined` push"
+    },
+    "notificationMessageReceivedBody": "{newCount, plural, =1{You have a new message in Tabibu.} other{You have {newCount} new messages in Tabibu.}}",
+    "@notificationMessageReceivedBody": {
+        "description": "Inbox body for the `messageReceived` push, singular or plural by count",
+        "placeholders": {
+            "newCount": {
+                "type": "int"
+            }
+        }
+    },
+    "notificationMdtMessageReceivedBody": "{newCount, plural, =1{There is a new message in an MDT discussion.} other{{newCount} new messages in an MDT discussion.}}",
+    "@notificationMdtMessageReceivedBody": {
+        "description": "Inbox body for the `mdtMessageReceived` push, singular or plural by count",
+        "placeholders": {
+            "newCount": {
+                "type": "int"
+            }
+        }
+    },
+    "notificationAlertDraftedBody": "An alert is waiting for approval.",
+    "@notificationAlertDraftedBody": {
+        "description": "Inbox body for the `alertDrafted` push"
+    },
+    "notificationAlertDraftReminderBody": "An urgent alert is still waiting for approval.",
+    "@notificationAlertDraftReminderBody": {
+        "description": "Inbox body for the `alertDraftReminder` push"
+    },
+    "notificationAlertExpiredBody": "An alert expired without a decision.",
+    "@notificationAlertExpiredBody": {
+        "description": "Inbox body for the `alertExpired` push"
+    },
+    "notificationAlertWithdrawnBody": "An alert draft was withdrawn after a report was amended.",
+    "@notificationAlertWithdrawnBody": {
+        "description": "Inbox body for the `alertWithdrawn` push"
+    },
+    "notificationAlertEvidenceChangedBody": "The results behind an approved alert have changed. Review it in Tabibu.",
+    "@notificationAlertEvidenceChangedBody": {
+        "description": "Inbox body for the `alertEvidenceChanged` push"
+    },
+    "notificationAlertDeliveredClinicianBody": "Health alert: {disease} in {county} County. Open Tabibu for guidance.",
+    "@notificationAlertDeliveredClinicianBody": {
+        "description": "Inbox body for the `alertDeliveredClinician` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationAlertDeliveredPatientBody": "Health alert: {disease} in {county} County. Open Tabibu for guidance.",
+    "@notificationAlertDeliveredPatientBody": {
+        "description": "Inbox body for the `alertDeliveredPatient` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationConfirmatoryTestRequestedBody": "A pathologist recommends a further test for a case.",
+    "@notificationConfirmatoryTestRequestedBody": {
+        "description": "Inbox body for the `confirmatoryTestRequested` push"
+    },
+    "notificationAlertDeliveryHeldBody": "Alert delivery is paused. Open Tabibu to review.",
+    "@notificationAlertDeliveryHeldBody": {
+        "description": "Inbox body for the `alertDeliveryHeld` push"
+    },
+    "notificationAlertDeliveryStoppedBody": "An alert went to clinicians only and was not released to patients.",
+    "@notificationAlertDeliveryStoppedBody": {
+        "description": "Inbox body for the `alertDeliveryStopped` push"
+    },
+    "notificationAlertDeliveredClinicianDemoBody": "Demo: Health alert: {disease} in {county} County. This is a test, not a real alert.",
+    "@notificationAlertDeliveredClinicianDemoBody": {
+        "description": "Inbox body for the `alertDeliveredClinicianDemo` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationAlertDeliveredPatientDemoBody": "Demo: Health alert: {disease} in {county} County. This is a test, not a real alert.",
+    "@notificationAlertDeliveredPatientDemoBody": {
+        "description": "Inbox body for the `alertDeliveredPatientDemo` push",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            },
+            "county": {
+                "type": "String"
+            }
+        }
+    },
+    "notificationAppointmentRequestSentBody": "Your appointment request was sent.",
+    "@notificationAppointmentRequestSentBody": {
+        "description": "Inbox body for the local `appointmentRequestSent` row"
+    },
+    "notificationAppointmentCompletedBody": "Your appointment has finished.",
+    "@notificationAppointmentCompletedBody": {
+        "description": "Inbox body for the local `appointmentCompleted` row"
+    },
+    "notificationOrderSubmittedBody": "Your tests were ordered.",
+    "@notificationOrderSubmittedBody": {
+        "description": "Inbox body for the local `orderSubmitted` row"
+    },
+    "notificationDraftSavedBody": "Your draft was saved.",
+    "@notificationDraftSavedBody": {
+        "description": "Inbox body for the local `draftSaved` row"
+    },
+    "notificationPrereadScoredBody": "Your score was saved.",
+    "@notificationPrereadScoredBody": {
+        "description": "Inbox body for the local `prereadScored` row"
+    },
+    "notificationReportSignedSelfBody": "You signed the report.",
+    "@notificationReportSignedSelfBody": {
+        "description": "Inbox body for the local `reportSignedSelf` row"
+    },
+    "notificationShareCodeSentBody": "Your access code was sent.",
+    "@notificationShareCodeSentBody": {
+        "description": "Inbox body for the local `shareCodeSent` row"
+    },
+    "notificationMdtOpenedBody": "You opened an MDT discussion.",
+    "@notificationMdtOpenedBody": {
+        "description": "Inbox body for the local `mdtOpened` row"
+    },
+    "notificationMessagesQueuedBody": "Your messages will send when you are back online.",
+    "@notificationMessagesQueuedBody": {
+        "description": "Inbox body for the local `messagesQueued` row"
+    },
+    "notificationQueuedMessagesSentBody": "Your queued messages were sent.",
+    "@notificationQueuedMessagesSentBody": {
+        "description": "Inbox body for the local `queuedMessagesSent` row"
+    },
+    "notificationNotifiableRecordedBody": "The case was recorded for reporting.",
+    "@notificationNotifiableRecordedBody": {
+        "description": "Inbox body for the local `notifiableRecorded` row"
+    },
+    "notificationAlertDecisionSavedBody": "Your decision was saved.",
+    "@notificationAlertDecisionSavedBody": {
+        "description": "Inbox body for the local `alertDecisionSaved` row"
+    },
+    "notificationUnknownBody": "You have a new notification in Tabibu.",
+    "@notificationUnknownBody": {
+        "description": "Inbox body for an unrecognised template key"
+    },
+    "reportPdfTitle": "Pathology report",
+    "@reportPdfTitle": {
+        "description": "PDF report header: document kind under the wordmark"
+    },
+    "reportPdfOrderNumber": "Order number",
+    "@reportPdfOrderNumber": {
+        "description": "PDF report header: label above the order number"
+    },
+    "reportPdfVersionReleased": "Version {version} · Released {date}",
+    "@reportPdfVersionReleased": {
+        "description": "PDF report header: version and release date line",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfCompactTitle": "{order} · Version {version}",
+    "@reportPdfCompactTitle": {
+        "description": "PDF report compact header on pages after the first",
+        "placeholders": {
+            "order": {
+                "type": "String"
+            },
+            "version": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfStageAmended": "Amended",
+    "@reportPdfStageAmended": {
+        "description": "PDF report stage banner label for an amended report"
+    },
+    "reportPdfStageAddended": "Addended",
+    "@reportPdfStageAddended": {
+        "description": "PDF report stage banner label for an addended report"
+    },
+    "reportPdfSupersedes": "Supersedes version {version}.",
+    "@reportPdfSupersedes": {
+        "description": "PDF report stage banner body without a reason",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfSupersedesReason": "Supersedes version {version}. Reason: {reason}.",
+    "@reportPdfSupersedesReason": {
+        "description": "PDF report stage banner body with the amendment reason",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            },
+            "reason": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfCritical": "Critical result. Act on it today.",
+    "@reportPdfCritical": {
+        "description": "PDF report critical banner text"
+    },
+    "reportPdfTemplateCancer": "Cancer template",
+    "@reportPdfTemplateCancer": {
+        "description": "PDF report subtitle: the cancer report template"
+    },
+    "reportPdfTemplateMalaria": "Malaria template",
+    "@reportPdfTemplateMalaria": {
+        "description": "PDF report subtitle: the malaria report template"
+    },
+    "reportPdfTemplateGeneral": "General template",
+    "@reportPdfTemplateGeneral": {
+        "description": "PDF report subtitle: the general report template"
+    },
+    "reportPdfReportedBy": "reported by {facility}",
+    "@reportPdfReportedBy": {
+        "description": "PDF report subtitle: the reporting lab facility",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfPatient": "Patient",
+    "@reportPdfPatient": {
+        "description": "PDF report patient card title"
+    },
+    "reportPdfRequest": "Request",
+    "@reportPdfRequest": {
+        "description": "PDF report request card title"
+    },
+    "reportPdfName": "Name",
+    "@reportPdfName": {
+        "description": "PDF report patient card: name row label"
+    },
+    "reportPdfAgeLabel": "Age",
+    "@reportPdfAgeLabel": {
+        "description": "PDF report patient card: age row label"
+    },
+    "reportPdfSex": "Sex",
+    "@reportPdfSex": {
+        "description": "PDF report patient card: sex row label"
+    },
+    "reportPdfResidence": "Residence",
+    "@reportPdfResidence": {
+        "description": "PDF report patient card: residence row label"
+    },
+    "reportPdfRequestedBy": "Requested by",
+    "@reportPdfRequestedBy": {
+        "description": "PDF report request card: ordering doctor row label"
+    },
+    "reportPdfFacility": "Facility",
+    "@reportPdfFacility": {
+        "description": "PDF report request card: ordering facility row label"
+    },
+    "reportPdfCollected": "Collected",
+    "@reportPdfCollected": {
+        "description": "PDF report request card: sample collected row label"
+    },
+    "reportPdfReceived": "Received",
+    "@reportPdfReceived": {
+        "description": "PDF report request card: sample received row label"
+    },
+    "reportPdfAccessionNo": "Accession no.",
+    "@reportPdfAccessionNo": {
+        "description": "PDF report request card: accession number row label"
+    },
+    "reportPdfDiagnosisTypeFinal": "Final",
+    "@reportPdfDiagnosisTypeFinal": {
+        "description": "PDF report diagnosis panel: final diagnosis type"
+    },
+    "reportPdfDiagnosisTypeProvisional": "Provisional",
+    "@reportPdfDiagnosisTypeProvisional": {
+        "description": "PDF report diagnosis panel: provisional diagnosis type"
+    },
+    "reportPdfDiagnosisTypeInconclusive": "Inconclusive",
+    "@reportPdfDiagnosisTypeInconclusive": {
+        "description": "PDF report diagnosis panel: inconclusive diagnosis type"
+    },
+    "reportPdfMeasurements": "Measurements",
+    "@reportPdfMeasurements": {
+        "description": "PDF report measurements block title"
+    },
+    "reportPdfMeasure": "Measure",
+    "@reportPdfMeasure": {
+        "description": "PDF report measurements table: name column header"
+    },
+    "reportPdfValue": "Value",
+    "@reportPdfValue": {
+        "description": "PDF report measurements table: value column header"
+    },
+    "reportPdfMeasurementsCaption": "Computed by Tabibu from the signed findings.",
+    "@reportPdfMeasurementsCaption": {
+        "description": "PDF report measurements block caption"
+    },
+    "reportPdfAddendum": "Addendum · {date}",
+    "@reportPdfAddendum": {
+        "description": "PDF report addendum card title with its signing date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfTranslation": "Translation",
+    "@reportPdfTranslation": {
+        "description": "PDF report translation block eyebrow"
+    },
+    "reportPdfTranslationBy": "Translation by AI, approved by {name}",
+    "@reportPdfTranslationBy": {
+        "description": "PDF report translation block attribution",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfSignedReport": "Signed report",
+    "@reportPdfSignedReport": {
+        "description": "PDF report signed block eyebrow"
+    },
+    "reportPdfConsultantLine": "Consultant pathologist · KMPDC Reg. No. {kmpdc}",
+    "@reportPdfConsultantLine": {
+        "description": "PDF report signed block: role and registration line",
+        "placeholders": {
+            "kmpdc": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfSignedAt": "Signed {date} EAT",
+    "@reportPdfSignedAt": {
+        "description": "PDF report signed block: signing timestamp in Nairobi time",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfContentRef": "Content reference {ref}",
+    "@reportPdfContentRef": {
+        "description": "PDF report signed block: content hash reference",
+        "placeholders": {
+            "ref": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfSignature": "Signature",
+    "@reportPdfSignature": {
+        "description": "PDF report signed block: signature caption"
+    },
+    "reportPdfEndOfReport": "End of report",
+    "@reportPdfEndOfReport": {
+        "description": "PDF report closing line"
+    },
+    "reportPdfAccession": "Accession {no}",
+    "@reportPdfAccession": {
+        "description": "PDF report footer: accession number",
+        "placeholders": {
+            "no": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfPage": "Page {page} of {pages}",
+    "@reportPdfPage": {
+        "description": "PDF report footer: page numbering",
+        "placeholders": {
+            "page": {
+                "type": "int"
+            },
+            "pages": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfDisclaimer": "For the named patient and their care team. Read it with the clinical picture. Questions: {contact}.",
+    "@reportPdfDisclaimer": {
+        "description": "PDF report footer disclaimer with the support contact",
+        "placeholders": {
+            "contact": {
+                "type": "String"
+            }
+        }
+    },
+    "reportPdfAge": "{years, plural, =0{{months, plural, =1{1 month} other{{months} months}}} =1{1 year {months, plural, =1{1 month} other{{months} months}}} other{{years} years {months, plural, =1{1 month} other{{months} months}}}}",
+    "@reportPdfAge": {
+        "description": "PDF report patient card: age in years and months",
+        "placeholders": {
+            "years": {
+                "type": "int"
+            },
+            "months": {
+                "type": "int"
+            }
+        }
+    },
+    "reportPdfMissingValue": "—",
+    "@reportPdfMissingValue": {
+        "description": "PDF report: shown where a date or age is unknown"
     }
 }

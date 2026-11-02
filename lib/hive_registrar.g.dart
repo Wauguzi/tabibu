@@ -3,25 +3,130 @@
 // Check in to version control
 
 import 'package:hive_ce/hive_ce.dart';
+import 'package:tabibu/features/alerts/data/models/alert_clinician_brief_hive.dart';
+import 'package:tabibu/features/alerts/data/models/alert_receipt_hive.dart';
+import 'package:tabibu/features/alerts/data/models/alert_text_hive.dart';
+import 'package:tabibu/features/alerts/data/models/guidance_bullet_hive.dart';
+import 'package:tabibu/features/alerts/data/models/guidance_source_hive.dart';
+import 'package:tabibu/features/alerts/data/models/public_alert_hive.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_hive.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_intake_hive.dart';
+import 'package:tabibu/features/appointments/data/models/intake_draft_hive.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_log_entry_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_payment_hive.dart';
+import 'package:tabibu/features/cases/data/models/notes_translation_hive.dart';
+import 'package:tabibu/features/cases/data/models/ordered_test_hive.dart';
+import 'package:tabibu/features/cases/data/models/risk_check_hive.dart';
+import 'package:tabibu/features/cases/data/models/share_code_hive.dart';
+import 'package:tabibu/features/cases/data/models/slide_image_hive.dart';
+import 'package:tabibu/features/conversations/data/models/case_summary_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_cursor_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_member_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_preview_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_transcript_hive.dart';
+import 'package:tabibu/features/notifications/data/models/notification_hive.dart';
+import 'package:tabibu/features/notifications/data/models/notification_metadata_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_hive.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_hive.dart';
 import 'package:tabibu/features/profile/data/models/doctor_hive.dart';
+import 'package:tabibu/features/reports/data/models/notifiable_finding_hive.dart';
+import 'package:tabibu/features/reports/data/models/pathology_report_hive.dart';
+import 'package:tabibu/features/reports/data/models/preread_score_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_addendum_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_draft_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_measurement_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_response_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_text_approved_hive.dart';
+import 'package:tabibu/features/worklist/data/models/worklist_entry_hive.dart';
 
 extension HiveRegistrar on HiveInterface {
   void registerAdapters() {
+    registerAdapter(AlertClinicianBriefHiveAdapter());
+    registerAdapter(AlertReceiptHiveAdapter());
+    registerAdapter(AlertTextHiveAdapter());
+    registerAdapter(AppointmentHiveAdapter());
+    registerAdapter(AppointmentIntakeHiveAdapter());
+    registerAdapter(CaseHiveAdapter());
+    registerAdapter(CaseLogEntryHiveAdapter());
+    registerAdapter(CasePaymentHiveAdapter());
+    registerAdapter(CaseSummaryHiveAdapter());
+    registerAdapter(ConversationCursorHiveAdapter());
+    registerAdapter(ConversationHiveAdapter());
+    registerAdapter(ConversationMemberHiveAdapter());
     registerAdapter(DoctorHiveAdapter());
+    registerAdapter(GuidanceBulletHiveAdapter());
+    registerAdapter(GuidanceSourceHiveAdapter());
+    registerAdapter(IntakeDraftHiveAdapter());
+    registerAdapter(MessageHiveAdapter());
+    registerAdapter(MessagePreviewHiveAdapter());
+    registerAdapter(MessageTranscriptHiveAdapter());
+    registerAdapter(NotesTranslationHiveAdapter());
+    registerAdapter(NotifiableFindingHiveAdapter());
+    registerAdapter(NotificationHiveAdapter());
+    registerAdapter(NotificationMetadataHiveAdapter());
     registerAdapter(OnboardingHiveAdapter());
+    registerAdapter(OrderedTestHiveAdapter());
+    registerAdapter(PathologyReportHiveAdapter());
     registerAdapter(PatientHiveAdapter());
     registerAdapter(PractitionerHiveAdapter());
+    registerAdapter(PrereadScoreHiveAdapter());
+    registerAdapter(PublicAlertHiveAdapter());
+    registerAdapter(ReportAddendumHiveAdapter());
+    registerAdapter(ReportDraftHiveAdapter());
+    registerAdapter(ReportMeasurementHiveAdapter());
+    registerAdapter(ReportResponseHiveAdapter());
+    registerAdapter(ReportTextApprovedHiveAdapter());
+    registerAdapter(RiskCheckHiveAdapter());
+    registerAdapter(ShareCodeHiveAdapter());
+    registerAdapter(SlideImageHiveAdapter());
+    registerAdapter(WorklistEntryHiveAdapter());
   }
 }
 
 extension IsolatedHiveRegistrar on IsolatedHiveInterface {
   void registerAdapters() {
+    registerAdapter(AlertClinicianBriefHiveAdapter());
+    registerAdapter(AlertReceiptHiveAdapter());
+    registerAdapter(AlertTextHiveAdapter());
+    registerAdapter(AppointmentHiveAdapter());
+    registerAdapter(AppointmentIntakeHiveAdapter());
+    registerAdapter(CaseHiveAdapter());
+    registerAdapter(CaseLogEntryHiveAdapter());
+    registerAdapter(CasePaymentHiveAdapter());
+    registerAdapter(CaseSummaryHiveAdapter());
+    registerAdapter(ConversationCursorHiveAdapter());
+    registerAdapter(ConversationHiveAdapter());
+    registerAdapter(ConversationMemberHiveAdapter());
     registerAdapter(DoctorHiveAdapter());
+    registerAdapter(GuidanceBulletHiveAdapter());
+    registerAdapter(GuidanceSourceHiveAdapter());
+    registerAdapter(IntakeDraftHiveAdapter());
+    registerAdapter(MessageHiveAdapter());
+    registerAdapter(MessagePreviewHiveAdapter());
+    registerAdapter(MessageTranscriptHiveAdapter());
+    registerAdapter(NotesTranslationHiveAdapter());
+    registerAdapter(NotifiableFindingHiveAdapter());
+    registerAdapter(NotificationHiveAdapter());
+    registerAdapter(NotificationMetadataHiveAdapter());
     registerAdapter(OnboardingHiveAdapter());
+    registerAdapter(OrderedTestHiveAdapter());
+    registerAdapter(PathologyReportHiveAdapter());
     registerAdapter(PatientHiveAdapter());
     registerAdapter(PractitionerHiveAdapter());
+    registerAdapter(PrereadScoreHiveAdapter());
+    registerAdapter(PublicAlertHiveAdapter());
+    registerAdapter(ReportAddendumHiveAdapter());
+    registerAdapter(ReportDraftHiveAdapter());
+    registerAdapter(ReportMeasurementHiveAdapter());
+    registerAdapter(ReportResponseHiveAdapter());
+    registerAdapter(ReportTextApprovedHiveAdapter());
+    registerAdapter(RiskCheckHiveAdapter());
+    registerAdapter(ShareCodeHiveAdapter());
+    registerAdapter(SlideImageHiveAdapter());
+    registerAdapter(WorklistEntryHiveAdapter());
   }
 }

@@ -3,8 +3,10 @@
  * `practitioners` document; these handlers do, after the checks Firestore rules cannot make (a
  * duplicate search, a facility lookup), and they set the role claim in the same step.
  */
-import type { DocumentData, Firestore } from 'firebase-admin/firestore';
+import { FieldPath, type DocumentData, type Firestore } from 'firebase-admin/firestore';
 
+import { syncCaseReaders } from './access';
+import { loadVersions, str } from './case-support';
 import {
   AuthLike,
   Caller,
@@ -27,6 +29,8 @@ import {
   storageUrl,
   timestamp,
 } from './common';
+import { CaseState, commitCase } from './orchestrator';
+import { buildQuery, queryById } from './queries';
 import { NAIROBI_COUNTY_ID, countyById, facilityById, nairobiSubCountyById } from './reference-data';
 
 export interface Deps {
@@ -37,6 +41,38 @@ export interface Deps {
 }
 
 const NAME_MAX = 50;
+
+/** Monday to Friday, 08:00 to 17:00 Nairobi time, until the doctor chooses their own. */
+export const DEFAULT_WORKING_DAYS = [1, 2, 3, 4, 5];
+export const DEFAULT_DAY_START_MINUTE = 480;
+export const DEFAULT_DAY_END_MINUTE = 1020;
+
+export interface Availability {
+  workingDays: number[];
+  dayStartMinute: number;
+  dayEndMinute: number;
+  busySlots: string[];
+}
+
+/** What the public projection shows: the hours, with a missing or malformed field replaced by its default. */
+export function availabilityOf(doctor: DocumentData, now: Date): Availability {
+  const days = Array.isArray(doctor.workingDays)
+    ? doctor.workingDays.filter((d): d is number => Number.isInteger(d) && d >= 1 && d <= 7)
+    : [];
+  const start = doctor.dayStartMinute;
+  const end = doctor.dayEndMinute;
+  const valid = typeof start === 'number' && typeof end === 'number' && start >= 0 && end <= 1440 && start < end;
+  const cutoff = now.getTime();
+  const slots = Array.isArray(doctor.busySlots) ? doctor.busySlots : [];
+  return {
+    workingDays: Array.isArray(doctor.workingDays) ? [...new Set(days)].sort() : [...DEFAULT_WORKING_DAYS],
+    dayStartMinute: valid ? start : DEFAULT_DAY_START_MINUTE,
+    dayEndMinute: valid ? end : DEFAULT_DAY_END_MINUTE,
+    busySlots: slots
+      .filter((slot): slot is string => typeof slot === 'string' && Date.parse(slot) > cutoff)
+      .sort(),
+  };
+}
 
 interface Biodata {
   firstName: string;
@@ -125,6 +161,7 @@ function patientRecord(
 
 /** Sets `role`, keeping any other claim (an admin who is also a doctor stays an admin). */
 async function setRole(auth: AuthLike, uid: string, role: Role | null): Promise<void> {
+  // Re-read immediately before writing so a concurrent claim edit is not overwritten.
   const user = await auth.getUser(uid);
   const claims: Record<string, unknown> = { ...(user.customClaims ?? {}) };
   if (role === null) delete claims.role;
@@ -133,11 +170,20 @@ async function setRole(auth: AuthLike, uid: string, role: Role | null): Promise<
 }
 
 function duplicateQuery(db: Firestore, phoneNumber: string, dob: string) {
-  return db
-    .collection(PATIENTS)
-    .where('phoneNumber', '==', phoneNumber)
-    .where('dateOfBirth', '==', dob)
-    .limit(10);
+  return buildQuery(db, queryById('patients.byPhoneAndDob'), [
+    phoneNumber,
+    dob,
+  ]).limit(10);
+}
+
+function patientsByUid(db: Firestore, uid: string) {
+  return buildQuery(db, queryById('patients.byUid'), [uid]).limit(1);
+}
+
+function doctorsByKmpdc(db: Firestore, kmpdcNumber: string, limit: number) {
+  return buildQuery(db, queryById('doctors.byKmpdcNumber'), [kmpdcNumber]).limit(
+    limit,
+  );
 }
 
 export type PatientSignUpResult =
@@ -161,7 +207,7 @@ export async function completePatientSignUpHandler(
     if ((await tx.get(ref)).exists) return { status: 'registered', patientId: c.uid };
     // A record a doctor linked to this account has its own id: it is theirs already, and a
     // second record under the same uid would make their own record ambiguous.
-    const linked = await tx.get(db.collection(PATIENTS).where('uid', '==', c.uid).limit(1));
+    const linked = await tx.get(patientsByUid(db, c.uid));
     if (!linked.empty) return { status: 'registered', patientId: linked.docs[0].id };
     if ((await tx.get(db.collection(DOCTORS).doc(c.uid))).exists) {
       throw refuse('failed-precondition', 'roleAlreadySet');
@@ -231,7 +277,7 @@ export async function linkPatientAccountHandler(
   deps: Deps,
   caller: Caller | null,
   data: unknown,
-): Promise<{ status: 'linked'; patientId: string }> {
+): Promise<{ status: 'linked'; patientId: string; casesPending: boolean }> {
   const c = requireCaller(caller);
   if (c.role !== 'doctor') throw refuse('permission-denied', 'doctorsOnly');
   const raw = input(data);
@@ -267,7 +313,7 @@ export async function linkPatientAccountHandler(
     }
     const [ownRecord, linked, doctor] = await Promise.all([
       tx.get(db.collection(PATIENTS).doc(account.uid)),
-      tx.get(db.collection(PATIENTS).where('uid', '==', account.uid).limit(1)),
+      tx.get(patientsByUid(db, account.uid)),
       tx.get(db.collection(DOCTORS).doc(account.uid)),
     ]);
     if (ownRecord.exists || !linked.empty || doctor.exists) {
@@ -281,8 +327,79 @@ export async function linkPatientAccountHandler(
     });
   });
 
+  await startLinkJob(deps, patientId, account.uid);
   await setRole(deps.auth, account.uid, 'patient');
-  return { status: 'linked', patientId };
+  // The record is linked and the role set by now, so a failure here is not the caller's to retry:
+  // the job keeps its cursor and `resumeLinkJobs` finishes it.
+  let finished = false;
+  try {
+    finished = await runLinkJob(deps, patientId, INLINE_PAGES);
+  } catch {
+    finished = false;
+  }
+  return { status: 'linked', patientId, casesPending: !finished };
+}
+
+export const LINK_PAGE = 20;
+/** The call links this many pages itself; a longer history is finished by the resume sweep. */
+const INLINE_PAGES = 5;
+
+async function startLinkJob(deps: Deps, patientId: string, uid: string): Promise<void> {
+  const ref = deps.db.collection('linkJobs').doc(patientId);
+  const at = timestamp((deps.now ?? (() => new Date()))());
+  await deps.db.runTransaction(async (tx) => {
+    if ((await tx.get(ref)).exists) return;
+    tx.create(ref, { patientId, uid, status: 'Running', cursor: '', casesLinked: 0, createdAt: at, lastUpdatedAt: at });
+  });
+}
+
+/** One case per transaction: `patientUid`, the participants and the readers of every released version. */
+async function linkCase(deps: Deps, caseUid: string, uid: string): Promise<boolean> {
+  const { db } = deps;
+  const now = (deps.now ?? (() => new Date()))();
+  return db.runTransaction(async (tx) => {
+    const ref = db.collection('cases').doc(caseUid);
+    const snap = await tx.get(ref);
+    if (!snap.exists) return false;
+    const s = CaseState.from(snap);
+    if (s.patientUid === uid) return false;
+    const versions = await loadVersions(tx, ref);
+    const next = s.with({ patientUid: uid });
+    commitCase(tx, ref, next, now);
+    syncCaseReaders(tx, next, versions.map((v) => v.access), now);
+    return true;
+  });
+}
+
+/**
+ * Pages of {@link LINK_PAGE} cases by document id after the job's cursor. Resumable: the cursor
+ * moves after each page, and linking a case twice changes nothing. True once the job is `Done`.
+ */
+export async function runLinkJob(deps: Deps, patientId: string, maxPages = Number.POSITIVE_INFINITY): Promise<boolean> {
+  const { db } = deps;
+  const jobRef = db.collection('linkJobs').doc(patientId);
+  for (let page = 0; page < maxPages; page++) {
+    const job = (await jobRef.get()).data();
+    if (!job) return true;
+    if (job.status === 'Done') return true;
+    const cursor = str(job.cursor);
+    let query = buildQuery(db, queryById('cases.byPatientId'), [patientId]).orderBy(FieldPath.documentId());
+    if (cursor !== '') query = query.startAfter(cursor);
+    const cases = await query.limit(LINK_PAGE).get();
+    let linked = 0;
+    for (const doc of cases.docs) {
+      if (await linkCase(deps, doc.id, str(job.uid))) linked += 1;
+    }
+    const done = cases.size < LINK_PAGE;
+    await jobRef.update({
+      status: done ? 'Done' : 'Running',
+      cursor: cases.docs.at(-1)?.id ?? cursor,
+      casesLinked: Number(job.casesLinked ?? 0) + linked,
+      lastUpdatedAt: timestamp((deps.now ?? (() => new Date()))()),
+    });
+    if (done) return true;
+  }
+  return false;
 }
 
 const TITLES = ['Dr.', 'Prof.', 'Mr.', 'Mrs.', 'Ms.'] as const;
@@ -392,6 +509,10 @@ export async function completePractitionerSignUpHandler(
     subCounty: facility.subCounty,
     geohash: facility.geohash,
     isAvailable: raw.isAvailable !== false,
+    workingDays: [...DEFAULT_WORKING_DAYS],
+    dayStartMinute: DEFAULT_DAY_START_MINUTE,
+    dayEndMinute: DEFAULT_DAY_END_MINUTE,
+    busySlots: [],
     fcmTokens: [],
     language: raw.language === undefined ? 'en' : oneOf(raw.language, LANGUAGES, 'invalidLanguage'),
     receiveNotifications: true,
@@ -412,10 +533,10 @@ export async function completePractitionerSignUpHandler(
     // through may predate the link.
     const [ownRecord, linked] = await Promise.all([
       tx.get(db.collection(PATIENTS).doc(c.uid)),
-      tx.get(db.collection(PATIENTS).where('uid', '==', c.uid).limit(1)),
+      tx.get(patientsByUid(db, c.uid)),
     ]);
     if (ownRecord.exists || !linked.empty) throw refuse('failed-precondition', 'roleAlreadySet');
-    const taken = await tx.get(db.collection(DOCTORS).where('kmpdcNumber', '==', kmpdcNumber).limit(1));
+    const taken = await tx.get(doctorsByKmpdc(db, kmpdcNumber, 1));
     if (!taken.empty) throw refuse('already-exists', 'kmpdcNumberInUse');
     tx.create(ref, record);
     return { status: 'Pending' as const };
@@ -443,7 +564,7 @@ export async function verifyPractitionerHandler(
     // The number stays editable until verified, so uniqueness is checked again here.
     if (decision === 'Verified') {
       const holders = await tx.get(
-        db.collection(DOCTORS).where('kmpdcNumber', '==', doc.get('kmpdcNumber')).limit(2),
+        doctorsByKmpdc(db, doc.get('kmpdcNumber') as string, 2),
       );
       if (holders.docs.some((d) => d.id !== uid)) throw refuse('already-exists', 'kmpdcNumberInUse');
     }
@@ -490,7 +611,11 @@ const PUBLIC_FIELDS = [
  * late and out of order, so the profile is read as it stands now rather than taken from the
  * event: a stale "Verified" never republishes a practitioner since rejected (T-14).
  */
-export async function syncPractitionerHandler(db: Firestore, uid: string): Promise<'written' | 'removed'> {
+export async function syncPractitionerHandler(
+  db: Firestore,
+  uid: string,
+  now: Date = new Date(),
+): Promise<'written' | 'removed'> {
   const ref = db.collection(PRACTITIONERS).doc(uid);
   return db.runTransaction(async (tx) => {
     const after = (await tx.get(db.collection(DOCTORS).doc(uid))).data();
@@ -510,6 +635,7 @@ export async function syncPractitionerHandler(db: Firestore, uid: string): Promi
       subCounty: facility?.subCounty ?? '',
       geohash: facility?.geohash ?? '',
       isAvailable: after.isAvailable === true,
+      ...availabilityOf(after, now),
       appointmentsHandled: after.appointmentsHandled ?? 0,
       ordersCreated: after.ordersCreated ?? 0,
       reportsSigned: after.reportsSigned ?? 0,

@@ -20,8 +20,22 @@ Map<String, dynamic> practitionerJson() => {
   'appointmentsHandled': 10,
   'ordersCreated': 20,
   'reportsSigned': 30,
+  'workingDays': [1, 2, 3, 6],
+  'dayStartMinute': 540,
+  'dayEndMinute': 960,
+  'busySlots': ['2026-11-01T08:00:00.000Z'],
   'lastUpdatedAt': '2026-10-21T10:00:00.000Z',
 };
+
+/// Today's shape before the working-hours fields existed.
+Map<String, dynamic> legacyPractitionerJson() {
+  final json = practitionerJson()
+    ..remove('workingDays')
+    ..remove('dayStartMinute')
+    ..remove('dayEndMinute')
+    ..remove('busySlots');
+  return json;
+}
 
 void main() {
   group('PractitionerModel', () {
@@ -30,6 +44,10 @@ void main() {
       expect(model.uid, '');
       expect(model.isPathologist, isFalse);
       expect(model.reportsSigned, 0);
+      expect(model.workingDays, [1, 2, 3, 4, 5]);
+      expect(model.dayStartMinute, 480);
+      expect(model.dayEndMinute, 1020);
+      expect(model.busySlots, isEmpty);
       expect(model.synced, isTrue);
     });
 
@@ -38,12 +56,36 @@ void main() {
       expect(model.uid, 'doctor-1');
       expect(model.isPathologist, isTrue);
       expect(model.reportsSigned, 30);
+      expect(model.workingDays, [1, 2, 3, 6]);
+      expect(model.dayStartMinute, 540);
+      expect(model.dayEndMinute, 960);
+      expect(model.busySlots, ['2026-11-01T08:00:00.000Z']);
       expect(model.synced, isTrue);
     });
+
+    test(
+      'fromJson fills working-hours defaults when the fields are absent',
+      () {
+        final model = PractitionerModel.fromJson(legacyPractitionerJson());
+        expect(model.workingDays, [1, 2, 3, 4, 5]);
+        expect(model.dayStartMinute, 480);
+        expect(model.dayEndMinute, 1020);
+        expect(model.busySlots, isEmpty);
+        expect(model.uid, 'doctor-1');
+      },
+    );
 
     test('fromJson round-trips through toJson', () {
       final json = practitionerJson();
       expect(PractitionerModel.fromJson(json).toJson(), json);
+    });
+
+    test('toJson writes the four working-hours fields', () {
+      final json = PractitionerModel.fromJson(practitionerJson()).toJson();
+      expect(json['workingDays'], [1, 2, 3, 6]);
+      expect(json['dayStartMinute'], 540);
+      expect(json['dayEndMinute'], 960);
+      expect(json['busySlots'], ['2026-11-01T08:00:00.000Z']);
     });
 
     test('toJson never emits synced', () {

@@ -25,8 +25,9 @@ anything in an area:
   under `lib/` or in `pubspec.yaml`.
 - **No credential anywhere in the repository**: not in code, `--dart-define`, assets, Remote
   Config, fixtures or docs. Never print environment variables, and never read the Keychain.
-- **AI output reaches a person only through a human approval.** Treat any change near drafts,
-  reports, results or alerts as high risk and stop to ask rather than guess.
+- **AI output reaches a person only through a human approval**, or, under the threat model's
+  S-8, directly to a qualified reader the docs name, always labelled as AI. Treat any change near
+  drafts, reports, results or alerts as high risk and stop to ask rather than guess.
 - **Name no other product, company project or repository** in code, comments, docs or commit-ready
   text, even when a brief points you at one for reference.
 - **Do not add dependencies** unless the brief asks for one.

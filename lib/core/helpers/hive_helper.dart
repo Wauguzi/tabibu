@@ -2,27 +2,66 @@
 
 import 'dart:async';
 import 'dart:convert';
+import 'dart:io';
 
 import 'package:flutter/foundation.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:hive_ce_flutter/hive_flutter.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
+import 'package:path_provider/path_provider.dart';
 import 'package:tabibu/core/helpers/db_helper.dart';
-import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
+import 'package:tabibu/features/alerts/data/models/alert_clinician_brief_hive.dart';
+import 'package:tabibu/features/alerts/data/models/alert_receipt_hive.dart';
+import 'package:tabibu/features/alerts/data/models/alert_text_hive.dart';
+import 'package:tabibu/features/alerts/data/models/guidance_bullet_hive.dart';
+import 'package:tabibu/features/alerts/data/models/guidance_source_hive.dart';
+import 'package:tabibu/features/alerts/data/models/public_alert_hive.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_hive.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_intake_hive.dart';
+import 'package:tabibu/features/appointments/data/models/intake_draft_hive.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_log_entry_hive.dart';
+import 'package:tabibu/features/cases/data/models/case_payment_hive.dart';
+import 'package:tabibu/features/cases/data/models/notes_translation_hive.dart';
+import 'package:tabibu/features/cases/data/models/ordered_test_hive.dart';
+import 'package:tabibu/features/cases/data/models/risk_check_hive.dart';
+import 'package:tabibu/features/cases/data/models/share_code_hive.dart';
+import 'package:tabibu/features/cases/data/models/slide_image_hive.dart';
+import 'package:tabibu/features/conversations/data/models/case_summary_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_cursor_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_hive.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_member_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_preview_hive.dart';
+import 'package:tabibu/features/conversations/data/models/message_transcript_hive.dart';
+import 'package:tabibu/features/notifications/data/models/notification_hive.dart';
+import 'package:tabibu/features/notifications/data/models/notification_metadata_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_hive.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_hive.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
+import 'package:tabibu/features/reports/data/models/notifiable_finding_hive.dart';
+import 'package:tabibu/features/reports/data/models/pathology_report_hive.dart';
+import 'package:tabibu/features/reports/data/models/preread_score_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_addendum_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_draft_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_measurement_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_response_hive.dart';
+import 'package:tabibu/features/reports/data/models/report_text_approved_hive.dart';
+import 'package:tabibu/features/worklist/data/models/worklist_entry_hive.dart';
 
 /// The offline cache (architecture §6). Reads are scoped to the signed-in
 /// person; there is no unscoped read of patients.
 abstract class HiveHelper {
   Future<void> initBoxes();
+
+  /// The messages box, opened on first use rather than before runApp.
+  Future<LazyBox<MessageHive>> messagesBox();
 
   /// Deletes every encrypted box and rotates the key, because a clinic phone
   /// is often shared (§6, T-11). Device preferences survive.
@@ -71,24 +110,23 @@ abstract class HiveHelper {
 
 @Singleton(as: HiveHelper)
 class HiveHelperImpl implements HiveHelper {
-  HiveHelperImpl({DBHelper? dbHelper, FlutterSecureStorage? secureStorage})
-    : _db = dbHelper ?? getIt<DBHelper>(),
-      _secureStorage = secureStorage ?? getIt<FlutterSecureStorage>(),
+  HiveHelperImpl({required DBHelper dbHelper, required this._secureStorage})
+    : _db = dbHelper,
       _initHive = Hive.initFlutter;
 
   /// Tests run Hive against a temporary directory instead.
   @visibleForTesting
   HiveHelperImpl.withInit({
     required this._initHive,
-    DBHelper? dbHelper,
-    FlutterSecureStorage? secureStorage,
-  }) : _db = dbHelper ?? getIt<DBHelper>(),
-       _secureStorage = secureStorage ?? getIt<FlutterSecureStorage>();
+    required DBHelper dbHelper,
+    required this._secureStorage,
+  }) : _db = dbHelper;
 
   final DBHelper _db;
   final FlutterSecureStorage _secureStorage;
   final Future<void> Function() _initHive;
   final Logger _logger = Logger();
+  Future<LazyBox<MessageHive>>? _messagesBox;
 
   static const patientsBox = 'patients';
   static const doctorProfileBox = 'doctorProfile';
@@ -96,12 +134,75 @@ class HiveHelperImpl implements HiveHelper {
   static const onboardingBox = 'onboarding';
   static const _onboardingKey = 'device';
 
+  // Cases.
+  static const casesBox = 'cases';
+  static const caseLogsBox = 'caseLogs';
+  static const casePaymentsBox = 'casePayments';
+  static const shareCodesBox = 'shareCodes';
+  static const riskChecksBox = 'riskChecks';
+  static const notesTranslationsBox = 'notesTranslations';
+
+  // Reports.
+  static const pathologyReportsBox = 'pathologyReports';
+  static const reportDraftsBox = 'reportDrafts';
+  static const prereadScoresBox = 'prereadScores';
+  static const worklistBox = 'worklist';
+  static const reportTextsBox = 'reportTexts';
+
+  // Appointments.
+  static const appointmentsBox = 'appointments';
+  static const appointmentIntakesBox = 'appointmentIntakes';
+
+  // Conversations.
+  static const conversationsBox = 'conversations';
+  static const conversationCursorsBox = 'conversationCursors';
+  static const messagesBoxName = 'messages';
+  static const messageTranscriptsBox = 'messageTranscripts';
+
+  // Notifications.
+  static const notificationsBox = 'notifications';
+
+  // Alerts.
+  static const publicAlertsBox = 'publicAlerts';
+  static const alertClinicianBriefsBox = 'alertClinicianBriefs';
+  static const alertReceiptsBox = 'alertReceipts';
+
+  /// Voice notes and images cached as files; wiped on sign-out (T-11).
+  static const _mediaCacheDirName = 'tabibu_media';
+
   /// Everything holding a person's data. A box added here needs its case in
   /// `DBHelper.deleteAll`, or deleting it throws.
   static const Map<Type, String> _encryptedBoxes = {
     PatientHive: patientsBox,
     DoctorHive: doctorProfileBox,
     PractitionerHive: practitionersBox,
+    // Cases.
+    CaseHive: casesBox,
+    CaseLogEntryHive: caseLogsBox,
+    CasePaymentHive: casePaymentsBox,
+    ShareCodeHive: shareCodesBox,
+    RiskCheckHive: riskChecksBox,
+    NotesTranslationHive: notesTranslationsBox,
+    // Reports.
+    PathologyReportHive: pathologyReportsBox,
+    ReportDraftHive: reportDraftsBox,
+    PrereadScoreHive: prereadScoresBox,
+    WorklistEntryHive: worklistBox,
+    ReportTextApprovedHive: reportTextsBox,
+    // Appointments.
+    AppointmentHive: appointmentsBox,
+    AppointmentIntakeHive: appointmentIntakesBox,
+    // Conversations.
+    ConversationHive: conversationsBox,
+    ConversationCursorHive: conversationCursorsBox,
+    MessageHive: messagesBoxName,
+    MessageTranscriptHive: messageTranscriptsBox,
+    // Notifications.
+    NotificationHive: notificationsBox,
+    // Alerts.
+    PublicAlertHive: publicAlertsBox,
+    AlertClinicianBriefHive: alertClinicianBriefsBox,
+    AlertReceiptHive: alertReceiptsBox,
   };
 
   static const _keyName = 'hiveKey';
@@ -117,6 +218,7 @@ class HiveHelperImpl implements HiveHelper {
 
   @override
   Future<void> initBoxes() async {
+    _messagesBox = null;
     await _initHive();
     _registerAdapters();
     await Hive.openBox<OnboardingHive>(onboardingBox);
@@ -155,14 +257,217 @@ class HiveHelperImpl implements HiveHelper {
     if (!Hive.isAdapterRegistered(3)) {
       Hive.registerAdapter(OnboardingHiveAdapter());
     }
+    if (!Hive.isAdapterRegistered(41)) {
+      Hive.registerAdapter(NotificationMetadataHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(40)) {
+      Hive.registerAdapter(NotificationHiveAdapter());
+    }
+    // Nested types first: each before the type that holds it.
+    if (!Hive.isAdapterRegistered(47)) {
+      Hive.registerAdapter(AlertTextHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(48)) {
+      Hive.registerAdapter(GuidanceBulletHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(49)) {
+      Hive.registerAdapter(GuidanceSourceHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(50)) {
+      Hive.registerAdapter(AlertClinicianBriefHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(46)) {
+      Hive.registerAdapter(PublicAlertHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(51)) {
+      Hive.registerAdapter(AlertReceiptHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(5)) {
+      Hive.registerAdapter(OrderedTestHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(6)) {
+      Hive.registerAdapter(SlideImageHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(8)) {
+      Hive.registerAdapter(CasePaymentHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(9)) {
+      Hive.registerAdapter(ShareCodeHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(10)) {
+      Hive.registerAdapter(RiskCheckHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(11)) {
+      Hive.registerAdapter(NotesTranslationHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(7)) {
+      Hive.registerAdapter(CaseLogEntryHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(4)) {
+      Hive.registerAdapter(CaseHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(33)) {
+      Hive.registerAdapter(ConversationMemberHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(34)) {
+      Hive.registerAdapter(CaseSummaryHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(36)) {
+      Hive.registerAdapter(MessagePreviewHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(37)) {
+      Hive.registerAdapter(ConversationCursorHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(38)) {
+      Hive.registerAdapter(MessageTranscriptHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(35)) {
+      Hive.registerAdapter(MessageHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(32)) {
+      Hive.registerAdapter(ConversationHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(17)) {
+      Hive.registerAdapter(ReportResponseHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(18)) {
+      Hive.registerAdapter(ReportAddendumHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(19)) {
+      Hive.registerAdapter(ReportMeasurementHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(52)) {
+      Hive.registerAdapter(NotifiableFindingHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(16)) {
+      Hive.registerAdapter(PathologyReportHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(20)) {
+      Hive.registerAdapter(ReportDraftHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(21)) {
+      Hive.registerAdapter(PrereadScoreHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(22)) {
+      Hive.registerAdapter(WorklistEntryHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(23)) {
+      Hive.registerAdapter(ReportTextApprovedHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(26)) {
+      Hive.registerAdapter(IntakeDraftHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(25)) {
+      Hive.registerAdapter(AppointmentIntakeHiveAdapter());
+    }
+    if (!Hive.isAdapterRegistered(24)) {
+      Hive.registerAdapter(AppointmentHiveAdapter());
+    }
   }
 
   Future<void> _openEncryptedBoxes(HiveAesCipher cipher) async {
+    final stopwatch = Stopwatch()..start();
     await Hive.openBox<PatientHive>(patientsBox, encryptionCipher: cipher);
     await Hive.openBox<DoctorHive>(doctorProfileBox, encryptionCipher: cipher);
     await Hive.openBox<PractitionerHive>(
       practitionersBox,
       encryptionCipher: cipher,
+    );
+    // Cases.
+    await Hive.openBox<CaseHive>(casesBox, encryptionCipher: cipher);
+    await Hive.openBox<CaseLogEntryHive>(caseLogsBox, encryptionCipher: cipher);
+    await Hive.openBox<CasePaymentHive>(
+      casePaymentsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ShareCodeHive>(shareCodesBox, encryptionCipher: cipher);
+    await Hive.openBox<RiskCheckHive>(riskChecksBox, encryptionCipher: cipher);
+    await Hive.openBox<NotesTranslationHive>(
+      notesTranslationsBox,
+      encryptionCipher: cipher,
+    );
+    // Reports.
+    await Hive.openBox<PathologyReportHive>(
+      pathologyReportsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ReportDraftHive>(
+      reportDraftsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<PrereadScoreHive>(
+      prereadScoresBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<WorklistEntryHive>(
+      worklistBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ReportTextApprovedHive>(
+      reportTextsBox,
+      encryptionCipher: cipher,
+    );
+    // Appointments.
+    await Hive.openBox<AppointmentHive>(
+      appointmentsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<AppointmentIntakeHive>(
+      appointmentIntakesBox,
+      encryptionCipher: cipher,
+    );
+    // Conversations.
+    await Hive.openBox<ConversationHive>(
+      conversationsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<ConversationCursorHive>(
+      conversationCursorsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<MessageTranscriptHive>(
+      messageTranscriptsBox,
+      encryptionCipher: cipher,
+    );
+    // Notifications.
+    await Hive.openBox<NotificationHive>(
+      notificationsBox,
+      encryptionCipher: cipher,
+    );
+    // Alerts.
+    await Hive.openBox<PublicAlertHive>(
+      publicAlertsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<AlertClinicianBriefHive>(
+      alertClinicianBriefsBox,
+      encryptionCipher: cipher,
+    );
+    await Hive.openBox<AlertReceiptHive>(
+      alertReceiptsBox,
+      encryptionCipher: cipher,
+    );
+    stopwatch.stop();
+    // One less than the map: messages opens lazily through messagesBox().
+    if (kDebugMode) {
+      _logger.i(
+        'Hive opened ${_encryptedBoxes.length - 1} encrypted boxes '
+        'in ${stopwatch.elapsedMilliseconds}ms',
+      );
+    }
+  }
+
+  @override
+  Future<LazyBox<MessageHive>> messagesBox() =>
+      _messagesBox ??= _openMessagesBox();
+
+  Future<LazyBox<MessageHive>> _openMessagesBox() async {
+    if (Hive.isBoxOpen(messagesBoxName)) {
+      return Hive.lazyBox<MessageHive>(messagesBoxName);
+    }
+    return await Hive.openLazyBox<MessageHive>(
+      messagesBoxName,
+      encryptionCipher: await _cipher(rotate: false),
     );
   }
 
@@ -197,8 +502,24 @@ class HiveHelperImpl implements HiveHelper {
     // A box cleared but kept would still be encrypted with the old key, so
     // the boxes are deleted, not cleared, before the key rotates.
     await _db.deleteAll(_encryptedBoxes);
+    _messagesBox = null;
+    await _clearMediaCache();
     await _openEncryptedBoxes(await _cipher(rotate: true));
     await _secureStorage.delete(key: _ownerName).timeout(_secureStorageTimeout);
+  }
+
+  /// Deletes the cached voice notes and images, best effort: a failure is
+  /// logged in debug and never blocks sign-out.
+  Future<void> _clearMediaCache() async {
+    try {
+      final cache = await getApplicationCacheDirectory();
+      final dir = Directory('${cache.path}/$_mediaCacheDirName');
+      if (dir.existsSync()) {
+        dir.deleteSync(recursive: true);
+      }
+    } catch (e) {
+      if (kDebugMode) _logger.w('Media cache delete failed: $e');
+    }
   }
 
   @override

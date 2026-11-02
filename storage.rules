@@ -1,11 +1,14 @@
 rules_version = '2';
 
-// Storage paths (architecture §6.1, CRQ-0016, CRQ-0026). Pictures are JPEG or PNG under 3 MB;
-// licence files are JPEG, PNG or PDF under 10 MB. Each path takes fixed names only (one per slot
-// and format), so an account holds at most two pictures and six licence files however often it
-// uploads, and an upload under the caller's own uid needs a confirmed email. Everything not
-// matched here is denied.
-// Tests: test/firestore_rules/ (make rules-test).
+// Storage paths (architecture §6.1 / §11, threat model T-8, CRQ-0016, CRQ-0026,
+// the feat/infra CRQs). Pictures JPEG/PNG under 3 MB; licences JPEG/PNG/PDF
+// under 10 MB; slides ≤ 20 MB; conversation images < 3 MB; voice notes and
+// speechAudio ≤ 512 KB.
+// get() budget: slides 1; preread 1; signature 1; conversation image/voice 2
+// (conversation get + message exists). Emulator check: architecture / U-1.
+// Orphan conversation uploads (fresh mid, no message) are not capped here
+// (M-5); the orphan sweep / lifecycle on conversation prefixes is the
+// mitigation. Tests: test/firestore_rules/ (make rules-test).
 
 service firebase.storage {
   match /b/{bucket}/o {
@@ -14,12 +17,28 @@ service firebase.storage {
       return request.auth != null;
     }
 
+    function role() {
+      return request.auth.token.get('role', '');
+    }
+
+    function clinical() {
+      return role() in ['patient', 'doctor', 'pathologist'];
+    }
+
     function under3MB() {
       return request.resource.size < 3 * 1024 * 1024;
     }
 
-    // The name's extension and the content type agree, so an SVG or HTML file cannot pass as an
-    // image under a fixed name.
+    function under512KB() {
+      return request.resource.size <= 512 * 1024;
+    }
+
+    function under20MB() {
+      return request.resource.size <= 20 * 1024 * 1024;
+    }
+
+    // The extension and content type agree, so an SVG or HTML file cannot
+    // pass as an image (or a PDF as a slide photo).
     function typedAs(file) {
       let type = request.resource.contentType;
       return (file.matches('.*[.]jpg') && type == 'image/jpeg')
@@ -27,12 +46,16 @@ service firebase.storage {
           || (file.matches('.*[.]pdf') && type == 'application/pdf');
     }
 
-    // The caller's own uid, with a confirmed email: a practitioner's files go up before their
-    // profile exists, so the confirmed account is what binds them.
-    function confirmedSelf(owner) {
-      return request.auth.uid == owner && request.auth.token.get('email_verified', false) == true;
+    function audioTyped() {
+      return request.resource.contentType in ['audio/mp4', 'audio/aac'];
     }
 
+    function confirmedSelf(owner) {
+      return request.auth.uid == owner
+          && request.auth.token.get('email_verified', false) == true;
+    }
+
+    // Owner is a doctors uid or a patientId.
     function patient(id) {
       return firestore.get(/databases/(default)/documents/patients/$(id)).data;
     }
@@ -41,26 +64,45 @@ service firebase.storage {
       return firestore.exists(/databases/(default)/documents/patients/$(id));
     }
 
-    // `owner` is a doctors uid or a patientId; a linked patient's id is not their uid.
     function ownsPicture(owner) {
       return confirmedSelf(owner)
           || (hasPatient(owner) && patient(owner).uid == request.auth.uid);
     }
 
     function caresForUnregistered(owner) {
-      return request.auth.token.get('role', '') == 'doctor'
+      return role() == 'doctor'
           && hasPatient(owner)
           && patient(owner).isRegistered == false
           && request.auth.uid in patient(owner).doctorUids;
     }
 
-    // With fixed names a path can be guessed, so a patient's picture is read only by the patient
-    // and their care team; a practitioner's (no patient record) is public to signed-in users,
-    // as the directory shows it.
     function readsPicture(owner) {
       return !hasPatient(owner)
           || patient(owner).uid == request.auth.uid
           || request.auth.uid in patient(owner).doctorUids;
+    }
+
+    function theCase(c) {
+      return firestore.get(/databases/(default)/documents/cases/$(c)).data;
+    }
+
+    function theReport(c, r) {
+      return firestore.get(/databases/(default)/documents/cases/$(c)/reports/$(r)).data;
+    }
+
+    function theConv(cid) {
+      return firestore.get(/databases/(default)/documents/conversations/$(cid)).data;
+    }
+
+    function convParticipant(cid) {
+      return clinical() && request.auth.uid in theConv(cid).participantUids;
+    }
+
+    // Message / Storage mid format (H-1 companion). Lowercase UUID v4.
+    function isUuidV4(id) {
+      return id.matches(
+          '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$'
+      );
     }
 
     match /profilePictures/{owner}/{file} {
@@ -71,8 +113,9 @@ service firebase.storage {
       allow delete: if signedIn() && (ownsPicture(owner) || caresForUnregistered(owner));
     }
 
-    // Uploaded before sign-up creates the profile, so a missing profile counts as not yet verified.
     match /licenses/{owner}/{file} {
+      // A missing profile counts as not yet verified. A role-less account
+      // only uploads while pending as a practitioner.
       function notVerified() {
         return !firestore.exists(/databases/(default)/documents/doctors/$(owner))
             || firestore.get(/databases/(default)/documents/doctors/$(owner)).data
@@ -80,14 +123,126 @@ service firebase.storage {
       }
 
       allow get: if signedIn()
-          && (request.auth.uid == owner || request.auth.token.get('admin', false) == true);
-      // A role-less account only: a pending practitioner holds none, so a patient or a verified
-      // practitioner cannot keep files here.
+          && (request.auth.uid == owner
+              || request.auth.token.get('admin', false) == true);
       allow create, update: if signedIn() && confirmedSelf(owner) && notVerified()
-          && request.auth.token.get('role', '') == ''
+          && role() == ''
           && request.resource.size < 10 * 1024 * 1024
           && file.matches('license_[12][.](jpg|png|pdf)') && typedAs(file);
       allow delete: if signedIn() && request.auth.uid == owner && notVerified();
     }
+
+    // ── slides/{c}/{imageUid}.jpg|png ───────────────────────────────────────
+    // Reservation is the bare image uid (what reserveSlideUploads stores). The
+    // stem of the object name must match; extension and content-type still bind
+    // the bytes (C-20).
+
+    match /slides/{c}/{name} {
+      function caseDoc() {
+        return theCase(c);
+      }
+
+      function slideWriter() {
+        return (role() == 'pathologist' && request.auth.uid == caseDoc().pathologistUid)
+            || (role() == 'doctor'
+                && request.auth.uid == caseDoc().doctorUid
+                && caseDoc().pathologistUid == '');
+      }
+
+      function slideReader() {
+        return (role() == 'doctor' && request.auth.uid == caseDoc().doctorUid)
+            || (role() == 'pathologist' && request.auth.uid == caseDoc().pathologistUid);
+      }
+
+      // .jpg and .png are both four characters including the dot.
+      function slideStem() {
+        return name[0:name.size() - 4];
+      }
+
+      allow read: if signedIn() && slideReader();
+      allow create: if signedIn()
+          && name.matches('^[A-Za-z0-9_-]+[.](jpg|png)$')
+          && typedAs(name)
+          && under20MB()
+          && slideStem() in caseDoc().slideUploadUids
+          && slideWriter();
+      allow update, delete: if false;
+    }
+
+    // ── preread/{c}/{r}/{file} ──────────────────────────────────────────────
+
+    match /preread/{c}/{r}/{file} {
+      allow read: if signedIn() && role() == 'pathologist'
+          && request.auth.uid == theCase(c).pathologistUid;
+      allow write: if false;
+    }
+
+    // ── reports/{c}/{r}/signature-{sha256}.png ──────────────────────────────
+
+    match /reports/{c}/{r}/{file} {
+      allow read: if signedIn()
+          && file.matches('signature-[0-9a-f]{64}[.]png')
+          && clinical()
+          && request.auth.uid in theReport(c, r).readerUids
+          && (role() != 'patient' || theReport(c, r).releasedToPatient == true);
+      allow write: if false;
+    }
+
+    // ── conversations/{cid}/images/{mid}/{file} ─────────────────────────────
+    // Write-once (resource == null): a retry after a landed upload is an
+    // update and is denied. mid is UUID v4 (H-1).
+
+    match /conversations/{cid}/images/{mid}/{file} {
+      allow read: if signedIn() && convParticipant(cid);
+      allow create: if signedIn() && convParticipant(cid)
+          && resource == null
+          && isUuidV4(mid)
+          && theConv(cid).status == 'Open'
+          && file.matches('image[.](jpg|png)')
+          && typedAs(file)
+          && under3MB()
+          && !firestore.exists(
+              /databases/(default)/documents/conversations/$(cid)/messages/$(mid));
+      allow update, delete: if false;
+    }
+
+    // ── conversations/{cid}/voice/{mid}.m4a ─────────────────────────────────
+
+    match /conversations/{cid}/voice/{file} {
+      // file is `{mid}.m4a`; Storage rules have no split().
+      function mid() {
+        return file[0:file.size() - 4];
+      }
+
+      allow read: if signedIn() && convParticipant(cid);
+      allow create: if signedIn() && convParticipant(cid)
+          && resource == null
+          && isUuidV4(mid())
+          && theConv(cid).status == 'Open'
+          && file.matches(
+              '^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-'
+              + '[0-9a-f]{12}[.]m4a$'
+          )
+          && audioTyped()
+          && under512KB()
+          && !firestore.exists(
+              /databases/(default)/documents/conversations/$(cid)/messages/$(mid()));
+      allow update, delete: if false;
+    }
+
+    // ── speechAudio/{uid}/{audioUid}.m4a ────────────────────────────────────
+
+    match /speechAudio/{u}/{file} {
+      allow read: if false;
+      allow create: if signedIn()
+          && u == request.auth.uid
+          && role() == 'patient'
+          && file.matches('^[A-Za-z0-9_-]+[.]m4a$')
+          && audioTyped()
+          && under512KB();
+      allow update, delete: if false;
+    }
+
+    // Everything not matched here is denied.
   }
 }

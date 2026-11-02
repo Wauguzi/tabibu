@@ -3,7 +3,6 @@ import 'package:flutter/foundation.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/constants/enums.dart';
-import 'package:tabibu/core/helpers/get_it_helper.dart';
 
 /// How a person signed in, as GA4's `method` parameter.
 enum SignInMethod {
@@ -21,8 +20,7 @@ enum SignInMethod {
 /// it describes.
 @lazySingleton
 class AnalyticsService {
-  AnalyticsService({FirebaseAnalytics? analytics})
-    : _analytics = analytics ?? getIt<FirebaseAnalytics>();
+  AnalyticsService({required this._analytics});
 
   final FirebaseAnalytics _analytics;
   final Logger _logger = Logger();

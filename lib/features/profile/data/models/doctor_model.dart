@@ -38,6 +38,12 @@ abstract class DoctorModel with _$DoctorModel {
     @JsonKey(name: 'termsAcceptedAt') required String termsAcceptedAt,
     @JsonKey(name: 'createdAt') required String createdAt,
     @JsonKey(name: 'lastUpdatedAt') required String lastUpdatedAt,
+    @JsonKey(name: 'workingDays')
+    @Default([1, 2, 3, 4, 5])
+    List<int> workingDays,
+    @JsonKey(name: 'dayStartMinute') @Default(480) int dayStartMinute,
+    @JsonKey(name: 'dayEndMinute') @Default(1020) int dayEndMinute,
+    @JsonKey(name: 'busySlots') @Default(<String>[]) List<String> busySlots,
     @JsonKey(includeFromJson: false, includeToJson: false)
     @Default(true)
     bool synced,

@@ -3,7 +3,8 @@ import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 
 part 'doctor_hive.g.dart';
 
-/// Cached [DoctorModel], in the same field order.
+/// Cached [DoctorModel], in the same field order. Fields added after release
+/// are appended at the end with a default.
 @HiveType(typeId: 1)
 class DoctorHive {
   DoctorHive({
@@ -37,6 +38,10 @@ class DoctorHive {
     required this.createdAt,
     required this.lastUpdatedAt,
     required this.synced,
+    required this.workingDays,
+    required this.dayStartMinute,
+    required this.dayEndMinute,
+    required this.busySlots,
   });
 
   factory DoctorHive.fromModel(DoctorModel model) {
@@ -71,6 +76,10 @@ class DoctorHive {
       createdAt: model.createdAt,
       lastUpdatedAt: model.lastUpdatedAt,
       synced: model.synced,
+      workingDays: model.workingDays,
+      dayStartMinute: model.dayStartMinute,
+      dayEndMinute: model.dayEndMinute,
+      busySlots: model.busySlots,
     );
   }
 
@@ -104,6 +113,10 @@ class DoctorHive {
       reportsSigned: reportsSigned,
       termsAcceptedAt: termsAcceptedAt,
       createdAt: createdAt,
+      workingDays: workingDays,
+      dayStartMinute: dayStartMinute,
+      dayEndMinute: dayEndMinute,
+      busySlots: busySlots,
       lastUpdatedAt: lastUpdatedAt,
       synced: synced,
     );
@@ -198,4 +211,16 @@ class DoctorHive {
 
   @HiveField(29)
   final bool synced;
+
+  @HiveField(30, defaultValue: [1, 2, 3, 4, 5])
+  final List<int> workingDays;
+
+  @HiveField(31, defaultValue: 480)
+  final int dayStartMinute;
+
+  @HiveField(32, defaultValue: 1020)
+  final int dayEndMinute;
+
+  @HiveField(33, defaultValue: <String>[])
+  final List<String> busySlots;
 }

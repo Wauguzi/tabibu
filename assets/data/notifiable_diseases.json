@@ -1,0 +1,1502 @@
+[
+  {
+    "diseaseId": "ebola_virus_disease",
+    "nameEn": "Ebola virus disease",
+    "nameSw": "Ugonjwa wa virusi vya Ebola",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+    "caseDefinitionSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-55b4-4457-b87b-9363ede06454",
+        "name": "NAATs for Ebola",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4",
+      "S12",
+      "S13",
+      "S14",
+      "S15"
+    ]
+  },
+  {
+    "diseaseId": "marburg_virus_disease",
+    "nameEn": "Marburg virus disease",
+    "nameSw": "Ugonjwa wa virusi vya Marburg",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+    "caseDefinitionSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-89c6-4b7a-8467-32b5f4e5d9ff",
+        "name": "NAATs for Marburg virus",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-5943-4bf0-b6df-d60c59ac734c",
+        "name": "IgM captured ELISA for Marburg virus",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4",
+      "S19",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "lassa_fever",
+    "nameEn": "Lassa fever",
+    "nameSw": "Homa ya Lassa",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+    "caseDefinitionSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-6800-4e07-8ce1-6b0b7a0f8678",
+        "name": "NAATs for Lassa fever",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-6a1e-41ba-8d10-17d7a353c6d2",
+        "name": "IgM, IgG ELISA for Lassa fever",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "crimean_congo_haemorrhagic_fever",
+    "nameEn": "Crimean-Congo haemorrhagic fever",
+    "nameSw": "Homa ya kutokwa na damu ya Kongo na Krimia",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Suspected VHF: fever under 3 weeks, severely ill, plus 2 or more haemorrhagic signs. Confirmed: lab-confirmed or epidemiologically linked.",
+    "caseDefinitionSw": "VHF inayoshukiwa: homa ya chini ya wiki 3, mgonjwa mahututi, pamoja na dalili 2 au zaidi za kutokwa na damu. Iliyothibitishwa: imethibitishwa kimaabara au ina uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb988-bba5-499e-af43-bf81fbf028b2",
+        "name": "Crimean Congo haemorrhagic fever NAATs",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-b72f-4f2e-908a-1cea16eea5e1",
+        "name": "Crimean Congo haemorrhagic fever IgG, IgM ELISA",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "rift_valley_fever",
+    "nameEn": "Rift Valley fever",
+    "nameSw": "Homa ya Bonde la Ufa",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Febrile illness over 48 h not responding to antimalarials or antibiotics, plus animal contact or an RVF area, ± haemorrhage, jaundice or renal signs. Confirmed: anti-RVF IgM ELISA or RT-PCR.",
+    "caseDefinitionSw": "Homa zaidi ya saa 48 isiyoitikia dawa za malaria au antibiotiki, pamoja na kugusana na wanyama au eneo la RVF, pamoja na kutokwa na damu, manjano au dalili za figo au bila hivyo. Iliyothibitishwa: kipimo cha anti-RVF IgM ELISA au RT-PCR.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-a0ae-4f98-b623-a4bbf17bd60b",
+        "name": "NAATs for Rift valley fever",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-7401-4089-bc6d-26407ac9a070",
+        "name": "IgM/IgG ELISA for Rift valley fever",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S17",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "yellow_fever",
+    "nameEn": "Yellow fever",
+    "nameSw": "Homa ya manjano",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Acute fever then jaundice within 2 weeks. Confirmed: IgM or viral isolation, or epidemiological link.",
+    "caseDefinitionSw": "Homa ya ghafla kisha manjano ndani ya wiki 2. Iliyothibitishwa: IgM au kutenga virusi, au uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-c85c-4097-94df-802492f67c8e",
+        "name": "NAATs for yellow fever",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-78de-45cb-ae46-0daa91abe6f7",
+        "name": "IgM/IgG ELISA for yellow fever",
+        "strength": "Confirms",
+        "mappingVerified": false
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "dengue",
+    "nameEn": "Dengue",
+    "nameSw": "Homa ya dengi",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Fever 2–7 days plus 2 or more of headache, retro-orbital pain, myalgia, arthralgia, rash, bleeding, leucopenia. Confirmed: IgM, rising IgG, PCR or isolation.",
+    "caseDefinitionSw": "Homa siku 2–7 pamoja na dalili 2 au zaidi kati ya kuumwa na kichwa, maumivu nyuma ya macho, maumivu ya misuli, maumivu ya viungo, vipele, kutokwa na damu, seli nyeupe chache. Iliyothibitishwa: IgM, IgG inayopanda, PCR au kutenga virusi.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb988-ed00-46ce-9d5a-5f268067d2f8",
+        "name": "Dengue NAATs tests",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-62d9-4219-abed-23855178f1fe",
+        "name": "IgM, IgG ELISA for dengue",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-3f59-4c89-b7cb-d927dd79ed5b",
+        "name": "RDTs for dengue",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S17",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "chikungunya",
+    "nameEn": "Chikungunya",
+    "nameSw": "Homa ya chikungunya",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Weekly",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S4",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-33ed-452e-9d52-ef49f8170711",
+        "name": "NAATs for chikungunya",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-505a-44e6-b5e4-06d361d30f38",
+        "name": "IgG/IgM ELISA for chikungunya",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S4",
+      "S17",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "west_nile_fever",
+    "nameEn": "West Nile fever",
+    "nameSw": "Homa ya Nile ya Magharibi",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "NotListed",
+    "kenyaGroup": "NotListed",
+    "categorySourceId": "",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-c13f-46cd-8974-887ca2e4c5ff",
+        "name": "NAATs for West Nile fever",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98d-52e3-48c6-b40d-fca61078f5f9",
+        "name": "West Nile fever IgG, IgM ELISA",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S9",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "zika",
+    "nameEn": "Zika",
+    "nameSw": "Homa ya Zika",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "NotListed",
+    "kenyaGroup": "NotListed",
+    "categorySourceId": "",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-cd67-4a97-9dd4-5b53fd9788d4",
+        "name": "NAATs for Zika virus",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-5e64-4f85-9c6d-e8a44a07cdcb",
+        "name": "IgM, IgG ELISA antibodies to Zika virus",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S10",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "cholera",
+    "nameEn": "Cholera",
+    "nameSw": "Kipindupindu",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Suspected: age 5 or over with acute profuse watery diarrhoea (3 or more times in 24 h); in an epidemic, age 2 or over. Confirmed: V. cholerae O1/O139 isolated from stool, or epidemiological link.",
+    "caseDefinitionSw": "Inayoshukiwa: umri wa miaka 5 au zaidi na kuhara maji mengi ya ghafla (mara 3 au zaidi kwa saa 24); wakati wa mlipuko, umri wa miaka 2 au zaidi. Iliyothibitishwa: V. cholerae O1/O139 imetengwa kutoka choo, au uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb988-d78e-4c81-b7d5-60b53422709c",
+        "name": "Culture and antimicrobial susceptibility tests for cholera",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-4c07-47f5-b37c-66db9d54fd37",
+        "name": "NAATs for cholera",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-88a6-4078-a922-ef4abbdadf5c",
+        "name": "Serotyping-cholera",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-97bb-4922-9d55-39764ec2f617",
+        "name": "Cholera antigen detection rapid test",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S16"
+    ]
+  },
+  {
+    "diseaseId": "plague",
+    "nameEn": "Plague",
+    "nameSw": "Tauni",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Sudden fever, chills, prostration, painful lymph nodes, or bloody sputum and dyspnoea. Confirmed: Y. pestis isolated from blood or bubo aspirate, or epidemiological link.",
+    "caseDefinitionSw": "Homa ya ghafla, baridi, udhaifu mkubwa, tezi za limfu zinazouma, au makohozi ya damu na kupumua kwa shida. Iliyothibitishwa: Y. pestis imetengwa kutoka damu au usaha wa tezi, au uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb989-3a54-40e6-b5ce-f4b4ee68e574",
+        "name": "Fine needle aspiration (FNA) test for plague",
+        "strength": "Supportive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-58b4-4c65-9551-0c887271b32f",
+        "name": "Blood culture",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "anthrax",
+    "nameEn": "Anthrax",
+    "nameSw": "Kimeta",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Cutaneous eschar with oedema, or GI or inhalational forms, plus animal or animal-product link. Confirmed: B. anthracis isolated from the affected site.",
+    "caseDefinitionSw": "Kidonda cheusi cha ngozi pamoja na uvimbe, au aina ya tumbo au ya kuvuta pumzi, pamoja na uhusiano na mnyama au mazao ya mnyama. Iliyothibitishwa: B. anthracis imetengwa kutoka sehemu iliyoathirika.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb988-d371-41b9-9f06-23f105cd9e15",
+        "name": "Culture and antimicrobial susceptibility tests for anthrax",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-1cc7-4ea7-aa06-90ace6849294",
+        "name": "NAATs for anthrax",
+        "strength": "Confirms",
+        "mappingVerified": false
+      },
+      {
+        "labTestId": "9f7bb989-a4b9-439f-8522-a4019879dcfe",
+        "name": "Gram stain microscopy for anthrax",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-1568-4d25-80ea-f167b2e5520f",
+        "name": "Enzyme-linked immunosorbent assay (ELISA) for anthrax",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S21"
+    ]
+  },
+  {
+    "diseaseId": "typhoid_fever",
+    "nameEn": "Typhoid fever",
+    "nameSw": "Homa ya matumbo",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Weekly",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Gradually rising, persistent high fever plus GI or constitutional symptoms. Confirmed: S. Typhi isolated from stool, blood, bone marrow or bowel fluid.",
+    "caseDefinitionSw": "Homa kali inayoongezeka taratibu na kudumu pamoja na dalili za tumbo au za mwili. Iliyothibitishwa: S. Typhi imetengwa kutoka choo, damu, uloto au maji ya utumbo.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-63fb-42af-9613-b5cb5bad768d",
+        "name": "Salmonella culture and antimicrobial susceptibility tests",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-58b4-4c65-9551-0c887271b32f",
+        "name": "Blood culture",
+        "strength": "Supportive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-b62f-4721-b565-155072bde3e4",
+        "name": "NAATs for salmonella",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-5da8-4889-a5c7-ecc87c32c177",
+        "name": "Salmonella antigen testing",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-7822-4cdc-9c9e-99273f8965f3",
+        "name": "Bone marrow aspirate (BMA)",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "shigella_dysentery",
+    "nameEn": "Shigella dysentery (bloody diarrhoea)",
+    "nameSw": "Kuhara damu (shigella)",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Weekly",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Diarrhoea with visible blood. Confirmed: stool culture positive for S. dysenteriae type 1.",
+    "caseDefinitionSw": "Kuhara na damu inayoonekana. Iliyothibitishwa: choo kimeotesha S. dysenteriae aina ya 1.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb988-cac1-4f8f-8bdb-395136238a1c",
+        "name": "Culture and antimicrobial susceptibility tests for dysentery",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-8fa9-4157-b8c4-6b28867fb7bb",
+        "name": "Serotyping-Shigella",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4"
+    ]
+  },
+  {
+    "diseaseId": "meningococcal_meningitis",
+    "nameEn": "Meningococcal / bacterial meningitis",
+    "nameSw": "Meningitis ya meningokoka",
+    "ihrStatus": "AlwaysAssessed",
+    "reportingCategory": "Weekly",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Sudden fever plus neck stiffness, altered consciousness or other meningeal signs. Confirmed: N. meningitidis isolated from CSF or blood.",
+    "caseDefinitionSw": "Homa ya ghafla pamoja na shingo kukakamaa, kupoteza fahamu au dalili nyingine za uti wa mgongo. Iliyothibitishwa: N. meningitidis imetengwa kutoka maji ya uti wa mgongo au damu.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb988-cfda-4d99-a3e2-2f5430fad7a7",
+        "name": "Culture and antimicrobial susceptibility tests for meningococcal meningitis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-8e37-44d5-8c18-7b8c6fac7fb6",
+        "name": "NAATs for meningococcal meningitis",
+        "strength": "Confirms",
+        "mappingVerified": false
+      },
+      {
+        "labTestId": "9f7bb98c-8438-450c-86fe-f23b2b13fb29",
+        "name": "Serotyping for meningococcal meningitis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "malaria",
+    "nameEn": "Malaria",
+    "nameSw": "Malaria",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Weekly",
+    "kenyaGroup": "Elimination",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Confirmed uncomplicated: fever in the past 24 h plus blood film or other parasite test. Confirmed severe: parasitaemia plus vital-organ dysfunction.",
+    "caseDefinitionSw": "Iliyothibitishwa isiyo kali: homa saa 24 zilizopita pamoja na filamu ya damu au kipimo kingine cha vimelea. Iliyothibitishwa kali: vimelea damuni pamoja na kuharibika kwa kiungo muhimu.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb988-7068-4bc4-a7c5-08c690da9482",
+        "name": "Blood smear for light microscopy for malaria",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-b977-4fa8-bddf-112727a6d1ea",
+        "name": "Malaria rapid tests",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-8490-4c64-b4ba-46943adc9d8f",
+        "name": "NAATs for malaria",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-8d93-4636-b268-443c9c91a73b",
+        "name": "Genome sequencing for malaria",
+        "strength": "Supportive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-dc1e-478f-9d78-2fee58af975c",
+        "name": "Peripheral blood film examination",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-1edd-45f1-8614-addc87bdf65f",
+        "name": "Rapid diagnostic test",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": false,
+    "preReadHint": "MalariaParasites",
+    "sourceIds": [
+      "S1",
+      "S20",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "measles",
+    "nameEn": "Measles",
+    "nameSw": "Surua",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "Elimination",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Fever plus maculopapular rash plus cough, coryza or conjunctivitis. Confirmed: measles IgM or epidemiological link.",
+    "caseDefinitionSw": "Homa pamoja na vipele vya mwili pamoja na kikohozi, mafua au macho mekundu. Iliyothibitishwa: IgM ya surua au uhusiano wa kiepidemiolojia.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98a-bf4e-4e31-bde7-8ef559c8bcb2",
+        "name": "Measles IgM/IgG ELISA test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-c506-4828-9cd7-d7cee1584bb9",
+        "name": "Measles NAATs test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "rubella",
+    "nameEn": "Rubella",
+    "nameSw": "Rubela",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "NotListed",
+    "kenyaGroup": "NotListed",
+    "categorySourceId": "",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-5820-4468-9c11-a343e31459af",
+        "name": "Rubella IgM/IgG antibody ELISA",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": []
+  },
+  {
+    "diseaseId": "poliomyelitis",
+    "nameEn": "Poliomyelitis / AFP",
+    "nameSw": "Polio (kupooza)",
+    "ihrStatus": "AlwaysNotifiable",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Suspected: sudden-onset flaccid weakness under 15 years, not traumatic, or clinician suspects polio. Confirmed: poliovirus isolated from stool.",
+    "caseDefinitionSw": "Inayoshukiwa: udhaifu wa ghafla wa kiungo kwa umri chini ya miaka 15, si kwa ajali, au daktari anashuku polio. Iliyothibitishwa: virusi vya polio vimetengwa kutoka choo.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-ed08-426b-8b1c-d4f6d14ef367",
+        "name": "Polio viral isolation in cell culture",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-9b5f-4bd4-85c1-bef7b7de8648",
+        "name": "NAATs for Polio virus PCR",
+        "strength": "Confirms",
+        "mappingVerified": false
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S8",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "influenza_new_subtype",
+    "nameEn": "Human influenza, new subtype",
+    "nameSw": "Mafua ya aina mpya",
+    "ihrStatus": "AlwaysNotifiable",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Lab diagnosis of a novel subtype.",
+    "caseDefinitionSw": "Uchunguzi wa kimaabara wa aina mpya.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98a-8b55-471c-b884-4f78217811f8",
+        "name": "Influenza multiplex NAATs",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S8",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "sars_covid19",
+    "nameEn": "SARS / COVID-19",
+    "nameSw": "SARS na UVIKO-19",
+    "ihrStatus": "AlwaysNotifiable",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-7d23-4f67-82f7-e6536083e63e",
+        "name": "SARS-CoV-2 NAATs",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-6978-4a14-a635-14903cfc6c0a",
+        "name": "SARS-CoV-2 antigen test",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-7845-46eb-9ac9-5c52aafed17c",
+        "name": "SARS-CoV-2 genome sequencing",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S4",
+      "S8",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "mpox",
+    "nameEn": "Mpox",
+    "nameSw": "Mpox",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "NotListed",
+    "categorySourceId": "",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-0029-478a-af89-9f7fdbd9cfe4",
+        "name": "Mpox NAATs",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S18",
+      "S19"
+    ]
+  },
+  {
+    "diseaseId": "smallpox",
+    "nameEn": "Smallpox",
+    "nameSw": "Ndui",
+    "ihrStatus": "AlwaysNotifiable",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Fever then a vesicular/pustular rash, all lesions at the same stage; lab-confirmed.",
+    "caseDefinitionSw": "Homa kisha vipele vya maji au usaha, vyote katika hatua moja; imethibitishwa kimaabara.",
+    "labTests": [],
+    "publicAlertEligible": true,
+    "allowManualAlert": true,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S8"
+    ]
+  },
+  {
+    "diseaseId": "tuberculosis_drug_resistant",
+    "nameEn": "TB (MDR/XDR)",
+    "nameSw": "Kifua kikuu sugu (MDR/XDR)",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Immediate",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Confirmed MDR: culture plus DST resistant to isoniazid and rifampicin. XDR adds an injectable and a fluoroquinolone.",
+    "caseDefinitionSw": "MDR iliyothibitishwa: kuotesha pamoja na DST inayostahimili isoniazid na rifampicin. XDR inaongeza dawa ya sindano na fluoroquinolone.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb989-08a8-47f4-a46f-07a61553974f",
+        "name": "Drug susceptibility testing of Mycobacterium tuberculosis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-183e-4d1e-96b8-b456beed91aa",
+        "name": "Mycobacterium tuberculosis DNA mutations associated with resistance test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-e367-426b-81e0-05daed5c5da3",
+        "name": "TB Whole Genome Sequencing (WGS)/Next Generation Sequencing (NGS)",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "tuberculosis",
+    "nameEn": "TB (all forms)",
+    "nameSw": "Kifua kikuu",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Smear-positive PTB (AFB) or culture-positive; smear-negative criteria in S1.",
+    "caseDefinitionSw": "PTB yenye smear chanya (AFB) au kuotesha chanya; vigezo vya smear hasi vimo katika S1.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-0b16-45bf-a338-a33949bd2ed0",
+        "name": "Mycobacterium tuberculosis bacteria test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-11f2-4fa1-ad36-02caacf89c36",
+        "name": "Mycobacterium tuberculosis deoxyribonucleic acid (DNA) test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-df24-4a7e-8fa8-d87416ccde6d",
+        "name": "TB lipoarabinomannan (LAM)",
+        "strength": "Confirms",
+        "mappingVerified": false
+      },
+      {
+        "labTestId": "9f7bb98a-18f8-43d5-a2aa-4f1dff633464",
+        "name": "Histological test for TB",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "brucellosis",
+    "nameEn": "Brucellosis",
+    "nameSw": "Bruselosis",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Probable: Rose Bengal positive, or SAT titre over 160. Confirmed: Brucella culture, or a fourfold titre rise.",
+    "caseDefinitionSw": "Inayowezekana: Rose Bengal chanya, au SAT zaidi ya 160. Iliyothibitishwa: kuotesha Brucella, au kupanda kwa mara nne kwa titre.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-5297-4674-8ff0-d2d72c45b240",
+        "name": "Rose Bengal (RBT) for brucellosis",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-964a-451d-831c-c1de95817520",
+        "name": "Serum agglutination tests (SAT) for brucellosis",
+        "strength": "Presumptive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-58b4-4c65-9551-0c887271b32f",
+        "name": "Blood culture",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "visceral_leishmaniasis",
+    "nameEn": "Visceral leishmaniasis (kala-azar)",
+    "nameSw": "Kala-azar",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "EpidemicProne",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Fever over 2 weeks plus splenomegaly in an endemic area. Confirmed: rK39 positive; LD bodies are the gold standard.",
+    "caseDefinitionSw": "Homa zaidi ya wiki 2 pamoja na wengu kuvimba katika eneo la ugonjwa. Iliyothibitishwa: rK39 chanya; miili ya LD ndiyo kipimo cha uhakika.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-3885-456e-9e03-88101ca5b233",
+        "name": "Rapid tests for leishmaniasis (recombinant k39 antigen test)",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-c766-4672-bb43-62c85aae6ea0",
+        "name": "Smear microscopy for leishmaniasis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-6dbd-49f5-93c5-155221d43c06",
+        "name": "NAATs for leishmaniasis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-f8ca-4e17-81e4-42d18752a697",
+        "name": "Direct fluorescence test for leishmaniasis",
+        "strength": "Supportive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-6f74-476d-88f9-b5c1f2de2a55",
+        "name": "IgM, IgG for ELISA leishmaniasis",
+        "strength": "Supportive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb988-7822-4cdc-9c9e-99273f8965f3",
+        "name": "Bone marrow aspirate (BMA)",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "human_african_trypanosomiasis",
+    "nameEn": "Human African trypanosomiasis",
+    "nameSw": "Ugonjwa wa usingizi",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "Elimination",
+    "categorySourceId": "S4",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98a-d5df-4970-aff5-286dfc53364f",
+        "name": "Microscopic smear for African trypanosomiasis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-49fc-4d57-8be3-61b3e3b002c6",
+        "name": "IgG/IgM ELISA for African trypanosomiasis",
+        "strength": "Supportive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-867b-4a56-8aa5-eb05c47951ea",
+        "name": "Indirect-fluorescence test for African trypanosomiasis",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S4",
+      "S5",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "leprosy",
+    "nameEn": "Leprosy",
+    "nameSw": "Ukoma",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "Elimination",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "2 or more cardinal signs plus M. leprae in skin snips.",
+    "caseDefinitionSw": "Dalili kuu 2 au zaidi pamoja na M. leprae katika vipande vya ngozi.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98a-daf2-4e0d-b32a-1da037f112f9",
+        "name": "Microscopy for leprosy",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-78a1-413d-8368-3833600f93df",
+        "name": "NAATs for leprosy",
+        "strength": "Confirms",
+        "mappingVerified": false
+      },
+      {
+        "labTestId": "9f7bb98c-bb0f-4780-a0af-cfcd51047b0a",
+        "name": "Skin snip biopsy",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "lymphatic_filariasis",
+    "nameEn": "Lymphatic filariasis",
+    "nameSw": "Matende",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "Elimination",
+    "categorySourceId": "S4",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98b-7f66-4e9f-a283-df3ca49220a0",
+        "name": "NAATs for lymphatic Filariasis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S4",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "onchocerciasis",
+    "nameEn": "Onchocerciasis",
+    "nameSw": "Upofu wa mto",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "Elimination",
+    "categorySourceId": "S4",
+    "categoryVerified": false,
+    "caseDefinitionEn": "",
+    "caseDefinitionSw": "",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-bb0f-4780-a0af-cfcd51047b0a",
+        "name": "Skin snip biopsy",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S4"
+    ]
+  },
+  {
+    "diseaseId": "schistosomiasis",
+    "nameEn": "Schistosomiasis",
+    "nameSw": "Kichocho",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Confirmed: S. haematobium eggs in urine, or S. mansoni eggs in stool.",
+    "caseDefinitionSw": "Iliyothibitishwa: mayai ya S. haematobium katika mkojo, au mayai ya S. mansoni katika choo.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98d-2c17-43bb-989d-56646cac2369",
+        "name": "Urine microscopy for Schistosoma haematobium",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-9565-492c-a452-88dba1678fbb",
+        "name": "Kato Katz test for schistosomiasis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-54da-4210-8c20-ecbf90f899e7",
+        "name": "IgG/IgM ELISA for schistosomiasis",
+        "strength": "Supportive",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-d671-496a-a140-5613dcedc509",
+        "name": "Stool concentration for ova/cyst",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "viral_hepatitis",
+    "nameEn": "Viral hepatitis (A/B/C)",
+    "nameSw": "Ugonjwa wa ini (hepatitis A/B/C)",
+    "ihrStatus": "EventAssessed",
+    "reportingCategory": "Weekly",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Acute jaundice within 14 days, plus aetiological lab confirmation.",
+    "caseDefinitionSw": "Manjano ya ghafla ndani ya siku 14, pamoja na uthibitisho wa kimaabara wa kisababishi.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb989-d720-439d-8563-16bff463fb25",
+        "name": "Hepatitis A IgM/IgG ELISA",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-dcaf-4743-8f01-7c575d53d0dd",
+        "name": "Hepatitis A rapid diagnostic test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-5afb-4ebc-87d8-f622bf61f329",
+        "name": "NAATs for hepatitis A virus",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-f361-4049-8dd5-2a049f821aaa",
+        "name": "Hepatitis B surface antigen (HBsAg) ELISA",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-f83d-48e4-a4a6-3c9c4cb8313a",
+        "name": "Hepatitis B surface antigen (HBsAg) RDT",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-bd91-4867-a1e1-d9fa7c25f265",
+        "name": "HBs Ag",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-e1ef-4af8-9ad3-c51abe5682c1",
+        "name": "Hepatitis B core antibody (HBcAb)",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-b7bc-48ab-9666-d62fca179840",
+        "name": "HBc Ab (Core antibody)",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-605c-45ad-bbee-a59d310c11e8",
+        "name": "NAATs for Hepatitis B",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-fdae-4d96-b676-ece9582bcab9",
+        "name": "Hepatitis C antibody-RDT",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-07cc-4126-a95b-e6f9afd9ef1c",
+        "name": "Hepatitis C virus antibody test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-c3bf-40dd-b8ef-eda716a1f83a",
+        "name": "HCV Ab",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-02bd-42dc-ab6d-5c23a791c7f9",
+        "name": "Hepatitis C NAATs",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "hiv_newly_diagnosed",
+    "nameEn": "HIV (newly diagnosed)",
+    "nameSw": "Maambukizi mapya ya VVU",
+    "ihrStatus": "None",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Positive on rapid HIV tests or ELISA per the national testing policy.",
+    "caseDefinitionSw": "Chanya kwa vipimo vya haraka vya VVU au ELISA kufuatana na sera ya kitaifa ya upimaji.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98a-2296-4da5-b9d2-e3ceb6218d11",
+        "name": "HIV 1 & 2",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-1120-46b1-b0b9-a4fed219049e",
+        "name": "ELISA for HIV",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98c-331c-4b23-b7ae-c6a4b2a43fe8",
+        "name": "Rapid tests for human immunodeficiency virus (HIV) antibody",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-353b-4552-8dfb-c80079cc1412",
+        "name": "HIV/Syphilis dual test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-2ea3-44b9-8888-d43ccf9479ef",
+        "name": "HIV NAATs/viral load",
+        "strength": "Supportive",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1"
+    ]
+  },
+  {
+    "diseaseId": "sexually_transmitted_infections",
+    "nameEn": "STIs (syphilis, gonorrhoea, chlamydia, genital herpes)",
+    "nameSw": "Magonjwa ya zinaa",
+    "ihrStatus": "None",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Syndromic (genital ulcer, urethral discharge), lab-confirmed.",
+    "caseDefinitionSw": "Kwa dalili (vidonda vya sehemu za siri, kutoka kwa mkojo), imethibitishwa kimaabara.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-dadb-489d-b1e9-4d60110ae0d5",
+        "name": "Syphilis – Treponema pallidum test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb989-4c7c-4cb1-be29-4e7e87f446bc",
+        "name": "Fluorescent treponemal antibody absorbed (FTA-ABS) test for syphilis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98d-1211-4af7-9176-ea67d6997fbb",
+        "name": "Treponema pallidum haemagglutination (TPHA) test for syphilis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98d-3108-40fb-81bd-0f472f719d16",
+        "name": "Venereal disease research laboratory (VDRL) for syphilis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-bbe2-443a-bd9e-058f99341489",
+        "name": "NAATs for syphilis",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-353b-4552-8dfb-c80079cc1412",
+        "name": "HIV/Syphilis dual test",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-e443-4608-b289-7d7b8b8f565b",
+        "name": "Microscopy, culture and antibiotic susceptibility testing for Gonorrhoea and Chlamydia",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-4696-4949-8d8e-0f3621f14757",
+        "name": "NAATs for Chlamydia trachomatis and Neisseria gonorrhoea infections",
+        "strength": "Confirms",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98a-0e36-4739-811b-8e1eed239931",
+        "name": "Herpes simplex virus type 1 and type 2 NAATs",
+        "strength": "Confirms",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "S4",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "diarrhoea_under_five",
+    "nameEn": "Diarrhoea with dehydration under 5 (rotavirus)",
+    "nameSw": "Kuhara na ukosefu wa maji kwa watoto chini ya miaka 5",
+    "ihrStatus": "None",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "Syndromic. Lab confirmation not routinely recommended.",
+    "caseDefinitionSw": "Kwa dalili. Uthibitisho wa kimaabara haupendekezwi kawaida.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98c-2acb-40d4-9bfe-afca546c236a",
+        "name": "Rapid test for rotavirus",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-adf6-4518-b355-3738d8e207a5",
+        "name": "NAATs for rotavirus",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1",
+      "W"
+    ]
+  },
+  {
+    "diseaseId": "pneumonia_under_five",
+    "nameEn": "Severe pneumonia under 5",
+    "nameSw": "Nimonia kali kwa watoto chini ya miaka 5",
+    "ihrStatus": "None",
+    "reportingCategory": "Monthly",
+    "kenyaGroup": "PublicHealthImportance",
+    "categorySourceId": "S1",
+    "categoryVerified": false,
+    "caseDefinitionEn": "IMCI clinical, with radiographic or lab confirmation.",
+    "caseDefinitionSw": "Kikliniki kwa IMCI, pamoja na uthibitisho wa eksirei au maabara.",
+    "labTests": [
+      {
+        "labTestId": "9f7bb98a-f88b-4dbc-9631-fbd331f494cf",
+        "name": "Microscopy, culture/identification and sensitivity for bacterial pneumonia",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      },
+      {
+        "labTestId": "9f7bb98b-282c-4666-b957-0ea51fd972a5",
+        "name": "NAATs for bacterial pneumonia",
+        "strength": "Uncertain",
+        "mappingVerified": true
+      }
+    ],
+    "publicAlertEligible": false,
+    "allowManualAlert": false,
+    "preReadHint": "",
+    "sourceIds": [
+      "S1"
+    ]
+  }
+]

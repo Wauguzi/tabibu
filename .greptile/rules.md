@@ -26,15 +26,26 @@ finding.
   function. A client write path to a report is a defect, not missing plumbing.
 - **A patient never sees a cancer result before the doctor marks it discussed** (S-3). Push and
   notification copy for a result is generic and never names a diagnosis, because lock screens are
-  public.
+  public. A public outbreak alert is addressed to an area, not a person: its push may name the
+  disease and the county, taken from the bundled names, and never a count, a date, a facility or a
+  person.
 - **No alert is delivered without approval** (S-4). Nothing on the client may set an alert's
   status.
 - **Nothing that identifies a patient leaves a case** (S-5). A notifiable event carries disease,
-  county, date, epi-week, age band, category and the synthetic flag, and nothing else. A new field
-  on that shape needs a CRQ.
+  county, date, epi-week, age band, category, the alert request, its status and the synthetic
+  flag, and nothing else; the link back to its case lives only in the server-only
+  `notifiableEventLinks`. A new field on that shape needs a CRQ.
 - **Every number in a report is computed in code** (S-6). A report field, chart or label whose
   number is parsed out of model prose is a defect.
 - **The risk check never confirms or rules out a disease** (S-7). Its advisory is a fixed template.
+- **AI output used without an approval is limited to the readers S-8 names** (S-8): the symptom
+  summary and the risk advice to the doctor, the notes translation to the doctor and the
+  pathologist, a speaker's own transcript, and any voice-note transcript to the clinicians in that
+  conversation, who also hear the audio. Each is labelled as AI, and its input is de-identified. A
+  patient reads a clinician's transcript only after the sender shares it. Speech is the one exception:
+  it goes to the transcription model only, symptom audio is deleted after transcription, and voice
+  notes are stored as the sender's message. Any other path from model output to a person without an
+  approval is the P1 above.
 
 ## Architecture boundaries
 
@@ -59,7 +70,9 @@ finding.
 
 ## Roles and data scope
 
-- **A case is readable only by its participants**: `patientUid`, `doctorUid`, `pathologistUid`.
+- **A case is readable only by its participants**: the uids in `participantUids` (the doctor,
+  the linked patient, the requested and the accepted pathologist, and viewers), each holding a
+  role claim; a signed report only by its `readerUids`, and a patient only once released.
   A query or helper method without that filter crosses the boundary. This is the most consequential
   class of defect here and it looks locally correct in a diff.
 - **Role and alert-approver permission are Firebase Auth custom claims**, set only by an admin
@@ -70,7 +83,9 @@ finding.
 
 ## Data layer and persistence
 
-- **Freezed model and Hive mirror keep the same field order**, and a Hive model imports another
+- **Freezed model and Hive mirror keep the same field order**, except fields added to a class
+  that has shipped: those take the next free `@HiveField` index with a `defaultValue`, and the
+  registry notes it. A Hive model imports another
   feature's Hive classes only inside `toModel()` / `fromModel()`.
 - **Hive typeIds are never reused**, and every new one is added to the registry table in
   `docs/architecture/reports/mobile_architecture.md` §6 in the same change.
@@ -152,7 +167,8 @@ finding.
 - **Resources looked up by name (the Android notification icon) are kept in `res/raw/keep.xml`**,
   and anything resolved by name is verified against a release build.
 - **Writes that must land together use a batch**; a transaction is only for writes whose values
-  depend on a read.
+  depend on a read, which includes every stage transition, signing, release, share redemption
+  and slot booking.
 - **Every release build passes `--obfuscate`.** freeRASP treats missing obfuscation as a critical
   threat and terminates a release binary; a build target or workflow without it ships an app that
   closes on launch.

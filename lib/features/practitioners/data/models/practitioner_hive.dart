@@ -3,7 +3,8 @@ import 'package:tabibu/features/practitioners/data/models/practitioner_model.dar
 
 part 'practitioner_hive.g.dart';
 
-/// Cached [PractitionerModel], in the same field order.
+/// Cached [PractitionerModel], in the same field order. Fields added after
+/// release are appended at the end with a default.
 @HiveType(typeId: 2)
 class PractitionerHive {
   PractitionerHive({
@@ -27,6 +28,10 @@ class PractitionerHive {
     required this.reportsSigned,
     required this.lastUpdatedAt,
     required this.synced,
+    required this.workingDays,
+    required this.dayStartMinute,
+    required this.dayEndMinute,
+    required this.busySlots,
   });
 
   factory PractitionerHive.fromModel(PractitionerModel model) {
@@ -51,6 +56,10 @@ class PractitionerHive {
       reportsSigned: model.reportsSigned,
       lastUpdatedAt: model.lastUpdatedAt,
       synced: model.synced,
+      workingDays: model.workingDays,
+      dayStartMinute: model.dayStartMinute,
+      dayEndMinute: model.dayEndMinute,
+      busySlots: model.busySlots,
     );
   }
 
@@ -74,6 +83,10 @@ class PractitionerHive {
       appointmentsHandled: appointmentsHandled,
       ordersCreated: ordersCreated,
       reportsSigned: reportsSigned,
+      workingDays: workingDays,
+      dayStartMinute: dayStartMinute,
+      dayEndMinute: dayEndMinute,
+      busySlots: busySlots,
       lastUpdatedAt: lastUpdatedAt,
       synced: synced,
     );
@@ -138,4 +151,16 @@ class PractitionerHive {
 
   @HiveField(19)
   final bool synced;
+
+  @HiveField(20, defaultValue: [1, 2, 3, 4, 5])
+  final List<int> workingDays;
+
+  @HiveField(21, defaultValue: 480)
+  final int dayStartMinute;
+
+  @HiveField(22, defaultValue: 1020)
+  final int dayEndMinute;
+
+  @HiveField(23, defaultValue: <String>[])
+  final List<String> busySlots;
 }

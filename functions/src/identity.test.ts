@@ -8,10 +8,15 @@ import {
   claimsOf,
   downloadUrl,
   emulatorDeps,
+  refused,
   refusedWith,
   resetEmulators,
+  callerWithoutRole,
 } from './emulator.test-support';
 import {
+  DEFAULT_DAY_END_MINUTE,
+  DEFAULT_DAY_START_MINUTE,
+  DEFAULT_WORKING_DAYS,
   Deps,
   addPatientHandler,
   completePatientSignUpHandler,
@@ -258,8 +263,93 @@ describe('identity', () => {
       await deps.db.collection(PATIENTS).doc(patientId).update({ uid: patient.uid, isRegistered: true });
 
       const result = await linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' });
-      assert.deepEqual(result, { status: 'linked', patientId });
+      assert.deepEqual(result, { status: 'linked', patientId, casesPending: false });
       assert.equal((await claimsOf(patient.uid)).role, 'patient');
+    });
+
+    it('fills patientUid on that patient’s cases and finishes the link job', async () => {
+      const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+      const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+      const patient = await account(deps, 'amina@example.com');
+      await deps.db.collection('cases').doc('case-a').set({
+        patientId,
+        patientUid: '',
+        doctorUid: doctor.uid,
+        status: 'Requested',
+      });
+      await deps.db.collection('cases').doc('case-b').set({
+        patientId,
+        patientUid: '',
+        doctorUid: doctor.uid,
+        status: 'Accepted',
+      });
+
+      const result = await linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' });
+      assert.deepEqual(result, { status: 'linked', patientId, casesPending: false });
+      assert.equal((await deps.db.collection('cases').doc('case-a').get()).get('patientUid'), patient.uid);
+      assert.equal((await deps.db.collection('cases').doc('case-b').get()).get('patientUid'), patient.uid);
+      const job = (await deps.db.collection('linkJobs').doc(patientId).get()).data()!;
+      assert.equal(job.status, 'Done');
+      assert.equal(job.casesLinked, 2);
+    });
+
+    it('puts the patient among a case’s participants and the readers of its released version', async () => {
+      const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+      const pathologist = await account(deps, 'path@example.com', { role: 'pathologist' });
+      const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+      const patient = await account(deps, 'amina@example.com');
+      const caseRef = deps.db.collection('cases').doc('case-released');
+      await caseRef.set({
+        patientId,
+        patientUid: '',
+        doctorUid: doctor.uid,
+        pathologistUid: pathologist.uid,
+        participantUids: [doctor.uid, pathologist.uid],
+        status: 'Accepted',
+      });
+      await caseRef.collection('reports').doc('v1').set({
+        version: 1,
+        pathologistUid: pathologist.uid,
+        readerUids: [pathologist.uid, doctor.uid],
+        releasedToPatient: true,
+      });
+      await caseRef.collection('reports').doc('v2').set({
+        version: 2,
+        pathologistUid: pathologist.uid,
+        readerUids: [pathologist.uid, doctor.uid],
+        releasedToPatient: false,
+      });
+
+      await linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' });
+
+      const linked = (await caseRef.get()).data()!;
+      assert.equal(linked.patientUid, patient.uid);
+      assert.deepEqual([...(linked.participantUids as string[])].sort(), [doctor.uid, patient.uid, pathologist.uid].sort());
+      const released = (await caseRef.collection('reports').doc('v1').get()).get('readerUids') as string[];
+      assert.deepEqual([...released].sort(), [doctor.uid, patient.uid, pathologist.uid].sort());
+      // A version not released to the patient stays closed to them.
+      const held = (await caseRef.collection('reports').doc('v2').get()).get('readerUids') as string[];
+      assert.ok(!held.includes(patient.uid));
+    });
+
+    it('answers casesPending, and keeps the link, when its own job fails', async () => {
+      const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+      const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+      const patient = await account(deps, 'amina@example.com');
+      const at = '2026-10-27T09:00:00.000Z';
+      await deps.db.collection('linkJobs').doc(patientId).set({
+        patientId,
+        uid: patient.uid,
+        status: 'Running',
+        cursor: 'bad/cursor',
+        casesLinked: 0,
+        createdAt: at,
+        lastUpdatedAt: at,
+      });
+      const result = await linkPatientAccountHandler(deps, doctor, { patientId, email: 'amina@example.com' });
+      assert.deepEqual(result, { status: 'linked', patientId, casesPending: true });
+      assert.equal((await claimsOf(patient.uid)).role, 'patient');
+      assert.equal((await deps.db.collection(PATIENTS).doc(patientId).get()).get('isRegistered'), true);
     });
 
     it('refuses an account that already has a role', async () => {
@@ -415,6 +505,16 @@ describe('identity', () => {
       assert.equal(doc.isAvailable, false);
     });
 
+    it('writes the four availability defaults on every new profile', async () => {
+      const me = await account(deps, 'wanjiru@example.com');
+      await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid));
+      const doc = (await deps.db.collection(DOCTORS).doc(me.uid).get()).data()!;
+      assert.deepEqual(doc.workingDays, DEFAULT_WORKING_DAYS);
+      assert.equal(doc.dayStartMinute, DEFAULT_DAY_START_MINUTE);
+      assert.equal(doc.dayEndMinute, DEFAULT_DAY_END_MINUTE);
+      assert.deepEqual(doc.busySlots, []);
+    });
+
     it('requires the terms to be accepted', async () => {
       const me = await account(deps, 'wanjiru@example.com');
       await refusedWith(
@@ -526,5 +626,47 @@ describe('identity', () => {
       assert.equal(await syncPractitionerHandler(deps.db, me.uid), 'removed');
       assert.equal((await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).exists, false);
     });
+
+    it('projects availability, drops past busySlots and falls back to the defaults', async () => {
+      const me = await account(deps, 'wanjiru@example.com');
+      await completePractitionerSignUpHandler(deps, me, practitionerInput(me.uid));
+      const profile = deps.db.collection(DOCTORS).doc(me.uid);
+      await profile.update({
+        verificationStatus: 'Verified',
+        workingDays: [1, 3, 5, 5, 9],
+        dayStartMinute: 540,
+        dayEndMinute: 960,
+        busySlots: ['2026-10-26T07:00:00.000Z', '2026-10-28T07:00:00.000Z', 12],
+      });
+      const now = new Date('2026-10-27T09:00:00.000Z');
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid, now), 'written');
+      const entry = (await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).data()!;
+      assert.deepEqual(entry.workingDays, [1, 3, 5]);
+      assert.equal(entry.dayStartMinute, 540);
+      assert.equal(entry.dayEndMinute, 960);
+      assert.deepEqual(entry.busySlots, ['2026-10-28T07:00:00.000Z']);
+
+      await profile.update({ workingDays: 'weekdays', dayStartMinute: 900, dayEndMinute: 400, busySlots: null });
+      assert.equal(await syncPractitionerHandler(deps.db, me.uid, now), 'written');
+      const fallback = (await deps.db.collection(PRACTITIONERS).doc(me.uid).get()).data()!;
+      assert.deepEqual(fallback.workingDays, DEFAULT_WORKING_DAYS);
+      assert.equal(fallback.dayStartMinute, DEFAULT_DAY_START_MINUTE);
+      assert.equal(fallback.dayEndMinute, DEFAULT_DAY_END_MINUTE);
+      assert.deepEqual(fallback.busySlots, []);
+    });
+  });
+
+  it('refuses a caller with no role where a role is required', async () => {
+    const nobody = callerWithoutRole();
+    const doctor = await account(deps, 'doc@example.com', { role: 'doctor' });
+    const { patientId } = await addPatientHandler(deps, doctor, patientInput());
+    await account(deps, 'amina@example.com');
+    const calls: (() => Promise<unknown>)[] = [
+      () => addPatientHandler(deps, nobody, patientInput({ phoneNumber: '0733 000 111' })),
+      () => linkPatientAccountHandler(deps, nobody, { patientId, email: 'amina@example.com' }),
+      () => verifyPractitionerHandler(deps, nobody, { uid: doctor.uid, decision: 'Verified' }),
+    ];
+    for (const call of calls) await refused(Promise.resolve().then(call));
+    assert.equal((await deps.db.collection(PATIENTS).doc(patientId).get()).get('isRegistered'), false);
   });
 });

@@ -9,7 +9,7 @@
 | Date implemented | 2026-10-27 |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/auth` |
+| Commit(s) / PR | `feat/auth`; `feat/infra` e49c56b (injectable constructors) |
 
 ## 1. Description of change
 
@@ -54,6 +54,9 @@ gated the whole change.
    - Callables go through `FirebaseFunctions.instanceFor(region:
      'europe-west1')`; the default instance calls us-central1, where
      nothing is deployed.
+   - `feat/infra` e49c56b: the lazy-singleton view models and helper
+     constructors take their dependencies as required parameters instead
+     of resolving them inside, so the generated config stays honest.
 6. **`GoogleSignInHelper`** initialises the native plugin with the iOS and
    web OAuth clients. Web signs in through Firebase Auth's popup instead.
 7. Generated files (`*.freezed.dart`, `*.g.dart`, the DI config, the Hive

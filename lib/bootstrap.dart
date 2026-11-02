@@ -11,6 +11,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:tabibu/core/constants/remote_config_defaults.dart';
 import 'package:tabibu/core/helpers/blocs_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/google_sign_in_helper.dart';
@@ -161,14 +162,7 @@ Future<void> bootstrap(
         )
         .timeout(_bootstrapStepTimeout);
     await remoteConfig
-        .setDefaults(const {
-          'force_update': false,
-          'min_required_version': '',
-          'store_url_android': '',
-          'store_url_ios': '',
-          'update_title': '',
-          'update_message': '',
-        })
+        .setDefaults(RemoteConfigDefaults.values)
         .timeout(_bootstrapStepTimeout);
     await remoteConfig.fetchAndActivate().timeout(_bootstrapStepTimeout);
     if (kDebugMode) {

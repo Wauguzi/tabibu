@@ -20,5 +20,27 @@ void main() {
 
     expect(registered, isNotEmpty);
     expect(resolved.difference(registered), isEmpty);
+
+    // Step-4 feature data sources (bundle 11).
+    final registeredNames = {
+      for (final type in registered) type!.split('.').last,
+    };
+    for (final type in const [
+      'NotificationFirebase',
+      'AppointmentFirebase',
+      'ConversationFirebase',
+      'AlertFirebase',
+      'AlertTopicService',
+      'FirebaseMessaging',
+      'CaseFirebase',
+      'ShareCodeFirebase',
+      'ReportFirebase',
+    ]) {
+      expect(
+        registeredNames,
+        contains(type),
+        reason: '$type must be registered in get_it_helper.config.dart',
+      );
+    }
   });
 }

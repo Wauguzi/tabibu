@@ -6,7 +6,6 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/constants/enums.dart';
-import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/google_sign_in_helper.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
 import 'package:tabibu/core/utils/sync_cursor.dart';
@@ -22,12 +21,10 @@ enum PatientSignUpOutcome { registered, clinicRecordExists }
 @lazySingleton
 class AuthFirebase {
   AuthFirebase({
-    FirebaseAuth? auth,
-    FirebaseFirestore? firestore,
-    FirebaseFunctions? functions,
-  }) : _auth = auth ?? getIt<FirebaseAuth>(),
-       _firestore = firestore ?? getIt<FirebaseFirestore>(),
-       _functions = functions ?? getIt<FirebaseFunctions>();
+    required this._auth,
+    required this._firestore,
+    required this._functions,
+  });
 
   final FirebaseAuth _auth;
   final FirebaseFirestore _firestore;

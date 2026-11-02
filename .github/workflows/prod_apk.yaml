@@ -98,7 +98,7 @@ jobs:
           | xargs -0 dart format --set-exit-if-changed -o none
 
       - name: ⚙️ Code generation
-        run: dart run build_runner build --delete-conflicting-outputs
+        run: dart run build_runner build
 
       - name: 🔬 Analyze
         run: flutter analyze lib test

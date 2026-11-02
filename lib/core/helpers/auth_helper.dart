@@ -1,6 +1,5 @@
 import 'package:injectable/injectable.dart';
 import 'package:tabibu/core/constants/enums.dart';
-import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
 import 'package:tabibu/core/services/notification_service.dart';
@@ -18,15 +17,15 @@ import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 @lazySingleton
 class AuthHelper {
   AuthHelper({
-    AuthFirebase? authFirebase,
-    HiveHelper? hiveHelper,
-    ProfileStorage? profileStorage,
-    NotificationService? notificationService,
+    required AuthFirebase authFirebase,
+    required HiveHelper hiveHelper,
+    required ProfileStorage profileStorage,
+    required NotificationService notificationService,
     @ignoreParam this.bestEffortTimeout = const Duration(seconds: 3),
-  }) : _remote = authFirebase ?? getIt<AuthFirebase>(),
-       _cache = hiveHelper ?? getIt<HiveHelper>(),
-       _storage = profileStorage ?? getIt<ProfileStorage>(),
-       _notifications = notificationService ?? getIt<NotificationService>();
+  }) : _remote = authFirebase,
+       _cache = hiveHelper,
+       _storage = profileStorage,
+       _notifications = notificationService;
 
   final AuthFirebase _remote;
   final HiveHelper _cache;

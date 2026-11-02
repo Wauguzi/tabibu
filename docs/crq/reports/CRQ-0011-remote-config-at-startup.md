@@ -9,7 +9,7 @@
 | Date implemented | 2026-10-27 |
 | Priority | P3 Medium — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | The commit that adds this record |
+| Commit(s) / PR | The commit that adds this record; `feat/infra` 3a8ea42 (kill-switch defaults) |
 
 ## 1. Description of change
 
@@ -41,6 +41,15 @@
    empty, so the app never shows English-only text from the console.
 3. **Docs:** architecture §10; Greptile rules for defaults and for
    Remote Config text.
+4. **Kill-switch defaults** (`feat/infra` 3a8ea42):
+   `RemoteConfigDefaults.killSwitches` holds the eight AI and alert
+   switches (`preread_enabled`, `risk_check_enabled`,
+   `patient_explanations_enabled`, `alerts_delivery_enabled`,
+   `symptom_intake_enabled`, `report_translation_enabled`,
+   `voice_input_enabled`, `alert_drafting_enabled`), all default on: the
+   client default shows the surface; the server template still decides
+   whether each job runs, and a switch is flipped server-first.
+   `remote_config_defaults_test` pins all eight.
 
 ## 2. Business justification
 
@@ -55,7 +64,8 @@ startup when the network is down.
 
 **Explicitly out of scope:** the version comparison, the force-update
 screen and its route guard (auth branch); real-time Remote Config updates;
-the AI kill switches, which get their defaults when their features land.
+the AI kill switches, which got their defaults when their features landed
+(`feat/infra` 3a8ea42, §1 item 4).
 
 ## 4. Impact assessment
 

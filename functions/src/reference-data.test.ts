@@ -16,10 +16,16 @@ describe('reference data', () => {
       ['counties.json', 'facilities'],
       ['lab_test_types.json', 'lab-tests'],
       ['lab_tests.json', 'lab-tests'],
+      ['insurers.json', ''],
+      ['report_templates.json', ''],
+      ['notifiable_diseases.json', 'alerts-data'],
+      ['public_health_guidance.json', 'alerts-data'],
     ]) {
       const server = readFileSync(join(DATA_DIR, file));
       const app = readFileSync(join(DATA_DIR, '..', '..', 'assets', 'data', file));
-      assert.ok(server.equals(app), `${file} differs; run make ${target}`);
+      // The hand-written assets have no build target; their copy is the fix.
+      const fix = target ? `run make ${target}` : `copy assets/data/${file} over it`;
+      assert.ok(server.equals(app), `${file} differs; ${fix}`);
     }
   });
 
