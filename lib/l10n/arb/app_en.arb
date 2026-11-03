@@ -5095,5 +5095,702 @@
                 "type": "String"
             }
         }
+    },
+    "workspaceAiPreread": "AI pre-read",
+    "@workspaceAiPreread": {
+        "description": "CS-01 pre-read frame label"
+    },
+    "workspaceAiDraft": "AI draft",
+    "@workspaceAiDraft": {
+        "description": "Label on AI-authored report text; also the alert draft card label and the compare screen's AI box"
+    },
+    "workspaceYourEdit": "Your edit",
+    "@workspaceYourEdit": {
+        "description": "Label on a section the pathologist edited; the screen appends the time"
+    },
+    "workspaceStartFromAiDraft": "Start from the AI draft",
+    "@workspaceStartFromAiDraft": {
+        "description": "Workspace button: copy the AI text into the report fields"
+    },
+    "workspaceWriteOwn": "Write my own",
+    "@workspaceWriteOwn": {
+        "description": "Workspace button: start the report fields empty"
+    },
+    "workspaceCriticalFinding": "Critical finding",
+    "@workspaceCriticalFinding": {
+        "description": "Workspace marker for a critical result"
+    },
+    "workspaceSaveDraft": "Save draft",
+    "@workspaceSaveDraft": {
+        "description": "Workspace button: save the draft and stay"
+    },
+    "workspaceSignReport": "Sign report",
+    "@workspaceSignReport": {
+        "description": "Workspace button: open the signing sheet"
+    },
+    "workspaceDraftSaved": "Draft saved",
+    "@workspaceDraftSaved": {
+        "description": "Confirmation after saving the draft"
+    },
+    "workspaceDraftSavedOffline": "Saved on this phone; it sends when you're online.",
+    "@workspaceDraftSavedOffline": {
+        "description": "Draft saved while offline"
+    },
+    "workspacePositiveFor": "Positive for {disease}",
+    "@workspacePositiveFor": {
+        "description": "Notifiable checkbox; disease is the register name",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            }
+        }
+    },
+    "workspaceNotifiableExplainer": "Ticking adds this case to the area alert engine when you sign.",
+    "@workspaceNotifiableExplainer": {
+        "description": "Explainer under the notifiable checkboxes"
+    },
+    "workspaceHeatmap": "Heatmap",
+    "@workspaceHeatmap": {
+        "description": "Slide viewer heatmap toggle pill"
+    },
+    "workspaceLegendNormal": "Normal",
+    "@workspaceLegendNormal": {
+        "description": "Heatmap legend, low end"
+    },
+    "workspaceLegendLikelyTumour": "Likely tumour",
+    "@workspaceLegendLikelyTumour": {
+        "description": "Heatmap legend, high end, tumour profiles"
+    },
+    "workspaceLegendLikelyParasite": "Likely parasite",
+    "@workspaceLegendLikelyParasite": {
+        "description": "Heatmap legend, high end, parasite profiles"
+    },
+    "reportSectionImpression": "Impression",
+    "@reportSectionImpression": {
+        "description": "Report section label; workspace, score card, signed report, compare"
+    },
+    "scoreTitle": "How did the AI draft do?",
+    "@scoreTitle": {
+        "description": "Pre-read score card title"
+    },
+    "scoreUrgency": "Urgency",
+    "@scoreUrgency": {
+        "description": "Score row label"
+    },
+    "scoreAgree": "Agree",
+    "@scoreAgree": {
+        "description": "Score option"
+    },
+    "scorePartlyAgree": "Partly agree",
+    "@scorePartlyAgree": {
+        "description": "Score option"
+    },
+    "scoreDisagree": "Disagree",
+    "@scoreDisagree": {
+        "description": "Score option"
+    },
+    "scoreAccepted": "Accepted",
+    "@scoreAccepted": {
+        "description": "Measurements score option"
+    },
+    "scoreCorrected": "Corrected",
+    "@scoreCorrected": {
+        "description": "Measurements score option"
+    },
+    "scoreNotApplicable": "Not applicable",
+    "@scoreNotApplicable": {
+        "description": "Score option for measurements and tiles"
+    },
+    "scoreTiles": "Tiles",
+    "@scoreTiles": {
+        "description": "Score row label"
+    },
+    "scoreGood": "Good",
+    "@scoreGood": {
+        "description": "Tiles score option"
+    },
+    "scoreAcceptable": "Acceptable",
+    "@scoreAcceptable": {
+        "description": "Tiles score option"
+    },
+    "scorePoor": "Poor",
+    "@scorePoor": {
+        "description": "Tiles score option"
+    },
+    "scoreOverall": "Overall",
+    "@scoreOverall": {
+        "description": "Score row label for the 1-5 rating"
+    },
+    "scoreOutOfFive": "{n} out of 5",
+    "@scoreOutOfFive": {
+        "description": "Overall stars semantics; n is the rating",
+        "placeholders": {
+            "n": {
+                "type": "int"
+            }
+        }
+    },
+    "scoreComment": "Comment",
+    "@scoreComment": {
+        "description": "Optional score comment field label"
+    },
+    "scoreSave": "Save score",
+    "@scoreSave": {
+        "description": "Score card button"
+    },
+    "scoreLockLine": "Score the AI draft to start your report.",
+    "@scoreLockLine": {
+        "description": "Line shown while the report fields are locked"
+    },
+    "signSheetTitle": "Sign and send this report?",
+    "@signSheetTitle": {
+        "description": "Signing sheet title"
+    },
+    "signSheetSignedBy": "Signed by",
+    "@signSheetSignedBy": {
+        "description": "Signing summary row label"
+    },
+    "signSheetGoesTo": "Goes to",
+    "@signSheetGoesTo": {
+        "description": "Signing summary row label"
+    },
+    "signSheetPatientSees": "Patient sees",
+    "@signSheetPatientSees": {
+        "description": "Signing summary row label"
+    },
+    "signSheetPatientSeesValue": "Only their doctor's summary, after they talk",
+    "@signSheetPatientSeesValue": {
+        "description": "Static value for the Patient sees row"
+    },
+    "signSheetAttestation": "I have reviewed this report and take responsibility for it.",
+    "@signSheetAttestation": {
+        "description": "Signing attestation checkbox"
+    },
+    "signSheetSignHere": "Sign here",
+    "@signSheetSignHere": {
+        "description": "Signature pad prompt"
+    },
+    "signSheetClear": "Clear",
+    "@signSheetClear": {
+        "description": "Signature pad clear button"
+    },
+    "signSheetSignatureLabel": "Signature pad",
+    "@signSheetSignatureLabel": {
+        "description": "Semantics label for the signature pad"
+    },
+    "signSheetSignAndSend": "Sign and send",
+    "@signSheetSignAndSend": {
+        "description": "Signing sheet primary button"
+    },
+    "signSheetOfflineTitle": "You need internet to sign",
+    "@signSheetOfflineTitle": {
+        "description": "Signing sheet offline notice title"
+    },
+    "signSheetOfflineBody": "Your edits are saved on this phone.",
+    "@signSheetOfflineBody": {
+        "description": "Signing sheet offline notice body"
+    },
+    "signSheetSignWhenOnline": "Sign when back online",
+    "@signSheetSignWhenOnline": {
+        "description": "Disabled signing button while offline"
+    },
+    "signSheetNotifiableNotice": "{disease} is notifiable. Signing adds this case to the area alert engine.",
+    "@signSheetNotifiableNotice": {
+        "description": "Signing sheet notifiable notice; disease is the register name",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            }
+        }
+    },
+    "signedCaseSignedByYou": "Signed by you",
+    "@signedCaseSignedByYou": {
+        "description": "Signed case banner title"
+    },
+    "signedCaseSentLine": "{date} · sent to {doctor}",
+    "@signedCaseSentLine": {
+        "description": "Signed case banner line; date is formatted, doctor is the name",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "signedCaseCompare": "Compare with AI draft",
+    "@signedCaseCompare": {
+        "description": "Signed case link to the comparison"
+    },
+    "signedCaseDraftKept": "The AI draft is kept beside the signed report.",
+    "@signedCaseDraftKept": {
+        "description": "Signed case provenance notice"
+    },
+    "signedCaseSentChip": "Sent to {doctor}",
+    "@signedCaseSentChip": {
+        "description": "Signed case chip; doctor is the name",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "signedCaseNextSteps": "Suggested next steps",
+    "@signedCaseNextSteps": {
+        "description": "Signed report section label"
+    },
+    "compareTitle": "Compare",
+    "@compareTitle": {
+        "description": "Comparison screen title"
+    },
+    "compareSubtitle": "{caseNumber} · AI draft vs your report",
+    "@compareSubtitle": {
+        "description": "Comparison subtitle; caseNumber is the order number",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            }
+        }
+    },
+    "compareYourReport": "Your report",
+    "@compareYourReport": {
+        "description": "Comparison box label for the signed text"
+    },
+    "explanationMarkButton": "Mark as discussed",
+    "@explanationMarkButton": {
+        "description": "Report button opening the mark-discussed sheet"
+    },
+    "explanationMarkTitle": "Mark as discussed with {name}?",
+    "@explanationMarkTitle": {
+        "description": "Mark-discussed sheet title; name is the patient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "explanationInPerson": "In person",
+    "@explanationInPerson": {
+        "description": "Discussion mode option"
+    },
+    "explanationPhoneOrVideo": "Phone or video",
+    "@explanationPhoneOrVideo": {
+        "description": "Discussion mode option"
+    },
+    "explanationWhen": "When",
+    "@explanationWhen": {
+        "description": "Discussion date field label"
+    },
+    "explanationConfirm": "Yes, mark as discussed",
+    "@explanationConfirm": {
+        "description": "Mark-discussed sheet button"
+    },
+    "explanationReleaseNote": "Their result is released and an explanation is drafted for you to approve.",
+    "@explanationReleaseNote": {
+        "description": "Mark-discussed sheet explainer"
+    },
+    "explanationDraftTitle": "Explanation for {name} · {language}",
+    "@explanationDraftTitle": {
+        "description": "Draft title; name is the patient, language is English or Kiswahili",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "language": {
+                "type": "String"
+            }
+        }
+    },
+    "explanationEditTitle": "Edit explanation",
+    "@explanationEditTitle": {
+        "description": "Explanation edit sheet title"
+    },
+    "explanationSaveAndApprove": "Save and approve",
+    "@explanationSaveAndApprove": {
+        "description": "Explanation edit sheet button"
+    },
+    "explanationApproved": "Approved",
+    "@explanationApproved": {
+        "description": "Explanation state"
+    },
+    "explanationRejected": "Rejected",
+    "@explanationRejected": {
+        "description": "Explanation state"
+    },
+    "explanationWaitingForDraft": "Waiting for the AI draft",
+    "@explanationWaitingForDraft": {
+        "description": "Explanation state before the draft arrives"
+    },
+    "explainedAiAttribution": "Explanation prepared with AI and approved by your doctor",
+    "@explainedAiAttribution": {
+        "description": "Patient explanation AI line"
+    },
+    "explainedAudioLine": "The audio reads the approved text.",
+    "@explainedAudioLine": {
+        "description": "Patient explanation read-aloud line"
+    },
+    "explainedDiscussedChip": "Discussed with {doctor} · {date}",
+    "@explainedDiscussedChip": {
+        "description": "Explained result chip; doctor is the name, date is formatted",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "explainedHeadline": "{doctor}'s summary of your results",
+    "@explainedHeadline": {
+        "description": "Explained result headline; doctor keeps their title",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "explainedListenMeta": "Read aloud in {language} · {duration}",
+    "@explainedListenMeta": {
+        "description": "Listen row meta; language and duration are formatted",
+        "placeholders": {
+            "language": {
+                "type": "String"
+            },
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "explainedFileMeta": "PDF · {size} · reviewed by {name}",
+    "@explainedFileMeta": {
+        "description": "Report file meta; size and reviewer name",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "explainedBookNext": "Book my next appointment",
+    "@explainedBookNext": {
+        "description": "Explained result primary button"
+    },
+    "explainedViewFullReport": "View the full report",
+    "@explainedViewFullReport": {
+        "description": "Explained result link"
+    },
+    "explainedSavedTitle": "Saved on this phone",
+    "@explainedSavedTitle": {
+        "description": "Explained result offline banner title"
+    },
+    "explainedSavedBody": "You can read and listen to this summary without internet.",
+    "@explainedSavedBody": {
+        "description": "Explained result offline banner body"
+    },
+    "explainedSharedBy": "Shared by {doctor} after your appointment, from the report reviewed by {pathologist}, pathologist.",
+    "@explainedSharedBy": {
+        "description": "Explained result attribution; doctor and pathologist are names",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "pathologist": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewTitle": "Alert to review",
+    "@alertReviewTitle": {
+        "description": "Alert review title"
+    },
+    "alertReviewAiDraftNotSent": "AI draft · not sent",
+    "@alertReviewAiDraftNotSent": {
+        "description": "Frame label on unsent AI drafts; also the explanation drafts"
+    },
+    "alertReviewApproveAsIs": "Approve as is",
+    "@alertReviewApproveAsIs": {
+        "description": "Primary approval for an AI draft; also the explanation drafts"
+    },
+    "alertReviewReject": "Reject",
+    "@alertReviewReject": {
+        "description": "Reject button and options row; also the explanation options"
+    },
+    "alertReviewRejectTitle": "Why are you rejecting this alert?",
+    "@alertReviewRejectTitle": {
+        "description": "Reject sheet title"
+    },
+    "alertReviewRejectBody": "Your reason goes to the county health team. No alert is sent to patients.",
+    "@alertReviewRejectBody": {
+        "description": "Reject sheet body"
+    },
+    "alertReviewReasonNotEnough": "Not enough cases yet",
+    "@alertReviewReasonNotEnough": {
+        "description": "Reject reason"
+    },
+    "alertReviewReasonOneHousehold": "Cases are from one household",
+    "@alertReviewReasonOneHousehold": {
+        "description": "Reject reason"
+    },
+    "alertReviewReasonWrongArea": "Wrong area",
+    "@alertReviewReasonWrongArea": {
+        "description": "Reject reason"
+    },
+    "alertReviewReasonOther": "Other",
+    "@alertReviewReasonOther": {
+        "description": "Reject reason"
+    },
+    "alertReviewReasonOtherSub": "Add a short note below",
+    "@alertReviewReasonOtherSub": {
+        "description": "Other reason supporting line"
+    },
+    "alertReviewNoteLabel": "Note (optional)",
+    "@alertReviewNoteLabel": {
+        "description": "Reject note field label"
+    },
+    "alertReviewNoteHint": "Add a reason in your own words",
+    "@alertReviewNoteHint": {
+        "description": "Reject note field hint"
+    },
+    "alertReviewRejectAlert": "Reject alert",
+    "@alertReviewRejectAlert": {
+        "description": "Reject sheet button"
+    },
+    "alertReviewSentTitle": "Alert sent",
+    "@alertReviewSentTitle": {
+        "description": "Alert sent title"
+    },
+    "alertReviewApprovedSent": "Approved and sent",
+    "@alertReviewApprovedSent": {
+        "description": "Alert sent headline"
+    },
+    "alertReviewSentBody": "Doctors were told first. Patients are being notified now.",
+    "@alertReviewSentBody": {
+        "description": "Alert sent body"
+    },
+    "alertReviewDoctorsNotified": "Doctors notified",
+    "@alertReviewDoctorsNotified": {
+        "description": "Alert sent tile"
+    },
+    "alertReviewPatientsNotified": "Patients notified",
+    "@alertReviewPatientsNotified": {
+        "description": "Alert sent tile"
+    },
+    "alertReviewBackToToday": "Back to today",
+    "@alertReviewBackToToday": {
+        "description": "Alert sent button"
+    },
+    "alertReviewDemoPrefix": "Demo:",
+    "@alertReviewDemoPrefix": {
+        "description": "Prefix on demo alert text; also the patient notice"
+    },
+    "alertReviewDemoBanner": "Demonstration only, not a real alert.",
+    "@alertReviewDemoBanner": {
+        "description": "Demo alert banner; also the patient notice"
+    },
+    "alertReviewWhyThisAlert": "Why this alert",
+    "@alertReviewWhyThisAlert": {
+        "description": "Signal card title"
+    },
+    "alertReviewAboveBaseline": "Above baseline",
+    "@alertReviewAboveBaseline": {
+        "description": "Signal card chip"
+    },
+    "alertReviewSignalCases": "{count} positive {test} this week.",
+    "@alertReviewSignalCases": {
+        "description": "Signal line; count is a number, test is the test name",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "test": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewSignalBaseline": "{area} usually sees about {baseline}.",
+    "@alertReviewSignalBaseline": {
+        "description": "Signal line; area is the name, baseline is a number",
+        "placeholders": {
+            "area": {
+                "type": "String"
+            },
+            "baseline": {
+                "type": "int"
+            }
+        }
+    },
+    "alertReviewUsualLevel": "Usual level",
+    "@alertReviewUsualLevel": {
+        "description": "Chart baseline label"
+    },
+    "alertReviewWeeksAgo": "{count} weeks ago",
+    "@alertReviewWeeksAgo": {
+        "description": "Chart axis label; count is a number",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "alertReviewDraftsTitle": "Drafts to approve",
+    "@alertReviewDraftsTitle": {
+        "description": "Draft list title"
+    },
+    "alertReviewForDoctors": "For doctors in {area} and nearby",
+    "@alertReviewForDoctors": {
+        "description": "Doctor draft audience; area is the name",
+        "placeholders": {
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewForPatients": "For patients who chose {area}",
+    "@alertReviewForPatients": {
+        "description": "Patient draft audience; area is the name",
+        "placeholders": {
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewWhoGets": "Who gets this",
+    "@alertReviewWhoGets": {
+        "description": "Recipients card title"
+    },
+    "alertReviewDoctors": "Doctors",
+    "@alertReviewDoctors": {
+        "description": "Recipients row label"
+    },
+    "alertReviewPatients": "Patients",
+    "@alertReviewPatients": {
+        "description": "Recipients row label"
+    },
+    "alertReviewSource": "Source",
+    "@alertReviewSource": {
+        "description": "Recipients row label"
+    },
+    "alertReviewDoctorsValue": "{count} in {area} and neighbouring areas, first",
+    "@alertReviewDoctorsValue": {
+        "description": "Doctors row value; count is a number, area is the name",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewPatientsValue": "{count} who chose {area}, then",
+    "@alertReviewPatientsValue": {
+        "description": "Patients row value; count is a number, area is the name",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewSourceValue": "Links to MoH {disease} guidance",
+    "@alertReviewSourceValue": {
+        "description": "Source row value; disease is the name",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewApprovalNotice": "Nothing is sent until you approve. No patient names or locations are shared.",
+    "@alertReviewApprovalNotice": {
+        "description": "Review notice"
+    },
+    "alertReviewReadGuidance": "Read MoH guidance",
+    "@alertReviewReadGuidance": {
+        "description": "Options row"
+    },
+    "alertReviewCaseDefinition": "{disease} case definition",
+    "@alertReviewCaseDefinition": {
+        "description": "Guidance row subtitle; disease is the name",
+        "placeholders": {
+            "disease": {
+                "type": "String"
+            }
+        }
+    },
+    "alertReviewRejectSub": "Say why it shouldn't go out",
+    "@alertReviewRejectSub": {
+        "description": "Reject options row subtitle"
+    },
+    "alertReviewSettings": "Alert settings",
+    "@alertReviewSettings": {
+        "description": "Options row"
+    },
+    "alertReviewSettingsSub": "Choose which alerts reach you",
+    "@alertReviewSettingsSub": {
+        "description": "Settings row subtitle"
+    },
+    "healthNoticePublished": "Published {date} · for {area}",
+    "@healthNoticePublished": {
+        "description": "Notice meta; date is formatted, area is the name",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "healthNoticeMohAdvises": "The Ministry of Health advises",
+    "@healthNoticeMohAdvises": {
+        "description": "Guidance card title"
+    },
+    "healthNoticeApprovedBy": "Approved by",
+    "@healthNoticeApprovedBy": {
+        "description": "Approval card label"
+    },
+    "healthNoticeSentBy": "Sent by {sender} · {date}",
+    "@healthNoticeSentBy": {
+        "description": "Approval card line; sender is the name and role, date is formatted",
+        "placeholders": {
+            "sender": {
+                "type": "String"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "healthNoticeAttribution": "Approved for release by an authorised Tabibu clinician. Guidance: {source}",
+    "@healthNoticeAttribution": {
+        "description": "O-1 attribution; source is the guidance name",
+        "placeholders": {
+            "source": {
+                "type": "String"
+            }
+        }
+    },
+    "healthNoticeLocationLine": "Tabibu never tracks or transmits your location to third parties.",
+    "@healthNoticeLocationLine": {
+        "description": "Location privacy line"
+    },
+    "healthNoticeReadGuidance": "Read the official guidance",
+    "@healthNoticeReadGuidance": {
+        "description": "Guidance button"
+    },
+    "healthNoticeHotlines": "Call a health hotline",
+    "@healthNoticeHotlines": {
+        "description": "Hotline label; numbers come from the guidance asset"
+    },
+    "healthNoticeFindDoctor": "Find a doctor near me",
+    "@healthNoticeFindDoctor": {
+        "description": "Notice primary button"
     }
 }
