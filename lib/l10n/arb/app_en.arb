@@ -8129,5 +8129,14 @@
     "workspaceRequiredBeforeSign": "Fill the starred fields to sign.",
     "@workspaceRequiredBeforeSign": {
         "description": "Pathologist workspace: why Sign is closed while a required template question is unanswered"
+    },
+    "notificationAccessCode": "Code {code}",
+    "@notificationAccessCode": {
+        "description": "Inbox row: the 4-digit access code a signed or shared report is opened with, shown to the person it was sent to",
+        "placeholders": {
+            "code": {
+                "type": "String"
+            }
+        }
     }
 }

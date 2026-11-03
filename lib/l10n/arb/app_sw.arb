@@ -1700,5 +1700,6 @@
     "workspaceSampleSuggested": "Imetengenezwa kwa ajili yako. Ibadilishe maabara ikikupa nyingine.",
     "workspaceZoomIn": "Kuza",
     "workspaceZoomOut": "Punguza",
-    "workspaceRequiredBeforeSign": "Jaza sehemu zenye nyota ili kusaini."
+    "workspaceRequiredBeforeSign": "Jaza sehemu zenye nyota ili kusaini.",
+    "notificationAccessCode": "Msimbo {code}"
 }

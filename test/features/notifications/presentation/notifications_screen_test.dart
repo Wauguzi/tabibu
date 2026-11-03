@@ -345,6 +345,51 @@ void main() {
       },
     );
 
+    testWidgets('a row that carries an access code shows it to its reader, and '
+        'a row without one shows nothing', (tester) async {
+      final en = lookupAppLocalizations(const Locale('en'));
+      final doctor = RoleSessions.doctor();
+      when(() => authBloc.state).thenReturn(
+        SignInSuccess(
+          session: PractitionerSession(
+            doctor: doctor.doctor.copyWith(uid: 'doc-1'),
+            roles: doctor.roles,
+          ),
+        ),
+      );
+      final now = DateTime.now().toUtc().toIso8601String();
+      when(() => blocs.notifications.state).thenReturn(
+        NotificationsLoadSuccess(
+          items: [
+            NotificationModel(
+              uid: 'reportSigned:c1_v1:doc-1',
+              creationDate: now,
+              category: 'Report',
+              title: 'Signed report ready',
+              metadata: const NotificationMetadataModel(
+                deepLink: '/cases/c1/reports/v1',
+                shareCode: '4821',
+              ),
+            ),
+            NotificationModel(
+              uid: 'resultsWithDoctor:c1:doc-1',
+              creationDate: now,
+              title: 'Plain row',
+            ),
+          ],
+        ),
+      );
+      tester.view.physicalSize = const Size(1170, 4000);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpApp(screen(.doctor));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.notificationAccessCode('4821')), findsOneWidget);
+      // Only the row that carries a code shows one.
+      expect(find.textContaining('Code '), findsOneWidget);
+    });
+
     testWidgets('a Tier 2 link only marks the row read', (tester) async {
       when(
         () => blocs.notifications.state,

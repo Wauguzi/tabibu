@@ -320,6 +320,15 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
       leading: IconTile(icon: icon, tone: tone),
       title: title.isEmpty ? row.title : title,
       subtitle: subtitle.isEmpty ? null : subtitle,
+      // The code a signed or shared report opens with is for this reader's own
+      // eyes: it is shown here and typed on the enter-code screen (T-18). It
+      // never goes in a route, a log or a field.
+      chip: row.hasShareCode
+          ? StatusChip(
+              label: l10n.notificationAccessCode(row.metadata.shareCode),
+              tone: .info,
+            )
+          : null,
       trailingText: trailingText,
       unread: !row.isRead,
       chevron: false,
