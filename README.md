@@ -52,6 +52,33 @@ person. The order **is** the case, so one record carries a patient from booking 
 | 8. Talk | Direct threads and MDT discussions carry text, images and voice notes. | Voice notes are transcribed for clinicians; a patient reads a clinician's transcript only once the sender shares it |
 | 9. Alert | A pathologist's confirmed notifiable finding becomes an anonymous count. When a county's count calls for it, an alert is drafted. | An English and Kiswahili draft, grounded in bundled Ministry of Health and WHO guidance. It reaches clinicians, then patients in that county, **only after an authorised clinician approves it** |
 
+```mermaid
+sequenceDiagram
+    actor P as Patient
+    actor D as Doctor
+    actor X as Pathologist
+    participant F as Firebase (rules and functions)
+    participant AI as AI service
+
+    P->>F: Book, with symptoms typed or spoken
+    F->>AI: Transcribe and summarise (English, Kiswahili)
+    AI-->>F: Summary for the doctor
+    D->>F: Accept, then order tests
+    F->>AI: Risk check on the new order
+    AI-->>F: Advice, never a diagnosis
+    D->>F: Request a pathologist
+    X->>F: Accept within 24 hours
+    F->>AI: Pre-read of the slides
+    AI-->>X: Draft, readable only by this pathologist
+    X->>F: Score the pre-read, edit, sign
+    F-->>D: Signed report
+    D->>F: Mark as discussed
+    F->>AI: Draft a plain-language explanation
+    AI-->>D: Draft in each language
+    D->>F: Approve the explanation
+    F-->>P: Result and approved explanation
+```
+
 AI output reaches a person through a one-tap approval, or, where the threat model's S-8 names the
 reader as the qualified person who acts on it, directly. Either way it is labelled as AI. The
 details are in the [architecture](docs/architecture/reports/mobile_architecture.md), the
