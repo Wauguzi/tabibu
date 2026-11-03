@@ -213,6 +213,25 @@ void main() {
     );
 
     blocTest<ReportReaderBloc, ReportReaderState>(
+      'a second tap offline shows the failure again',
+      setUp: () => when(() => internet.check()).thenAnswer((_) async => false),
+      build: build,
+      seed: () => loaded(Role.doctor),
+      act: (bloc) async {
+        bloc.add(const ReportDiscussedRequested());
+        await pumpEventQueue();
+        bloc.add(const ReportDiscussedRequested());
+      },
+      verify: (bloc) => expect(bloc.state, isA<ReportReaderWriteFailure>()),
+      expect: () => [
+        isA<ReportReaderWriteInProgress>(),
+        isA<ReportReaderWriteFailure>(),
+        isA<ReportReaderWriteInProgress>(),
+        isA<ReportReaderWriteFailure>(),
+      ],
+    );
+
+    blocTest<ReportReaderBloc, ReportReaderState>(
       'a patient cannot release',
       build: build,
       seed: () => loaded(Role.patient),

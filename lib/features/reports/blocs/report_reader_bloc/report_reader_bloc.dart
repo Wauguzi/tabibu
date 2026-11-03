@@ -122,6 +122,8 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
     Emitter<ReportReaderState> emit,
   ) async {
     final report = state.report;
+    // In progress first, so a repeated failure is a new state and shows.
+    emit(_copy(ReportReaderWriteInProgress.new));
     if (state.role != .doctor || report == null) {
       emit(_failure(AppError.dataNotFound));
       return;
@@ -130,7 +132,6 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
       emit(_failure(AppError.noInternet));
       return;
     }
-    emit(_copy(ReportReaderWriteInProgress.new));
     try {
       await _remote.markDiscussed(
         caseUid: state.caseUid,
@@ -152,6 +153,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
     Emitter<ReportReaderState> emit,
   ) async {
     final draft = state.explanations[event.language];
+    emit(_copy(ReportReaderWriteInProgress.new));
     if (state.role != .doctor || draft == null) {
       emit(_failure(AppError.dataNotFound));
       return;
@@ -171,7 +173,6 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         : unchanged
         ? 'Approve'
         : 'ApproveEdited';
-    emit(_copy(ReportReaderWriteInProgress.new));
     try {
       await _remote.approveReportText(
         caseUid: state.caseUid,
