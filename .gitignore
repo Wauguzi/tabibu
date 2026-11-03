@@ -156,6 +156,7 @@ functions/data/tune_pcam/
 functions/data/eval_pcam/
 functions/data/tmp_demo_mosaic/
 functions/scripts/eval-preread-results.json
+functions/scripts/eval-held-out-variant-results.json
 functions/scripts/eval-demo-mosaics-results.json
 functions/scripts/chosen-version.txt
 functions/lib-scripts/

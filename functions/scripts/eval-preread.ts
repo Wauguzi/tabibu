@@ -18,6 +18,11 @@
  *   npx ts-node scripts/eval-preread.ts --live --tune --variants v3_minimal,v3_upscale3_minimal --yes-spend
  *   npx ts-node scripts/eval-preread.ts --live --demo-mosaics
  *   npx ts-node scripts/eval-preread.ts --live
+ *   npx ts-node scripts/eval-preread.ts --live --held-out-variant v3_fewshot_minimal
+ *
+ * `--held-out-variant <id>` scores one variant, chosen on the tuning set beforehand, on the
+ * held-out tiles once, and writes `eval-held-out-variant-results.json` so the baseline held-out
+ * results are kept.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -52,6 +57,7 @@ const ROOT = join(__dirname, '..');
 const OUT = join(ROOT, 'scripts', 'eval-preread-results.json');
 const DEMO_OUT = join(ROOT, 'scripts', 'eval-demo-mosaics-results.json');
 const CHOSEN = join(ROOT, 'scripts', 'chosen-version.txt');
+const HELD_OUT_VARIANT_OUT = join(ROOT, 'scripts', 'eval-held-out-variant-results.json');
 const HELD_OUT_MANIFEST = join(ROOT, 'data', 'eval_pcam', 'manifest.json');
 const TUNE_MANIFEST = join(ROOT, 'data', 'tune_pcam', 'manifest.json');
 const MAX_TILE_CALLS = 300;
@@ -74,6 +80,12 @@ function parseVariantsFilter(argv: string[]): string[] | null {
     return [next];
   }
   return [];
+}
+
+function optionValue(name: string): string | null {
+  const at = process.argv.indexOf(name);
+  const next = at < 0 ? undefined : process.argv[at + 1];
+  return next && !next.startsWith('--') ? next : null;
 }
 
 const VARIANT_FILTER = parseVariantsFilter(process.argv);
@@ -771,6 +783,28 @@ async function main(): Promise<void> {
   }
 
   assertSpend(heldOut.length);
+  const variantId = optionValue('--held-out-variant');
+  if (variantId) {
+    const spec = variantGrid().find((v) => v.id === variantId);
+    if (!spec) {
+      console.log(JSON.stringify({ refused: true, reason: 'unknown variant', variantId }));
+      process.exitCode = 1;
+      return;
+    }
+    assertSpend(heldOut.length);
+    const scored = await scoreVariant(heldOut, spec, apiKey, spec.fewShot ? loadFewShotFixtures() : []);
+    printMetrics(scored);
+    const variantReport = {
+      set: 'held-out',
+      note: 'One variant, chosen on the tuning set beforehand, scored once here. The held-out tiles were also scored for the live configuration; they are not used to choose between variants.',
+      model: MUSE_SPARK_MODEL,
+      byVariant: [scored],
+    };
+    writeFileSync(HELD_OUT_VARIANT_OUT, JSON.stringify(variantReport, null, 2));
+    console.log(JSON.stringify(variantReport, null, 2));
+    return;
+  }
+
   const heldSpec: VariantSpec = {
     id: 'held_live',
     promptVersion: PREREAD_PROMPT_VERSION,
