@@ -204,9 +204,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerProfileScreen> {
                                   heroRole,
                                   doctor.facilityName,
                                 ),
-                          verifiedLabel: l10n.profileKmpdcVerified(
-                            doctor.kmpdcNumber,
-                          ),
+                          verifiedLabel: l10n.doctorProfileVerified,
                           photoUrl: doctor.profilePictureUrl,
                         ),
                         const SizedBox(height: AppSpacing.md),

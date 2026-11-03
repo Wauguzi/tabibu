@@ -67,7 +67,9 @@ void main() {
         find.text('General surgery · Aga Khan University Hospital'),
         findsOneWidget,
       );
-      expect(find.text('KMPDC verified · A 12345'), findsOneWidget);
+      // The tab's card shows the status, never the licence number.
+      expect(find.text('KMPDC verified'), findsOneWidget);
+      expect(find.text('KMPDC verified · A 12345'), findsNothing);
       expect(
         find.text('You can approve area alerts for Nairobi.'),
         findsOneWidget,

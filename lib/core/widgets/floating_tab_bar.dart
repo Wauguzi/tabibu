@@ -113,7 +113,9 @@ class _TabItem extends StatelessWidget {
           // The pill sits outside the clip so it grows with the width
           // instead of being cut while the label slides in.
           child: AnimatedContainer(
-            duration: _duration,
+            // The pill that loses the selection vanishes at once: fading its
+            // ink out reads as a splash on the tab being left.
+            duration: selected ? _duration : Duration.zero,
             curve: _curve,
             height: 52,
             constraints: const BoxConstraints(minWidth: 56),

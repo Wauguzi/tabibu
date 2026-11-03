@@ -81,6 +81,7 @@ class SettingsRow extends StatelessWidget {
     this.onTap,
     this.destructive = false,
     this.chevron = true,
+    this.trailingIcon,
     super.key,
   });
 
@@ -89,6 +90,10 @@ class SettingsRow extends StatelessWidget {
   final String? supporting;
   final VoidCallback? onTap;
   final bool destructive;
+
+  /// Replaces the chevron with a fixed mark, such as a check beside a value
+  /// that cannot change yet.
+  final SvgGenImage? trailingIcon;
 
   /// False for an info row that opens nothing (the fixed appointment
   /// length): the chevron is dropped.
@@ -109,7 +114,14 @@ class SettingsRow extends StatelessWidget {
           title: title,
           titleColor: destructive ? scheme.error : null,
           supporting: supporting,
-          trailing: chevron
+          trailing: trailingIcon != null
+              ? AssetIcon(
+                  trailingIcon!,
+                  size: 22,
+                  scaleUp: false,
+                  color: scheme.primary,
+                )
+              : chevron
               ? AssetIcon(
                   Assets.icons.forwardIcon,
                   size: 18,

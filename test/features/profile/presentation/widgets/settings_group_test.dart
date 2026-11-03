@@ -9,6 +9,28 @@ import '../../../../helpers/helpers.dart';
 
 void main() {
   group('SettingsRow', () {
+    testWidgets('a trailing icon replaces the chevron', (tester) async {
+      await tester.pumpApp(
+        SettingsRow(
+          icon: Assets.icons.facilityIcon,
+          title: 'Facility',
+          supporting: 'Mbagathi District Hospital',
+          trailingIcon: Assets.icons.tickIcon,
+        ),
+      );
+
+      bool icon(Widget w, SvgGenImage asset) =>
+          w is AssetIcon && w.asset == asset;
+      expect(
+        find.byWidgetPredicate((w) => icon(w, Assets.icons.tickIcon)),
+        findsOneWidget,
+      );
+      expect(
+        find.byWidgetPredicate((w) => icon(w, Assets.icons.forwardIcon)),
+        findsNothing,
+      );
+    });
+
     testWidgets('activates with Enter and Space from the keyboard', (
       tester,
     ) async {

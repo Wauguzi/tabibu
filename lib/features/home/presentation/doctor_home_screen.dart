@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
+import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
@@ -27,6 +30,12 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_bloc.dart';
+import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_event.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
+import 'package:tabibu/features/conversations/presentation/mdt_labels.dart';
+import 'package:tabibu/features/conversations/presentation/mdt_routes.dart';
+import 'package:tabibu/features/conversations/presentation/widgets/mdt_invite_card.dart';
 import 'package:tabibu/features/home/presentation/widgets/home_header.dart';
 import 'package:tabibu/features/home/presentation/widgets/shell_tab_page.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
@@ -100,6 +109,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     context.read<NotificationsBloc>().add(
       NotificationsRequested(uid: _doctor.uid),
     );
+    context.read<MdtBloc>().add(MdtRequested(uid: _doctor.uid, role: .doctor));
     // Only an approver may read the queue (S-2); anyone else never asks.
     if (_roles.canApproveAlerts) {
       context.read<AlertReviewBloc>().add(const AlertQueueRequested());
@@ -353,6 +363,52 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     );
   }
 
+  /// A pending consult invitation: who asked, what about, and a way in. The
+  /// invitation screen holds the accept and decline, with their confirmation.
+  Widget _mdtInvite(ConversationModel consult) {
+    final l10n = context.l10n;
+    final textTheme = Theme.of(context).textTheme;
+    final scheme = Theme.of(context).colorScheme;
+    final inviter = mdtInviterOf(consult, _doctor.uid);
+    return Container(
+      padding: const EdgeInsets.all(AppSpacing.md),
+      decoration: BoxDecoration(
+        color: scheme.primaryContainer,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+      ),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: .start,
+              children: [
+                Text(
+                  l10n.doctorHomeMdtInvite(mdtMemberName(inviter)),
+                  style: textTheme.titleMedium,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  '${mdtRef(consult)} · ${mdtInviteAbout(consult, l10n)}',
+                  style: textTheme.bodyMedium,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          SizedBox(
+            width: 104,
+            child: TabibuButton.primary(
+              label: l10n.doctorHomeMdtJoin,
+              onTap: () => unawaited(
+                mdtConsultRoute(.doctor, consult.uid).push<void>(context),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   /// When the data on screen was last written, for the offline note.
   DateTime _savedAt(
     List<AppointmentModel> appointments,
@@ -376,6 +432,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     final queue = _roles.canApproveAlerts
         ? context.watch<AlertReviewBloc>().state.queue
         : const <AlertModel>[];
+    final invite = context.watch<MdtBloc>().state.invites.firstOrNull;
 
     final now = nairobiNow();
     final slots = _slotsOf(appointments.appointments, now);
@@ -469,16 +526,28 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
                 language: language,
               ),
             ],
-            if (entries.isNotEmpty) ...[
-              const SizedBox(height: AppSpacing.sectionGap),
-              SectionHeader(title: l10n.doctorHomeYourDay),
-              const SizedBox(height: AppSpacing.sm),
-              DayTimeline(entries: entries),
-            ],
+            const SizedBox(height: AppSpacing.sectionGap),
+            SectionHeader(
+              title: l10n.doctorHomeYourDay,
+              actionLabel: l10n.calendarTitle,
+              onAction: () => const DoctorCalendarRoute().push<void>(context),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            if (entries.isNotEmpty)
+              DayTimeline(entries: entries)
+            else
+              Text(
+                l10n.doctorHomeAppointmentsToday(0),
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
             const SizedBox(height: AppSpacing.sectionGap),
             SectionHeader(title: l10n.doctorHomeNeedsYou),
             const SizedBox(height: AppSpacing.sm),
             _needsYou(ready: ready, requested: requested, queue: queue),
+            if (invite != null) ...[
+              const SizedBox(height: AppSpacing.md),
+              _mdtInvite(invite),
+            ],
           ],
         ],
       ),

@@ -27,6 +27,9 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/data/models/ordered_test_model.dart';
+import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_state.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_member_model.dart';
+import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/home/presentation/doctor_home_screen.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_state.dart';
@@ -46,7 +49,7 @@ PractitionerSession _session({bool approver = false}) {
 /// Phone-width, very tall surface so the lazily-built sliver list mounts
 /// every row and below-fold taps hit.
 void _useTallSurface(WidgetTester tester) {
-  tester.view.physicalSize = const Size(1170, 6000);
+  tester.view.physicalSize = const Size(1170, 8000);
   tester.view.devicePixelRatio = 3;
   addTearDown(() {
     tester.view.resetPhysicalSize();
@@ -311,7 +314,8 @@ void main() {
       expect(find.text('3 appointments today.'), findsOneWidget);
       expect(find.text('2 reports ready.'), findsOneWidget);
       expect(find.text('Your day'), findsOneWidget);
-      expect(find.text('Calendar'), findsNothing);
+      // The month view is built (S-3): the link sits beside the day.
+      expect(find.text('Calendar'), findsOneWidget);
       expect(find.byType(FloatingActionButton), findsNothing);
       expect(find.byType(Fab), findsNothing);
     });
@@ -795,6 +799,40 @@ void main() {
       expect(find.text(sw.doctorHomeNeedsYou), findsOneWidget);
       expect(find.text(sw.doctorHomeFreeGap(65)), findsOneWidget);
       expect(find.text(sw.doctorHomeNow), findsOneWidget);
+    });
+
+    testWidgets('a consult invitation shows who asked and a way in', (
+      tester,
+    ) async {
+      if (!_dayHasRoom()) return;
+      _useTallSurface(tester);
+      const invite = ConversationModel(
+        uid: 'mdt-1',
+        specialty: 'Haematology',
+        description: 'Second opinion',
+        participantUids: ['doctor-1', 'lead'],
+        members: {
+          'lead': ConversationMemberModel(
+            uid: 'lead',
+            title: 'Dr.',
+            firstName: 'Ali',
+            lastName: 'Hassan',
+            status: 'Accepted',
+          ),
+          'doctor-1': ConversationMemberModel(
+            uid: 'doctor-1',
+            invitedByUid: 'lead',
+          ),
+        },
+      );
+      when(
+        () => blocs.mdt.state,
+      ).thenReturn(const MdtLoadSuccess(invites: [invite]));
+      stub(appointments: fullDay(_base()));
+      await pumpScreen(tester);
+
+      expect(find.text('MDT invite from Dr. Ali Hassan'), findsOneWidget);
+      expect(find.text('Join'), findsOneWidget);
     });
 
     testWidgets('grows at 1.3x in Swahili and dark without overflow', (

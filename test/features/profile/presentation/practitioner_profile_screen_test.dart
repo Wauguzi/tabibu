@@ -70,7 +70,10 @@ void main() {
         ),
         findsOneWidget,
       );
-      expect(find.text('KMPDC verified · A 12345'), findsOneWidget);
+      // The hero says verified and nothing more; the number is in the licence
+      // card below.
+      expect(find.text('KMPDC verified'), findsOneWidget);
+      expect(find.text('KMPDC verified · A 12345'), findsNothing);
       expect(find.text('Change photo'), findsOneWidget);
       expect(find.text('Shown to patients'), findsOneWidget);
       expect(find.text('General surgery'), findsOneWidget);

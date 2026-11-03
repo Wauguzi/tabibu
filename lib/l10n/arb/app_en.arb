@@ -8022,5 +8022,18 @@
     "notificationAlertDeliveryHeldTitle": "Alert delivery held",
     "@notificationAlertDeliveryHeldTitle": {
         "description": "Inbox row title for the alertDeliveryHeld notification"
+    },
+    "doctorHomeMdtInvite": "MDT invite from {name}",
+    "@doctorHomeMdtInvite": {
+        "description": "Doctor home: a pending consult invitation; the inviter",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorHomeMdtJoin": "Join",
+    "@doctorHomeMdtJoin": {
+        "description": "Doctor home: opens the consult invitation"
     }
 }

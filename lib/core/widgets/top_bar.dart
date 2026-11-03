@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/circle_icon_button.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
@@ -32,21 +33,32 @@ class TopBar extends StatelessWidget {
           onTap: onBack,
           semanticLabel: backLabel,
         ),
+        // The gap keeps a long title or a patient and order number off the
+        // circles on both sides; the text centres in what is left.
         Expanded(
-          child: Column(
-            mainAxisSize: .min,
-            children: [
-              if (title != null)
-                Text(title, style: textTheme.titleMedium, textAlign: .center),
-              if (subtitle != null)
-                Text(
-                  subtitle,
-                  style: textTheme.bodySmall,
-                  textAlign: .center,
-                  maxLines: 1,
-                  overflow: .ellipsis,
-                ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            child: Column(
+              mainAxisSize: .min,
+              children: [
+                if (title != null)
+                  Text(
+                    title,
+                    style: textTheme.titleMedium,
+                    textAlign: .center,
+                    maxLines: 2,
+                    overflow: .ellipsis,
+                  ),
+                if (subtitle != null)
+                  Text(
+                    subtitle,
+                    style: textTheme.bodySmall,
+                    textAlign: .center,
+                    maxLines: 2,
+                    overflow: .ellipsis,
+                  ),
+              ],
+            ),
           ),
         ),
         trailing ?? const SizedBox(width: 48, height: 48),

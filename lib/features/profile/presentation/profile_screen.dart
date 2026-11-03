@@ -305,7 +305,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         subtitle: role == null
             ? doctor.facilityName
             : l10n.profileRoleAtFacility(role, doctor.facilityName),
-        verifiedLabel: l10n.profileKmpdcVerified(doctor.kmpdcNumber),
+        verifiedLabel: l10n.doctorProfileVerified,
         photoUrl: doctor.profilePictureUrl,
         onEdit: _openDetails,
         editLabel: l10n.profileEdit,
@@ -327,6 +327,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ? l10n.profileLab
                 : l10n.profileFacility,
             supporting: doctor.facilityName,
+            // A check, not a chevron, until the facility can be changed.
+            trailingIcon: Assets.icons.tickIcon,
           ),
           if (!doctor.isPathologist)
             SettingsRow(

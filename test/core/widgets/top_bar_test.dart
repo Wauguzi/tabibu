@@ -32,8 +32,37 @@ void main() {
       expect(title.style?.fontSize, 16);
       final subtitle = tester.widget<Text>(find.text('Amina Wambui'));
       expect(subtitle.textAlign, TextAlign.center);
-      expect(subtitle.maxLines, 1);
+      expect(subtitle.maxLines, 2);
       expect(subtitle.overflow, TextOverflow.ellipsis);
+    });
+
+    testWidgets('a long subtitle stays clear of the back circle', (
+      tester,
+    ) async {
+      // A phone: 300 logical px wide, so the text fills the middle.
+      tester.view
+        ..physicalSize = const Size(900, 1600)
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      const long = 'ODR-JK-AW-02112026-001 · Amina Wambui Otieno-Kamau';
+      await tester.pumpApp(
+        TopBar(
+          backLabel: 'Back',
+          onBack: () {},
+          title: 'Report in progress',
+          subtitle: long,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final back = tester.getRect(find.byType(CircleIconButton));
+      final text = tester.getRect(find.text(long));
+      // A real gap, not touching.
+      expect(text.left - back.right, greaterThanOrEqualTo(8));
+      // Centred on the screen: the same room on the right.
+      final screen =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      expect((text.center.dx - screen / 2).abs(), lessThan(2));
     });
 
     testWidgets('fires the back action', (tester) async {

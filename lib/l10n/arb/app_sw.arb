@@ -1677,5 +1677,7 @@
     "notificationAlertDeliveredClinicianTitle": "Arifa ya afya",
     "notificationAlertDeliveredPatientTitle": "Taarifa ya afya",
     "notificationConfirmatoryTestRequestedTitle": "Kipimo zaidi kinapendekezwa",
-    "notificationAlertDeliveryHeldTitle": "Utoaji wa arifa umesimamishwa"
+    "notificationAlertDeliveryHeldTitle": "Utoaji wa arifa umesimamishwa",
+    "doctorHomeMdtInvite": "Mwaliko wa mjadala kutoka kwa {name}",
+    "doctorHomeMdtJoin": "Jiunge"
 }

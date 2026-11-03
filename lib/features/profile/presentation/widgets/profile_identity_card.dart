@@ -83,6 +83,7 @@ class PatientIdentityCard extends StatelessWidget {
             CircleIconButton(
               icon: Assets.icons.editIcon,
               onTap: onEdit,
+              diameter: 56,
               semanticLabel: editLabel,
               onCard: true,
             ),
@@ -181,6 +182,7 @@ class PractitionerIdentityCard extends StatelessWidget {
             CircleIconButton(
               icon: Assets.icons.editIcon,
               onTap: onEdit,
+              diameter: 56,
               semanticLabel: editLabel ?? '',
             ),
           ],
