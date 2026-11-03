@@ -294,7 +294,12 @@ export async function seedCases(ctx: SeedCtx): Promise<SeedResult> {
 
   const doctorDoc = (await db.collection('doctors').doc(doctor.uid).get()).data() ?? {};
   const hours = availabilityOf(doctorDoc, ctx.now);
-  const taken = new Set<number>();
+  // Slots another seed run (any tag) still holds on the doctor's calendar are not free either.
+  const taken = new Set<number>(
+    (Array.isArray(doctorDoc.busySlots) ? doctorDoc.busySlots : [])
+      .map((raw: unknown) => (typeof raw === 'string' ? Date.parse(raw) : NaN))
+      .filter((ms: number) => !Number.isNaN(ms)),
+  );
   const slotBefore = (ms: number): number => allSlots(hours, taken, ms, -1);
   const slotAfter = (ms: number): number => allSlots(hours, taken, ms, 1);
 
