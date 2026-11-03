@@ -370,6 +370,61 @@ void main() {
     );
   });
 
+  group('a pre-read nobody has scored yet', () {
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a refused score read is no score: the workspace opens with the report '
+      'locked',
+      setUp: () {
+        when(
+          () => reports.syncDraft(caseUid: _case, pathologistUid: _me),
+        ).thenAnswer((_) async => _draft);
+        when(
+          () => remote.fetchPreread(caseUid: _case, runUid: 'run1'),
+        ).thenAnswer((_) async => _preread);
+        when(
+          () => reports.syncPrereadScore(
+            caseUid: _case,
+            runUid: 'run1',
+            pathologistUid: _me,
+          ),
+        ).thenThrow(AppError.permissionDenied);
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const CaseWorkspaceOpened(caseUid: _case, pathologistUid: _me),
+      ),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceLoadSuccess>());
+        expect(bloc.state.score, isNull);
+        expect(bloc.state.needsScore, isTrue);
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'any other score failure still fails the load',
+      setUp: () {
+        when(
+          () => reports.syncDraft(caseUid: _case, pathologistUid: _me),
+        ).thenAnswer((_) async => _draft);
+        when(
+          () => remote.fetchPreread(caseUid: _case, runUid: 'run1'),
+        ).thenAnswer((_) async => _preread);
+        when(
+          () => reports.syncPrereadScore(
+            caseUid: _case,
+            runUid: 'run1',
+            pathologistUid: _me,
+          ),
+        ).thenThrow(AppError.unknown);
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const CaseWorkspaceOpened(caseUid: _case, pathologistUid: _me),
+      ),
+      verify: (bloc) => expect(bloc.state, isA<CaseWorkspaceLoadFailure>()),
+    );
+  });
+
   group('open', () {
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
       'loads the draft, the pre-read and a missing score, which is then due',

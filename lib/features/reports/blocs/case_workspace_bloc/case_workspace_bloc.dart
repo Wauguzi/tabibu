@@ -162,7 +162,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
             ? await _remote.fetchPreread(caseUid: event.caseUid, runUid: runUid)
             : (same ? state.preread : null);
         score = online
-            ? await _reports.syncPrereadScore(
+            ? await _scoreOf(
                 caseUid: event.caseUid,
                 runUid: runUid,
                 pathologistUid: event.pathologistUid,
@@ -217,6 +217,26 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
           offline: state.offline,
         ),
       );
+    }
+  }
+
+  /// The rules refuse a read of a score that does not exist yet, so a pre-read
+  /// nobody has scored comes back "denied": that is simply no score, and the
+  /// report stays locked until one is given (H-20).
+  Future<PrereadScoreModel?> _scoreOf({
+    required String caseUid,
+    required String runUid,
+    required String pathologistUid,
+  }) async {
+    try {
+      return await _reports.syncPrereadScore(
+        caseUid: caseUid,
+        runUid: runUid,
+        pathologistUid: pathologistUid,
+      );
+    } on AppError catch (e) {
+      if (e == AppError.permissionDenied) return null;
+      rethrow;
     }
   }
 
