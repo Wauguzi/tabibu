@@ -14,6 +14,7 @@ import 'package:tabibu/core/constants/theme_builder.dart';
 import 'package:tabibu/core/helpers/blocs_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
+import 'package:tabibu/core/helpers/inbox_alerts.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
 import 'package:tabibu/core/routing/app_router.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
@@ -31,6 +32,7 @@ import 'package:tabibu/features/lock/blocs/lock_bloc/lock_event.dart';
 import 'package:tabibu/features/lock/presentation/unlock_overlay.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
+import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_state.dart';
 import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart';
 import 'package:tabibu/features/notifications/data/models/notification_model.dart';
 import 'package:tabibu/features/notifications/presentation/inbox_watch.dart';
@@ -75,6 +77,9 @@ class _AppState extends State<App> with WidgetsBindingObserver {
   /// Null until the saved choice is read, so the device's language applies.
   Locale? _locale;
 
+  /// Which inbox rows arrived live and are shown by the notification service.
+  final _inboxAlerts = InboxAlerts();
+
   /// Only a real return from the background re-runs the checks; the
   /// `inactive → resumed` of a cold start is the decision route's (§9).
   bool _hasBeenBackgrounded = false;
@@ -107,6 +112,39 @@ class _AppState extends State<App> with WidgetsBindingObserver {
 
   /// Cold-start [NotificationService.launchPayload] is read once per session.
   bool _launchTapConsumed = false;
+
+  /// A cloud notification that lands while the app is open is shown by the
+  /// notification service, with its own title and text, at high priority.
+  /// The service does it only where no push can reach this install.
+  void _announceArrivals(NotificationsState state) {
+    if (state is NotificationsInitial) {
+      _inboxAlerts.reset();
+      return;
+    }
+    if (state is NotificationsLoadInProgress) return;
+    final l10n = lookupAppLocalizations(
+      Locale(_locale?.languageCode == 'sw' ? 'sw' : 'en'),
+    );
+    for (final row in _inboxAlerts.arrivals(state.items)) {
+      final template = NotificationTemplate.fromValue(row.templateKey);
+      // The template's own words in the reader's language; the server's copy
+      // for a row the app does not know.
+      final title = template == NotificationTemplate.unknown
+          ? row.title
+          : template.title(l10n, row.templateArgs);
+      final message = template == NotificationTemplate.unknown
+          ? row.message
+          : template.body(l10n, row.templateArgs);
+      unawaited(
+        getIt<NotificationService>().showInboxRow(
+          notificationUid: row.uid,
+          title: title.isEmpty ? row.title : title,
+          message: message.isEmpty ? row.message : message,
+          category: row.category,
+        ),
+      );
+    }
+  }
 
   /// Keeps the live inbox on while someone with a role is signed in and the
   /// app is in front, so a booking request reaches a doctor as it arrives.
@@ -257,61 +295,65 @@ class _AppState extends State<App> with WidgetsBindingObserver {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listener: (context, state) {
-        _syncInboxWatch(state.session);
-        _syncTapWatch(state.session);
-        switch (state) {
-          case LanguageChangeSuccess(:final language):
-            setState(() => _locale = Locale(language.value));
-          // Photos and license scans leave memory once no longer needed.
-          case SignUpSuccess():
-            context.read<SignUpBloc>().add(const SignUpDraftCleared());
-          case SignOutSuccess():
-            context.read<SignUpBloc>().add(const SignUpDraftCleared());
-            // PIN hash leaves the device with the session (rule 5).
-            context.read<LockBloc>().add(const LockStorageCleared());
-            BlocsHelper.resetFeatureBlocs(context);
-          default:
-        }
-      },
-      child: BlocBuilder<ThemeBloc, ThemeState>(
-        builder: (context, theme) => MaterialApp.router(
-          routerConfig: _router,
-          theme: _light,
-          darkTheme: _dark,
-          themeMode: switch (theme.preference) {
-            .light => .light,
-            .dark => .dark,
-            .system => .system,
-          },
-          // A switch is one frame, so it cannot tween under a page transition.
-          themeAnimationDuration: Duration.zero,
-          locale: _locale,
-          localizationsDelegates: tabibuLocalizationsDelegates,
-          supportedLocales: AppLocalizations.supportedLocales,
-          debugShowCheckedModeBanner: false,
-          builder: (context, child) {
-            final mediaQuery = MediaQuery.of(context);
-            final isDark = Theme.of(context).brightness == Brightness.dark;
-            // The default for screens that set no style of their own.
-            return AnnotatedRegion<SystemUiOverlayStyle>(
-              value: SystemUiOverlayStyle(
-                statusBarColor: AppColors.transparent,
-                statusBarBrightness: isDark ? .dark : .light,
-                statusBarIconBrightness: isDark ? .light : .dark,
-              ),
-              child: MediaQuery(
-                data: mediaQuery.copyWith(
-                  textScaler: composedTextScaler(
-                    base: mediaQuery.textScaler,
-                    extraScaleFactor: screenAwareTextScaleFactor(context),
-                  ),
+    return BlocListener<NotificationsBloc, NotificationsState>(
+      listener: (context, state) => _announceArrivals(state),
+      child: BlocListener<AuthBloc, AuthState>(
+        listener: (context, state) {
+          _syncInboxWatch(state.session);
+          _syncTapWatch(state.session);
+          switch (state) {
+            case LanguageChangeSuccess(:final language):
+              setState(() => _locale = Locale(language.value));
+            // Photos and license scans leave memory once no longer needed.
+            case SignUpSuccess():
+              context.read<SignUpBloc>().add(const SignUpDraftCleared());
+            case SignOutSuccess():
+              context.read<SignUpBloc>().add(const SignUpDraftCleared());
+              // PIN hash leaves the device with the session (rule 5).
+              context.read<LockBloc>().add(const LockStorageCleared());
+              BlocsHelper.resetFeatureBlocs(context);
+            default:
+          }
+        },
+        child: BlocBuilder<ThemeBloc, ThemeState>(
+          builder: (context, theme) => MaterialApp.router(
+            routerConfig: _router,
+            theme: _light,
+            darkTheme: _dark,
+            themeMode: switch (theme.preference) {
+              .light => .light,
+              .dark => .dark,
+              .system => .system,
+            },
+            // A switch is one frame, so it cannot tween under a page
+            // transition.
+            themeAnimationDuration: Duration.zero,
+            locale: _locale,
+            localizationsDelegates: tabibuLocalizationsDelegates,
+            supportedLocales: AppLocalizations.supportedLocales,
+            debugShowCheckedModeBanner: false,
+            builder: (context, child) {
+              final mediaQuery = MediaQuery.of(context);
+              final isDark = Theme.of(context).brightness == Brightness.dark;
+              // The default for screens that set no style of their own.
+              return AnnotatedRegion<SystemUiOverlayStyle>(
+                value: SystemUiOverlayStyle(
+                  statusBarColor: AppColors.transparent,
+                  statusBarBrightness: isDark ? .dark : .light,
+                  statusBarIconBrightness: isDark ? .light : .dark,
                 ),
-                child: UnlockOverlay(child: child!),
-              ),
-            );
-          },
+                child: MediaQuery(
+                  data: mediaQuery.copyWith(
+                    textScaler: composedTextScaler(
+                      base: mediaQuery.textScaler,
+                      extraScaleFactor: screenAwareTextScaleFactor(context),
+                    ),
+                  ),
+                  child: UnlockOverlay(child: child!),
+                ),
+              );
+            },
+          ),
         ),
       ),
     );

@@ -24,6 +24,7 @@ import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
 import 'package:tabibu/features/lock/data/biometric_authenticator.dart';
 import 'package:tabibu/features/lock/data/lock_storage.dart';
+import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart';
 
 class _MockAuthHelper extends Mock implements AuthHelper {}
 
@@ -44,6 +45,8 @@ class _MockFacilities extends Mock implements FacilitiesHelper {}
 class _MockLockStorage extends Mock implements LockStorage {}
 
 class _MockBiometrics extends Mock implements BiometricAuthenticator {}
+
+class _MockNotificationCache extends Mock implements NotificationCacheHelper {}
 
 void main() {
   late _MockAuthHelper auth;
@@ -93,7 +96,9 @@ void main() {
       ..registerSingleton<AlertTopicService>(_MockAlertTopics())
       ..registerSingleton<FacilitiesHelper>(_MockFacilities())
       ..registerSingleton<LockStorage>(lockStorage)
-      ..registerSingleton<BiometricAuthenticator>(_MockBiometrics());
+      ..registerSingleton<BiometricAuthenticator>(_MockBiometrics())
+      // The app listens to the inbox from its first build, so its bloc exists.
+      ..registerSingleton<NotificationCacheHelper>(_MockNotificationCache());
   });
 
   tearDown(getIt.reset);

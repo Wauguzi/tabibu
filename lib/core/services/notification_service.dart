@@ -20,8 +20,9 @@ enum NotificationChannel {
   /// Approved outbreak alerts.
   alerts('alerts', Importance.high),
 
-  /// A case moved: a report signed, a result released, an invitation.
-  caseUpdates('case_updates', Importance.defaultImportance);
+  /// A case moved: a report signed, a result released, an invitation, an
+  /// explanation ready. High, like the others: it is a person's own news.
+  caseUpdates('case_updates', Importance.high);
 
   const NotificationChannel(this.id, this.importance);
 
@@ -29,7 +30,7 @@ enum NotificationChannel {
   final Importance importance;
 
   /// A push names its channel in `data.channel`; anything else is a case
-  /// update, the quietest.
+  /// update.
   static NotificationChannel fromId(String? id) =>
       values.firstWhere((c) => c.id == id, orElse: () => caseUpdates);
 
@@ -71,6 +72,10 @@ class NotificationService {
   FirebaseMessaging _messaging() => FirebaseMessaging.instance;
   final Logger _logger = Logger();
   final StreamController<String> _taps = StreamController<String>.broadcast();
+
+  /// True once this install has an FCM token. Without one (an iOS simulator,
+  /// no APNs token) no push can arrive, so the inbox row is shown here instead.
+  bool _canReceivePush = false;
 
   /// `res/drawable/ic_notification.xml`, kept from the resource shrinker by
   /// `res/raw/keep.xml`. One constant for [initialize] and every show: the
@@ -128,6 +133,8 @@ class NotificationService {
               message.data['channel'] as String?,
             ),
             payload: _payloadOf(message),
+            // The same id the inbox row would use, so the two never stack.
+            id: notificationIdOf(message.data['notificationUid'] as String?),
           ),
         );
       });
@@ -158,7 +165,9 @@ class NotificationService {
   /// simulator, no APNs token, Firebase not initialised). Never throws.
   Future<String?> deviceToken() async {
     try {
-      return await _messaging().getToken();
+      final token = await _messaging().getToken();
+      _canReceivePush = token != null;
+      return token;
     } on Object catch (e) {
       if (kDebugMode) _logger.w('No FCM token: $e');
       return null;
@@ -296,7 +305,7 @@ class NotificationService {
             presentAlert: true,
             presentBanner: true,
             presentList: true,
-            presentSound: false,
+            presentSound: true,
           ),
         ),
       );
@@ -305,6 +314,44 @@ class NotificationService {
       _report(e, stackTrace);
     }
   }
+
+  @visibleForTesting
+  void debugAllowPushForTest() => _canReceivePush = true;
+
+  /// A stable id for a notification row: showing the same row twice replaces
+  /// the first banner. Null for a push that carries no row.
+  @visibleForTesting
+  static int? notificationIdOf(String? notificationUid) =>
+      notificationUid == null || notificationUid.isEmpty
+      ? null
+      : notificationUid.hashCode & 0x7FFFFFFF;
+
+  /// An inbox row that landed while the app was open, shown with its own title
+  /// and text at high priority. Only where no push can reach this install; a
+  /// device with a token already gets the same notification from FCM.
+  Future<void> showInboxRow({
+    required String notificationUid,
+    required String title,
+    required String message,
+    required String category,
+    String? payload,
+  }) async {
+    if (_canReceivePush) return;
+    await showNotification(
+      title: title,
+      message: message,
+      channel: NotificationChannel.fromId(channelIdOfCategory(category)),
+      payload: payload ?? notificationUid,
+      id: notificationIdOf(notificationUid),
+    );
+  }
+
+  /// The Android channel a category belongs to, as the server names it.
+  static String channelIdOfCategory(String category) => switch (category) {
+    'Account' => 'account',
+    'Alert' => 'alerts',
+    _ => 'case_updates',
+  };
 
   /// Crashlytics throws when Firebase never initialised, which this path can
   /// reach; reporting must not reintroduce the failure it reports.

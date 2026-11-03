@@ -80,6 +80,36 @@ describe('sendPush', () => {
     assert.equal(await pushSentAt(uid), NOW);
   });
 
+  it('sends every cloud notification at high priority, on the app channel, with its title and body', async () => {
+    // Normal in the registry, like the explanation-ready row: still delivered as urgent news.
+    const uid = await row({
+      templateKey: 'explanationReady',
+      category: 'Case',
+      priority: 'Normal',
+      title: 'Explanation ready',
+      message: 'An explanation is ready to review.',
+    });
+    assert.equal(await send(uid), 'sent');
+    const [message] = messaging.sent;
+    assert.deepEqual(message.notification, {
+      title: 'Explanation ready',
+      body: 'An explanation is ready to review.',
+    });
+    const android = message.android as { priority?: string; notification?: { channelId?: string } };
+    const apns = message.apns as { headers?: Record<string, string> };
+    assert.equal(android.priority, 'high');
+    assert.equal(android.notification?.channelId, 'case_updates');
+    assert.equal(apns.headers?.['apns-priority'], '10');
+    assert.equal(message.data.channel, 'case_updates');
+
+    const alert = await row({ category: 'Alert', title: 'Health notice', message: 'A notice for your area.' });
+    await send(alert);
+    assert.equal(
+      (messaging.sent[1].android as { notification?: { channelId?: string } }).notification?.channelId,
+      'alerts',
+    );
+  });
+
   it('does not send twice for one request', async () => {
     const uid = await row();
     await send(uid);
