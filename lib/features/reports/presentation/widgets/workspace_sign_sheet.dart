@@ -158,6 +158,7 @@ class _WorkspaceSignBodyState extends State<_WorkspaceSignBody> {
             ],
             const SizedBox(height: AppSpacing.md),
             CheckRow(
+              circle: true,
               label: l10n.signSheetAttestation,
               value: _attested,
               onChanged: busy

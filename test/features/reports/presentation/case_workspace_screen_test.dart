@@ -746,7 +746,16 @@ void main() {
 
         expect(find.text(l10n.workspaceStartFromAiDraft), findsOneWidget);
         expect(find.text(l10n.workspaceWriteOwn), findsOneWidget);
-        expect(find.byType(TabibuTextField), findsNothing);
+        // The fields stay in view under the buttons, empty: nothing of the AI
+        // draft is put in them until its own button is tapped.
+        expect(
+          field(tester, l10n.reportSectionDiagnosis).controller?.text,
+          isEmpty,
+        );
+        expect(
+          field(tester, l10n.reportSectionComments).controller?.text,
+          isEmpty,
+        );
         expect(aiDraftFrames(), findsNothing);
         verifyNever(() => blocs.caseWorkspace.add(any()));
       });

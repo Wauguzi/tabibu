@@ -22,6 +22,7 @@ class WorkspaceScoreCard extends StatelessWidget {
     required this.onOverall,
     required this.onSave,
     this.enabled = true,
+    this.saving = false,
     super.key,
   });
 
@@ -40,6 +41,9 @@ class WorkspaceScoreCard extends StatelessWidget {
   final ValueChanged<int> onOverall;
   final VoidCallback? onSave;
   final bool enabled;
+
+  /// The score is on its way to the server: the button spins.
+  final bool saving;
 
   bool get _complete =>
       findings != null &&
@@ -125,7 +129,8 @@ class WorkspaceScoreCard extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         TabibuButton.primary(
           label: l10n.scoreSave,
-          onTap: enabled && _complete ? onSave : null,
+          isLoading: saving,
+          onTap: enabled && !saving && _complete ? onSave : null,
         ),
       ],
     );

@@ -537,6 +537,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                     setState(() => _tilesVerdict = v),
                                 onOverall: (v) => setState(() => _overall = v),
                                 onSave: _saveScore,
+                                saving: state is CaseWorkspaceWriteInProgress,
                               ),
                               const SizedBox(height: AppSpacing.sm),
                               Text(
@@ -721,22 +722,26 @@ class _ReportSection extends StatelessWidget {
         !writeOwn &&
         !draft.startedFromPreread;
 
-    if (showChooser) {
-      return Column(
-        crossAxisAlignment: .stretch,
-        children: [
-          TabibuButton.primary(
-            label: l10n.workspaceStartFromAiDraft,
-            onTap: onStartFromAi,
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          TabibuButton.outline(
-            label: l10n.workspaceWriteOwn,
-            onTap: onWriteOwn,
-          ),
-        ],
-      );
-    }
+    // The two buttons start the report from the AI draft or from nothing.
+    // The fields stay in view under them, so scoring never makes the report
+    // fields vanish; typing in them is writing one's own.
+    final chooser = showChooser
+        ? Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              TabibuButton.primary(
+                label: l10n.workspaceStartFromAiDraft,
+                onTap: onStartFromAi,
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              TabibuButton.outline(
+                label: l10n.workspaceWriteOwn,
+                onTap: onWriteOwn,
+              ),
+              const SizedBox(height: AppSpacing.md),
+            ],
+          )
+        : null;
 
     final aiDiagnosis = preread?.draft.impression ?? '';
     final aiComments = preread == null ? '' : workspaceAiComments(preread!);
@@ -780,6 +785,7 @@ class _ReportSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: .stretch,
       children: [
+        ?chooser,
         Wrap(
           spacing: AppSpacing.xs,
           children: [
