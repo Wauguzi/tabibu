@@ -37,7 +37,8 @@ import {
 } from './appointments';
 import { Deps as DomainDeps } from './case-support';
 import { callerOf, type Caller } from './common';
-import { KILL_SWITCHES, remoteConfigReader } from './config';
+import { resolveMetaAiClient } from './ai-meta';
+import { isEnabled, KILL_SWITCHES, remoteConfigReader } from './config';
 import {
   closeConversationHandler,
   inviteToMdtHandler,
@@ -137,6 +138,7 @@ export const syncPractitioner = onDocumentWritten({ document: 'doctors/{uid}', r
 
 // A Firebase secret parameter: its value is bound at deploy time and never appears in the source.
 const shareCodeKey = defineSecret('SHARE_CODE_KEY');
+const metaApiKey = defineSecret('META_API_KEY');
 
 // Every switch is `false` until Remote Config says otherwise, and reads `false` when the template
 // cannot be loaded (R-8).
@@ -146,7 +148,26 @@ const switches = remoteConfigReader(
   }),
 );
 
-// No `ai` client is wired: the AI service is not built yet, so each AI job records `Failed`.
+/** Missing or unbound secret → no client; never throws into a trigger (rule 8). */
+function readMetaApiKey(): string | undefined {
+  try {
+    const value = metaApiKey.value();
+    return typeof value === 'string' && value.length > 0 ? value : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+function liveAiClient() {
+  return resolveMetaAiClient({
+    apiKey: readMetaApiKey(),
+    riskCheckEnabled: isEnabled(switches, 'risk_check_enabled'),
+    symptomIntakeEnabled: isEnabled(switches, 'symptom_intake_enabled'),
+  });
+}
+
+// The live client is attached only when META_API_KEY is present and a switch is on; otherwise
+// each AI job records Failed as before (bundle 56).
 async function domainDeps(withShareKey = false): Promise<DomainDeps> {
   await switches.refresh();
   return {
@@ -154,6 +175,7 @@ async function domainDeps(withShareKey = false): Promise<DomainDeps> {
     auth: getAuth(),
     bucket: getStorage().bucket().name,
     config: switches,
+    ai: liveAiClient(),
     shareCodeKey: withShareKey ? shareCodeKey.value() : undefined,
     synthetic: process.env.ALERTS_SYNTHETIC === 'true',
   };
@@ -197,7 +219,12 @@ export const requestReportText = domainCall(requestReportTextHandler);
 // Triggers retry on failure and re-read the current documents, so a redelivery is safe. The AI
 // calls in onCaseWritten need the longer timeout.
 export const onCaseWritten = onDocumentWritten(
-  { document: 'cases/{caseUid}', retry: true, timeoutSeconds: 120 },
+  {
+    document: 'cases/{caseUid}',
+    retry: true,
+    timeoutSeconds: 120,
+    secrets: [metaApiKey],
+  },
   async (event) => {
     await onCaseWrittenHandler(
       await domainDeps(),
@@ -263,7 +290,6 @@ export const sweepCases = onSchedule('every 5 minutes', async () => {
 
 // --- Appointments, conversations, push and staff ---------------------------------------------
 
-// No `ai` client is wired here either: a symptom summary or a transcript records `Failed`.
 async function runtimeDeps(): Promise<RuntimeDeps> {
   await switches.refresh();
   return {
@@ -271,6 +297,7 @@ async function runtimeDeps(): Promise<RuntimeDeps> {
     auth: getAuth(),
     bucket: getStorage().bucket().name,
     config: switches,
+    ai: liveAiClient(),
     messaging: getMessaging() as unknown as MessagingLike,
     storage: getStorage(),
   };
@@ -306,7 +333,12 @@ export const setAlertApprover = runtimeCall(setAlertApproverHandler);
 export const backfillAvailability = runtimeCall(backfillAvailabilityHandler);
 
 export const onAppointmentWritten = onDocumentWritten(
-  { document: 'appointments/{appointmentUid}', retry: true, timeoutSeconds: 120 },
+  {
+    document: 'appointments/{appointmentUid}',
+    retry: true,
+    timeoutSeconds: 120,
+    secrets: [metaApiKey],
+  },
   async (event) => {
     await onAppointmentWrittenHandler(
       await runtimeDeps(),
