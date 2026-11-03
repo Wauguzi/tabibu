@@ -115,8 +115,8 @@ export function sanitizedDraftOutput(raw: unknown): MachineText | undefined {
 
 /**
  * The output checks (07 §4, step 4) on sanitised segments: no digit, the placeholder
- * allow-list, no URL, no banned phrase, and sw text that is not the en text. Returns
- * the `FailureReason`, or '' when the output is usable.
+ * allow-list (and every required placeholder present), no URL, no banned phrase, and sw
+ * text that is not the en text. Returns the `FailureReason`, or '' when the output is usable.
  */
 export function checkDraftOutput(texts: MachineText): string {
   for (const key of DRAFT_KEYS) {
@@ -125,6 +125,7 @@ export function checkDraftOutput(texts: MachineText): string {
     const allowed = key.startsWith('patient_') ? PATIENT_PLACEHOLDERS : CLINICIAN_PLACEHOLDERS;
     const used = [...placeholdersOf(segment.headline), ...placeholdersOf(segment.body)];
     if (used.some((p) => !allowed.includes(p))) return 'OffSchema';
+    if (allowed.some((p) => !used.includes(p))) return 'OffSchema';
     if (hasUrl(segment.headline, segment.body)) return 'OffSchema';
   }
   const lower = (s: string): string => s.toLowerCase();
@@ -143,13 +144,76 @@ export function checkDraftOutput(texts: MachineText): string {
   return '';
 }
 
+/** Collapse whitespace for an exact guidance-bullet comparison. */
+function normalizeClaim(text: string): string {
+  return text.replace(/\s+/g, ' ').trim().toLowerCase();
+}
+
+/**
+ * Framing that points the reader at the guidance block (shown beside the draft) is
+ * allowed without being a bullet. Everything else without a `{placeholder}` must match
+ * a guidance bullet exactly (bundle 62).
+ */
+function isGuidanceFraming(sentence: string): boolean {
+  const n = normalizeClaim(sentence);
+  return (
+    n.includes('guidance') ||
+    n.includes('mwongozo') ||
+    n.includes('ministry of health') ||
+    n.includes('wizara ya afya') ||
+    n.includes('health facility') ||
+    n.includes('kituo cha afya')
+  );
+}
+
+/**
+ * Non-placeholder body sentences must be framing or an exact guidance bullet for that
+ * audience and language. Invented or rewritten claims fall back to the template.
+ */
+export function checkGuidanceGrounding(
+  texts: MachineText,
+  guidance: AlertDraftInput['guidance'],
+): string {
+  const bulletsFor = (audience: 'Patient' | 'Clinician', lang: 'en' | 'sw'): Set<string> => {
+    const set = new Set<string>();
+    for (const b of guidance) {
+      if (b.audience !== audience) continue;
+      set.add(normalizeClaim(lang === 'en' ? b.textEn : b.textSw));
+    }
+    return set;
+  };
+  for (const key of DRAFT_KEYS) {
+    const audience = key.startsWith('patient_') ? 'Patient' : 'Clinician';
+    const lang = key.endsWith('_sw') ? 'sw' : 'en';
+    const allowed = bulletsFor(audience, lang);
+    const sentences = texts[key].body
+      .split(/(?<=[.!?])\s+/)
+      .map((s) => s.trim())
+      .filter((s) => s.length > 0);
+    for (const sentence of sentences) {
+      if (/\{[a-zA-Z]+\}/.test(sentence)) continue;
+      if (isGuidanceFraming(sentence)) continue;
+      if (!allowed.has(normalizeClaim(sentence))) return 'OffSchema';
+    }
+  }
+  return '';
+}
+
 /** Cleans model output and checks it; anything unusable falls back to the template. */
-function cleanedModelOutput(raw: unknown): { clean?: MachineText; reason: string } {
+function cleanedModelOutput(
+  raw: unknown,
+  guidance?: AlertDraftInput['guidance'],
+): { clean?: MachineText; reason: string } {
   try {
     const clean = sanitizedDraftOutput(raw);
     if (!clean) return { reason: 'OffSchema' };
-    const reason = checkDraftOutput(clean);
-    return reason === '' ? { clean, reason: '' } : { reason };
+    const shape = checkDraftOutput(clean);
+    if (shape !== '') return { reason: shape };
+    if (guidance) {
+      const grounded = checkGuidanceGrounding(clean, guidance);
+      if (grounded !== '') return { reason: grounded };
+    }
+    return { clean, reason: '' };
   } catch {
     return { reason: 'OffSchema' };
   }
@@ -355,7 +419,7 @@ export async function onAlertWrittenHandler(
   } else {
     try {
       const output = await withTimeout(deps.ai.generateAlertDraft(draftInput));
-      const checked = cleanedModelOutput(output?.texts);
+      const checked = cleanedModelOutput(output?.texts, draftInput.guidance);
       if (checked.reason === '' && checked.clean) {
         texts = checked.clean;
         Object.assign(models, (output.models ?? {}) as Record<string, string>);

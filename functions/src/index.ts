@@ -37,7 +37,7 @@ import {
 } from './appointments';
 import { Deps as DomainDeps } from './case-support';
 import { callerOf, type Caller } from './common';
-import { resolveMetaAiClient } from './ai-meta';
+import { resolveAlertAiClient, resolveMetaAiClient } from './ai-meta';
 import { isEnabled, KILL_SWITCHES, remoteConfigReader } from './config';
 import {
   closeConversationHandler,
@@ -271,7 +271,12 @@ export const onReportDraftWritten = onDocumentWritten(
 );
 
 export const onReportTextWritten = onDocumentWritten(
-  { document: 'cases/{caseUid}/reportTexts/{textId}', retry: true },
+  {
+    document: 'cases/{caseUid}/reportTexts/{textId}',
+    retry: true,
+    timeoutSeconds: 180,
+    secrets: [metaApiKey],
+  },
   async (event) => {
     await onReportTextWrittenHandler(await domainDeps(), event.params.caseUid, event.params.textId);
   },
@@ -386,13 +391,17 @@ export const resumeLinkJobs = onSchedule('every 5 minutes', async () => {
 
 // --- Outbreak alerts ------------------------------------------------------------------
 
-// No `ai` client is wired: the AI service is not built yet, so drafts render the template.
+// Live alert drafting (bundle 62): Muse Spark when the switch is on; otherwise the template.
 async function alertDeps(): Promise<AlertDeps> {
   await switches.refresh();
   return {
     db: getFirestore(),
     topics: getMessaging(),
     config: switches,
+    ai: resolveAlertAiClient({
+      apiKey: readMetaApiKey(),
+      alertDraftingEnabled: isEnabled(switches, 'alert_drafting_enabled'),
+    }),
     synthetic: process.env.ALERTS_SYNTHETIC === 'true',
     patientDelayMin: Number(process.env.ALERT_PATIENT_DELAY_MIN ?? '0'),
   };
@@ -419,7 +428,12 @@ export const onNotifiableEventWritten = onDocumentWritten(
 );
 
 export const onAlertWritten = onDocumentWritten(
-  { document: 'alerts/{alertUid}', retry: true, timeoutSeconds: 120 },
+  {
+    document: 'alerts/{alertUid}',
+    retry: true,
+    timeoutSeconds: 120,
+    secrets: [metaApiKey],
+  },
   async (event) => {
     await onAlertWrittenHandler(await alertDeps(), event.params.alertUid, {
       before: event.data?.before.data(),

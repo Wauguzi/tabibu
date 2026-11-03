@@ -10,6 +10,7 @@ import { deliverAlert } from './alert-delivery';
 import {
   approveAlertHandler,
   checkDraftOutput,
+  checkGuidanceGrounding,
   onAlertWrittenHandler,
   requestAlertDraftHandler,
   sanitizedDraftOutput,
@@ -46,11 +47,13 @@ const CHIKUNGUNYA_TEST = '9f7bb98b-33ed-452e-9d52-ef49f8170711';
 const MODEL_EN = {
   patient: {
     headline: 'Health alert: {disease} in {county} County',
-    body: 'Cases of {disease} were confirmed in {county} County. Rest and drink fluids.',
+    body:
+      'Cases of {disease} were confirmed in {county} County. Follow the Ministry of Health guidance below, and visit a health facility if you feel unwell.',
   },
   clinician: {
     headline: 'Alert: {disease} in {county} County',
-    body: 'Confirmed {disease} in {county} County, week of {weekStart}: {count}. Watch for cases.',
+    body:
+      'Confirmed {disease} in {county} County, week of {weekStart}: {count}. Watch for suspected cases and follow the Ministry of Health guidance below.',
   },
 };
 
@@ -1107,6 +1110,79 @@ describe('alerts', () => {
       }
       assert.equal(sanitizedDraftOutput({}), undefined);
       assert.equal(checkDraftOutput(modelTexts()), '');
+    });
+
+    it('bundle 62: missing placeholder, rewritten guidance or an added phone falls back', async () => {
+      await approver(w, 'approver@example.com');
+
+      const missing = modelTexts();
+      missing.patient_en.headline = 'Health alert in the county';
+      missing.patient_en.body = 'Cases were confirmed. Follow the guidance below.';
+      assert.equal(checkDraftOutput(missing), 'OffSchema');
+
+      const phone = modelTexts();
+      phone.patient_en.body += ' Call +254700000000.';
+      assert.equal(checkDraftOutput(phone), 'NumberCheck');
+
+      const guidance = [
+        {
+          bulletId: 'p1',
+          audience: 'Patient',
+          textEn: 'Seek care promptly for fever.',
+          textSw: 'Tafuta matibabu haraka ukiwa na homa.',
+        },
+        {
+          bulletId: 'c1',
+          audience: 'Clinician',
+          textEn: 'Report a suspected case immediately.',
+          textSw: 'Ripoti kesi inayoshukiwa mara moja.',
+        },
+      ];
+      const rewritten = modelTexts();
+      rewritten.patient_en.body =
+        'Cases of {disease} were confirmed in {county} County. Seek care promptly for fever somehow differently.';
+      assert.equal(checkGuidanceGrounding(rewritten, guidance), 'OffSchema');
+
+      const grounded = modelTexts();
+      grounded.patient_en.body =
+        'Cases of {disease} were confirmed in {county} County. Seek care promptly for fever.';
+      grounded.patient_sw.body =
+        'Visa vya {disease} vimethibitishwa katika Kaunti ya {county}. Tafuta matibabu haraka ukiwa na homa.';
+      grounded.clinician_en.body =
+        'Confirmed {disease} in {county} County, week of {weekStart}: {count}. Report a suspected case immediately.';
+      grounded.clinician_sw.body =
+        'Majibu ya {disease} katika Kaunti ya {county}, wiki ya {weekStart}: {count}. Ripoti kesi inayoshukiwa mara moja.';
+      assert.equal(checkGuidanceGrounding(grounded, guidance), '');
+
+      const signalUid = signalUidFor('ebola_virus_disease', NAIROBI, WEEK);
+      await db.collection('alerts').doc(signalUid).delete();
+      await draftingAlert();
+      const seen: { calls: number; input?: AlertDraftInput } = { calls: 0 };
+      const after = (await db.collection('alerts').doc(signalUid).get()).data();
+      const outcome = await onAlertWrittenHandler(
+        depsOf(db, {
+          ai: {
+            assessCase: async () => {
+              throw new Error('unused');
+            },
+            generateAlertDraft: async (input: AlertDraftInput) => {
+              seen.calls++;
+              seen.input = input;
+              const texts = modelTexts();
+              texts.patient_en.body =
+                'Cases of {disease} were confirmed in {county} County. Invented advice the bullets never gave.';
+              return { texts, models: { draft: 'test-model' } };
+            },
+          },
+        }),
+        signalUid,
+        { before: undefined, after },
+      );
+      assert.equal(outcome, 'template');
+      assert.equal(seen.calls, 1);
+      const alert = (await db.collection('alerts').doc(signalUid).get()).data();
+      assert.equal(alert?.draftSource, 'Template');
+      assert.equal(alert?.failureReason, 'OffSchema');
     });
 
     it('zero-width smuggling is cleaned before the checks run', async () => {

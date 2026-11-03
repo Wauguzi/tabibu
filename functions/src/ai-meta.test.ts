@@ -6,10 +6,15 @@ import {
   META_RESPONSES_URL,
   MUSE_SPARK_MODEL,
   createMetaAiClient,
+  resolveAlertAiClient,
   resolveMetaAiClient,
+  serializeAlertDraftInput,
   type FetchLike,
 } from './ai-meta';
+import { ALERT_DRAFT_STYLE_RULES } from './alert-drafts';
+import type { AlertDraftInput } from './alert-deps';
 import { HISTOLOGY } from './case.test-support';
+import { ALERT_TEMPLATE_SW } from './copy/alerts.sw';
 
 const KEY = 'test-meta-key-not-real';
 
@@ -310,6 +315,75 @@ describe('ai-meta', () => {
           : (raw as Record<string, string>).Authorization ??
             (raw as Record<string, string>).authorization;
       assert.equal(auth, `Bearer ${KEY}`);
+    });
+
+    it('bundle 62: alert draft serialises only AlertDraftInput fields', async () => {
+      const input: AlertDraftInput = {
+        diseaseId: 'ebola_virus_disease',
+        diseaseNameEn: 'Ebola virus disease',
+        diseaseNameSw: 'Ugonjwa wa virusi vya Ebola',
+        countyName: 'Nairobi',
+        category: 'Immediate',
+        rule: 'A',
+        audienceKeys: ['patient_en', 'patient_sw', 'clinician_en', 'clinician_sw'],
+        guidance: [
+          {
+            bulletId: 'b1',
+            audience: 'Patient',
+            textEn: 'Seek care promptly.',
+            textSw: 'Tafuta matibabu haraka.',
+          },
+        ],
+        placeholders: { patient: ['disease', 'county'], clinician: ['disease', 'county', 'count', 'weekStart'] },
+        styleRules: ALERT_DRAFT_STYLE_RULES,
+      };
+      const flat = serializeAlertDraftInput(input);
+      assert.ok(!flat.includes('caseUid'));
+      assert.ok(!flat.includes('patientUid'));
+      assert.ok(!flat.includes('facility'));
+      assert.ok(!/"count"\s*:/.test(flat));
+      assert.ok(flat.includes('diseaseNameEn'));
+      assert.ok(flat.includes('Seek care promptly.'));
+
+      const validTexts = {
+        patient_en: {
+          headline: 'Health alert: {disease} in {county} County',
+          body: 'Cases of {disease} in {county} County. Follow the guidance below.',
+        },
+        patient_sw: {
+          headline: ALERT_TEMPLATE_SW.headline,
+          body: ALERT_TEMPLATE_SW.patientBody,
+        },
+        clinician_en: {
+          headline: 'Alert: {disease} in {county} County',
+          body: 'Confirmed {disease} in {county} County, week of {weekStart}: {count}. Follow guidance.',
+        },
+        clinician_sw: {
+          headline: ALERT_TEMPLATE_SW.headline,
+          body: ALERT_TEMPLATE_SW.clinicianBody,
+        },
+      };
+      const cap = captureFetch(async () => jsonResponse(responsesBody({ texts: validTexts })));
+      const out = await createMetaAiClient({ apiKey: KEY, fetch: cap.fetch }).generateAlertDraft!(
+        input,
+      );
+      assert.equal(out.models.alertDraft, MUSE_SPARK_MODEL);
+      assert.equal(out.texts.patient_en.headline, validTexts.patient_en.headline);
+      const envelope = cap.bodies[0] as { input?: string; reasoning?: unknown };
+      assert.ok(typeof envelope.input === 'string' && envelope.input.includes('ALERT_CONTEXT_BEGIN'));
+      assert.equal(envelope.input.includes(flat), true);
+      assert.ok(!envelope.input.includes('caseUid'));
+      assert.ok(!envelope.input.includes('patientUid'));
+      assert.deepEqual(envelope.reasoning, { effort: 'minimal' });
+      assert.equal(
+        resolveAlertAiClient({ apiKey: undefined, alertDraftingEnabled: true }),
+        undefined,
+      );
+      assert.equal(
+        resolveAlertAiClient({ apiKey: KEY, alertDraftingEnabled: false }),
+        undefined,
+      );
+      assert.ok(resolveAlertAiClient({ apiKey: KEY, alertDraftingEnabled: true }));
     });
 
     it('bundle 59: risk check and symptom summary send reasoning.effort minimal', async () => {

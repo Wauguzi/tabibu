@@ -56,6 +56,7 @@ import { prereadProfileOf } from './lab-tests';
 import { NotificationTx, type NotifyLanguage } from './notifications';
 import { CaseState, commitCase, transition, type CaseStage } from './orchestrator';
 import { processQueuedPreread } from './preread-worker';
+import { processQueuedReportText } from './report-text-worker';
 import { sanitize } from './sanitize';
 import { closeShare, loadShareClose, mintShareCode } from './shares';
 import { bumpModelSignal } from './signals';
@@ -1414,6 +1415,12 @@ export async function onReportDraftWrittenHandler(
 export async function onReportTextWrittenHandler(deps: Deps, caseUid: string, id: string): Promise<void> {
   const { db } = deps;
   const now = nowOf(deps);
+
+  // Live worker (bundle 61): Queued → Ready/Failed; Ready notifies the approver below.
+  const before = (await textRef(deps, caseUid, id).get()).data();
+  if (before && str(before.status) === 'Queued') {
+    await processQueuedReportText(deps, caseUid, id);
+  }
 
   await db.runTransaction(async (tx) => {
     const text = (await tx.get(textRef(deps, caseUid, id))).data();
