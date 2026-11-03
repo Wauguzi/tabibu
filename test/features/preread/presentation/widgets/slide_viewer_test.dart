@@ -35,7 +35,7 @@ void main() {
         onHeatmapChanged: onHeatmapChanged,
         heatmapLabel: 'Heat map',
         tilesLabel: 'Tiles',
-        onTiles: onTiles ?? () {},
+        onTiles: onTiles,
         scaleLabel: 'x20 · 1 mm',
         legendLow: 'Normal',
         legendHigh: 'Likely tumour',
@@ -75,6 +75,12 @@ void main() {
       );
       await tester.tap(find.text('Tiles'));
       expect(taps, 1);
+    });
+
+    testWidgets('null onTiles hides the Tiles control', (tester) async {
+      await tester.pumpApp(viewer(heatmapOn: false, onHeatmapChanged: (_) {}));
+      expect(find.text('Tiles'), findsNothing);
+      expect(find.text('Heat map'), findsOneWidget);
     });
 
     testWidgets('zoom buttons change scale and stop at the bounds', (

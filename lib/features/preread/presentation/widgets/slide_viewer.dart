@@ -19,12 +19,12 @@ class SlideViewer extends StatefulWidget {
     required this.onHeatmapChanged,
     required this.heatmapLabel,
     required this.tilesLabel,
-    required this.onTiles,
     required this.scaleLabel,
     required this.legendLow,
     required this.legendHigh,
     required this.zoomInLabel,
     required this.zoomOutLabel,
+    this.onTiles,
     this.heatmap,
     super.key,
   });
@@ -34,7 +34,9 @@ class SlideViewer extends StatefulWidget {
   final ValueChanged<bool> onHeatmapChanged;
   final String heatmapLabel;
   final String tilesLabel;
-  final VoidCallback onTiles;
+
+  /// Null hides the Tiles control (CS-03 is not built yet).
+  final VoidCallback? onTiles;
   final String scaleLabel;
   final String legendLow;
   final String legendHigh;
@@ -181,10 +183,11 @@ class _SlideViewerState extends State<SlideViewer> {
                                       value: widget.heatmapOn,
                                       onChanged: widget.onHeatmapChanged,
                                     ),
-                                    _TilesPill(
-                                      label: widget.tilesLabel,
-                                      onTap: widget.onTiles,
-                                    ),
+                                    if (widget.onTiles != null)
+                                      _TilesPill(
+                                        label: widget.tilesLabel,
+                                        onTap: widget.onTiles!,
+                                      ),
                                   ],
                                 ),
                               ),
