@@ -18,9 +18,7 @@ import '../../../helpers/helpers.dart';
 void main() {
   group('AreaScreen', () {
     setUpAll(() {
-      registerFallbackValue(
-        const PatientAreaChanged(countyId: 0),
-      );
+      registerFallbackValue(const PatientAreaChanged(countyId: 0));
       registerFallbackValue(const FacilitiesCountiesRequested());
     });
 
@@ -136,11 +134,7 @@ void main() {
       // No answer: the button spins, so the tree never settles.
       await tester.pump();
 
-      verify(
-        () => bloc.add(
-          const PatientAreaChanged(countyId: 28),
-        ),
-      ).called(1);
+      verify(() => bloc.add(const PatientAreaChanged(countyId: 28))).called(1);
     });
 
     testWidgets('Nairobi without a sub-county is refused', (tester) async {
@@ -300,9 +294,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('renders in Swahili in dark mode at 1.3x text', (
-      tester,
-    ) async {
+    testWidgets('renders in Swahili in dark mode at 1.3x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

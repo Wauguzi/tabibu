@@ -28,44 +28,44 @@ class PatientProfileScreen extends StatelessWidget {
     final l10n = context.l10n;
     final body = SafeArea(
       child: CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-          ),
-          sliver: SliverList.list(
-            children: [
-              TopBar(
-                backLabel: l10n.commonBack,
-                onBack: context.pop,
-                title: l10n.editProfileTitle,
-                trailing: CircleIconButton(
-                  icon: Assets.icons.editIcon,
-                  semanticLabel: l10n.editProfileEditTitle,
-                  onTap: () =>
-                      const PatientEditProfileRoute().push<void>(context),
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+            ),
+            sliver: SliverList.list(
+              children: [
+                TopBar(
+                  backLabel: l10n.commonBack,
+                  onBack: context.pop,
+                  title: l10n.editProfileTitle,
+                  trailing: CircleIconButton(
+                    icon: Assets.icons.editIcon,
+                    semanticLabel: l10n.editProfileEditTitle,
+                    onTap: () =>
+                        const PatientEditProfileRoute().push<void>(context),
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              BlocBuilder<AuthBloc, AuthState>(
-                builder: (context, state) {
-                  final patient = switch (state.session) {
-                    PatientSession(:final patient) => patient,
-                    _ => null,
-                  };
-                  // The router bounces the signed-out off role paths; this is
-                  // the frame between a sign-out and its redirect.
-                  if (patient == null) return const SizedBox.shrink();
-                  return _Details(patient: patient);
-                },
-              ),
-            ],
+                const SizedBox(height: AppSpacing.md),
+                BlocBuilder<AuthBloc, AuthState>(
+                  builder: (context, state) {
+                    final patient = switch (state.session) {
+                      PatientSession(:final patient) => patient,
+                      _ => null,
+                    };
+                    // The router bounces the signed-out off role paths; this is
+                    // the frame between a sign-out and its redirect.
+                    if (patient == null) return const SizedBox.shrink();
+                    return _Details(patient: patient);
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
     return Scaffold(body: RoleBackground.patient(child: body));
@@ -146,9 +146,7 @@ class _Details extends StatelessWidget {
               icon: Assets.icons.calendarIcon,
               title: l10n.editProfileDob,
               value: age == null
-                  ? (patient.dateOfBirth.isEmpty
-                        ? '–'
-                        : patient.dateOfBirth)
+                  ? (patient.dateOfBirth.isEmpty ? '–' : patient.dateOfBirth)
                   : l10n.editProfileDobValue(age, birthText),
             ),
             _DetailRow(

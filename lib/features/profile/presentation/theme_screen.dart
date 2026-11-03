@@ -41,61 +41,61 @@ class _ThemeScreenState extends State<ThemeScreen> {
     final choice = _choice ?? context.watch<ThemeBloc>().state.preference;
     final body = SafeArea(
       child: CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-            AppSpacing.screenMargin,
-            AppSpacing.md,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+            ),
+            sliver: SliverList.list(
+              children: [
+                TopBar(
+                  backLabel: l10n.commonBack,
+                  onBack: context.pop,
+                  title: l10n.themeSettingsTitle,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                OptionCard(
+                  icon: Assets.icons.themeIcon,
+                  tone: .sky,
+                  title: l10n.themeLight,
+                  supporting: clinician
+                      ? l10n.themeSettingsLightClinician
+                      : l10n.themeSettingsLightPatient,
+                  selected: choice == .light,
+                  onTap: () => setState(() => _choice = .light),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                OptionCard(
+                  icon: Assets.icons.themeIcon,
+                  tone: .sky,
+                  title: l10n.themeDark,
+                  supporting: clinician
+                      ? l10n.themeSettingsDarkClinician
+                      : l10n.themeSettingsDarkPatient,
+                  selected: choice == .dark,
+                  onTap: () => setState(() => _choice = .dark),
+                ),
+                const SizedBox(height: AppSpacing.md),
+                OptionCard(
+                  icon: Assets.icons.themeIcon,
+                  tone: .sky,
+                  title: l10n.themeSettingsSystem,
+                  supporting: l10n.themeSettingsSystemBody,
+                  selected: choice == .system,
+                  onTap: () => setState(() => _choice = .system),
+                ),
+                const SizedBox(height: AppSpacing.lg),
+                TabibuButton.primary(
+                  label: l10n.themeSettingsSave,
+                  onTap: () => _save(choice),
+                ),
+              ],
+            ),
           ),
-          sliver: SliverList.list(
-            children: [
-              TopBar(
-                backLabel: l10n.commonBack,
-                onBack: context.pop,
-                title: l10n.themeSettingsTitle,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              OptionCard(
-                icon: Assets.icons.themeIcon,
-                tone: .sky,
-                title: l10n.themeLight,
-                supporting: clinician
-                    ? l10n.themeSettingsLightClinician
-                    : l10n.themeSettingsLightPatient,
-                selected: choice == .light,
-                onTap: () => setState(() => _choice = .light),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              OptionCard(
-                icon: Assets.icons.themeIcon,
-                tone: .sky,
-                title: l10n.themeDark,
-                supporting: clinician
-                    ? l10n.themeSettingsDarkClinician
-                    : l10n.themeSettingsDarkPatient,
-                selected: choice == .dark,
-                onTap: () => setState(() => _choice = .dark),
-              ),
-              const SizedBox(height: AppSpacing.md),
-              OptionCard(
-                icon: Assets.icons.themeIcon,
-                tone: .sky,
-                title: l10n.themeSettingsSystem,
-                supporting: l10n.themeSettingsSystemBody,
-                selected: choice == .system,
-                onTap: () => setState(() => _choice = .system),
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              TabibuButton.primary(
-                label: l10n.themeSettingsSave,
-                onTap: () => _save(choice),
-              ),
-            ],
-          ),
-        ),
-      ],
+        ],
       ),
     );
     return Scaffold(body: background(child: body));

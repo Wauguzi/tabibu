@@ -46,19 +46,16 @@ void main() {
       roles: RoleSessions.doctor().roles,
     );
 
-    Future<void> enterIn(
-      WidgetTester tester,
-      String label,
-      String value,
-    ) => tester.enterText(
-      find.descendant(
-        of: find.byWidgetPredicate(
-          (widget) => widget is TabibuTextField && widget.label == label,
-        ),
-        matching: find.byType(TextField),
-      ),
-      value,
-    );
+    Future<void> enterIn(WidgetTester tester, String label, String value) =>
+        tester.enterText(
+          find.descendant(
+            of: find.byWidgetPredicate(
+              (widget) => widget is TabibuTextField && widget.label == label,
+            ),
+            matching: find.byType(TextField),
+          ),
+          value,
+        );
 
     testWidgets('a doctor reads their details', (tester) async {
       tallView(tester);
@@ -232,11 +229,7 @@ void main() {
       tallView(tester);
       final answers = StreamController<AuthState>();
       addTearDown(answers.close);
-      await tester.pumpRoleApp(
-        surgeon(),
-        '/doctor/profile',
-        answers: answers,
-      );
+      await tester.pumpRoleApp(surgeon(), '/doctor/profile', answers: answers);
       await tester.pumpAndSettle();
 
       // The tab's only circle is the card pencil.
@@ -275,9 +268,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('renders in Swahili in dark mode at 1.3x text', (
-      tester,
-    ) async {
+    testWidgets('renders in Swahili in dark mode at 1.3x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

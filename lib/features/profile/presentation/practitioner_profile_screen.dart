@@ -226,9 +226,6 @@ class _PractitionerDetailsScreenState extends State<PractitionerProfileScreen> {
                         TabibuTextField(
                           label: l10n.profileDetailsFullName,
                           controller: _name,
-                          // No merge: a merged text field trips the
-                          // framework's semantics assertion on a push.
-                          mergeSemantics: false,
                           leading: AssetIcon(Assets.icons.personIcon, size: 20),
                           readOnly: true,
                         ),
@@ -243,9 +240,6 @@ class _PractitionerDetailsScreenState extends State<PractitionerProfileScreen> {
                         TabibuTextField(
                           label: l10n.profileDetailsAbout,
                           controller: _bio,
-                          // No merge: a merged text field trips the
-                          // framework's semantics assertion on a push.
-                          mergeSemantics: false,
                           maxLines: 4,
                           errorText: _bioError,
                           onChanged: (_) => setState(() => _bioError = null),
@@ -259,9 +253,6 @@ class _PractitionerDetailsScreenState extends State<PractitionerProfileScreen> {
                         TabibuTextField(
                           label: l10n.profileDetailsPhone,
                           controller: _phone,
-                          // No merge: a merged text field trips the
-                          // framework's semantics assertion on a push.
-                          mergeSemantics: false,
                           leading: AssetIcon(Assets.icons.phoneIcon, size: 20),
                           keyboardType: .phone,
                           errorText: _phoneError,
@@ -271,9 +262,6 @@ class _PractitionerDetailsScreenState extends State<PractitionerProfileScreen> {
                         TabibuTextField(
                           label: l10n.profileDetailsEmail,
                           controller: _email,
-                          // No merge: a merged text field trips the
-                          // framework's semantics assertion on a push.
-                          mergeSemantics: false,
                           leading: AssetIcon(Assets.icons.emailIcon, size: 20),
                           readOnly: true,
                         ),

@@ -62,10 +62,7 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text('Best in bright clinics and wards'), findsOneWidget);
-      expect(
-        find.text('Easier on the eyes on night shifts'),
-        findsOneWidget,
-      );
+      expect(find.text('Easier on the eyes on night shifts'), findsOneWidget);
       expect(find.text('Best in bright places'), findsNothing);
     });
 
@@ -82,9 +79,7 @@ void main() {
       expect(find.text('Your profile'), findsOneWidget);
     });
 
-    testWidgets('renders in Swahili in dark mode at 1.3x text', (
-      tester,
-    ) async {
+    testWidgets('renders in Swahili in dark mode at 1.3x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

@@ -38,67 +38,69 @@ class NotificationSettingsScreen extends StatelessWidget {
     };
     final body = SafeArea(
       child: CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-          ),
-          sliver: SliverList.list(
-            children: [
-              TopBar(
-                backLabel: l10n.commonBack,
-                onBack: context.pop,
-                title: l10n.notificationSettingsTitle,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              BlocConsumer<AuthBloc, AuthState>(
-                listenWhen: (previous, state) =>
-                    state is ProfileSettingChangeFailure,
-                listener: (context, state) {
-                  final failure = state as ProfileSettingChangeFailure;
-                  unawaited(
-                    showTabibuNotification(
-                      context,
-                      message: failure.error.description(l10n),
-                      isError: true,
-                      dismissLabel: l10n.commonDismiss,
-                    ),
-                  );
-                },
-                builder: (context, state) {
-                  final receive = switch (state.session) {
-                    PatientSession(:final patient) =>
-                      patient.receiveNotifications,
-                    PractitionerSession(:final doctor) =>
-                      doctor.receiveNotifications,
-                    _ => null,
-                  };
-                  // The router bounces the signed-out off role paths; this is
-                  // the frame between a sign-out and its redirect.
-                  if (receive == null) return const SizedBox.shrink();
-                  final saving = state is ProfileSettingChangeInProgress;
-                  return _MasterRow(
-                    title: l10n.notificationSettingsAll,
-                    body: receive ? l10n.notificationSettingsAllBody : offBody,
-                    value: receive,
-                    onChanged: saving
-                        ? null
-                        : (value) => context.read<AuthBloc>().add(
-                            ProfileSettingChanged(
-                              setting: .healthNotices,
-                              value: value,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+            ),
+            sliver: SliverList.list(
+              children: [
+                TopBar(
+                  backLabel: l10n.commonBack,
+                  onBack: context.pop,
+                  title: l10n.notificationSettingsTitle,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                BlocConsumer<AuthBloc, AuthState>(
+                  listenWhen: (previous, state) =>
+                      state is ProfileSettingChangeFailure,
+                  listener: (context, state) {
+                    final failure = state as ProfileSettingChangeFailure;
+                    unawaited(
+                      showTabibuNotification(
+                        context,
+                        message: failure.error.description(l10n),
+                        isError: true,
+                        dismissLabel: l10n.commonDismiss,
+                      ),
+                    );
+                  },
+                  builder: (context, state) {
+                    final receive = switch (state.session) {
+                      PatientSession(:final patient) =>
+                        patient.receiveNotifications,
+                      PractitionerSession(:final doctor) =>
+                        doctor.receiveNotifications,
+                      _ => null,
+                    };
+                    // The router bounces the signed-out off role paths; this is
+                    // the frame between a sign-out and its redirect.
+                    if (receive == null) return const SizedBox.shrink();
+                    final saving = state is ProfileSettingChangeInProgress;
+                    return _MasterRow(
+                      title: l10n.notificationSettingsAll,
+                      body: receive
+                          ? l10n.notificationSettingsAllBody
+                          : offBody,
+                      value: receive,
+                      onChanged: saving
+                          ? null
+                          : (value) => context.read<AuthBloc>().add(
+                              ProfileSettingChanged(
+                                setting: .healthNotices,
+                                value: value,
+                              ),
                             ),
-                          ),
-                  );
-                },
-              ),
-            ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
     return Scaffold(body: background(child: body));

@@ -327,9 +327,7 @@ void main() {
       }
     });
 
-    testWidgets('the patient pencil opens the profile details', (
-      tester,
-    ) async {
+    testWidgets('the patient pencil opens the profile details', (tester) async {
       tallView(tester);
       await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
       await tester.pumpAndSettle();

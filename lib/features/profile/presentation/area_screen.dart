@@ -195,113 +195,117 @@ class _AreaScreenState extends State<AreaScreen> {
     final l10n = context.l10n;
     final body = SafeArea(
       child: CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-          ),
-          sliver: SliverList.list(
-            children: [
-              TopBar(
-                backLabel: l10n.commonBack,
-                onBack: context.pop,
-                title: l10n.areaTitle,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              Text(l10n.areaBody, style: Theme.of(context).textTheme.bodyLarge),
-              const SizedBox(height: AppSpacing.md),
-              BlocListener<FacilitiesBloc, FacilitiesState>(
-                listener: (context, state) => _onFacilities(state),
-                child: BlocConsumer<AuthBloc, AuthState>(
-                  listenWhen: (_, _) => _saving,
-                  listener: (context, state) {
-                    switch (state) {
-                      case ProfileSaveSuccess():
-                        context.pop();
-                      case ProfileSaveFailure(:final error):
-                        setState(() => _saving = false);
-                        unawaited(
-                          showTabibuNotification(
-                            context,
-                            message: error.description(l10n),
-                            isError: true,
-                            dismissLabel: l10n.commonDismiss,
-                          ),
-                        );
-                      default:
-                        break;
-                    }
-                  },
-                  builder: (context, state) {
-                    final patient = switch (state.session) {
-                      PatientSession(:final patient) => patient,
-                      _ => null,
-                    };
-                    // The router bounces the signed-out off role paths; this is
-                    // the frame between a sign-out and its redirect.
-                    if (patient == null) return const SizedBox.shrink();
-                    _prefill(patient.county, patient.subCounty);
-                    return Column(
-                      crossAxisAlignment: .stretch,
-                      children: [
-                        if (_listsFailed) ...[
-                          NoticeCard(
-                            variant: .error,
-                            icon: Assets.icons.cancelIcon,
-                            body: AppError.dataNotFound.description(l10n),
-                            action: _RetryLink(
-                              label: l10n.commonRetry,
-                              onTap: _retryLists,
-                            ),
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                        ],
-                        PickerField(
-                          label: l10n.areaCounty,
-                          required: true,
-                          hint: l10n.countyHint,
-                          value: _countyName,
-                          leading: Assets.icons.locationIcon,
-                          errorText: _countyError,
-                          onTap: _counties == null ? null : _pickCounty,
-                        ),
-                        if (_countyId != null && _nairobiChosen) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          PickerField(
-                            label: l10n.areaSubCounty,
-                            required: true,
-                            hint: l10n.subCountyLabel,
-                            value: _subCountyName,
-                            leading: Assets.icons.locationIcon,
-                            errorText: _subCountyError,
-                            onTap: _pickSubCounty,
-                          ),
-                        ],
-                        const SizedBox(height: AppSpacing.lg),
-                        TabibuButton.primary(
-                          label: l10n.areaSave,
-                          isLoading: _saving,
-                          // Both lists decide the payload: Nairobi without a
-                          // sub-county is refused, so Save waits for them.
-                          onTap:
-                              _counties == null ||
-                                  _subCounties == null ||
-                                  _saving
-                              ? null
-                              : _save,
-                        ),
-                      ],
-                    );
-                  },
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+            ),
+            sliver: SliverList.list(
+              children: [
+                TopBar(
+                  backLabel: l10n.commonBack,
+                  onBack: context.pop,
+                  title: l10n.areaTitle,
                 ),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.md),
+                Text(
+                  l10n.areaBody,
+                  style: Theme.of(context).textTheme.bodyLarge,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                BlocListener<FacilitiesBloc, FacilitiesState>(
+                  listener: (context, state) => _onFacilities(state),
+                  child: BlocConsumer<AuthBloc, AuthState>(
+                    listenWhen: (_, _) => _saving,
+                    listener: (context, state) {
+                      switch (state) {
+                        case ProfileSaveSuccess():
+                          context.pop();
+                        case ProfileSaveFailure(:final error):
+                          setState(() => _saving = false);
+                          unawaited(
+                            showTabibuNotification(
+                              context,
+                              message: error.description(l10n),
+                              isError: true,
+                              dismissLabel: l10n.commonDismiss,
+                            ),
+                          );
+                        default:
+                          break;
+                      }
+                    },
+                    builder: (context, state) {
+                      final patient = switch (state.session) {
+                        PatientSession(:final patient) => patient,
+                        _ => null,
+                      };
+                      // The router bounces the signed-out off role paths;
+                      // this is the frame between a sign-out and its
+                      // redirect.
+                      if (patient == null) return const SizedBox.shrink();
+                      _prefill(patient.county, patient.subCounty);
+                      return Column(
+                        crossAxisAlignment: .stretch,
+                        children: [
+                          if (_listsFailed) ...[
+                            NoticeCard(
+                              variant: .error,
+                              icon: Assets.icons.cancelIcon,
+                              body: AppError.dataNotFound.description(l10n),
+                              action: _RetryLink(
+                                label: l10n.commonRetry,
+                                onTap: _retryLists,
+                              ),
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
+                          PickerField(
+                            label: l10n.areaCounty,
+                            required: true,
+                            hint: l10n.countyHint,
+                            value: _countyName,
+                            leading: Assets.icons.locationIcon,
+                            errorText: _countyError,
+                            onTap: _counties == null ? null : _pickCounty,
+                          ),
+                          if (_countyId != null && _nairobiChosen) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            PickerField(
+                              label: l10n.areaSubCounty,
+                              required: true,
+                              hint: l10n.subCountyLabel,
+                              value: _subCountyName,
+                              leading: Assets.icons.locationIcon,
+                              errorText: _subCountyError,
+                              onTap: _pickSubCounty,
+                            ),
+                          ],
+                          const SizedBox(height: AppSpacing.lg),
+                          TabibuButton.primary(
+                            label: l10n.areaSave,
+                            isLoading: _saving,
+                            // Both lists decide the payload: Nairobi without a
+                            // sub-county is refused, so Save waits for them.
+                            onTap:
+                                _counties == null ||
+                                    _subCounties == null ||
+                                    _saving
+                                ? null
+                                : _save,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
     return Scaffold(body: RoleBackground.patient(child: body));

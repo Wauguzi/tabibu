@@ -114,125 +114,125 @@ class _ClinicHoursScreenState extends State<ClinicHoursScreen> {
     final l10n = context.l10n;
     final body = SafeArea(
       child: CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-          ),
-          sliver: SliverList.list(
-            children: [
-              TopBar(
-                backLabel: l10n.commonBack,
-                onBack: context.pop,
-                title: l10n.clinicHoursTitle,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              BlocConsumer<AuthBloc, AuthState>(
-                listener: (context, state) {
-                  switch (state) {
-                    case ProfileSaveSuccess() when _saving:
-                      context.pop();
-                    case ProfileSaveFailure(:final error) when _saving:
-                      setState(() => _saving = false);
-                      unawaited(
-                        showTabibuNotification(
-                          context,
-                          message: error.description(l10n),
-                          isError: true,
-                          dismissLabel: l10n.commonDismiss,
-                        ),
-                      );
-                    case ProfileSettingChangeFailure(:final error):
-                      unawaited(
-                        showTabibuNotification(
-                          context,
-                          message: error.description(l10n),
-                          isError: true,
-                          dismissLabel: l10n.commonDismiss,
-                        ),
-                      );
-                    default:
-                      break;
-                  }
-                },
-                builder: (context, state) {
-                  final doctor = switch (state.session) {
-                    PractitionerSession(:final doctor) => doctor,
-                    _ => null,
-                  };
-                  // The router bounces the signed-out off role paths; this is
-                  // the frame between a sign-out and its redirect.
-                  if (doctor == null) return const SizedBox.shrink();
-                  _fillOnce(doctor);
-                  final flipping = state is ProfileSettingChangeInProgress;
-                  final range = hoursRangeText(context, _start, _end);
-                  String supporting(_DayGroup group) =>
-                      _days.any(group.days.contains)
-                      ? range
-                      : l10n.clinicHoursClosed;
-                  return Column(
-                    crossAxisAlignment: .stretch,
-                    children: [
-                      SettingsCard(
-                        children: [
-                          for (final group in _DayGroup.values)
-                            SettingsRow(
-                              icon: Assets.icons.calendarIcon,
-                              title: _groupTitle(group, l10n),
-                              supporting: supporting(group),
-                              onTap: () => _edit(group),
-                            ),
-                          SettingsRow(
-                            icon: Assets.icons.clockIcon,
-                            title: l10n.clinicHoursLength,
-                            supporting: l10n.clinicHoursThirtyMin,
-                            chevron: false,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+            ),
+            sliver: SliverList.list(
+              children: [
+                TopBar(
+                  backLabel: l10n.commonBack,
+                  onBack: context.pop,
+                  title: l10n.clinicHoursTitle,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                BlocConsumer<AuthBloc, AuthState>(
+                  listener: (context, state) {
+                    switch (state) {
+                      case ProfileSaveSuccess() when _saving:
+                        context.pop();
+                      case ProfileSaveFailure(:final error) when _saving:
+                        setState(() => _saving = false);
+                        unawaited(
+                          showTabibuNotification(
+                            context,
+                            message: error.description(l10n),
+                            isError: true,
+                            dismissLabel: l10n.commonDismiss,
                           ),
-                          SettingsSwitchRow(
-                            icon: Assets.icons.testTubeIcon,
-                            title: l10n.clinicHoursAccepting,
-                            supporting: doctor.isAvailable
-                                ? l10n.clinicHoursAcceptingOn
-                                : l10n.clinicHoursAcceptingOff,
-                            value: doctor.isAvailable,
-                            onChanged: flipping
-                                ? null
-                                : (value) => context.read<AuthBloc>().add(
-                                    ProfileSettingChanged(
-                                      setting: .acceptCases,
-                                      value: value,
+                        );
+                      case ProfileSettingChangeFailure(:final error):
+                        unawaited(
+                          showTabibuNotification(
+                            context,
+                            message: error.description(l10n),
+                            isError: true,
+                            dismissLabel: l10n.commonDismiss,
+                          ),
+                        );
+                      default:
+                        break;
+                    }
+                  },
+                  builder: (context, state) {
+                    final doctor = switch (state.session) {
+                      PractitionerSession(:final doctor) => doctor,
+                      _ => null,
+                    };
+                    // The router bounces the signed-out off role paths; this is
+                    // the frame between a sign-out and its redirect.
+                    if (doctor == null) return const SizedBox.shrink();
+                    _fillOnce(doctor);
+                    final flipping = state is ProfileSettingChangeInProgress;
+                    final range = hoursRangeText(context, _start, _end);
+                    String supporting(_DayGroup group) =>
+                        _days.any(group.days.contains)
+                        ? range
+                        : l10n.clinicHoursClosed;
+                    return Column(
+                      crossAxisAlignment: .stretch,
+                      children: [
+                        SettingsCard(
+                          children: [
+                            for (final group in _DayGroup.values)
+                              SettingsRow(
+                                icon: Assets.icons.calendarIcon,
+                                title: _groupTitle(group, l10n),
+                                supporting: supporting(group),
+                                onTap: () => _edit(group),
+                              ),
+                            SettingsRow(
+                              icon: Assets.icons.clockIcon,
+                              title: l10n.clinicHoursLength,
+                              supporting: l10n.clinicHoursThirtyMin,
+                              chevron: false,
+                            ),
+                            SettingsSwitchRow(
+                              icon: Assets.icons.testTubeIcon,
+                              title: l10n.clinicHoursAccepting,
+                              supporting: doctor.isAvailable
+                                  ? l10n.clinicHoursAcceptingOn
+                                  : l10n.clinicHoursAcceptingOff,
+                              value: doctor.isAvailable,
+                              onChanged: flipping
+                                  ? null
+                                  : (value) => context.read<AuthBloc>().add(
+                                      ProfileSettingChanged(
+                                        setting: .acceptCases,
+                                        value: value,
+                                      ),
                                     ),
-                                  ),
+                            ),
+                          ],
+                        ),
+                        if (_needDay) ...[
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            l10n.clinicHoursNeedDay,
+                            style: Theme.of(context).textTheme.bodyMedium
+                                ?.copyWith(
+                                  color: Theme.of(context).colorScheme.error,
+                                ),
                           ),
                         ],
-                      ),
-                      if (_needDay) ...[
-                        const SizedBox(height: AppSpacing.sm),
-                        Text(
-                          l10n.clinicHoursNeedDay,
-                          style: Theme.of(context).textTheme.bodyMedium
-                              ?.copyWith(
-                                color: Theme.of(context).colorScheme.error,
-                              ),
+                        const SizedBox(height: AppSpacing.lg),
+                        TabibuButton.primary(
+                          label: l10n.clinicHoursSave,
+                          isLoading: _saving,
+                          onTap: _saving ? null : _save,
                         ),
                       ],
-                      const SizedBox(height: AppSpacing.lg),
-                      TabibuButton.primary(
-                        label: l10n.clinicHoursSave,
-                        isLoading: _saving,
-                        onTap: _saving ? null : _save,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
     return Scaffold(body: RoleBackground.doctor(child: body));

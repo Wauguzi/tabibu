@@ -50,103 +50,103 @@ class _ProfileLanguageScreenState extends State<ProfileLanguageScreen> {
     };
     final body = SafeArea(
       child: CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-          ),
-          sliver: SliverList.list(
-            children: [
-              TopBar(
-                backLabel: l10n.commonBack,
-                onBack: context.pop,
-                title: l10n.languageSettingsTitle,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              BlocListener<AuthBloc, AuthState>(
-                listenWhen: (_, _) => _saving,
-                listener: (context, state) {
-                  switch (state) {
-                    case LanguageChangeSuccess():
-                      context.pop();
-                    case LanguageChangeFailure(:final error):
-                      setState(() => _saving = false);
-                      unawaited(
-                        showTabibuNotification(
-                          context,
-                          message: error.description(l10n),
-                          isError: true,
-                          dismissLabel: l10n.commonDismiss,
-                        ),
-                      );
-                    default:
-                      break;
-                  }
-                },
-                child: Builder(
-                  builder: (context) {
-                    final current =
-                        Localizations.localeOf(context).languageCode == 'sw'
-                        ? AppLanguage.sw
-                        : AppLanguage.en;
-                    final choice = _choice ?? current;
-                    return Column(
-                      crossAxisAlignment: .stretch,
-                      children: [
-                        if (note == null) ...[
-                          Text(
-                            l10n.languageSettingsPatientBody,
-                            style: Theme.of(context).textTheme.bodyLarge,
-                          ),
-                          const SizedBox(height: AppSpacing.md),
-                        ],
-                        OptionCard(
-                          icon: Assets.icons.languageIcon,
-                          tone: .sky,
-                          title: l10n.languageEn,
-                          supporting: l10n.languageSettingsUseEnglish,
-                          selected: choice == .en,
-                          onTap: () => setState(() => _choice = .en),
-                        ),
-                        const SizedBox(height: AppSpacing.md),
-                        OptionCard(
-                          icon: Assets.icons.languageIcon,
-                          tone: .sky,
-                          title: l10n.languageSw,
-                          supporting: l10n.languageSettingsUseSwahili,
-                          selected: choice == .sw,
-                          onTap: () => setState(() => _choice = .sw),
-                        ),
-                        if (note != null) ...[
-                          const SizedBox(height: AppSpacing.md),
-                          Text(
-                            note,
-                            style: Theme.of(context).textTheme.bodyMedium
-                                ?.copyWith(
-                                  color: Theme.of(
-                                    context,
-                                  ).colorScheme.onSurfaceVariant,
-                                ),
-                          ),
-                        ],
-                        const SizedBox(height: AppSpacing.lg),
-                        TabibuButton.primary(
-                          label: l10n.languageSettingsSave,
-                          isLoading: _saving,
-                          onTap: _saving ? null : _save,
-                        ),
-                      ],
-                    );
-                  },
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+            ),
+            sliver: SliverList.list(
+              children: [
+                TopBar(
+                  backLabel: l10n.commonBack,
+                  onBack: context.pop,
+                  title: l10n.languageSettingsTitle,
                 ),
-              ),
-            ],
+                const SizedBox(height: AppSpacing.md),
+                BlocListener<AuthBloc, AuthState>(
+                  listenWhen: (_, _) => _saving,
+                  listener: (context, state) {
+                    switch (state) {
+                      case LanguageChangeSuccess():
+                        context.pop();
+                      case LanguageChangeFailure(:final error):
+                        setState(() => _saving = false);
+                        unawaited(
+                          showTabibuNotification(
+                            context,
+                            message: error.description(l10n),
+                            isError: true,
+                            dismissLabel: l10n.commonDismiss,
+                          ),
+                        );
+                      default:
+                        break;
+                    }
+                  },
+                  child: Builder(
+                    builder: (context) {
+                      final current =
+                          Localizations.localeOf(context).languageCode == 'sw'
+                          ? AppLanguage.sw
+                          : AppLanguage.en;
+                      final choice = _choice ?? current;
+                      return Column(
+                        crossAxisAlignment: .stretch,
+                        children: [
+                          if (note == null) ...[
+                            Text(
+                              l10n.languageSettingsPatientBody,
+                              style: Theme.of(context).textTheme.bodyLarge,
+                            ),
+                            const SizedBox(height: AppSpacing.md),
+                          ],
+                          OptionCard(
+                            icon: Assets.icons.languageIcon,
+                            tone: .sky,
+                            title: l10n.languageEn,
+                            supporting: l10n.languageSettingsUseEnglish,
+                            selected: choice == .en,
+                            onTap: () => setState(() => _choice = .en),
+                          ),
+                          const SizedBox(height: AppSpacing.md),
+                          OptionCard(
+                            icon: Assets.icons.languageIcon,
+                            tone: .sky,
+                            title: l10n.languageSw,
+                            supporting: l10n.languageSettingsUseSwahili,
+                            selected: choice == .sw,
+                            onTap: () => setState(() => _choice = .sw),
+                          ),
+                          if (note != null) ...[
+                            const SizedBox(height: AppSpacing.md),
+                            Text(
+                              note,
+                              style: Theme.of(context).textTheme.bodyMedium
+                                  ?.copyWith(
+                                    color: Theme.of(
+                                      context,
+                                    ).colorScheme.onSurfaceVariant,
+                                  ),
+                            ),
+                          ],
+                          const SizedBox(height: AppSpacing.lg),
+                          TabibuButton.primary(
+                            label: l10n.languageSettingsSave,
+                            isLoading: _saving,
+                            onTap: _saving ? null : _save,
+                          ),
+                        ],
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
     return Scaffold(body: background(child: body));

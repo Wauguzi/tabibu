@@ -104,9 +104,7 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('renders in Swahili in dark mode at 1.3x text', (
-      tester,
-    ) async {
+    testWidgets('renders in Swahili in dark mode at 1.3x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

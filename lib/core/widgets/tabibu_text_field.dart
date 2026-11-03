@@ -34,6 +34,8 @@ class TabibuTextField extends StatefulWidget {
   final String label;
   final String? hint;
   final TextEditingController? controller;
+
+  /// Decorative and hidden from screen readers; never interactive.
   final Widget? leading;
   final Widget? trailing;
   final String? errorText;
@@ -55,9 +57,7 @@ class TabibuTextField extends StatefulWidget {
 
   /// Whether the label and field merge into one semantics node. Stays true
   /// unless the trailing carries its own button, which cannot live under a
-  /// merge: the password toggle needs a separate node. Pushed screens also
-  /// leave it false: a merged text field trips the framework's semantics
-  /// assertion on a route push.
+  /// merge: the password toggle needs a separate node.
   final bool mergeSemantics;
 
   @override
@@ -131,9 +131,13 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
         ),
         prefixIcon: widget.leading == null
             ? null
-            : Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.md),
-                child: _tinted(widget.leading!, iconColor),
+            // Decorative: the label carries the meaning, and a merged image
+            // node trips the merge assert on a route push.
+            : ExcludeSemantics(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.md),
+                  child: _tinted(widget.leading!, iconColor),
+                ),
               ),
         prefixIconConstraints: const BoxConstraints(minWidth: 54),
         suffixIcon: _suffixIcon(scheme, maxLength, iconColor),

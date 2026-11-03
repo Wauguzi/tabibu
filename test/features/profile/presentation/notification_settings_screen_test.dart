@@ -85,10 +85,7 @@ void main() {
         doctor: base.doctor.copyWith(receiveNotifications: false),
         roles: base.roles,
       );
-      await tester.pumpRoleApp(
-        quietDoctor,
-        '/doctor/profile/notifications',
-      );
+      await tester.pumpRoleApp(quietDoctor, '/doctor/profile/notifications');
       await tester.pumpAndSettle();
       expect(
         find.text('Everything is off. You may miss reports and bookings.'),
@@ -138,9 +135,7 @@ void main() {
       final bloc = await tester.pumpRoleApp(
         RoleSessions.patient,
         '/patient/profile/notifications',
-        states: [
-          ProfileSettingChangeInProgress(session: RoleSessions.patient),
-        ],
+        states: [ProfileSettingChangeInProgress(session: RoleSessions.patient)],
       );
       await tester.pumpAndSettle();
 
@@ -178,9 +173,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('renders in Swahili in dark mode at 1.3x text', (
-      tester,
-    ) async {
+    testWidgets('renders in Swahili in dark mode at 1.3x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

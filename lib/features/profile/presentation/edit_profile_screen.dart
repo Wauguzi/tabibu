@@ -102,161 +102,146 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final l10n = context.l10n;
     final body = SafeArea(
       child: CustomScrollView(
-      slivers: [
-        SliverPadding(
-          padding: const EdgeInsets.fromLTRB(
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-            AppSpacing.screenMargin,
-            AppSpacing.md,
-          ),
-          sliver: SliverList.list(
-            children: [
-              TopBar(
-                backLabel: l10n.commonBack,
-                onBack: context.pop,
-                title: l10n.editProfileEditTitle,
-              ),
-              const SizedBox(height: AppSpacing.md),
-              BlocConsumer<AuthBloc, AuthState>(
-                listenWhen: (_, _) => _saving,
-                listener: (context, state) {
-                  switch (state) {
-                    case ProfileSaveSuccess():
-                      context.pop();
-                    case ProfileSaveFailure(:final error):
-                      setState(() => _saving = false);
-                      unawaited(
-                        showTabibuNotification(
-                          context,
-                          message: error.description(l10n),
-                          isError: true,
-                          dismissLabel: l10n.commonDismiss,
+        slivers: [
+          SliverPadding(
+            padding: const EdgeInsets.fromLTRB(
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+              AppSpacing.screenMargin,
+              AppSpacing.md,
+            ),
+            sliver: SliverList.list(
+              children: [
+                TopBar(
+                  backLabel: l10n.commonBack,
+                  onBack: context.pop,
+                  title: l10n.editProfileEditTitle,
+                ),
+                const SizedBox(height: AppSpacing.md),
+                BlocConsumer<AuthBloc, AuthState>(
+                  listenWhen: (_, _) => _saving,
+                  listener: (context, state) {
+                    switch (state) {
+                      case ProfileSaveSuccess():
+                        context.pop();
+                      case ProfileSaveFailure(:final error):
+                        setState(() => _saving = false);
+                        unawaited(
+                          showTabibuNotification(
+                            context,
+                            message: error.description(l10n),
+                            isError: true,
+                            dismissLabel: l10n.commonDismiss,
+                          ),
+                        );
+                      default:
+                        break;
+                    }
+                  },
+                  builder: (context, state) {
+                    final patient = switch (state.session) {
+                      PatientSession(:final patient) => patient,
+                      _ => null,
+                    };
+                    // The router bounces the signed-out off role paths; this is
+                    // the frame between a sign-out and its redirect.
+                    if (patient == null) return const SizedBox.shrink();
+                    _fillOnce(patient, l10n);
+                    return Column(
+                      crossAxisAlignment: .stretch,
+                      children: [
+                        ProfilePhotoEditor(
+                          name: '${patient.firstName} ${patient.lastName}',
+                          changeLabel: l10n.profileDetailsChangePhoto,
+                          url: patient.profilePictureUrl,
+                          picked: _picture?.bytes,
+                          onPicked: (file) => setState(() => _picture = file),
                         ),
-                      );
-                    default:
-                      break;
-                  }
-                },
-                builder: (context, state) {
-                  final patient = switch (state.session) {
-                    PatientSession(:final patient) => patient,
-                    _ => null,
-                  };
-                  // The router bounces the signed-out off role paths; this is
-                  // the frame between a sign-out and its redirect.
-                  if (patient == null) return const SizedBox.shrink();
-                  _fillOnce(patient, l10n);
-                  return Column(
-                    crossAxisAlignment: .stretch,
-                    children: [
-                      ProfilePhotoEditor(
-                        name: '${patient.firstName} ${patient.lastName}',
-                        changeLabel: l10n.profileDetailsChangePhoto,
-                        url: patient.profilePictureUrl,
-                        picked: _picture?.bytes,
-                        onPicked: (file) => setState(() => _picture = file),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      TabibuTextField(
-                        label: l10n.editProfileFirstName,
-                        controller: _first,
-                      // No merge: a merged text field trips the
-                      // framework's semantics assertion on a push.
-                      mergeSemantics: false,
-                        maxLength: 50,
-                        required: true,
-                        leading: AssetIcon(Assets.icons.personIcon, size: 20),
-                        errorText: _firstError,
-                        onChanged: (_) => setState(() => _firstError = null),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.editProfileMiddleName,
-                        controller: _middle,
-                      // No merge: a merged text field trips the
-                      // framework's semantics assertion on a push.
-                      mergeSemantics: false,
-                        maxLength: 50,
-                        leading: AssetIcon(Assets.icons.personIcon, size: 20),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.editProfileLastName,
-                        controller: _last,
-                      // No merge: a merged text field trips the
-                      // framework's semantics assertion on a push.
-                      mergeSemantics: false,
-                        maxLength: 50,
-                        required: true,
-                        leading: AssetIcon(Assets.icons.personIcon, size: 20),
-                        errorText: _lastError,
-                        onChanged: (_) => setState(() => _lastError = null),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.editProfileDob,
-                        controller: _birth,
-                      // No merge: a merged text field trips the
-                      // framework's semantics assertion on a push.
-                      mergeSemantics: false,
-                        leading: AssetIcon(Assets.icons.calendarIcon, size: 20),
-                        readOnly: true,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.editProfilePhoneNumber,
-                        controller: _phone,
-                      // No merge: a merged text field trips the
-                      // framework's semantics assertion on a push.
-                      mergeSemantics: false,
-                        required: true,
-                        leading: AssetIcon(Assets.icons.phoneIcon, size: 20),
-                        keyboardType: .phone,
-                        errorText: _phoneError,
-                        onChanged: (_) => setState(() => _phoneError = null),
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.editProfileEmail,
-                        controller: _email,
-                      // No merge: a merged text field trips the
-                      // framework's semantics assertion on a push.
-                      mergeSemantics: false,
-                        leading: AssetIcon(Assets.icons.emailIcon, size: 20),
-                        readOnly: true,
-                      ),
-                      const SizedBox(height: AppSpacing.md),
-                      TabibuTextField(
-                        label: l10n.editProfileSex,
-                        controller: _sex,
-                      // No merge: a merged text field trips the
-                      // framework's semantics assertion on a push.
-                      mergeSemantics: false,
-                        leading: AssetIcon(Assets.icons.personIcon, size: 20),
-                        readOnly: true,
-                      ),
-                      const SizedBox(height: AppSpacing.sm),
-                      Text(
-                        l10n.editProfileLockedNote,
-                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                          color: Theme.of(context).colorScheme.onSurfaceVariant,
+                        const SizedBox(height: AppSpacing.lg),
+                        TabibuTextField(
+                          label: l10n.editProfileFirstName,
+                          controller: _first,
+                          maxLength: 50,
+                          required: true,
+                          leading: AssetIcon(Assets.icons.personIcon, size: 20),
+                          errorText: _firstError,
+                          onChanged: (_) => setState(() => _firstError = null),
                         ),
-                      ),
-                      const SizedBox(height: AppSpacing.lg),
-                      TabibuButton.primary(
-                        label: l10n.editProfileSave,
-                        isLoading: _saving,
-                        onTap: _saving ? null : _save,
-                      ),
-                    ],
-                  );
-                },
-              ),
-            ],
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.editProfileMiddleName,
+                          controller: _middle,
+                          maxLength: 50,
+                          leading: AssetIcon(Assets.icons.personIcon, size: 20),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.editProfileLastName,
+                          controller: _last,
+                          maxLength: 50,
+                          required: true,
+                          leading: AssetIcon(Assets.icons.personIcon, size: 20),
+                          errorText: _lastError,
+                          onChanged: (_) => setState(() => _lastError = null),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.editProfileDob,
+                          controller: _birth,
+                          leading: AssetIcon(
+                            Assets.icons.calendarIcon,
+                            size: 20,
+                          ),
+                          readOnly: true,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.editProfilePhoneNumber,
+                          controller: _phone,
+                          required: true,
+                          leading: AssetIcon(Assets.icons.phoneIcon, size: 20),
+                          keyboardType: .phone,
+                          errorText: _phoneError,
+                          onChanged: (_) => setState(() => _phoneError = null),
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.editProfileEmail,
+                          controller: _email,
+                          leading: AssetIcon(Assets.icons.emailIcon, size: 20),
+                          readOnly: true,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        TabibuTextField(
+                          label: l10n.editProfileSex,
+                          controller: _sex,
+                          leading: AssetIcon(Assets.icons.personIcon, size: 20),
+                          readOnly: true,
+                        ),
+                        const SizedBox(height: AppSpacing.sm),
+                        Text(
+                          l10n.editProfileLockedNote,
+                          style: Theme.of(context).textTheme.bodySmall
+                              ?.copyWith(
+                                color: Theme.of(
+                                  context,
+                                ).colorScheme.onSurfaceVariant,
+                              ),
+                        ),
+                        const SizedBox(height: AppSpacing.lg),
+                        TabibuButton.primary(
+                          label: l10n.editProfileSave,
+                          isLoading: _saving,
+                          onTap: _saving ? null : _save,
+                        ),
+                      ],
+                    );
+                  },
+                ),
+              ],
+            ),
           ),
-        ),
-      ],
+        ],
       ),
     );
     return Scaffold(body: RoleBackground.patient(child: body));

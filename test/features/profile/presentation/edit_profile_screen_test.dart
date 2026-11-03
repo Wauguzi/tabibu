@@ -42,8 +42,9 @@ void main() {
 
     /// The fields by label, for prefill and read-only assertions.
     Map<String, TabibuTextField> fields(WidgetTester tester) => {
-      for (final field
-          in tester.widgetList<TabibuTextField>(find.byType(TabibuTextField)))
+      for (final field in tester.widgetList<TabibuTextField>(
+        find.byType(TabibuTextField),
+      ))
         field.label: field,
     };
 
@@ -75,10 +76,7 @@ void main() {
       expect(byLabel['Email']!.controller!.text, 'amina.wambui@gmail.com');
       expect(byLabel['Sex']!.readOnly, isTrue);
       expect(byLabel['Sex']!.controller!.text, 'Female');
-      expect(
-        find.text('To correct these, ask at the clinic.'),
-        findsOneWidget,
-      );
+      expect(find.text('To correct these, ask at the clinic.'), findsOneWidget);
     });
 
     testWidgets('a valid save dispatches trimmed and shaped', (tester) async {
@@ -227,10 +225,7 @@ void main() {
       await tester.tap(find.text('Save changes'));
       await tester.pump();
       answers.add(
-        ProfileSaveFailure(
-          session: fullSession(),
-          error: AppError.noInternet,
-        ),
+        ProfileSaveFailure(session: fullSession(), error: AppError.noInternet),
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -241,9 +236,7 @@ void main() {
       await tester.pumpAndSettle();
     });
 
-    testWidgets('renders in Swahili in dark mode at 1.3x text', (
-      tester,
-    ) async {
+    testWidgets('renders in Swahili in dark mode at 1.3x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

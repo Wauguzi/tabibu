@@ -59,9 +59,7 @@ void main() {
       await tester.pump();
 
       verify(
-        () => bloc.add(
-          const LanguageChangeRequested(language: AppLanguage.sw),
-        ),
+        () => bloc.add(const LanguageChangeRequested(language: AppLanguage.sw)),
       ).called(1);
     });
 
@@ -163,9 +161,7 @@ void main() {
       await tester.tap(find.text('Save'));
       await tester.pump();
       verify(
-        () => bloc.add(
-          const LanguageChangeRequested(language: AppLanguage.sw),
-        ),
+        () => bloc.add(const LanguageChangeRequested(language: AppLanguage.sw)),
       ).called(2);
     });
 
@@ -188,9 +184,7 @@ void main() {
       expect(find.text('Language'), findsOneWidget);
     });
 
-    testWidgets('renders in Swahili in dark mode at 1.3x text', (
-      tester,
-    ) async {
+    testWidgets('renders in Swahili in dark mode at 1.3x text', (tester) async {
       tallView(tester);
       tester.platformDispatcher.textScaleFactorTestValue = 1.3;
       addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);

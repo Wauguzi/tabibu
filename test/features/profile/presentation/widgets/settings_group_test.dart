@@ -1,6 +1,7 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/features/profile/presentation/widgets/settings_group.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
@@ -97,6 +98,83 @@ void main() {
         (card.decoration as BoxDecoration).color,
         scheme.surfaceContainerHigh,
       );
+    });
+  });
+
+  group('SettingsCard', () {
+    testWidgets('lays rows out with hairlines and no title', (tester) async {
+      await tester.pumpApp(
+        SettingsCard(
+          children: [
+            SettingsRow(
+              icon: Assets.icons.shieldIcon,
+              title: 'First',
+              onTap: () {},
+            ),
+            SettingsRow(
+              icon: Assets.icons.shieldIcon,
+              title: 'Second',
+              onTap: () {},
+            ),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('First'), findsOneWidget);
+      expect(find.text('Second'), findsOneWidget);
+      expect(find.byType(Divider), findsOneWidget);
+    });
+  });
+
+  group('SettingsRow', () {
+    testWidgets('an info row drops the chevron and stays put', (tester) async {
+      var taps = 0;
+      await tester.pumpApp(
+        SettingsRow(
+          icon: Assets.icons.clockIcon,
+          title: 'Length',
+          supporting: '30 min',
+          chevron: false,
+          onTap: () => taps++,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('30 min'), findsOneWidget);
+      // No forward icon anywhere in the row.
+      expect(
+        find.descendant(
+          of: find.byType(SettingsRow),
+          matching: find.byWidgetPredicate(
+            (widget) =>
+                widget is AssetIcon && widget.asset == Assets.icons.forwardIcon,
+          ),
+        ),
+        findsNothing,
+      );
+
+      await tester.tap(find.text('Length'));
+      await tester.pumpAndSettle();
+      expect(taps, 1);
+    });
+  });
+
+  group('SettingsSwitchRow', () {
+    testWidgets('shows its supporting line under the title', (tester) async {
+      await tester.pumpApp(
+        SettingsSwitchRow(
+          icon: Assets.icons.testTubeIcon,
+          title: 'Accepting',
+          supporting: 'Patients can book you',
+          value: true,
+          onChanged: (_) {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(find.text('Accepting'), findsOneWidget);
+      expect(find.text('Patients can book you'), findsOneWidget);
     });
   });
 }

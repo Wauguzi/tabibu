@@ -191,6 +191,28 @@ void main() {
 
         expect(tint(tester), scheme.onSurface);
       });
+
+      testWidgets('a bare leading icon hides from screen readers', (
+        tester,
+      ) async {
+        await tester.pumpApp(
+          TabibuTextField(
+            label: 'Email',
+            leading: AssetIcon(Assets.icons.emailIcon, size: 22),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        // Decorative: the label carries the meaning, and a merged image
+        // node trips the merge assert when the screen is pushed.
+        expect(
+          find.ancestor(
+            of: find.byType(AssetIcon),
+            matching: find.byType(ExcludeSemantics),
+          ),
+          findsOneWidget,
+        );
+      });
     });
   });
 }
