@@ -142,8 +142,6 @@ void main() {
         expect(find.text(l10n.explainedHeadline('Dr. Kamau')), findsOneWidget);
         expect(find.text(l10n.explainedAiAttribution), findsOneWidget);
         expect(find.text(_english), findsOneWidget);
-        expect(find.byType(ListenCard), findsOneWidget);
-        expect(find.text(l10n.explainedAudioLine), findsOneWidget);
         expect(
           find.text(
             l10n.explainedSharedBy('Dr. Kamau', 'Dr. Achieng Odhiambo'),
@@ -170,17 +168,13 @@ void main() {
         );
       });
 
-      testWidgets('the listen card is shown but cannot play yet', (
-        tester,
-      ) async {
+      testWidgets('no listen card until there is audio', (tester) async {
         await pumpScreen(
           tester,
           reader: _loaded(approved: {'en': _approved('en', _english)}),
         );
 
-        final card = tester.widget<ListenCard>(find.byType(ListenCard));
-        expect(card.onToggle, isNull);
-        expect(card.playing, isFalse);
+        expect(find.byType(ListenCard), findsNothing);
       });
     });
 

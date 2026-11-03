@@ -13,7 +13,6 @@ import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_e
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_state.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
 import 'package:tabibu/features/reports/presentation/widgets/explanation_language.dart';
-import 'package:tabibu/features/reports/presentation/widgets/listen_card.dart';
 import 'package:tabibu/features/reports/presentation/widgets/report_text_card.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -137,17 +136,8 @@ class _ExplainedResultScreenState extends State<ExplainedResultScreen> {
                 ],
               ),
             ],
+            // No listen card until there is audio to play.
             const SizedBox(height: AppSpacing.md),
-            // No audio engine yet, so the card is shown but cannot play.
-            ListenCard(
-              title: l10n.resultDetailListenTitle,
-              supporting: l10n.explainedAudioLine,
-              playing: false,
-              onToggle: null,
-              playLabel: l10n.resultDetailListenTitle,
-              pauseLabel: l10n.resultDetailListenTitle,
-            ),
-            const SizedBox(height: AppSpacing.sm),
             ReportTextCard(
               entries: [
                 for (final text in selected.approvedText.values) ('', text),
