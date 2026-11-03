@@ -193,6 +193,11 @@ void main() {
             ),
           ),
           GoRoute(
+            path: '/doctor/appointment/:appointmentUid/order',
+            builder: (_, state) =>
+                Text('stub order ${state.pathParameters['appointmentUid']}'),
+          ),
+          GoRoute(
             path: '/doctor/alert/:alertUid',
             builder: (_, state) =>
                 Text('stub alert ${state.pathParameters['alertUid']}'),
@@ -316,7 +321,55 @@ void main() {
       expect(find.text('Your day'), findsOneWidget);
       // The month view is built (S-3): the link sits beside the day.
       expect(find.text('Calendar'), findsOneWidget);
-      expect(find.byType(FloatingActionButton), findsNothing);
+      // The "+" orders a test for the visit under way.
+      expect(find.byType(Fab), findsOneWidget);
+      // The reports tile carries its picture.
+      expect(find.byType(SheetIllustration), findsOneWidget);
+    });
+
+    testWidgets('the plus orders a test for the visit under way', (
+      tester,
+    ) async {
+      if (!_dayHasRoom()) return;
+      _useTallSurface(tester);
+      final base = _base();
+      stub(appointments: fullDay(base));
+      await pumpScreen(tester);
+
+      await tester.tap(find.byType(Fab));
+      await tester.pumpAndSettle();
+
+      expect(find.text('stub order a-now'), findsOneWidget);
+    });
+
+    testWidgets('the plus is a fifth smaller than the usual button', (
+      tester,
+    ) async {
+      if (!_dayHasRoom()) return;
+      _useTallSurface(tester);
+      stub(appointments: fullDay(_base()));
+      await pumpScreen(tester);
+
+      expect(tester.getSize(find.byType(Fab)), const Size(51.2, 51.2));
+    });
+
+    testWidgets('the plus clears the floating menu', (tester) async {
+      if (!_dayHasRoom()) return;
+      _useTallSurface(tester);
+      stub(appointments: fullDay(_base()));
+      await pumpScreen(tester);
+
+      final fab = tester.getRect(find.byType(Fab));
+      final screen = tester.view.physicalSize / tester.view.devicePixelRatio;
+      // Room for the 56 dp menu and its margin below the button.
+      expect(screen.height - fab.bottom, greaterThanOrEqualTo(96));
+    });
+
+    testWidgets('no plus when there is no visit to order for', (tester) async {
+      _useTallSurface(tester);
+      stub();
+      await pumpScreen(tester);
+
       expect(find.byType(Fab), findsNothing);
     });
 
@@ -365,7 +418,7 @@ void main() {
       expect(find.text(_clock(base, 60)), findsWidgets);
       expect(find.text('Appointment 2 of 2'), findsOneWidget);
       expect(find.byType(AppointmentHeroCard), findsOneWidget);
-      expect(find.byType(Fab), findsNothing);
+      expect(find.byType(Fab), findsOneWidget);
       // The hero names no chat and no secondary action.
       expect(
         tester

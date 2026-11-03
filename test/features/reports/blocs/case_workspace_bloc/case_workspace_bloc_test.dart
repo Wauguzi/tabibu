@@ -4,6 +4,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/cases/data/cache/case_cache_helper.dart';
+import 'package:tabibu/features/cases/data/datasources/case_firebase.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/preread/data/models/preread_draft_model.dart';
 import 'package:tabibu/features/preread/data/models/preread_finding_model.dart';
@@ -24,6 +25,8 @@ class _MockRemote extends Mock implements ReportFirebase {}
 class _MockCases extends Mock implements CaseCacheHelper {}
 
 class _MockInternet extends Mock implements InternetService {}
+
+class _MockCaseRemote extends Mock implements CaseFirebase {}
 
 const _case = 'c1';
 const _me = 'p1';
@@ -70,11 +73,13 @@ void main() {
   late _MockRemote remote;
   late _MockCases cases;
   late _MockInternet internet;
+  late _MockCaseRemote caseRemote;
 
   CaseWorkspaceBloc build() => CaseWorkspaceBloc(
     reports: reports,
     remote: remote,
     cases: cases,
+    caseRemote: caseRemote,
     internet: internet,
     now: () => _shown,
   );
@@ -105,10 +110,264 @@ void main() {
     remote = _MockRemote();
     cases = _MockCases();
     internet = _MockInternet();
+    caseRemote = _MockCaseRemote();
     when(() => internet.check()).thenAnswer((_) async => true);
     when(
       () => cases.getCases(_me),
     ).thenAnswer((_) async => [CaseModel.empty().copyWith(uid: _case)]);
+  });
+
+  group('a case the pathologist is asked to take', () {
+    final asked = CaseModel.empty().copyWith(
+      uid: _case,
+      currentStage: 'PathologistRequested',
+      requestedPathologistUid: _me,
+    );
+    const open = CaseWorkspaceOpened(caseUid: _case, pathologistUid: _me);
+
+    void noReads() {
+      verifyNever(
+        () => remote.startReport(
+          caseUid: any(named: 'caseUid'),
+          kind: any(named: 'kind'),
+        ),
+      );
+      verifyNever(
+        () => reports.syncDraft(
+          caseUid: any(named: 'caseUid'),
+          pathologistUid: any(named: 'pathologistUid'),
+        ),
+      );
+    }
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'opens on the request alone: no report is started, no draft read',
+      setUp: () =>
+          when(() => cases.getCases(_me)).thenAnswer((_) async => [asked]),
+      build: build,
+      act: (bloc) => bloc.add(open),
+      expect: () => [
+        isA<CaseWorkspaceLoadInProgress>(),
+        isA<CaseWorkspaceLoadSuccess>().having(
+          (s) => s.caseModel?.requestedPathologistUid,
+          'requested',
+          _me,
+        ),
+      ],
+      verify: (_) => noReads(),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a case missing from the phone is fetched before deciding',
+      setUp: () {
+        when(() => cases.getCases(_me)).thenAnswer((_) async => []);
+        when(() => cases.syncCases(_me)).thenAnswer((_) async => [asked]);
+      },
+      build: build,
+      act: (bloc) => bloc.add(open),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceLoadSuccess>());
+        expect(bloc.state.caseModel?.uid, _case);
+        noReads();
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      "asked of someone else, it is not this pathologist's request",
+      setUp: () {
+        when(() => cases.getCases(_me)).thenAnswer(
+          (_) async => [asked.copyWith(requestedPathologistUid: 'other')],
+        );
+        when(
+          () => reports.syncDraft(caseUid: _case, pathologistUid: _me),
+        ).thenAnswer((_) async => null);
+        when(
+          () => remote.startReport(caseUid: _case, kind: 'Initial'),
+        ).thenAnswer((_) async => {'status': 'ok'});
+      },
+      build: build,
+      act: (bloc) => bloc.add(open),
+      verify: (_) => verify(
+        () => remote.startReport(caseUid: _case, kind: 'Initial'),
+      ).called(1),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'accepting sends it, refreshes the cases, then opens the workspace',
+      setUp: () {
+        when(() => cases.getCases(_me)).thenAnswer((_) async => [asked]);
+        when(() => cases.syncCases(_me)).thenAnswer((_) async => [asked]);
+        when(
+          () => caseRemote.acceptCase(caseUid: _case),
+        ).thenAnswer((_) async => {'status': 'ok'});
+      },
+      build: build,
+      seed: () => CaseWorkspaceLoadSuccess(
+        caseUid: _case,
+        pathologistUid: _me,
+        caseModel: asked,
+      ),
+      act: (bloc) => bloc.add(const CaseRequestAccepted()),
+      verify: (_) {
+        verify(() => caseRemote.acceptCase(caseUid: _case)).called(1);
+        verify(() => cases.syncCases(_me)).called(greaterThanOrEqualTo(1));
+      },
+      expect: () => [
+        isA<CaseWorkspaceWriteInProgress>(),
+        isA<CaseWorkspaceLoadInProgress>(),
+        isA<CaseWorkspaceLoadSuccess>(),
+      ],
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a refused accept fails and opens nothing',
+      setUp: () => when(
+        () => caseRemote.acceptCase(caseUid: _case),
+      ).thenThrow(AppError.permissionDenied),
+      build: build,
+      seed: () => CaseWorkspaceLoadSuccess(
+        caseUid: _case,
+        pathologistUid: _me,
+        caseModel: asked,
+      ),
+      act: (bloc) => bloc.add(const CaseRequestAccepted()),
+      expect: () => [
+        isA<CaseWorkspaceWriteInProgress>(),
+        isA<CaseWorkspaceWriteFailure>().having(
+          (s) => s.error,
+          'error',
+          AppError.permissionDenied,
+        ),
+      ],
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'declining sends the trimmed reason and finishes',
+      setUp: () {
+        when(() => cases.syncCases(_me)).thenAnswer((_) async => [asked]);
+        when(
+          () => caseRemote.rejectCase(caseUid: _case, reason: 'On leave'),
+        ).thenAnswer((_) async => {'status': 'ok'});
+      },
+      build: build,
+      seed: () => CaseWorkspaceLoadSuccess(
+        caseUid: _case,
+        pathologistUid: _me,
+        caseModel: asked,
+      ),
+      act: (bloc) =>
+          bloc.add(const CaseRequestDeclined(reason: '  On leave  ')),
+      expect: () => [
+        isA<CaseWorkspaceWriteInProgress>(),
+        isA<CaseRequestDeclineSuccess>(),
+      ],
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'an empty or over-long reason is refused before anything is sent',
+      build: build,
+      seed: () => CaseWorkspaceLoadSuccess(
+        caseUid: _case,
+        pathologistUid: _me,
+        caseModel: asked,
+      ),
+      act: (bloc) => bloc
+        ..add(const CaseRequestDeclined(reason: '   '))
+        ..add(CaseRequestDeclined(reason: 'x' * 501)),
+      // Both are the same refusal, so the state changes once.
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) => verifyNever(
+        () => caseRemote.rejectCase(
+          caseUid: any(named: 'caseUid'),
+          reason: any(named: 'reason'),
+        ),
+      ),
+    );
+  });
+
+  group('an accepted case with no sample recorded', () {
+    final accepted = CaseModel.empty().copyWith(
+      uid: _case,
+      currentStage: 'PrereadReady',
+      pathologistUid: _me,
+    );
+    const open = CaseWorkspaceOpened(caseUid: _case, pathologistUid: _me);
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'opens on the case alone: no report is started',
+      setUp: () =>
+          when(() => cases.getCases(_me)).thenAnswer((_) async => [accepted]),
+      build: build,
+      act: (bloc) => bloc.add(open),
+      expect: () => [
+        isA<CaseWorkspaceLoadInProgress>(),
+        isA<CaseWorkspaceLoadSuccess>().having(
+          (s) => s.caseModel?.awaitsSample,
+          'awaits the sample',
+          isTrue,
+        ),
+      ],
+      verify: (_) => verifyNever(
+        () => remote.startReport(
+          caseUid: any(named: 'caseUid'),
+          kind: any(named: 'kind'),
+        ),
+      ),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'once the accession is recorded the workspace opens as it always does',
+      setUp: () {
+        when(() => cases.getCases(_me)).thenAnswer((_) async => [accepted]);
+        when(() => cases.syncCases(_me)).thenAnswer((_) async => [accepted]);
+        when(
+          () => caseRemote.recordSampleReceived(
+            caseUid: _case,
+            labAccessionNo: 'LAB-AO-03112026-005',
+          ),
+        ).thenAnswer((_) async => {'status': 'ok'});
+      },
+      build: build,
+      seed: () => CaseWorkspaceLoadSuccess(
+        caseUid: _case,
+        pathologistUid: _me,
+        caseModel: accepted,
+      ),
+      act: (bloc) => bloc.add(
+        const CaseSampleReceived(labAccessionNo: ' LAB-AO-03112026-005 '),
+      ),
+      verify: (_) => verify(
+        () => caseRemote.recordSampleReceived(
+          caseUid: _case,
+          labAccessionNo: 'LAB-AO-03112026-005',
+        ),
+      ).called(1),
+      expect: () => [
+        isA<CaseWorkspaceWriteInProgress>(),
+        isA<CaseWorkspaceLoadInProgress>(),
+        isA<CaseWorkspaceLoadSuccess>(),
+      ],
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'an accession the lab could not use is refused before anything is sent',
+      build: build,
+      seed: () => CaseWorkspaceLoadSuccess(
+        caseUid: _case,
+        pathologistUid: _me,
+        caseModel: accepted,
+      ),
+      act: (bloc) => bloc
+        ..add(const CaseSampleReceived(labAccessionNo: ''))
+        ..add(const CaseSampleReceived(labAccessionNo: 'has space')),
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) => verifyNever(
+        () => caseRemote.recordSampleReceived(
+          caseUid: any(named: 'caseUid'),
+          labAccessionNo: any(named: 'labAccessionNo'),
+        ),
+      ),
+    );
   });
 
   group('open', () {

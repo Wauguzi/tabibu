@@ -64,6 +64,7 @@ class _OrderTestsStepState extends State<OrderTestsStep> {
       children: [
         Expanded(
           child: CustomScrollView(
+            keyboardDismissBehavior: .onDrag,
             slivers: [
               SliverPadding(
                 padding: const EdgeInsets.fromLTRB(

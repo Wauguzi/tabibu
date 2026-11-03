@@ -28,6 +28,7 @@ class TabibuTextField extends StatefulWidget {
     this.obscureText = false,
     this.autofillHints,
     this.mergeSemantics = true,
+    this.bordered = false,
     super.key,
   });
 
@@ -59,6 +60,10 @@ class TabibuTextField extends StatefulWidget {
   /// unless the trailing carries its own button, which cannot live under a
   /// merge: the password toggle needs a separate node.
   final bool mergeSemantics;
+
+  /// Draws a hairline border before the field is focused, for a field that
+  /// stands alone on a sheet.
+  final bool bordered;
 
   @override
   State<TabibuTextField> createState() => _TabibuTextFieldState();
@@ -147,7 +152,9 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: radius,
-          borderSide: BorderSide.none,
+          borderSide: widget.bordered
+              ? BorderSide(color: scheme.outline)
+              : BorderSide.none,
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: radius,

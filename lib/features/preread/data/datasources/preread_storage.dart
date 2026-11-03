@@ -15,8 +15,10 @@ class PrereadStorage {
   Future<String?> downloadUrl(String path) async {
     try {
       return await _storage.ref(path).getDownloadURL();
-    } on Object catch (e) {
-      if (kDebugMode) _logger.e('Preread download URL failed [$e]');
+    } on Object catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('Preread download URL failed [$e]', stackTrace: stackTrace);
+      }
       return null;
     }
   }

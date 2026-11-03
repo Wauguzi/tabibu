@@ -398,6 +398,89 @@ void main() {
       );
     }
 
+    group('a case asked of this pathologist', () {
+      CaseWorkspaceLoadSuccess asked() => CaseWorkspaceLoadSuccess(
+        caseUid: _caseUid,
+        caseModel: CaseModel(
+          uid: _caseUid,
+          orderNumber: 'TB-0231',
+          currentStage: 'PathologistRequested',
+          requestedPathologistUid: RoleSessions.pathologist.doctor.uid,
+          priority: 'Urgent',
+          sampleNotes: 'Left axilla',
+          clinicalNotes: 'Invasive ductal carcinoma on biopsy.',
+          requiresSlides: true,
+          tests: const [OrderedTestModel(name: 'Histopathology examination')],
+        ),
+      );
+
+      testWidgets('shows the order with Accept and Decline, nothing of the '
+          'workspace', (tester) async {
+        await pumpScreen(tester, asked());
+
+        expect(find.text(l10n.workspaceRequestTitle), findsOneWidget);
+        expect(find.text('Histopathology examination'), findsWidgets);
+        expect(find.text('Left axilla'), findsOneWidget);
+        expect(find.text(l10n.doctorCaseUrgent), findsOneWidget);
+        expect(find.text(l10n.workspaceRequestAccept), findsOneWidget);
+        expect(find.text(l10n.workspaceRequestDecline), findsOneWidget);
+        expect(find.byType(WorkspaceScoreCard), findsNothing);
+      });
+
+      testWidgets('Accept sends the acceptance', (tester) async {
+        await pumpScreen(tester, asked());
+
+        await tester.tap(find.text(l10n.workspaceRequestAccept));
+        await tester.pump();
+
+        verify(
+          () => blocs.caseWorkspace.add(const CaseRequestAccepted()),
+        ).called(1);
+      });
+
+      testWidgets('Decline needs a reason, then sends it trimmed', (
+        tester,
+      ) async {
+        await pumpScreen(tester, asked());
+
+        await tester.tap(find.text(l10n.workspaceRequestDecline));
+        await settleSheet(tester);
+        expect(find.text(l10n.workspaceRequestDeclineTitle), findsOneWidget);
+
+        // Empty: said, and nothing is sent.
+        await tester.tap(
+          find.descendant(
+            of: find.byType(TabibuBottomSheet),
+            matching: find.text(l10n.workspaceRequestDecline),
+          ),
+        );
+        await tester.pump();
+        expect(find.text(l10n.workspaceRequestReasonRequired), findsOneWidget);
+        verifyNever(() => blocs.caseWorkspace.add(any()));
+
+        await tester.enterText(
+          find.descendant(
+            of: find.byType(TabibuBottomSheet),
+            matching: find.byType(TextField),
+          ),
+          '  On leave this week  ',
+        );
+        await tester.tap(
+          find.descendant(
+            of: find.byType(TabibuBottomSheet),
+            matching: find.text(l10n.workspaceRequestDecline),
+          ),
+        );
+        await settleSheet(tester);
+
+        verify(
+          () => blocs.caseWorkspace.add(
+            const CaseRequestDeclined(reason: 'On leave this week'),
+          ),
+        ).called(1);
+      });
+    });
+
     group('rules', () {
       testWidgets('rule 1: every AI value of the pre-read sits in the AI draft '
           'frame, and the ready chip is the AI mark', (tester) async {

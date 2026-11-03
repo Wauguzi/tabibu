@@ -58,6 +58,17 @@ final class SlidePixelSizeSet extends SlideUploadEvent {
   List<Object?> get props => [localId, micronsPerPixel];
 }
 
+/// The size field was emptied or no longer holds a valid number: the slide
+/// has no size again, so it cannot upload with one the person no longer sees.
+final class SlidePixelSizeCleared extends SlideUploadEvent {
+  const SlidePixelSizeCleared({required this.localId});
+
+  final String localId;
+
+  @override
+  List<Object?> get props => [localId];
+}
+
 /// Reserve, upload, register. Needs the network; dropped while one runs.
 final class SlideUploadRequested extends SlideUploadEvent {
   const SlideUploadRequested({required this.uid, required this.caseUid});

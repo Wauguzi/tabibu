@@ -158,7 +158,10 @@ void main() {
 
       expect(find.text('slide-a.jpg'), findsOneWidget);
       expect(find.text(_en.orderSlidesMetaJpeg('2.0 KB')), findsOneWidget);
-      expect(find.text(_en.orderSlidesPixelSizeLabel), findsOneWidget);
+      expect(
+        find.textContaining(_en.orderSlidesPixelSizeLabel, findRichText: true),
+        findsOneWidget,
+      );
     });
 
     testWidgets('a valid pixel size is sent; garbage is a field error', (
@@ -190,6 +193,39 @@ void main() {
           const SlidePixelSizeSet(localId: 's1', micronsPerPixel: 101),
         ),
       );
+    });
+
+    testWidgets('the size field is marked required', (tester) async {
+      await pumpCard(
+        tester,
+        upload: SlideUploadEditing(caseUid: 'case-1', slides: [_slide()]),
+      );
+
+      final field = tester.widget<TabibuTextField>(
+        find.byType(TabibuTextField),
+      );
+      expect(field.required, isTrue);
+    });
+
+    testWidgets('emptying a valid size clears it and asks for one', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        upload: SlideUploadEditing(caseUid: 'case-1', slides: [_slide()]),
+      );
+      final field = find.byType(TabibuTextField);
+
+      await tester.enterText(field, '0.972');
+      await tester.pump();
+      expect(find.text(_en.orderSlidesPixelSizeInvalid), findsNothing);
+
+      await tester.enterText(field, '');
+      await tester.pump();
+      expect(find.text(_en.orderSlidesPixelSizeInvalid), findsOneWidget);
+      verify(
+        () => blocs.slideUpload.add(const SlidePixelSizeCleared(localId: 's1')),
+      ).called(1);
     });
 
     testWidgets('an upload patch never wipes a half-typed size', (

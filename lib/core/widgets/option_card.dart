@@ -18,6 +18,7 @@ class OptionCard extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.icon,
+    this.leading,
     this.tone = .mint,
     this.supporting,
     this.markLeading = false,
@@ -29,6 +30,9 @@ class OptionCard extends StatelessWidget {
   final String title;
   final String? supporting;
   final SvgGenImage? icon;
+
+  /// Replaces the icon tile, as a person's photo or initials do.
+  final Widget? leading;
   final IconTone tone;
   final bool selected;
   final VoidCallback? onTap;
@@ -87,6 +91,9 @@ class OptionCard extends StatelessWidget {
                   children: [
                     if (markLeading) ...[
                       mark,
+                      const SizedBox(width: AppSpacing.sm),
+                    ] else if (leading != null) ...[
+                      leading!,
                       const SizedBox(width: AppSpacing.sm),
                     ] else if (icon != null) ...[
                       IconTile(icon: icon!, tone: tone),

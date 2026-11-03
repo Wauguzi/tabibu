@@ -141,7 +141,9 @@ abstract class CaseModel with _$CaseModel {
   /// once all are done. A cancelled case reads as ordered; lists show it
   /// as done ([isDone]).
   int get doctorStep => switch (currentStageValue) {
-    .orderCreated || .pathologistRequested || .pathologistRejected => 1,
+    .orderCreated || .pathologistRejected => 1,
+    // Asked a pathologist: the case is with them, even before they accept.
+    .pathologistRequested ||
     .pathologistAccepted ||
     .sampleReceived ||
     .slidesUploaded ||
@@ -153,6 +155,21 @@ abstract class CaseModel with _$CaseModel {
     .resultReleased || .completed => 5,
     .cancelled => 1,
   };
+
+  /// Taken by a pathologist who has not yet recorded the sample's lab
+  /// accession number, which the server needs before a report can start.
+  bool get awaitsSample =>
+      pathologistUid.isNotEmpty &&
+      labAccessionNo.isEmpty &&
+      currentReportUid.isEmpty &&
+      switch (currentStageValue) {
+        .pathologistAccepted ||
+        .slidesUploaded ||
+        .prereadQueued ||
+        .prereadReady ||
+        .prereadFailed => true,
+        _ => false,
+      };
 
   /// Signed and waiting for the doctor to discuss it with the patient.
   bool get needsDoctor =>

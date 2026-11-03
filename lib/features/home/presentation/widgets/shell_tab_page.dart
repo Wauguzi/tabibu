@@ -15,6 +15,7 @@ class ShellTabPage extends StatelessWidget {
     this.children,
     this.slivers,
     this.onRefresh,
+    this.floatingAction,
     super.key,
   }) : assert(
          (children == null) != (slivers == null),
@@ -25,6 +26,9 @@ class ShellTabPage extends StatelessWidget {
   final List<Widget>? children;
   final List<Widget>? slivers;
   final Future<void> Function()? onRefresh;
+
+  /// A button pinned over the page, raised to clear the shell's floating menu.
+  final Widget? floatingAction;
 
   @override
   Widget build(BuildContext context) {
@@ -54,7 +58,15 @@ class ShellTabPage extends StatelessWidget {
       );
     }
     final content = SafeArea(bottom: false, child: scroll);
+    final action = floatingAction;
     return Scaffold(
+      floatingActionButton: action == null
+          ? null
+          : Padding(
+              // Clears the shell's floating tab bar.
+              padding: const EdgeInsets.only(bottom: 96),
+              child: action,
+            ),
       body: switch (role) {
         .patient => RoleBackground.patient(child: content),
         .doctor => RoleBackground.doctor(child: content),

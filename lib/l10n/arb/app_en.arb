@@ -7840,9 +7840,13 @@
     "@orderSlidesTitle": {
         "description": "Send step section title for the slide uploads"
     },
-    "orderSlidesBody": "This case needs slide images. Add each slide, set its pixel size, then upload.",
+    "orderSlidesBody": "This case needs slide images. Add each slide and set its pixel size. They upload when you send to the pathologist.",
     "@orderSlidesBody": {
         "description": "Send step slides section: why the case needs slides"
+    },
+    "orderSlidesSizeBeforeSend": "Add a pixel size to each slide, or remove it, to send.",
+    "@orderSlidesSizeBeforeSend": {
+        "description": "Send step: why Send is closed while a slide has no valid pixel size"
     },
     "orderSlidesAdd": "Add slides",
     "@orderSlidesAdd": {
@@ -8039,5 +8043,79 @@
     "doctorHomeMdtJoin": "Join",
     "@doctorHomeMdtJoin": {
         "description": "Doctor home: opens the consult invitation"
+    },
+    "workspaceRequestTitle": "New case request",
+    "@workspaceRequestTitle": {
+        "description": "Pathologist: heading on a case they are asked to take"
+    },
+    "workspaceRequestBody": "Look over the order, then accept to open the case.",
+    "@workspaceRequestBody": {
+        "description": "Pathologist: what to do with a case request"
+    },
+    "workspaceRequestSlides": "{count, plural, =0{No slides yet} =1{1 slide attached} other{{count} slides attached}}",
+    "@workspaceRequestSlides": {
+        "description": "Pathologist case request: how many slides the doctor attached",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            }
+        }
+    },
+    "workspaceRequestReplyBy": "Reply by {time}",
+    "@workspaceRequestReplyBy": {
+        "description": "Pathologist case request: when the request lapses",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "workspaceRequestAccept": "Accept case",
+    "@workspaceRequestAccept": {
+        "description": "Pathologist case request: takes the case"
+    },
+    "workspaceRequestDecline": "Decline",
+    "@workspaceRequestDecline": {
+        "description": "Pathologist case request: opens the decline sheet"
+    },
+    "workspaceRequestDeclineTitle": "Why can't you take this case?",
+    "@workspaceRequestDeclineTitle": {
+        "description": "Pathologist case request: decline sheet title"
+    },
+    "workspaceRequestReasonLabel": "Reason",
+    "@workspaceRequestReasonLabel": {
+        "description": "Pathologist case request: decline reason field"
+    },
+    "workspaceRequestReasonRequired": "Tell the doctor why.",
+    "@workspaceRequestReasonRequired": {
+        "description": "Pathologist case request: the reason was left empty"
+    },
+    "workspaceRequestDeclined": "Case declined. The doctor has been told.",
+    "@workspaceRequestDeclined": {
+        "description": "Pathologist case request: shown after declining"
+    },
+    "workspaceSampleTitle": "Sample not recorded yet",
+    "@workspaceSampleTitle": {
+        "description": "Pathologist: heading on an accepted case whose sample has no accession number"
+    },
+    "workspaceSampleBody": "When the lab has the sample, enter its accession number to open the report.",
+    "@workspaceSampleBody": {
+        "description": "Pathologist: why the accession number is asked for"
+    },
+    "workspaceSampleLabel": "Accession number",
+    "@workspaceSampleLabel": {
+        "description": "Pathologist: the sample's lab accession number field"
+    },
+    "workspaceSampleHint": "For example NH/26/0106",
+    "@workspaceSampleHint": {
+        "description": "Pathologist: accession number example"
+    },
+    "workspaceSampleInvalid": "Use up to 30 letters, numbers, / or -.",
+    "@workspaceSampleInvalid": {
+        "description": "Pathologist: the accession number has a character the lab does not use"
+    },
+    "workspaceSampleSuggested": "Made for you. Replace it if the lab gave another.",
+    "@workspaceSampleSuggested": {
+        "description": "Pathologist: the accession number field starts with a generated value"
     }
 }

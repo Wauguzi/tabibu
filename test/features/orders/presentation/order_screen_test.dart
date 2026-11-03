@@ -1,9 +1,13 @@
+import 'dart:async';
+import 'dart:typed_data';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
@@ -12,6 +16,8 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
+import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_item.dart';
+import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_event.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
@@ -27,6 +33,18 @@ import 'package:tabibu/l10n/l10n.dart';
 import '../../../helpers/helpers.dart';
 
 final AppLocalizations _en = lookupAppLocalizations(const Locale('en'));
+
+SlideItem _slide({
+  double? micronsPerPixel,
+  SlideUploadStatus status = SlideUploadStatus.picked,
+}) => SlideItem(
+  localId: 's1',
+  fileName: 'slide-a.jpg',
+  bytes: Uint8List(2048),
+  contentType: 'image/jpeg',
+  micronsPerPixel: micronsPerPixel,
+  status: status,
+);
 
 const _appointment = AppointmentModel(
   uid: 'appt-1',
@@ -104,6 +122,7 @@ OrderEditing _editing(
 void main() {
   setUpAll(() {
     registerFallbackValue(const OrderReset());
+    registerFallbackValue(const SlideUploadReset());
     registerFallbackValue(const CasesRefreshed(uid: '', role: .doctor));
   });
 
@@ -460,6 +479,165 @@ void main() {
 
         expect(find.text(_en.orderRiskFailed), findsOneWidget);
         expect(find.byType(AiDraftFrame), findsNothing);
+      });
+
+      group('send with slides', () {
+        late StreamController<SlideUploadState> uploads;
+
+        setUp(() {
+          uploads = StreamController<SlideUploadState>.broadcast();
+          addTearDown(uploads.close);
+        });
+
+        Future<void> pumpReady(
+          WidgetTester tester,
+          List<SlideItem> slides,
+        ) async {
+          final editing = SlideUploadEditing(caseUid: 'case-1', slides: slides);
+          when(() => blocs.slideUpload.state).thenReturn(editing);
+          when(
+            () => blocs.slideUpload.stream,
+          ).thenAnswer((_) => uploads.stream);
+          when(() => blocs.cases.state).thenReturn(
+            CasesLoadSuccess(
+              cases: [
+                const CaseModel().copyWith(uid: 'case-1', requiresSlides: true),
+              ],
+            ),
+          );
+          order(
+            _editing(
+              created(path: 'path-a'),
+              riskCheck: const RiskCheckModel(status: 'Ready'),
+              settled: true,
+            ),
+          );
+          await pumpScreen(tester);
+        }
+
+        testWidgets('a waiting slide uploads first, then the order is sent', (
+          tester,
+        ) async {
+          await pumpReady(tester, [_slide(micronsPerPixel: 0.972)]);
+
+          await tester.tap(find.text(_en.orderSend));
+          await tester.pump();
+          verify(
+            () => blocs.slideUpload.add(
+              const SlideUploadRequested(uid: 'doc-1', caseUid: 'case-1'),
+            ),
+          ).called(1);
+          verifyNever(() => blocs.order.add(const OrderSendRequested()));
+
+          uploads.add(
+            SlideUploadSuccess(
+              caseUid: 'case-1',
+              slides: [
+                _slide(
+                  micronsPerPixel: 0.972,
+                  status: SlideUploadStatus.uploaded,
+                ),
+              ],
+            ),
+          );
+          await tester.pump();
+          await tester.pump();
+          verify(() => blocs.order.add(const OrderSendRequested())).called(1);
+        });
+
+        testWidgets('a failed upload stops the send', (tester) async {
+          await pumpReady(tester, [_slide(micronsPerPixel: 0.972)]);
+
+          await tester.tap(find.text(_en.orderSend));
+          await tester.pump();
+          uploads.add(
+            SlideUploadFailure(
+              error: AppError.noInternet,
+              caseUid: 'case-1',
+              slides: [
+                _slide(
+                  micronsPerPixel: 0.972,
+                  status: SlideUploadStatus.failed,
+                ),
+              ],
+            ),
+          );
+          await tester.pump();
+          await tester.pump();
+
+          verifyNever(() => blocs.order.add(const OrderSendRequested()));
+        });
+
+        testWidgets('with every slide already uploaded it only sends', (
+          tester,
+        ) async {
+          await pumpReady(tester, [
+            _slide(micronsPerPixel: 0.972, status: SlideUploadStatus.uploaded),
+          ]);
+
+          await tester.tap(find.text(_en.orderSend));
+          await tester.pump();
+
+          verifyNever(() => blocs.slideUpload.add(any()));
+          verify(() => blocs.order.add(const OrderSendRequested())).called(1);
+        });
+
+        testWidgets('a slide with no size keeps Send closed and says why', (
+          tester,
+        ) async {
+          await pumpReady(tester, [_slide()]);
+
+          expect(find.text(_en.orderSlidesSizeBeforeSend), findsOneWidget);
+          final send = tester.widget<TabibuButton>(
+            find.widgetWithText(TabibuButton, _en.orderSend),
+          );
+          expect(send.onTap, isNull);
+        });
+      });
+
+      testWidgets('a tap outside the search field drops the keyboard', (
+        tester,
+      ) async {
+        order(_editing(created()));
+        await pumpScreen(tester);
+
+        final search = find.descendant(
+          of: find.byType(SearchField),
+          matching: find.byType(TextField),
+        );
+        await tester.tap(search);
+        await tester.pump();
+        expect(tester.widget<TextField>(search).focusNode?.hasFocus, isTrue);
+
+        await tester.tap(find.text(_en.orderSendTitle));
+        await tester.pump();
+        expect(tester.widget<TextField>(search).focusNode?.hasFocus, isFalse);
+      });
+
+      testWidgets('a pathologist shows initials, not the placeholder icon', (
+        tester,
+      ) async {
+        order(
+          _editing(
+            created(),
+            riskCheck: const RiskCheckModel(status: 'Ready'),
+            settled: true,
+          ),
+        );
+        await pumpScreen(tester);
+
+        final card = find.ancestor(
+          of: find.text('Dr. Achieng Odhiambo'),
+          matching: find.byType(OptionCard),
+        );
+        expect(
+          find.descendant(of: card, matching: find.byType(Avatar)),
+          findsOneWidget,
+        );
+        expect(
+          find.descendant(of: card, matching: find.text('AO')),
+          findsOneWidget,
+        );
       });
 
       testWidgets('choosing a pathologist', (tester) async {

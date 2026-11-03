@@ -285,6 +285,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
             .dark => .dark,
             .system => .system,
           },
+          // A switch is one frame, so it cannot tween under a page transition.
+          themeAnimationDuration: Duration.zero,
           locale: _locale,
           localizationsDelegates: tabibuLocalizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,

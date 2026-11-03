@@ -8,6 +8,36 @@ import '../../helpers/helpers.dart';
 
 void main() {
   group('TabibuTextField', () {
+    testWidgets('a bordered field draws its border before focus', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        const Column(
+          children: [
+            TabibuTextField(label: 'Plain'),
+            TabibuTextField(label: 'Boxed', bordered: true),
+          ],
+        ),
+      );
+
+      BorderSide side(String label) {
+        final field = tester.widget<TextField>(
+          find.descendant(
+            of: find.byWidgetPredicate(
+              (w) => w is TabibuTextField && w.label == label,
+            ),
+            matching: find.byType(TextField),
+          ),
+        );
+        return (field.decoration!.enabledBorder! as OutlineInputBorder)
+            .borderSide;
+      }
+
+      expect(side('Plain'), BorderSide.none);
+      expect(side('Boxed').style, BorderStyle.solid);
+      expect(side('Boxed').width, greaterThan(0));
+    });
+
     testWidgets('renders label, hint and icons', (tester) async {
       await tester.pumpApp(
         TabibuTextField(

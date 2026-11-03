@@ -216,6 +216,51 @@ void main() {
     );
 
     blocTest<SlideUploadBloc, SlideUploadState>(
+      'an emptied size field takes the size away, so it cannot upload',
+      build: build,
+      seed: () => SlideUploadEditing(
+        caseUid: 'c1',
+        slides: [
+          SlideItem(
+            localId: 'local-0',
+            fileName: 'a.jpg',
+            bytes: _jpeg(),
+            contentType: SlideStorage.jpeg,
+            micronsPerPixel: 0.972,
+          ),
+        ],
+      ),
+      act: (bloc) => bloc.add(const SlidePixelSizeCleared(localId: 'local-0')),
+      expect: () => [
+        isA<SlideUploadEditing>().having(
+          (s) => s.slides.single.hasValidPixelSize,
+          'has a valid size',
+          isFalse,
+        ),
+      ],
+    );
+
+    blocTest<SlideUploadBloc, SlideUploadState>(
+      'a size cannot be cleared once the slide is uploading or uploaded',
+      build: build,
+      seed: () => SlideUploadEditing(
+        caseUid: 'c1',
+        slides: [
+          SlideItem(
+            localId: 'local-0',
+            fileName: 'a.jpg',
+            bytes: _jpeg(),
+            contentType: SlideStorage.jpeg,
+            micronsPerPixel: 0.972,
+            status: SlideUploadStatus.uploaded,
+          ),
+        ],
+      ),
+      act: (bloc) => bloc.add(const SlidePixelSizeCleared(localId: 'local-0')),
+      expect: () => <SlideUploadState>[],
+    );
+
+    blocTest<SlideUploadBloc, SlideUploadState>(
       'refuses a pixel size outside (0, 100]',
       build: build,
       seed: () => SlideUploadEditing(

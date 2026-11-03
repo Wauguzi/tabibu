@@ -5,6 +5,7 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/cases/data/cache/case_cache_helper.dart';
+import 'package:tabibu/features/cases/data/datasources/case_firebase.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/preread/data/models/preread_model.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_event.dart';
@@ -25,11 +26,13 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     ReportCacheHelper? reports,
     ReportFirebase? remote,
     CaseCacheHelper? cases,
+    CaseFirebase? caseRemote,
     InternetService? internet,
     DateTime Function()? now,
   }) : _reports = reports ?? getIt<ReportCacheHelper>(),
        _remote = remote ?? getIt<ReportFirebase>(),
        _cases = cases ?? getIt<CaseCacheHelper>(),
+       _caseRemote = caseRemote ?? getIt<CaseFirebase>(),
        _internet = internet ?? getIt<InternetService>(),
        _now = now ?? DateTime.now,
        super(const CaseWorkspaceInitial()) {
@@ -45,14 +48,25 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     // One score and one signature at a time; a double tap must not repeat.
     on<CasePrereadScored>(_onScored, transformer: droppable());
     on<CaseSignRequested>(_onSign, transformer: droppable());
+    // One answer to a request; a double tap must not send two.
+    on<CaseRequestAccepted>(_onAccepted, transformer: droppable());
+    on<CaseRequestDeclined>(_onDeclined, transformer: droppable());
+    on<CaseSampleReceived>(_onSampleReceived, transformer: droppable());
     on<CaseWorkspaceReset>((_, emit) => emit(const CaseWorkspaceInitial()));
   }
 
   final ReportCacheHelper _reports;
   final ReportFirebase _remote;
   final CaseCacheHelper _cases;
+  final CaseFirebase _caseRemote;
   final InternetService _internet;
   final DateTime Function() _now;
+
+  /// The server's limit on a decline reason.
+  static const _maxDeclineReason = 500;
+
+  /// The server's shape for a lab accession number.
+  static final _accession = RegExp(r'^[A-Za-z0-9/-]{1,30}$');
 
   static const Set<AppError> _offline = {
     .noInternet,
@@ -81,9 +95,52 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     );
     try {
       final online = await _internet.check();
-      final caseModel = (await _cases.getCases(
+      var caseModel = (await _cases.getCases(
         event.pathologistUid,
       )).firstWhereOrNull((c) => c.uid == event.caseUid);
+      // A case opened from a notification may not be on the phone yet.
+      if (caseModel == null && online) {
+        try {
+          caseModel = (await _cases.syncCases(
+            event.pathologistUid,
+          )).firstWhereOrNull((c) => c.uid == event.caseUid);
+        } on Object catch (_) {
+          // The read below fails the same way and says why.
+        }
+      }
+
+      // Asked, not yet accepted: the server holds back the draft and the
+      // pre-read and refuses to start a report, so the screen shows the
+      // request and nothing else is read.
+      if (caseModel != null &&
+          caseModel.currentStageValue == .pathologistRequested &&
+          caseModel.requestedPathologistUid == event.pathologistUid) {
+        emit(
+          CaseWorkspaceLoadSuccess(
+            caseUid: event.caseUid,
+            pathologistUid: event.pathologistUid,
+            caseModel: caseModel,
+            offline: !online,
+          ),
+        );
+        return;
+      }
+
+      // Taken but the sample not recorded: the server refuses to start a
+      // report until it is, so the screen asks for the accession number.
+      if (caseModel != null &&
+          caseModel.pathologistUid == event.pathologistUid &&
+          caseModel.awaitsSample) {
+        emit(
+          CaseWorkspaceLoadSuccess(
+            caseUid: event.caseUid,
+            pathologistUid: event.pathologistUid,
+            caseModel: caseModel,
+            offline: !online,
+          ),
+        );
+        return;
+      }
 
       final signedUid = caseModel?.currentReportUid ?? '';
       var draft = await _draftFor(event, online: online);
@@ -273,6 +330,83 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
         pathologistUid: state.pathologistUid,
       );
       emit(_with(CaseScoreSuccess.new, score: score));
+    } on Object catch (e) {
+      emit(_failure(e));
+    }
+  }
+
+  Future<void> _onAccepted(
+    CaseRequestAccepted event,
+    Emitter<CaseWorkspaceState> emit,
+  ) async {
+    if (state.caseUid.isEmpty) return;
+    if (!await _internet.check()) {
+      emit(_failure(AppError.noInternet));
+      return;
+    }
+    final caseUid = state.caseUid;
+    final pathologistUid = state.pathologistUid;
+    emit(_with(CaseWorkspaceWriteInProgress.new));
+    try {
+      await _caseRemote.acceptCase(caseUid: caseUid);
+      await _cases.syncCases(pathologistUid);
+    } on Object catch (e) {
+      emit(_failure(e));
+      return;
+    }
+    // Now theirs: the workspace opens on the case as it always does.
+    add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
+  }
+
+  Future<void> _onSampleReceived(
+    CaseSampleReceived event,
+    Emitter<CaseWorkspaceState> emit,
+  ) async {
+    final accession = event.labAccessionNo.trim();
+    if (state.caseUid.isEmpty || !_accession.hasMatch(accession)) {
+      emit(_failure(AppError.invalidDecision));
+      return;
+    }
+    if (!await _internet.check()) {
+      emit(_failure(AppError.noInternet));
+      return;
+    }
+    final caseUid = state.caseUid;
+    final pathologistUid = state.pathologistUid;
+    emit(_with(CaseWorkspaceWriteInProgress.new));
+    try {
+      await _caseRemote.recordSampleReceived(
+        caseUid: caseUid,
+        labAccessionNo: accession,
+      );
+      await _cases.syncCases(pathologistUid);
+    } on Object catch (e) {
+      emit(_failure(e));
+      return;
+    }
+    add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
+  }
+
+  Future<void> _onDeclined(
+    CaseRequestDeclined event,
+    Emitter<CaseWorkspaceState> emit,
+  ) async {
+    final reason = event.reason.trim();
+    if (state.caseUid.isEmpty ||
+        reason.isEmpty ||
+        reason.length > _maxDeclineReason) {
+      emit(_failure(AppError.invalidDecision));
+      return;
+    }
+    if (!await _internet.check()) {
+      emit(_failure(AppError.noInternet));
+      return;
+    }
+    emit(_with(CaseWorkspaceWriteInProgress.new));
+    try {
+      await _caseRemote.rejectCase(caseUid: state.caseUid, reason: reason);
+      await _cases.syncCases(state.pathologistUid);
+      emit(_with(CaseRequestDeclineSuccess.new));
     } on Object catch (e) {
       emit(_failure(e));
     }

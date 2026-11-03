@@ -8,6 +8,12 @@ import 'package:tabibu/features/themes/blocs/theme_bloc/theme_event.dart';
 import '../../../helpers/helpers.dart';
 
 void main() {
+  setUpAll(
+    () => registerFallbackValue(
+      const ThemeChangeRequested(preference: ThemePreference.system),
+    ),
+  );
+
   group('ThemeScreen', () {
     // Tall enough that the lazy list builds every row.
     void tallView(WidgetTester tester) {
@@ -64,6 +70,29 @@ void main() {
       expect(find.text('Best in bright clinics and wards'), findsOneWidget);
       expect(find.text('Easier on the eyes on night shifts'), findsOneWidget);
       expect(find.text('Best in bright places'), findsNothing);
+    });
+
+    testWidgets('Save leaves after the theme frame, not before', (
+      tester,
+    ) async {
+      tallView(tester);
+      final blocs = FeatureBlocs();
+      await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
+        blocs: blocs,
+      );
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('Theme'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Save'));
+      // The change is sent, the screen is still here: the pop waits a frame.
+      verify(() => blocs.theme.add(any())).called(1);
+      expect(find.text('Save'), findsOneWidget);
+
+      await tester.pumpAndSettle();
+      expect(find.text('Your profile'), findsOneWidget);
     });
 
     testWidgets('Save leaves at once', (tester) async {

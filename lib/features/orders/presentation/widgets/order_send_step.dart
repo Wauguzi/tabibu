@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
@@ -10,7 +12,9 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
+import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_item.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_bloc.dart';
+import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_event.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_state.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_bloc.dart';
@@ -36,6 +40,45 @@ class OrderSendStep extends StatefulWidget {
 
 class _OrderSendStepState extends State<OrderSendStep> {
   String _query = '';
+
+  /// Slides are uploading ahead of the send.
+  bool _uploading = false;
+
+  /// The slide rows that belong to this order's case and are not yet on the
+  /// server; rows from another case are not ours.
+  List<SlideItem> _pending(String caseUid) {
+    final upload = context.read<SlideUploadBloc>().state;
+    if (upload.caseUid.isNotEmpty && upload.caseUid != caseUid) return const [];
+    return [
+      for (final slide in upload.slides)
+        if (slide.status != .uploaded) slide,
+    ];
+  }
+
+  /// Uploads any slides still waiting, then sends. Nothing to upload sends
+  /// at once; a failed upload stops here, and its rows say why.
+  Future<void> _send() async {
+    final draft = widget.state.draft;
+    final pending = _pending(draft.caseUid);
+    if (pending.isEmpty) {
+      _add(const OrderSendRequested());
+      return;
+    }
+    final slides = context.read<SlideUploadBloc>();
+    setState(() => _uploading = true);
+    final settled = slides.stream.firstWhere(
+      (state) => state is! SlideUploadInProgress,
+    );
+    slides.add(
+      SlideUploadRequested(uid: draft.doctorUid, caseUid: draft.caseUid),
+    );
+    final result = await settled;
+    if (!mounted) return;
+    setState(() => _uploading = false);
+    if (result.slides.every((slide) => slide.status == .uploaded)) {
+      _add(const OrderSendRequested());
+    }
+  }
 
   // The case is created on the way here; the list must learn of it for the
   // slides card to know the order needs slides.
@@ -83,6 +126,10 @@ class _OrderSendStepState extends State<OrderSendStep> {
                       .firstWhereOrNull((c) => c.uid == draft.caseUid)
                       ?.requiresSlides ??
                   false);
+    // A row with no valid size cannot upload, so it cannot go with the send.
+    final unsized = _pending(
+      draft.caseUid,
+    ).any((slide) => !slide.hasValidPixelSize);
     final pathologists = [
       for (final p in state.pathologists)
         if (needle.isEmpty ||
@@ -96,6 +143,7 @@ class _OrderSendStepState extends State<OrderSendStep> {
       children: [
         Expanded(
           child: ListView(
+            keyboardDismissBehavior: .onDrag,
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screenMargin,
               AppSpacing.md,
@@ -162,8 +210,13 @@ class _OrderSendStepState extends State<OrderSendStep> {
                     key: ValueKey(p.uid),
                     title: p.fullName,
                     supporting: p.facilityName,
-                    icon: Assets.icons.practitionerVerifiedIcon,
-                    tone: .lavender,
+                    leading: Avatar(
+                      name: p.fullName,
+                      radius: 22,
+                      image: p.profilePictureUrl.isEmpty
+                          ? null
+                          : NetworkImage(p.profilePictureUrl),
+                    ),
                     selected: draft.pathologistUid == p.uid,
                     onTap: busy
                         ? null
@@ -200,11 +253,19 @@ class _OrderSendStepState extends State<OrderSendStep> {
                 ),
                 const SizedBox(height: AppSpacing.xs),
               ],
+              if (unsized) ...[
+                Text(
+                  l10n.orderSlidesSizeBeforeSend,
+                  style: textTheme.bodySmall,
+                  textAlign: .center,
+                ),
+                const SizedBox(height: AppSpacing.xs),
+              ],
               TabibuButton.primary(
                 label: l10n.orderSend,
-                isLoading: busy,
-                onTap: state.canSend && !busy
-                    ? () => _add(const OrderSendRequested())
+                isLoading: busy || _uploading,
+                onTap: state.canSend && !busy && !_uploading && !unsized
+                    ? () => unawaited(_send())
                     : null,
               ),
             ],

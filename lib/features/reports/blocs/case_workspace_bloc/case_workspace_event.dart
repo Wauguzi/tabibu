@@ -92,6 +92,33 @@ final class CaseSignRequested extends CaseWorkspaceEvent {
   List<Object?> get props => [signaturePng, attested];
 }
 
+/// The requested pathologist takes the case; the workspace then opens on it.
+final class CaseRequestAccepted extends CaseWorkspaceEvent {
+  const CaseRequestAccepted();
+}
+
+/// The requested pathologist turns the case down, with a reason the doctor
+/// reads.
+final class CaseRequestDeclined extends CaseWorkspaceEvent {
+  const CaseRequestDeclined({required this.reason});
+
+  final String reason;
+
+  @override
+  List<Object?> get props => [reason];
+}
+
+/// The accepting pathologist records the lab's accession number for the
+/// sample, which opens the report.
+final class CaseSampleReceived extends CaseWorkspaceEvent {
+  const CaseSampleReceived({required this.labAccessionNo});
+
+  final String labAccessionNo;
+
+  @override
+  List<Object?> get props => [labAccessionNo];
+}
+
 /// Back to the initial state on sign-out.
 final class CaseWorkspaceReset extends CaseWorkspaceEvent {
   const CaseWorkspaceReset();

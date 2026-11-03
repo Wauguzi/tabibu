@@ -1,3 +1,6 @@
+import 'dart:async';
+
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
@@ -11,7 +14,7 @@ import 'package:tabibu/l10n/l10n.dart';
 
 /// P/D/PA-THEME in one screen: three radio options and Save, over the
 /// existing theme bloc. The change applies instantly and cannot fail, so
-/// Save dispatches and leaves.
+/// Save dispatches and leaves once the new theme is on screen.
 class ThemeScreen extends StatefulWidget {
   const ThemeScreen({required this.role, super.key});
 
@@ -24,8 +27,12 @@ class ThemeScreen extends StatefulWidget {
 class _ThemeScreenState extends State<ThemeScreen> {
   ThemePreference? _choice;
 
-  void _save(ThemePreference choice) {
+  Future<void> _save(ThemePreference choice) async {
     context.read<ThemeBloc>().add(ThemeChangeRequested(preference: choice));
+    // Leave once the frame that applies the theme is built, so the page
+    // underneath is never revealed in the old theme mid-transition.
+    await SchedulerBinding.instance.endOfFrame;
+    if (!mounted) return;
     context.pop();
   }
 
@@ -90,7 +97,7 @@ class _ThemeScreenState extends State<ThemeScreen> {
                 const SizedBox(height: AppSpacing.lg),
                 TabibuButton.primary(
                   label: l10n.themeSettingsSave,
-                  onTap: () => _save(choice),
+                  onTap: () => unawaited(_save(choice)),
                 ),
               ],
             ),

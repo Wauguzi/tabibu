@@ -21,6 +21,8 @@ import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_state.dart';
 import 'package:tabibu/features/reports/data/models/notifiable_finding_model.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_model.dart';
+import 'package:tabibu/features/reports/presentation/widgets/case_request_view.dart';
+import 'package:tabibu/features/reports/presentation/widgets/sample_received_view.dart';
 import 'package:tabibu/features/reports/presentation/widgets/signed_case_view.dart';
 import 'package:tabibu/features/reports/presentation/widgets/workspace_facts.dart';
 import 'package:tabibu/features/reports/presentation/widgets/workspace_score_card.dart';
@@ -269,6 +271,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
           previous.caseModel != current.caseModel ||
           current is CaseDraftSaveSuccess ||
           current is CaseScoreSuccess ||
+          current is CaseRequestDeclineSuccess ||
           current is CaseWorkspaceWriteFailure ||
           current is CaseWorkspaceLoadFailure,
       listener: (context, state) {
@@ -286,6 +289,16 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
               dismissLabel: l10n.commonDismiss,
             ),
           );
+        } else if (state is CaseRequestDeclineSuccess) {
+          unawaited(
+            showTabibuNotification(
+              context,
+              message: l10n.workspaceRequestDeclined,
+              isError: false,
+              dismissLabel: l10n.commonDismiss,
+            ),
+          );
+          context.pop();
         } else if (state is CaseWorkspaceWriteFailure ||
             state is CaseWorkspaceLoadFailure) {
           final error = state is CaseWorkspaceWriteFailure
@@ -330,6 +343,82 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                           caseModel: state.caseModel!,
                         ),
                       ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        final asked = state.caseModel;
+        // Asked, not yet accepted: only the request can be read.
+        if (asked != null &&
+            asked.currentStageValue == .pathologistRequested &&
+            asked.requestedPathologistUid == _uid &&
+            state.draft == null) {
+          return Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screenMargin,
+                      AppSpacing.md,
+                      AppSpacing.screenMargin,
+                      0,
+                    ),
+                    child: TopBar(
+                      backLabel: l10n.commonBack,
+                      onBack: context.pop,
+                      title: asked.orderNumber,
+                      subtitle: workspaceSubtitle(asked),
+                    ),
+                  ),
+                  Expanded(
+                    child: CaseRequestView(
+                      caseModel: asked,
+                      busy: state is CaseWorkspaceWriteInProgress,
+                      onAccept: () => _add(const CaseRequestAccepted()),
+                      onDecline: (reason) =>
+                          _add(CaseRequestDeclined(reason: reason)),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        }
+
+        // Taken, sample not recorded: the report waits for its accession.
+        if (asked != null &&
+            asked.pathologistUid == _uid &&
+            asked.awaitsSample &&
+            state.draft == null) {
+          return Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screenMargin,
+                      AppSpacing.md,
+                      AppSpacing.screenMargin,
+                      0,
+                    ),
+                    child: TopBar(
+                      backLabel: l10n.commonBack,
+                      onBack: context.pop,
+                      title: asked.orderNumber,
+                      subtitle: workspaceSubtitle(asked),
+                    ),
+                  ),
+                  Expanded(
+                    child: SampleReceivedView(
+                      caseModel: asked,
+                      busy: state is CaseWorkspaceWriteInProgress,
+                      onRecord: (accession) =>
+                          _add(CaseSampleReceived(labAccessionNo: accession)),
                     ),
                   ),
                 ],

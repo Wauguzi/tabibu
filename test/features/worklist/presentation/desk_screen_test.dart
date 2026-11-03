@@ -156,6 +156,22 @@ void main() {
         expect(find.text('AI read them first.'), findsOneWidget);
       });
 
+      testWidgets('the low-confidence tile carries its picture', (
+        tester,
+      ) async {
+        useTallSurface(tester);
+        stub();
+        await pumpScreen(tester);
+
+        expect(
+          find.descendant(
+            of: tile('Low confidence'),
+            matching: find.byType(SheetIllustration),
+          ),
+          findsOneWidget,
+        );
+      });
+
       testWidgets('the hero is the first case, not another', (tester) async {
         useTallSurface(tester);
         stub();

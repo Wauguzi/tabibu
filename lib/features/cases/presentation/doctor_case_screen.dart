@@ -241,7 +241,12 @@ class _Body extends StatelessWidget {
       ),
       step(
         title: l10n.doctorCaseSampleReceived,
-        supporting: sampleAt,
+        // The doctor collects the sample when ordering, so the order's own
+        // time stands in until the lab's receipt is stamped.
+        supporting: [
+          if (sampleAt.isNotEmpty) sampleAt else orderedAt,
+          if (test.isNotEmpty) test,
+        ].where((part) => part.isNotEmpty).join(' · '),
         index: 1,
         icon: Assets.icons.testTubeIcon,
       ),

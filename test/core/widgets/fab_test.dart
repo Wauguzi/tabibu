@@ -18,6 +18,26 @@ void main() {
       onTap: onTap ?? () {},
     );
 
+    testWidgets('a smaller size shrinks the circle and its glyph together', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        Fab(
+          icon: Assets.icons.addIcon,
+          semanticLabel: 'Add',
+          onTap: () {},
+          size: 51.2,
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.getSize(find.byType(Fab)), const Size(51.2, 51.2));
+      expect(
+        tester.getSize(find.byType(AssetIcon)),
+        const Size(51.2 * 0.375, 51.2 * 0.375),
+      );
+    });
+
     testWidgets('renders a 64dp ink circle with a white glyph', (tester) async {
       await tester.pumpApp(fab());
       await tester.pumpAndSettle();

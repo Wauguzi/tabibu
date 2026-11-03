@@ -32,6 +32,7 @@ export 'role_background.dart';
 export 'search_field.dart';
 export 'section_header.dart';
 export 'setting_toggle_card.dart';
+export 'sheet_illustration.dart';
 export 'shortcut_tile.dart';
 export 'status_chip.dart';
 export 'status_mark.dart';

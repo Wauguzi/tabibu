@@ -51,8 +51,10 @@ class ReportFirebase {
   Future<T> _guard<T>(String operation, Future<T> Function() body) async {
     try {
       return await body();
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('$operation failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('$operation failed: $e', stackTrace: stackTrace);
+      }
       throw _toAppError(e);
     }
   }

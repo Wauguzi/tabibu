@@ -156,7 +156,10 @@ void main() {
         findsOneWidget,
       );
       expect(find.text(l10n.doctorCaseSampleReceived), findsOneWidget);
-      expect(find.text(_stamp('2026-10-27T06:05:00Z', 'en')), findsOneWidget);
+      expect(
+        find.text('${_stamp('2026-10-27T06:05:00Z', 'en')} · Breast excision'),
+        findsOneWidget,
+      );
       expect(find.text(l10n.doctorCaseReading), findsOneWidget);
       expect(find.text('Dr. Achieng Odhiambo'), findsOneWidget);
       expect(find.text(l10n.doctorCaseReportSigned), findsOneWidget);
@@ -183,6 +186,29 @@ void main() {
       expect(find.text(l10n.doctorCaseNow), findsOneWidget);
       expect(find.text(l10n.doctorCaseNext), findsNWidgets(2));
       expect(find.text(l10n.doctorCaseAttachPathologist), findsNothing);
+    });
+
+    testWidgets('without a lab receipt, sample received shows the order time '
+        'and the test', (tester) async {
+      _useTallSurface(tester);
+      await pumpScreen(
+        tester,
+        cases: CasesLoadSuccess(
+          cases: [
+            _case(
+              currentStage: 'OrderCreated',
+              pathologistName: '',
+              sampleReceivedAt: '',
+            ),
+          ],
+        ),
+      );
+
+      // The same line reads under Ordered and under Sample received.
+      expect(
+        find.text('${_stamp('2026-10-26T07:20:00Z', 'en')} · Breast excision'),
+        findsNWidgets(2),
+      );
     });
 
     testWidgets('an unsent order has its sample and links to attach', (

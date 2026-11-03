@@ -140,10 +140,16 @@ class _DoneCard extends StatelessWidget {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
 
+    final isDark = scheme.brightness == .dark;
     return DecoratedBox(
       decoration: BoxDecoration(
-        color: scheme.surfaceContainerLow,
+        // In light the page's wash is the same pale tone as the old fill, so
+        // a finished visit gets a white veil and a hairline to stay readable.
+        color: isDark
+            ? scheme.surfaceContainerLow
+            : scheme.surfaceContainerLowest.withValues(alpha: 0.7),
         borderRadius: BorderRadius.circular(AppRadii.card),
+        border: isDark ? null : Border.all(color: scheme.outlineVariant),
       ),
       child: Padding(
         padding: AppStyles.cardPadding,
@@ -301,6 +307,7 @@ class _UpcomingCard extends StatelessWidget {
                 ],
               ),
             ),
+            const SizedBox(width: AppSpacing.sm),
             ExcludeSemantics(
               child: AssetIcon(
                 Assets.icons.forwardIcon,

@@ -45,8 +45,10 @@ class SlideStorage {
       await _storage
           .ref('slides/$caseUid/$imageUid.$extension')
           .putData(bytes, SettableMetadata(contentType: contentType));
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('Upload slide failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('Upload slide failed: $e', stackTrace: stackTrace);
+      }
       throw _toAppError(e);
     }
   }

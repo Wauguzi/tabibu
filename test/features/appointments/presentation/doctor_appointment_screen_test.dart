@@ -84,8 +84,10 @@ CaseModel _case({
   String stage = 'OrderCreated',
   String createdAt = '2026-10-23T07:00:00Z',
   String orderNumber = 'TB-0231',
+  String appointmentUid = '',
 }) => CaseModel(
   uid: uid,
+  appointmentUid: appointmentUid,
   orderNumber: orderNumber,
   patientAgeYears: 46,
   patientSex: 'Female',
@@ -180,7 +182,14 @@ void main() {
                 routes: [
                   GoRoute(
                     path: 'order',
-                    builder: (_, _) => const Scaffold(body: Text('order-stub')),
+                    builder: (_, state) => Scaffold(
+                      body: Column(
+                        children: [
+                          const Text('order-stub'),
+                          Text('case ${state.uri.queryParameters['case-uid']}'),
+                        ],
+                      ),
+                    ),
                   ),
                   GoRoute(
                     path: 'chat',
@@ -551,6 +560,51 @@ void main() {
         await pumpScreen(tester);
 
         expect(tester.widget<TabibuButton>(endButton()).onTap, isNotNull);
+      });
+
+      testWidgets('an order made at this visit but not sent picks up where '
+          'it stopped', (tester) async {
+        register(
+          appointments: AppointmentsLoadSuccess(appointments: [_appointment()]),
+          cases: CasesLoadSuccess(cases: [_case(appointmentUid: 'a1')]),
+        );
+        _useTallSurface(tester);
+        await pumpScreen(tester);
+
+        expect(orderButton(), findsNothing);
+        await tester.tap(buttonLabelled(en.doctorCaseAttachPathologist));
+        await tester.pumpAndSettle();
+
+        expect(find.text('order-stub'), findsOneWidget);
+        expect(find.text('case case-1'), findsOneWidget);
+      });
+
+      testWidgets('the end hint sits in the body under the notes', (
+        tester,
+      ) async {
+        register(
+          appointments: AppointmentsLoadSuccess(
+            appointments: [
+              _appointment(
+                startsIn: const Duration(hours: 2),
+                endsIn: const Duration(hours: 3),
+              ),
+            ],
+          ),
+          cases: CasesLoadSuccess(cases: [_case()]),
+        );
+        _useTallSurface(tester);
+        await pumpScreen(tester);
+
+        final hint = find.text(en.doctorAppointmentEndDisabled);
+        expect(
+          find.descendant(of: find.byType(BottomActionBar), matching: hint),
+          findsNothing,
+        );
+        expect(
+          tester.getTopLeft(hint).dy,
+          greaterThan(tester.getBottomLeft(find.byType(NotesCard)).dy),
+        );
       });
 
       testWidgets('Order a test pushes the order route', (tester) async {

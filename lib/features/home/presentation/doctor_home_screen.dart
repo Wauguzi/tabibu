@@ -324,6 +324,7 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       value: '${ready.length}',
       body: ready.firstOrNull?.patientName,
       tall: true,
+      illustration: const SheetIllustration(),
       onTap: () => const ReportsReadyRoute().push<void>(context),
     );
     final bookings = ShortcutTile(
@@ -443,6 +444,9 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
     final current =
         slots.firstWhereOrNull((s) => s.state == .now) ??
         slots.firstWhereOrNull((s) => s.state == .upcoming);
+    // The visit a test is ordered for: the one under way or next, else the
+    // day's last.
+    final orderAt = (current ?? slots.lastOrNull)?.appointment.uid;
     final offline =
         notifications.offline || appointments.offline || cases.offline;
     final loading =
@@ -469,6 +473,17 @@ class _DoctorHomeScreenState extends State<DoctorHomeScreen> {
       child: ShellTabPage(
         role: .doctor,
         onRefresh: _refresh,
+        floatingAction: orderAt == null
+            ? null
+            : Fab(
+                // 20% under the usual 64 dp.
+                size: 51.2,
+                icon: Assets.icons.addIcon,
+                semanticLabel: l10n.doctorAppointmentOrderTest,
+                onTap: () => unawaited(
+                  OrderRoute(appointmentUid: orderAt).push<void>(context),
+                ),
+              ),
         children: [
           HomeHeader(
             name: '${_doctor.firstName} ${_doctor.lastName}',

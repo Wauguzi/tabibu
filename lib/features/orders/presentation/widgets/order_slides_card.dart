@@ -142,6 +142,8 @@ class _OrderSlidesCardState extends State<OrderSlidesCard> {
             onPixelSize: (value) => _bloc.add(
               SlidePixelSizeSet(localId: slide.localId, micronsPerPixel: value),
             ),
+            onPixelSizeCleared: () =>
+                _bloc.add(SlidePixelSizeCleared(localId: slide.localId)),
             onRetry: _request,
           ),
         ],
@@ -170,6 +172,7 @@ class _SlideRow extends StatefulWidget {
     required this.slide,
     required this.onRemove,
     required this.onPixelSize,
+    required this.onPixelSizeCleared,
     required this.onRetry,
     super.key,
   });
@@ -177,6 +180,7 @@ class _SlideRow extends StatefulWidget {
   final SlideItem slide;
   final VoidCallback onRemove;
   final ValueChanged<double> onPixelSize;
+  final VoidCallback onPixelSizeCleared;
   final VoidCallback onRetry;
 
   @override
@@ -215,19 +219,17 @@ class _SlideRowState extends State<_SlideRow> {
     return value == null ? '' : '$value';
   }
 
+  /// Anything but a valid number leaves the slide without a size, so Upload
+  /// closes and the field says why; an emptied field is as wrong as a bad one.
   void _sized(String text) {
     final value = double.tryParse(text.trim());
     final valid = value != null && value.isFinite && value > 0 && value <= 100;
-    if (text.trim().isEmpty) {
-      setState(() => _invalid = false);
-      return;
+    setState(() => _invalid = !valid);
+    if (valid) {
+      widget.onPixelSize(value);
+    } else {
+      widget.onPixelSizeCleared();
     }
-    if (!valid) {
-      setState(() => _invalid = true);
-      return;
-    }
-    setState(() => _invalid = false);
-    widget.onPixelSize(value);
   }
 
   @override
@@ -292,6 +294,7 @@ class _SlideRowState extends State<_SlideRow> {
             label: l10n.orderSlidesPixelSizeLabel,
             hint: l10n.orderSlidesPixelSizeHint,
             controller: _pixels,
+            required: true,
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             errorText: _invalid ? l10n.orderSlidesPixelSizeInvalid : null,
             readOnly: slide.isSettled,

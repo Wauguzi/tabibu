@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -14,6 +16,7 @@ import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
+import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/presentation/case_steps.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_stepper.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_bloc.dart';
@@ -88,10 +91,14 @@ class _OrderSentScreenState extends State<OrderSentScreen> {
                     body: l10n.orderSentHeroBody,
                   ),
                   const SizedBox(height: AppSpacing.md),
-                  _StepperCard(current: caseModel?.doctorStep ?? 2),
+                  // Sent means with a pathologist at least, whatever the cached
+                  // case still says before its refresh lands.
+                  _StepperCard(
+                    current: math.max(caseModel?.doctorStep ?? 2, 2),
+                  ),
                   if (sent != null) ...[
                     const SizedBox(height: AppSpacing.md),
-                    _Summary(state: sent),
+                    _Summary(state: sent, caseModel: caseModel),
                   ],
                 ],
               ),
@@ -144,6 +151,7 @@ class _StepperCard extends StatelessWidget {
       child: CaseStepper(
         labels: doctorCaseStepLabels(l10n),
         current: current,
+        scrollable: true,
         semanticLabel: doctorCaseStepSemantics(l10n, current),
       ),
     );
@@ -153,18 +161,36 @@ class _StepperCard extends StatelessWidget {
 /// What was sent: tests, specimen, pathologist, priority, payment and how
 /// the risk check ended.
 class _Summary extends StatelessWidget {
-  const _Summary({required this.state});
+  const _Summary({required this.state, required this.caseModel});
 
   final OrderState state;
+
+  /// The case as the server holds it; a reopened order's draft carries none
+  /// of the details, so the case is the truth for them.
+  final CaseModel? caseModel;
 
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final draft = state.draft;
-    final tests = [
-      for (final id in draft.testIds)
-        ?state.tests.firstWhereOrNull((t) => t.labTestId == id)?.name,
+    final cased = caseModel;
+    final fromCase = [
+      if (cased != null)
+        for (final t in cased.tests)
+          if (t.name.isNotEmpty) t.name,
     ];
+    final tests = fromCase.isNotEmpty
+        ? fromCase
+        : [
+            for (final id in draft.testIds)
+              ?state.tests.firstWhereOrNull((t) => t.labTestId == id)?.name,
+          ];
+    final specimen = (cased?.sampleNotes ?? '').trim().isNotEmpty
+        ? cased!.sampleNotes.trim()
+        : draft.specimen.trim();
+    final priority = cased?.priorityValue ?? draft.priority;
+    // Payment is only on the device's own draft; a reopened order has none.
+    final knowsPayment = draft.testIds.isNotEmpty;
     final pathologist = state.pathologists.firstWhereOrNull(
       (p) => p.uid == draft.pathologistUid,
     );
@@ -191,12 +217,11 @@ class _Summary extends StatelessWidget {
       title: l10n.orderSummary,
       rows: [
         (l10n.orderTestsLabel, tests.join(', ')),
-        if (draft.specimen.trim().isNotEmpty)
-          (l10n.orderSpecimenLabel, draft.specimen.trim()),
+        if (specimen.isNotEmpty) (l10n.orderSpecimenLabel, specimen),
         if (pathologist != null)
           (l10n.orderPathologistLabel, pathologist.fullName),
-        (l10n.orderPriorityLabel, draft.priority.description(l10n)),
-        (l10n.orderPaymentLabel, payment),
+        (l10n.orderPriorityLabel, priority.description(l10n)),
+        if (knowsPayment) (l10n.orderPaymentLabel, payment),
         (l10n.orderSummaryRisk, risk),
       ],
     );

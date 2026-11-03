@@ -7,6 +7,42 @@ import '../../../../helpers/helpers.dart';
 
 void main() {
   group('DayTimeline', () {
+    testWidgets('a finished visit stands out from the light page', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        const SizedBox(
+          width: 390,
+          child: DayTimeline(
+            entries: [
+              TimelineEntry(
+                time: '9:00 AM',
+                title: 'Mary Njeri',
+                subtitle: 'Follow-up after biopsy',
+                state: .done,
+              ),
+            ],
+          ),
+        ),
+      );
+
+      final scheme = Theme.of(
+        tester.element(find.text('Mary Njeri')),
+      ).colorScheme;
+      final card = tester.widget<DecoratedBox>(
+        find
+            .ancestor(
+              of: find.text('Mary Njeri'),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      final decoration = card.decoration as BoxDecoration;
+      // Not the page's own pale tone, and edged.
+      expect(decoration.color, isNot(scheme.surfaceContainerLow));
+      expect(decoration.border, isNotNull);
+    });
+
     testWidgets('renders each state style', (tester) async {
       var freeTaps = 0;
       var upcomingTaps = 0;

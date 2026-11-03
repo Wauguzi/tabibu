@@ -393,6 +393,12 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
     final live = status == .accepted;
     final busy = _ending && appointmentsState is AppointmentWriteInProgress;
     final showActions = live && !_ended;
+    // Ordered at this visit but never sent: the button picks up where the
+    // order stopped.
+    final unsent =
+        linkedCase != null &&
+        linkedCase.currentStageValue == .orderCreated &&
+        linkedCase.appointmentUid == appointment.uid;
     final nairobiStart = nairobiTimeOf(appointment.scheduledStart);
     final firstName = appointment.patientName.trim().split(' ').first;
 
@@ -452,6 +458,15 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
             ),
           ],
         ),
+      if (showActions && !started) ...[
+        const SizedBox(height: AppSpacing.md),
+        Text(
+          l10n.doctorAppointmentEndDisabled,
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+            color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ),
+        ),
+      ],
     ];
 
     return _Shell(
@@ -497,42 +512,25 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
               ),
             )
           : showActions
-          ? Column(
-              mainAxisSize: .min,
-              crossAxisAlignment: .stretch,
-              children: [
-                if (!started)
-                  Padding(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: AppSpacing.screenMargin,
-                    ),
-                    child: Text(
-                      l10n.doctorAppointmentEndDisabled,
-                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: Theme.of(context).colorScheme.onSurfaceVariant,
+          ? BottomActionBar(
+              secondary: TabibuButton.secondary(
+                label: l10n.doctorAppointmentEnd,
+                isLoading: busy,
+                onTap: started && !busy ? () => _complete('Completed') : null,
+              ),
+              primary: TabibuButton.primary(
+                label: unsent
+                    ? l10n.doctorCaseAttachPathologist
+                    : l10n.doctorAppointmentOrderTest,
+                onTap: busy
+                    ? null
+                    : () => unawaited(
+                        OrderRoute(
+                          appointmentUid: appointment.uid,
+                          caseUid: unsent ? linkedCase.uid : '',
+                        ).push<void>(context),
                       ),
-                    ),
-                  ),
-                BottomActionBar(
-                  secondary: TabibuButton.secondary(
-                    label: l10n.doctorAppointmentEnd,
-                    isLoading: busy,
-                    onTap: started && !busy
-                        ? () => _complete('Completed')
-                        : null,
-                  ),
-                  primary: TabibuButton.primary(
-                    label: l10n.doctorAppointmentOrderTest,
-                    onTap: busy
-                        ? null
-                        : () => unawaited(
-                            OrderRoute(
-                              appointmentUid: appointment.uid,
-                            ).push<void>(context),
-                          ),
-                  ),
-                ),
-              ],
+              ),
             )
           : null,
     );
@@ -711,6 +709,7 @@ class _StepperCard extends StatelessWidget {
             CaseStepper(
               labels: labels,
               current: current,
+              scrollable: true,
               semanticLabel: done
                   ? l10n.chipDone
                   : '${labels[current]} · ${l10n.doctorCaseNow}',

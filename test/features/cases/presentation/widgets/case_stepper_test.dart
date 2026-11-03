@@ -26,6 +26,50 @@ void main() {
       );
     });
 
+    testWidgets('scrollable keeps every label on one line and opens on the '
+        'current step', (tester) async {
+      tester.view
+        ..physicalSize = const Size(600, 1600)
+        ..devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      const labels = [
+        'Consultation',
+        'Ordered',
+        'Pathologist',
+        'Signed',
+        'Discuss with the patient',
+      ];
+      await tester.pumpApp(
+        const CaseStepper(
+          labels: labels,
+          current: 4,
+          scrollable: true,
+          semanticLabel: 'Step 5 of 5',
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      final lineHeight = tester.getSize(find.text('Ordered')).height;
+      for (final label in labels) {
+        expect(tester.getSize(find.text(label)).height, lineHeight);
+      }
+      // Wider than the 200 dp it has, so it scrolls, opening on the current.
+      final scroll = tester.state<ScrollableState>(
+        find.descendant(
+          of: find.byType(CaseStepper),
+          matching: find.byType(Scrollable),
+        ),
+      );
+      expect(scroll.position.maxScrollExtent, greaterThan(0));
+      final stepper = tester.getRect(find.byType(CaseStepper));
+      expect(
+        (tester.getCenter(find.text(labels.last)).dx - stepper.center.dx).abs(),
+        lessThan(1),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('paused keeps the summary and labels', (tester) async {
       await tester.pumpApp(
         const CaseStepper(

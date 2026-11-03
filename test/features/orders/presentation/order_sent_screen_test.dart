@@ -1,5 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -8,6 +11,7 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/cases/data/models/ordered_test_model.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_stepper.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_draft.dart';
@@ -138,6 +142,94 @@ void main() {
       );
       await tester.pump();
       expect(find.text(en.orderSummaryRiskPending), findsOneWidget);
+    });
+
+    testWidgets('a reopened order reads its tests and priority from the case', (
+      tester,
+    ) async {
+      // The draft of a reopened order holds no tests, specimen or payment.
+      when(() => blocs.order.state).thenReturn(
+        OrderSendSuccess(
+          draft: const OrderDraft(
+            appointmentUid: 'appt-1',
+            caseUid: 'case-1',
+            created: true,
+            pathologistUid: 'path-a',
+          ),
+          pathologists: [pathologist],
+          riskCheckSettled: true,
+        ),
+      );
+      when(() => blocs.cases.state).thenReturn(
+        const CasesLoadSuccess(
+          cases: [
+            CaseModel(
+              uid: 'case-1',
+              currentStage: 'PathologistRequested',
+              priority: 'Urgent',
+              sampleNotes: 'Right breast',
+              tests: [OrderedTestModel(name: 'Histopathology examination')],
+            ),
+          ],
+        ),
+      );
+      await pump(tester);
+
+      expect(find.text('Histopathology examination'), findsOneWidget);
+      expect(find.text('Right breast'), findsOneWidget);
+      expect(find.text(en.doctorCaseUrgent), findsOneWidget);
+      // No payment is claimed for a draft that never held one.
+      expect(find.text(en.orderPaymentLabel), findsNothing);
+    });
+
+    testWidgets('a stale ordered case still reads with the pathologist', (
+      tester,
+    ) async {
+      when(() => blocs.order.state).thenReturn(sent());
+      when(
+        () => blocs.cases.state,
+      ).thenReturn(const CasesLoadSuccess(cases: [CaseModel(uid: 'case-1')]));
+      await pump(tester);
+
+      final stepper = tester.widget<CaseStepper>(find.byType(CaseStepper));
+      expect(stepper.current, 2);
+      expect(stepper.scrollable, isTrue);
+    });
+
+    testWidgets('Back leaves for the page the order came from', (tester) async {
+      when(() => blocs.order.state).thenReturn(sent());
+      Widget providers(Widget child) => MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: authBloc),
+          ...blocs.providers,
+        ],
+        child: child,
+      );
+      final router = GoRouter(
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => const Scaffold(body: Text('appointment-stub')),
+          ),
+          GoRoute(
+            path: '/sent',
+            builder: (_, _) =>
+                providers(const OrderSentScreen(caseUid: 'case-1')),
+          ),
+        ],
+      );
+      addTearDown(router.dispose);
+      tester.view.physicalSize = const Size(1170, 6000);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+      await tester.pumpRouterApp(router);
+      unawaited(router.push('/sent'));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(en.orderBackToAppointment));
+      await tester.pumpAndSettle();
+
+      expect(find.text('appointment-stub'), findsOneWidget);
     });
 
     testWidgets('shows the case number once the case has synced', (

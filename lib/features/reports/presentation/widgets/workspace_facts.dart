@@ -1,3 +1,5 @@
+import 'package:intl/intl.dart';
+import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/features/alerts/data/models/notifiable_disease_model.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/preread/data/models/preread_model.dart';
@@ -40,3 +42,23 @@ List<(String, String)> workspaceMeasurementRows(Map<String, double> values) => [
           : entry.value.toString(),
     ),
 ];
+
+/// A lab accession number made the way the order number is: `LAB-{AO}-
+/// {DDMMYYYY}-{seq}`, the pathologist's initials, today in Nairobi, and the
+/// order's own sequence. It fits the lab's shape (letters, numbers, `/`, `-`,
+/// 30 at most) and is only a suggestion: the person can type the lab's own.
+String suggestedAccession({
+  required String orderNumber,
+  required String firstName,
+  required String lastName,
+  DateTime? now,
+}) {
+  String initial(String name) => name.trim().isEmpty
+      ? ''
+      : String.fromCharCode(name.trim().runes.first).toUpperCase();
+  final initials = '${initial(firstName)}${initial(lastName)}';
+  final sequence =
+      RegExp(r'(\d{3})$').firstMatch(orderNumber)?.group(1) ?? '001';
+  final date = DateFormat('ddMMyyyy').format(nairobiNow(now));
+  return ['LAB', if (initials.isNotEmpty) initials, date, sequence].join('-');
+}

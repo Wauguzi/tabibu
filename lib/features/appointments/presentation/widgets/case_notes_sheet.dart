@@ -108,6 +108,7 @@ class _NotesFormState extends State<_NotesForm> {
             maxLines: 8,
             maxLength: caseNotesMaxLength,
             keyboardType: .multiline,
+            bordered: true,
           ),
           const SizedBox(height: AppSpacing.md),
           TabibuButton.primary(

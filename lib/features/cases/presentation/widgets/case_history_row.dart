@@ -17,6 +17,7 @@ class CaseHistoryRow extends StatelessWidget {
   Widget build(BuildContext context) => ListRowCard(
     leading: IconTile(icon: Assets.icons.clockIcon, tone: .neutral),
     title: context.l10n.accessLogTitle,
+    subtitle: context.l10n.accessLogBody,
     onTap: () => switch (role) {
       .patient => PatientCaseHistoryRoute(caseUid: caseUid).push<void>(context),
       .pathologist => PathologistCaseHistoryRoute(

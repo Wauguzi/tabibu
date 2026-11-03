@@ -162,6 +162,7 @@ class _DeskScreenState extends State<DeskScreen> {
         body: l10n.deskLowConfidenceBody,
         value: '$low',
         tall: true,
+        illustration: const SheetIllustration(),
         onTap: () =>
             const DeskListRoute(filter: 'lowConfidence').push<void>(context),
       ),

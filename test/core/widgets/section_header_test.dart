@@ -30,6 +30,21 @@ void main() {
       expect(action.style?.fontWeight, FontWeight.w600);
     });
 
+    testWidgets('the action ends on the content edge', (tester) async {
+      await tester.pumpApp(
+        SectionHeader(
+          title: 'Your day',
+          actionLabel: 'Calendar',
+          onAction: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final header = tester.getRect(find.byType(SectionHeader));
+      final label = tester.getRect(find.text('Calendar'));
+      expect(header.right - label.right, lessThan(1));
+    });
+
     testWidgets('fires the action', (tester) async {
       var taps = 0;
       await tester.pumpApp(

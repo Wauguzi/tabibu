@@ -52,8 +52,10 @@ class AuthFirebase {
   Future<T> _guard<T>(String operation, Future<T> Function() body) async {
     try {
       return await body();
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('$operation failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('$operation failed: $e', stackTrace: stackTrace);
+      }
       throw _toAppError(e);
     }
   }
@@ -102,17 +104,21 @@ class AuthFirebase {
         GoogleAuthProvider.credential(idToken: idToken),
       );
       return true;
-    } on GoogleSignInException catch (e) {
+    } on GoogleSignInException catch (e, stackTrace) {
       if (e.code == GoogleSignInExceptionCode.canceled) return false;
-      if (kDebugMode) _logger.e('Google sign-in [${e.code}]');
+      if (kDebugMode) {
+        _logger.e('Google sign-in [${e.code}]', stackTrace: stackTrace);
+      }
       await _signOutOfGoogle();
       throw AppError.unknown;
     } on FirebaseAuthException catch (e) {
       if (_cancelledPopupCodes.contains(e.code)) return false;
       await _signOutOfGoogle();
       throw _toAppError(e);
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('Google sign-in failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('Google sign-in failed: $e', stackTrace: stackTrace);
+      }
       await _signOutOfGoogle();
       throw _toAppError(e);
     }

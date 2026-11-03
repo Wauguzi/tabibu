@@ -1588,7 +1588,8 @@
     "@orderSlidesTitle": {
         "description": "Send step section title for the slide uploads"
     },
-    "orderSlidesBody": "Kesi hii inahitaji picha za slaidi. Ongeza kila slaidi, weka ukubwa wake wa pikseli, kisha pakia.",
+    "orderSlidesBody": "Kesi hii inahitaji picha za slaidi. Ongeza kila slaidi na uweke ukubwa wake wa pikseli. Zitapakiwa unapotuma kwa mtaalamu.",
+    "orderSlidesSizeBeforeSend": "Weka ukubwa wa pikseli kwa kila slaidi, au iondoe, ili kutuma.",
     "@orderSlidesBody": {
         "description": "Send step slides section: why the case needs slides"
     },
@@ -1680,5 +1681,21 @@
     "notificationConfirmatoryTestRequestedTitle": "Kipimo zaidi kinapendekezwa",
     "notificationAlertDeliveryHeldTitle": "Utoaji wa arifa umesimamishwa",
     "doctorHomeMdtInvite": "Mwaliko wa mjadala kutoka kwa {name}",
-    "doctorHomeMdtJoin": "Jiunge"
+    "doctorHomeMdtJoin": "Jiunge",
+    "workspaceRequestTitle": "Ombi jipya la kesi",
+    "workspaceRequestBody": "Pitia agizo, kisha ukubali kufungua kesi.",
+    "workspaceRequestSlides": "{count, plural, =0{Hakuna slaidi bado} =1{Slaidi 1 imeambatishwa} other{Slaidi {count} zimeambatishwa}}",
+    "workspaceRequestReplyBy": "Jibu kabla ya {time}",
+    "workspaceRequestAccept": "Kubali kesi",
+    "workspaceRequestDecline": "Kataa",
+    "workspaceRequestDeclineTitle": "Kwa nini huwezi kuchukua kesi hii?",
+    "workspaceRequestReasonLabel": "Sababu",
+    "workspaceRequestReasonRequired": "Mwambie daktari sababu.",
+    "workspaceRequestDeclined": "Kesi imekataliwa. Daktari ameambiwa.",
+    "workspaceSampleTitle": "Sampuli haijarekodiwa bado",
+    "workspaceSampleBody": "Maabara ikipokea sampuli, weka namba yake ya usajili ili kufungua ripoti.",
+    "workspaceSampleLabel": "Namba ya usajili wa sampuli",
+    "workspaceSampleHint": "Kwa mfano NH/26/0106",
+    "workspaceSampleInvalid": "Tumia hadi herufi, namba, / au - 30.",
+    "workspaceSampleSuggested": "Imetengenezwa kwa ajili yako. Ibadilishe maabara ikikupa nyingine."
 }

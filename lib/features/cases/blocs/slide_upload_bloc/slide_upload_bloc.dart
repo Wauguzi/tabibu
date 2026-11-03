@@ -38,6 +38,7 @@ class SlideUploadBloc extends Bloc<SlideUploadEvent, SlideUploadState> {
     on<SlidesPicked>(_onPicked);
     on<SlideRemoved>(_onRemoved);
     on<SlidePixelSizeSet>(_onPixelSizeSet);
+    on<SlidePixelSizeCleared>(_onPixelSizeCleared);
     on<SlideUploadRequested>(_onUpload, transformer: droppable());
     on<SlideUploadReset>(_onReset);
   }
@@ -169,6 +170,23 @@ class SlideUploadBloc extends Bloc<SlideUploadEvent, SlideUploadState> {
       _edited([
         for (final s in state.slides)
           if (s.localId != event.localId) s,
+      ]),
+    );
+  }
+
+  void _onPixelSizeCleared(
+    SlidePixelSizeCleared event,
+    Emitter<SlideUploadState> emit,
+  ) {
+    final slide = _slide(event.localId);
+    if (slide == null || slide.isSettled) return;
+    emit(
+      _edited([
+        for (final s in state.slides)
+          if (s.localId == event.localId)
+            s.copyWith(clearPixelSize: true)
+          else
+            s,
       ]),
     );
   }

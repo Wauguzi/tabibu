@@ -5,18 +5,21 @@ import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/core/widgets/tappable.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
-/// The ink action button pinned over a list: a 64 dp circle with its glyph.
+/// The ink action button pinned over a list: a circle with its glyph, 64 dp
+/// unless [size] says otherwise.
 class Fab extends StatelessWidget {
   const Fab({
     required this.icon,
     required this.semanticLabel,
     required this.onTap,
+    this.size = 64,
     super.key,
   });
 
   final SvgGenImage icon;
   final String semanticLabel;
   final VoidCallback onTap;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -30,8 +33,8 @@ class Fab extends StatelessWidget {
       onTap: onTap,
       excludeSemantics: true,
       child: SizedBox(
-        width: 64,
-        height: 64,
+        width: size,
+        height: size,
         child: DecoratedBox(
           decoration: BoxDecoration(
             shape: .circle,
@@ -41,7 +44,11 @@ class Fab extends StatelessWidget {
           child: Tappable(
             onTap: onTap,
             child: Center(
-              child: AssetIcon(icon, size: 24, color: scheme.onPrimary),
+              child: AssetIcon(
+                icon,
+                size: size * 0.375,
+                color: scheme.onPrimary,
+              ),
             ),
           ),
         ),

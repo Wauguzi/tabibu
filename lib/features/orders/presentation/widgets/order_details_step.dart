@@ -179,6 +179,7 @@ class _OrderDetailsStepState extends State<OrderDetailsStep> {
       children: [
         Expanded(
           child: ListView(
+            keyboardDismissBehavior: .onDrag,
             padding: const EdgeInsets.fromLTRB(
               AppSpacing.screenMargin,
               AppSpacing.md,

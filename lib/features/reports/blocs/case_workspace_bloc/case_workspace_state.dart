@@ -165,6 +165,20 @@ final class CaseSignSuccess extends CaseWorkspaceState {
   });
 }
 
+final class CaseRequestDeclineSuccess extends CaseWorkspaceState {
+  const CaseRequestDeclineSuccess({
+    super.caseUid,
+    super.pathologistUid,
+    super.caseModel,
+    super.draft,
+    super.preread,
+    super.score,
+    super.signed,
+    super.prereadShownAt,
+    super.offline,
+  });
+}
+
 final class CaseWorkspaceWriteFailure extends CaseWorkspaceState {
   const CaseWorkspaceWriteFailure({
     required this.error,

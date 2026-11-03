@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/tabibu_button.dart';
 
 /// A section title with its action link: "Your day" plus "Calendar".
@@ -30,10 +31,15 @@ class SectionHeader extends StatelessWidget {
           ),
         ),
         if (actionLabel != null)
-          TabibuButton.ghost(
-            label: actionLabel,
-            onTap: onAction,
-            foregroundColor: scheme.primary,
+          // The ghost button pads its label; shifting it by that padding puts
+          // the label's end on the content edge, under the cards' own.
+          Transform.translate(
+            offset: const Offset(AppSpacing.xlg, 0),
+            child: TabibuButton.ghost(
+              label: actionLabel,
+              onTap: onAction,
+              foregroundColor: scheme.primary,
+            ),
           ),
       ],
     );

@@ -133,39 +133,48 @@ class _OrderScreenState extends State<OrderScreen> {
             onPopInvokedWithResult: (didPop, _) {
               if (!didPop) _back();
             },
-            child: Scaffold(
-              body: SafeArea(
-                child: Column(
-                  crossAxisAlignment: .stretch,
-                  children: [
-                    Padding(
-                      padding: const EdgeInsets.fromLTRB(
-                        AppSpacing.screenMargin,
-                        AppSpacing.sm,
-                        AppSpacing.screenMargin,
-                        0,
-                      ),
-                      child: StepHeader(
-                        step: _step + 1,
-                        total: _total,
-                        progressLabel: l10n.orderStepProgress(
-                          _step + 1,
-                          _total,
+            // A tap on empty space drops the keyboard; fields and buttons
+            // keep their own taps.
+            child: GestureDetector(
+              behavior: .translucent,
+              onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+              child: Scaffold(
+                body: SafeArea(
+                  child: Column(
+                    crossAxisAlignment: .stretch,
+                    children: [
+                      Padding(
+                        padding: const EdgeInsets.fromLTRB(
+                          AppSpacing.screenMargin,
+                          AppSpacing.sm,
+                          AppSpacing.screenMargin,
+                          0,
                         ),
-                        backLabel: l10n.commonBack,
-                        onBack: _back,
+                        child: StepHeader(
+                          step: _step + 1,
+                          total: _total,
+                          progressLabel: l10n.orderStepProgress(
+                            _step + 1,
+                            _total,
+                          ),
+                          backLabel: l10n.commonBack,
+                          onBack: _back,
+                        ),
                       ),
-                    ),
-                    Expanded(
-                      child: loading
-                          ? _waiting(context)
-                          : switch (_step) {
-                              0 => OrderTestsStep(state: state, onNext: _next),
-                              1 => OrderDetailsStep(state: state),
-                              _ => OrderSendStep(state: state),
-                            },
-                    ),
-                  ],
+                      Expanded(
+                        child: loading
+                            ? _waiting(context)
+                            : switch (_step) {
+                                0 => OrderTestsStep(
+                                  state: state,
+                                  onNext: _next,
+                                ),
+                                1 => OrderDetailsStep(state: state),
+                                _ => OrderSendStep(state: state),
+                              },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ),

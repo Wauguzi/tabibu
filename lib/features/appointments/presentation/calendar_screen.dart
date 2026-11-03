@@ -154,13 +154,13 @@ class _CalendarScreenState extends State<CalendarScreen> {
         ),
       ),
       IconButton(
-        icon: AssetIcon(Assets.icons.backIcon, size: 20),
+        icon: AssetIcon(Assets.icons.backIcon, size: 16),
         onPressed: () => setState(() {
           _month = DateTime.utc(_month.year, _month.month - 1);
         }),
       ),
       IconButton(
-        icon: AssetIcon(Assets.icons.forwardIcon, size: 20),
+        icon: AssetIcon(Assets.icons.forwardIcon, size: 16),
         onPressed: () => setState(() {
           _month = DateTime.utc(_month.year, _month.month + 1);
         }),

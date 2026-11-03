@@ -45,12 +45,15 @@ class SlideItem extends Equatable {
     SlideUploadStatus? status,
     AppError? error,
     bool clearError = false,
+    bool clearPixelSize = false,
   }) => SlideItem(
     localId: localId,
     fileName: fileName,
     bytes: bytes,
     contentType: contentType,
-    micronsPerPixel: micronsPerPixel ?? this.micronsPerPixel,
+    micronsPerPixel: clearPixelSize
+        ? null
+        : micronsPerPixel ?? this.micronsPerPixel,
     reservedImageUid: reservedImageUid ?? this.reservedImageUid,
     status: status ?? this.status,
     error: clearError ? null : error ?? this.error,

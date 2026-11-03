@@ -210,6 +210,42 @@ void main() {
     });
   });
 
+  group('ShortcutTile icon colours', () {
+    for (final dark in [false, true]) {
+      testWidgets('${dark ? 'dark' : 'light'}: glyph and tile contrast', (
+        tester,
+      ) async {
+        await tester.pumpApp(
+          ShortcutTile(
+            icon: Assets.icons.calendarIcon,
+            tone: IconTone.sky,
+            title: 'Booking requests',
+            onTap: () {},
+          ),
+          themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+        );
+        await tester.pumpAndSettle();
+
+        final icons = tester
+            .widgetList<AssetIcon>(find.byType(AssetIcon))
+            .toList();
+        final tile = tester
+            .widgetList<Container>(find.byType(Container))
+            .firstWhere(
+              (c) =>
+                  c.constraints?.maxWidth == 44 &&
+                  c.decoration is BoxDecoration,
+            );
+        final fill = (tile.decoration! as BoxDecoration).color;
+        // The icon and the arrow share the glyph colour.
+        for (final icon in icons) {
+          expect(icon.color, dark ? AppColors.white : AppColors.inkLight);
+        }
+        expect(fill, dark ? AppColors.black : isNot(AppColors.black));
+      });
+    }
+  });
+
   group('ShortcutBento', () {
     ShortcutBento bento() => ShortcutBento(
       tall: Container(key: const ValueKey('tall'), height: 200),
@@ -225,24 +261,82 @@ void main() {
         expect(find.byKey(ValueKey(key)), findsOneWidget);
       }
       final cells = find.byType(Expanded);
-      expect(cells, findsNWidgets(2));
-      expect(tester.getSize(cells.at(0)).height, 200);
-      expect(tester.getSize(cells.at(1)).height, 80 + AppSpacing.bentoGap + 80);
-      expect(
-        tester.getSize(cells.at(0)).width,
-        tester.getSize(cells.at(1)).width,
-      );
-      expect(tester.getSize(find.byKey(const ValueKey('top'))).height, 80);
-      expect(tester.getSize(find.byKey(const ValueKey('bottom'))).height, 80);
+      // Two columns, then the pair's two rows.
+      expect(cells.evaluate().length, 4);
+      final left = tester.getSize(cells.at(0));
+      final right = tester.getSize(cells.at(1));
+      // The taller side sets the height and the other fills it.
+      expect(left.height, 200);
+      expect(right.height, 200);
+      expect(left.width, right.width);
+      const half = (200 - AppSpacing.bentoGap) / 2;
+      expect(tester.getSize(find.byKey(const ValueKey('top'))).height, half);
+      expect(tester.getSize(find.byKey(const ValueKey('bottom'))).height, half);
       expect(
         tester.getSize(find.byKey(const ValueKey('top'))).width,
-        tester.getSize(cells.at(1)).width,
+        right.width,
       );
 
       final row = tester.widget<Row>(find.byType(Row));
       expect((row.children[1] as SizedBox).width, AppSpacing.bentoGap);
       final column = tester.widget<Column>(find.byType(Column));
       expect((column.children[1] as SizedBox).height, AppSpacing.bentoGap);
+    });
+
+    testWidgets('a tall tile fills a taller pair and sits its words low', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        ShortcutBento(
+          tall: ShortcutTile(
+            key: const ValueKey('tall'),
+            icon: Assets.icons.documentIcon,
+            tone: IconTone.lavender,
+            title: 'Reports ready',
+            value: '2',
+            tall: true,
+          ),
+          top: Container(key: const ValueKey('top'), height: 120),
+          bottom: Container(key: const ValueKey('bottom'), height: 120),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tall = tester.getRect(find.byKey(const ValueKey('tall')));
+      final pair = tester
+          .getRect(find.byKey(const ValueKey('top')))
+          .expandToInclude(
+            tester.getRect(find.byKey(const ValueKey('bottom'))),
+          );
+      expect(tall.bottom, pair.bottom);
+      expect(tall.top, pair.top);
+      // The title rests near the tile's foot, not under the icon.
+      final title = tester.getRect(find.text('Reports ready'));
+      expect(tall.bottom - title.bottom, lessThan(AppSpacing.lg));
+    });
+
+    testWidgets('a short tile sits its words at the foot, no band below', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        ShortcutBento(
+          tall: Container(height: 200),
+          top: ShortcutTile(
+            key: const ValueKey('top'),
+            icon: Assets.icons.calendarIcon,
+            tone: IconTone.sky,
+            title: 'Booking requests',
+            body: '2 new today',
+            onTap: () {},
+          ),
+          bottom: Container(height: 40),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tile = tester.getRect(find.byKey(const ValueKey('top')));
+      final body = tester.getRect(find.text('2 new today'));
+      expect(tile.bottom - body.bottom, lessThan(AppSpacing.lg));
     });
 
     testWidgets('renders in dark', (tester) async {
