@@ -494,6 +494,7 @@ void main() {
           type: 'Consultation',
           scheduledStart: '2026-11-10T10:00:00.000Z',
           doctorUid: 'd1',
+          caseUid: '',
           symptomText: 'fever',
           // ignore: avoid_redundant_argument_values — contract under test.
           inputMode: 'Typed',
@@ -536,6 +537,50 @@ void main() {
       );
 
       expect(booked.uid, 'a-new');
+    });
+
+    test('a discussion rebook carries its case', () async {
+      when(
+        () => remote.requestAppointment(
+          appointmentUid: any(named: 'appointmentUid'),
+          type: any(named: 'type'),
+          scheduledStart: any(named: 'scheduledStart'),
+          doctorUid: any(named: 'doctorUid'),
+          caseUid: any(named: 'caseUid'),
+          symptomText: any(named: 'symptomText'),
+          inputMode: any(named: 'inputMode'),
+          transcriptionUid: any(named: 'transcriptionUid'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{});
+      when(
+        () => remote.fetchPatientDelta(
+          patientUid: any(named: 'patientUid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_appt('a-new')]);
+
+      await helper.bookAppointment(
+        patientUid: 'p1',
+        appointmentUid: 'a-new',
+        doctorUid: 'd1',
+        start: start,
+        type: 'CaseDiscussion',
+        caseUid: 'c1',
+      );
+
+      verify(
+        () => remote.requestAppointment(
+          appointmentUid: 'a-new',
+          type: 'CaseDiscussion',
+          scheduledStart: '2026-11-10T10:00:00.000Z',
+          doctorUid: 'd1',
+          caseUid: 'c1',
+          // ignore: avoid_redundant_argument_values — contract under test.
+          symptomText: '',
+          // ignore: avoid_redundant_argument_values — contract under test.
+          inputMode: 'Typed',
+        ),
+      ).called(1);
     });
 
     test('no row after sync throws dataNotFound', () async {

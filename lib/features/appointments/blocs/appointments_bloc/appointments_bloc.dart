@@ -25,6 +25,11 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     // Writes must not race each other.
     on<AppointmentDecisionRequested>(_onDecision, transformer: sequential());
     on<AppointmentCompleteRequested>(_onComplete, transformer: sequential());
+    on<AppointmentCancelRequested>(_onCancel, transformer: sequential());
+    on<AppointmentRescheduleRequested>(
+      _onReschedule,
+      transformer: sequential(),
+    );
     on<AppointmentsReset>(_onReset);
   }
 
@@ -255,5 +260,105 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     } on Object catch (e) {
       emit(_writeFailure(e));
     }
+  }
+
+  /// A cancel lands or it doesn't: no optimistic row, no queued write.
+  Future<void> _onCancel(
+    AppointmentCancelRequested event,
+    Emitter<AppointmentsState> emit,
+  ) async {
+    if (!await _internet.check()) {
+      emit(_writeFailure(AppError.noInternet));
+      return;
+    }
+    emit(
+      AppointmentWriteInProgress(
+        appointments: state.appointments,
+        offline: state.offline,
+      ),
+    );
+    try {
+      final appointment = await _cache.cancelAppointment(
+        appointmentUid: event.appointmentUid,
+        cancelledByUid: event.cancelledByUid,
+        cancelNote: _cancelNote(event.reason, event.note),
+      );
+      // The network dropped mid-write and the cache queued it: say so.
+      if (!appointment.synced) throw AppError.noInternet;
+      emit(
+        AppointmentCancelSuccess(
+          appointment: appointment,
+          appointments: _replaced(appointment),
+          offline: state.offline,
+        ),
+      );
+    } on Object catch (e) {
+      emit(_writeFailure(e));
+    }
+  }
+
+  Future<void> _onReschedule(
+    AppointmentRescheduleRequested event,
+    Emitter<AppointmentsState> emit,
+  ) async {
+    if (!await _internet.check()) {
+      emit(_writeFailure(AppError.noInternet));
+      return;
+    }
+    emit(
+      AppointmentWriteInProgress(
+        appointments: state.appointments,
+        offline: state.offline,
+      ),
+    );
+    try {
+      final bookingUid = _bookingUid(
+        doctorUid: event.doctorUid,
+        start: event.start,
+      );
+      final booked = await _cache.bookAppointment(
+        patientUid: event.patientUid,
+        appointmentUid: bookingUid,
+        doctorUid: event.doctorUid,
+        start: event.start,
+        type: event.type,
+        caseUid: event.caseUid,
+        symptomText: event.symptomText,
+      );
+      _clearPendingBook();
+      // Only a held booking releases the old time.
+      final cancelled = await _cache.cancelAppointment(
+        appointmentUid: event.appointmentUid,
+        cancelledByUid: event.cancelledByUid,
+        cancelNote: _cancelNote(event.reason, event.note),
+      );
+      if (!cancelled.synced) throw AppError.noInternet;
+      emit(
+        AppointmentRescheduleSuccess(
+          appointment: booked,
+          appointments: [..._replaced(cancelled), booked],
+          offline: state.offline,
+        ),
+      );
+    } on Object catch (e) {
+      emit(_writeFailure(e));
+    }
+  }
+
+  List<AppointmentModel> _replaced(AppointmentModel appointment) => [
+    for (final row in state.appointments)
+      if (row.uid == appointment.uid) appointment else row,
+  ];
+
+  /// The composed note, cut to the server's limit in code points, as
+  /// `sanitize` counts them. The sheets cap the typed note so this only ever
+  /// bites on a composed move longer than the field allows.
+  static String _cancelNote(String reason, String note) {
+    final composed = [
+      reason.trim(),
+      note.trim(),
+    ].where((part) => part.isNotEmpty).join('\n');
+    if (composed.length <= cancelNoteMaxLength) return composed;
+    return String.fromCharCodes(composed.runes.take(cancelNoteMaxLength));
   }
 }

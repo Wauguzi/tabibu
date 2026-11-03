@@ -17,7 +17,9 @@ import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointment
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
+import 'package:tabibu/features/appointments/presentation/widgets/cancel_sheet.dart';
 import 'package:tabibu/features/appointments/presentation/widgets/case_notes_sheet.dart';
+import 'package:tabibu/features/appointments/presentation/widgets/move_sheet.dart';
 import 'package:tabibu/features/appointments/presentation/widgets/patient_card.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
@@ -52,6 +54,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
   /// Set while this screen's own complete request is out; the write state does
   /// not say which appointment it is for, so the screen remembers.
   bool _ending = false;
+
+  /// A move or cancel this screen sent and still waits on.
+  bool _cancelling = false;
 
   /// This appointment was ended from here: the bar reads "Ended".
   bool _ended = false;
@@ -125,9 +130,21 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
             dismissLabel: context.l10n.commonDismiss,
           ),
         );
+      case AppointmentWriteFailure(:final error) when _cancelling:
+        _cancelling = false;
+        unawaited(
+          showTabibuNotification(
+            context,
+            message: error.description(context.l10n),
+            isError: true,
+            dismissLabel: context.l10n.commonDismiss,
+          ),
+        );
       case AppointmentCompleteSuccess(:final appointment)
           when _ending && appointment.uid == widget.appointmentUid:
         setState(() => _ended = true);
+      case AppointmentCancelSuccess():
+        _cancelling = false;
       default:
         return;
     }
@@ -146,23 +163,102 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
 
   Future<void> _showOptions(AppointmentModel appointment) async {
     final l10n = context.l10n;
+    final start = DateTime.tryParse(appointment.scheduledStart);
+    final upcoming = start != null && start.isAfter(DateTime.now());
+    final end = DateTime.tryParse(appointment.scheduledEnd);
+    final slotOver = end != null && !end.isAfter(DateTime.now());
     final choice = await showOptionsSheet<String>(
       context,
       title: appointment.patientName,
       actions: [
-        OptionsAction(
-          value: 'NoShow',
-          icon: Assets.icons.cancelCircleIcon,
-          // cspell:ignore Didnt
-          label: l10n.doctorAppointmentDidntCome,
-        ),
+        if (upcoming)
+          OptionsAction(
+            value: 'Move',
+            icon: Assets.icons.calendarIcon,
+            label: l10n.rescheduleEntryMove,
+            supporting: l10n.rescheduleEntryMoveBody,
+          ),
+        if (upcoming)
+          OptionsAction(
+            value: 'Cancel',
+            icon: Assets.icons.cancelCircleIcon,
+            label: l10n.cancelAppointmentConfirm,
+            supporting: l10n.cancelAppointmentEntryBodyDoctor,
+          ),
+        if (slotOver)
+          OptionsAction(
+            value: 'NoShow',
+            icon: Assets.icons.cancelCircleIcon,
+            // cspell:ignore Didnt
+            label: l10n.doctorAppointmentDidntCome,
+          ),
       ],
     );
     if (choice == null) return;
     // The write's notice must not open over the sliding sheet.
     await Future<void>.delayed(_sheetClosedAfter);
     if (!mounted) return;
-    _complete(choice);
+    switch (choice) {
+      case 'Move':
+        await _move(appointment);
+      case 'Cancel':
+        await _cancel(appointment);
+      default:
+        _complete(choice);
+    }
+  }
+
+  Future<void> _move(AppointmentModel appointment) async {
+    final choice = await MoveSheet.show(context, appointment: appointment);
+    if (choice == null || !mounted) return;
+    final session = context.read<AuthBloc>().state.session;
+    final doctorUid = switch (session) {
+      PractitionerSession(:final doctor) => doctor.uid,
+      _ => '',
+    };
+    _cancelling = true;
+    context.read<AppointmentsBloc>().add(
+      AppointmentCancelRequested(
+        appointmentUid: appointment.uid,
+        cancelledByUid: doctorUid,
+        reason: context.l10n.rescheduleMoveTo(_proposed(choice.start)),
+        note: [
+          choice.reason,
+          choice.note,
+        ].where((part) => part.isNotEmpty).join('\n'),
+      ),
+    );
+  }
+
+  Future<void> _cancel(AppointmentModel appointment) async {
+    final choice = await CancelSheet.show(
+      context,
+      appointment: appointment,
+      isDoctor: true,
+    );
+    if (choice == null || !mounted) return;
+    final session = context.read<AuthBloc>().state.session;
+    final doctorUid = switch (session) {
+      PractitionerSession(:final doctor) => doctor.uid,
+      _ => '',
+    };
+    _cancelling = true;
+    context.read<AppointmentsBloc>().add(
+      AppointmentCancelRequested(
+        appointmentUid: appointment.uid,
+        cancelledByUid: doctorUid,
+        reason: choice.reason,
+        note: choice.note,
+      ),
+    );
+  }
+
+  /// The proposed time as the move reads on the cancelled detail.
+  String _proposed(DateTime start) {
+    final language = Localizations.localeOf(context).languageCode;
+    final nairobi = nairobiTimeOf(start.toUtc().toIso8601String()) ?? start;
+    return '${DateFormat('EEE d MMM', language).format(nairobi)} · '
+        '${DateFormat('h:mm a', language).format(nairobi)}';
   }
 
   Future<void> _editNotes(CaseModel appointmentCase) async {
@@ -357,12 +453,21 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
         subtitle: nairobiStart == null
             ? null
             : DateFormat('EEE d MMM · h:mm a', language).format(nairobiStart),
-        trailing: canNoShow
-            ? MoreButton(
+        trailing: Row(
+          mainAxisSize: .min,
+          children: [
+            IconButton(
+              icon: AssetIcon(Assets.icons.calendarIcon, size: 20),
+              tooltip: l10n.calendarTitle,
+              onPressed: () => const DoctorCalendarRoute().push<void>(context),
+            ),
+            if (canNoShow || (live && !started && !_ended))
+              MoreButton(
                 semanticLabel: l10n.notificationsMoreLabel,
                 onTap: busy ? null : () => unawaited(_showOptions(appointment)),
-              )
-            : null,
+              ),
+          ],
+        ),
       ),
       body: Column(crossAxisAlignment: .stretch, children: body),
       bottom: _ended

@@ -105,24 +105,40 @@ void main() {
       );
     });
 
-    Widget screen([String uid = 'a-up']) => MultiBlocProvider(
-      providers: [
-        BlocProvider<AuthBloc>.value(value: authBloc),
-        BlocProvider<AppointmentsBloc>.value(value: appointments),
-        BlocProvider<DirectoryBloc>.value(value: directory),
-      ],
-      child: PatientAppointmentScreen(appointmentUid: uid),
-    );
+    Widget screen({String uid = 'a-up', bool moved = false}) =>
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<AuthBloc>.value(value: authBloc),
+            BlocProvider<AppointmentsBloc>.value(value: appointments),
+            BlocProvider<DirectoryBloc>.value(value: directory),
+          ],
+          child: PatientAppointmentScreen(appointmentUid: uid, moved: moved),
+        );
+
+    /// A sheet opens and closes on animations that never settle.
+    Future<void> settleSheet(WidgetTester tester) async {
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+    }
+
+    final en = lookupAppLocalizations(const Locale('en'));
 
     GoRouter router([String uid = 'a-up']) {
       final routes = GoRouter(
         initialLocation: '/appointment-test',
         routes: [
-          GoRoute(path: '/appointment-test', builder: (_, _) => screen(uid)),
+          GoRoute(
+            path: '/appointment-test',
+            builder: (_, _) => screen(uid: uid),
+          ),
           GoRoute(
             path: '/patient/result/:caseUid',
             builder: (_, state) =>
                 Text('stub result ${state.pathParameters['caseUid']}'),
+          ),
+          GoRoute(
+            path: '/patient/calendar',
+            builder: (_, _) => const Text('stub calendar'),
           ),
         ],
       );
@@ -210,7 +226,7 @@ void main() {
           ],
         ),
       );
-      await tester.pumpApp(screen('a-past'));
+      await tester.pumpApp(screen(uid: 'a-past'));
       await tester.pumpAndSettle();
 
       expect(find.text('See your results'), findsNothing);
@@ -222,7 +238,7 @@ void main() {
       when(
         () => appointments.state,
       ).thenReturn(const AppointmentsLoadSuccess());
-      await tester.pumpApp(screen('a-missing'));
+      await tester.pumpApp(screen(uid: 'a-missing'));
       await tester.pumpAndSettle();
 
       verify(
@@ -280,6 +296,79 @@ void main() {
 
       expect(find.text('Dr. Wanjiru Kamau'), findsOneWidget);
       expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('an upcoming visit offers reschedule and cancel', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.rescheduleButton), findsOneWidget);
+      expect(find.text(en.cancelAppointmentConfirm), findsOneWidget);
+
+      await tester.tap(find.text(en.rescheduleButton));
+      await settleSheet(tester);
+
+      expect(find.byType(TabibuBottomSheet), findsOneWidget);
+      expect(find.text(en.rescheduleTitle), findsOneWidget);
+
+      Navigator.of(tester.element(find.byType(TabibuBottomSheet))).pop();
+      await settleSheet(tester);
+    });
+
+    testWidgets('confirming the cancel sends it with the reason', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text(en.cancelAppointmentConfirm));
+      await settleSheet(tester);
+      await tester.tap(find.text(en.cancelAppointmentReasonBetter));
+      await tester.pump();
+      await tester.tap(
+        find.descendant(
+          of: find.byType(TabibuBottomSheet),
+          matching: find.text(en.cancelAppointmentConfirm),
+        ),
+      );
+      await settleSheet(tester);
+
+      verify(
+        () => appointments.add(
+          AppointmentCancelRequested(
+            appointmentUid: 'a-up',
+            cancelledByUid: 'patient-1',
+            reason: en.cancelAppointmentReasonBetter,
+          ),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('a moved landing names the new time', (tester) async {
+      _useTallSurface(tester);
+      await tester.pumpApp(screen(moved: true));
+      await tester.pumpAndSettle();
+
+      expect(find.text(en.rescheduleMovedTo(whenText())), findsOneWidget);
+      expect(
+        find.text(en.rescheduleDoctorTold('Dr. Wanjiru Kamau')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('the calendar button opens the month', (tester) async {
+      _useTallSurface(tester);
+      await tester.pumpRouterApp(router());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byTooltip(en.calendarTitle));
+      await tester.pumpAndSettle();
+
+      expect(find.text('stub calendar'), findsOneWidget);
     });
   });
 }

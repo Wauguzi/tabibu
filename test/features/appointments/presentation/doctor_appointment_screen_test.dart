@@ -186,6 +186,10 @@ void main() {
               ),
             ],
           ),
+          GoRoute(
+            path: '/doctor/calendar',
+            builder: (_, _) => const Scaffold(body: Text('calendar-stub')),
+          ),
         ],
       );
       await tester.pumpRouterApp(router, themeMode: themeMode, locale: locale);
@@ -628,6 +632,88 @@ void main() {
         });
       });
 
+      group('before the slot', () {
+        setUp(() {
+          register(
+            appointments: AppointmentsLoadSuccess(
+              appointments: [
+                _appointment(
+                  startsIn: const Duration(hours: 2),
+                  endsIn: const Duration(hours: 3),
+                ),
+              ],
+            ),
+            cases: CasesLoadSuccess(cases: [_case()]),
+          );
+        });
+
+        testWidgets('an upcoming visit offers Move and Cancel', (tester) async {
+          _useTallSurface(tester);
+          await pumpScreen(tester);
+
+          await tester.tap(find.byType(MoreButton));
+          await settleSheet(tester);
+
+          expect(inSheet(find.text(en.rescheduleEntryMove)), findsOneWidget);
+          expect(
+            inSheet(find.text(en.cancelAppointmentConfirm)),
+            findsOneWidget,
+          );
+          expect(
+            inSheet(find.text(en.doctorAppointmentDidntCome)),
+            findsNothing,
+          );
+        });
+
+        testWidgets('Move opens the move sheet', (tester) async {
+          _useTallSurface(tester);
+          await pumpScreen(tester);
+
+          await tester.tap(find.byType(MoreButton));
+          await settleSheet(tester);
+          await tester.tap(inSheet(find.text(en.rescheduleEntryMove)));
+          await tester.pump(const Duration(milliseconds: 700));
+          await settleSheet(tester);
+
+          expect(find.text(en.rescheduleTitle), findsOneWidget);
+
+          Navigator.of(tester.element(find.byType(TabibuBottomSheet))).pop();
+          await settleSheet(tester);
+        });
+
+        testWidgets('Cancel sends the doctor cancel with the note', (
+          tester,
+        ) async {
+          _useTallSurface(tester);
+          await pumpScreen(tester);
+
+          await tester.tap(find.byType(MoreButton));
+          await settleSheet(tester);
+          await tester.tap(inSheet(find.text(en.cancelAppointmentConfirm)));
+          await tester.pump(const Duration(milliseconds: 700));
+          await settleSheet(tester);
+
+          expect(
+            find.text(en.cancelAppointmentTitleDoctor('Amina')),
+            findsOneWidget,
+          );
+          await tester.enterText(find.byType(TextField), 'In theatre');
+          await tester.pump();
+          await tester.tap(inSheet(find.text(en.cancelAppointmentConfirm)));
+          await settleSheet(tester);
+
+          verify(
+            () => blocs.appointments.add(
+              const AppointmentCancelRequested(
+                appointmentUid: 'a1',
+                cancelledByUid: 'doctor-1',
+                note: 'In theatre',
+              ),
+            ),
+          ).called(1);
+        });
+      });
+
       testWidgets('success reads Ended and removes every action', (
         tester,
       ) async {
@@ -721,6 +807,17 @@ void main() {
           expect(find.text(en.doctorAppointmentEnded), findsNothing);
         });
       }
+
+      testWidgets('the calendar button opens the month', (tester) async {
+        _useTallSurface(tester);
+        await pumpScreen(tester);
+
+        await tester.tap(find.byTooltip(en.calendarTitle));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.text('calendar-stub'), findsOneWidget);
+      });
 
       testWidgets('the options button appears when the slot ends', (
         tester,

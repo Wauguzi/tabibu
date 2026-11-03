@@ -86,6 +86,34 @@ final class AppointmentCompleteSuccess extends AppointmentsState {
   List<Object?> get props => [...super.props, appointment];
 }
 
+final class AppointmentCancelSuccess extends AppointmentsState {
+  const AppointmentCancelSuccess({
+    required this.appointment,
+    super.appointments,
+    super.offline,
+  });
+
+  final AppointmentModel appointment;
+
+  @override
+  List<Object?> get props => [...super.props, appointment];
+}
+
+/// [appointment] is the new booking; the old one sits cancelled in
+/// [appointments].
+final class AppointmentRescheduleSuccess extends AppointmentsState {
+  const AppointmentRescheduleSuccess({
+    required this.appointment,
+    super.appointments,
+    super.offline,
+  });
+
+  final AppointmentModel appointment;
+
+  @override
+  List<Object?> get props => [...super.props, appointment];
+}
+
 final class AppointmentWriteFailure extends AppointmentsState {
   const AppointmentWriteFailure({
     required this.error,

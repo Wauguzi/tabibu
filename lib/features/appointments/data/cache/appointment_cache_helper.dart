@@ -211,6 +211,7 @@ class AppointmentCacheHelper {
     required String doctorUid,
     required DateTime start,
     String type = 'Consultation',
+    String caseUid = '',
     String symptomText = '',
   }) async {
     await _remote.requestAppointment(
@@ -218,6 +219,7 @@ class AppointmentCacheHelper {
       type: type,
       scheduledStart: start.toUtc().toIso8601String(),
       doctorUid: doctorUid,
+      caseUid: caseUid,
       symptomText: symptomText,
     );
     List<AppointmentModel> rows;

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -12,6 +14,8 @@ import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointment
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
+import 'package:tabibu/features/appointments/presentation/widgets/cancel_sheet.dart';
+import 'package:tabibu/features/appointments/presentation/widgets/reschedule_sheet.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_bloc.dart';
@@ -21,11 +25,17 @@ import 'package:tabibu/l10n/l10n.dart';
 
 /// P-09 and P-10. One screen for an appointment by state: the doctor, when /
 /// where / why, the before-you-come checklist while it is upcoming, and the
-/// results link when a past visit has a case.
+/// results link when a past visit has a case. [moved] marks a landing from
+/// the reschedule sheet, which says where the visit went.
 class PatientAppointmentScreen extends StatefulWidget {
-  const PatientAppointmentScreen({required this.appointmentUid, super.key});
+  const PatientAppointmentScreen({
+    required this.appointmentUid,
+    this.moved = false,
+    super.key,
+  });
 
   final String appointmentUid;
+  final bool moved;
 
   @override
   State<PatientAppointmentScreen> createState() =>
@@ -33,6 +43,9 @@ class PatientAppointmentScreen extends StatefulWidget {
 }
 
 class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
+  /// A cancel or reschedule this screen sent and still waits on.
+  bool _acting = false;
+
   @override
   void initState() {
     super.initState();
@@ -74,7 +87,39 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
               ],
             ),
     );
-    return Scaffold(body: RoleBackground.patient(child: body));
+    return BlocListener<AppointmentsBloc, AppointmentsState>(
+      listener: _onAppointmentsState,
+      child: Scaffold(body: RoleBackground.patient(child: body)),
+    );
+  }
+
+  void _onAppointmentsState(BuildContext context, AppointmentsState state) {
+    switch (state) {
+      case AppointmentWriteInProgress():
+        return;
+      case AppointmentWriteFailure(:final error) when _acting:
+        _acting = false;
+        unawaited(
+          showTabibuNotification(
+            context,
+            message: error.description(context.l10n),
+            isError: true,
+            dismissLabel: context.l10n.commonDismiss,
+          ),
+        );
+      case AppointmentRescheduleSuccess(:final appointment) when _acting:
+        _acting = false;
+        unawaited(
+          context.push<void>(
+            PatientAppointmentRoute(appointmentUid: appointment.uid).location,
+            extra: true,
+          ),
+        );
+      case AppointmentCancelSuccess():
+        _acting = false;
+      default:
+        return;
+    }
   }
 
   /// Loading until the sync answers, then the not-found empty state.
@@ -147,7 +192,24 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
             '${DateFormat('h:mm a', language).format(start)}',
         backLabel: l10n.commonBack,
         onBack: context.pop,
+        trailing: IconButton(
+          icon: AssetIcon(Assets.icons.calendarIcon, size: 20),
+          tooltip: l10n.calendarTitle,
+          onPressed: () => const PatientCalendarRoute().push<void>(context),
+        ),
       ),
+      if (widget.moved) ...[
+        const SizedBox(height: AppSpacing.md),
+        NoticeCard(
+          variant: .info,
+          icon: Assets.icons.infoIcon,
+          title: l10n.rescheduleMovedTo(
+            '${DateFormat('EEE d MMM', language).format(start)} · '
+            '${DateFormat('h:mm a', language).format(start)}',
+          ),
+          body: l10n.rescheduleDoctorTold(appointment.doctorName),
+        ),
+      ],
       const SizedBox(height: AppSpacing.md),
       DoctorRowCard(
         name: appointment.doctorName,
@@ -194,8 +256,81 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
             l10n.appointmentDetailBeforeGuest,
           ],
         ),
+        const SizedBox(height: AppSpacing.lg),
+        TabibuButton.primary(
+          label: l10n.rescheduleButton,
+          onTap: () => _reschedule(appointment),
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Center(
+          child: Tappable(
+            onTap: () => _cancel(appointment),
+            child: Text(
+              l10n.cancelAppointmentConfirm,
+              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                color: Theme.of(context).colorScheme.error,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: AppSpacing.xs),
+        Text(
+          l10n.rescheduleFootnote(appointment.doctorName),
+          style: Theme.of(context).textTheme.bodySmall,
+        ),
       ],
     ];
+  }
+
+  Future<void> _reschedule(AppointmentModel appointment) async {
+    final choice = await RescheduleSheet.show(
+      context,
+      appointment: appointment,
+    );
+    if (choice == null || !mounted) return;
+    final session = context.read<AuthBloc>().state.session;
+    final patientUid = switch (session) {
+      PatientSession(:final patient) => patient.uid,
+      _ => '',
+    };
+    _acting = true;
+    context.read<AppointmentsBloc>().add(
+      AppointmentRescheduleRequested(
+        appointmentUid: appointment.uid,
+        patientUid: patientUid,
+        doctorUid: appointment.doctorUid,
+        type: appointment.type,
+        start: choice.start,
+        cancelledByUid: patientUid,
+        caseUid: appointment.discussedCaseUid.isNotEmpty
+            ? appointment.discussedCaseUid
+            : (appointment.caseUids.firstOrNull ?? ''),
+        symptomText: appointment.symptomText,
+      ),
+    );
+  }
+
+  Future<void> _cancel(AppointmentModel appointment) async {
+    final choice = await CancelSheet.show(
+      context,
+      appointment: appointment,
+      isDoctor: false,
+    );
+    if (choice == null || !mounted) return;
+    final session = context.read<AuthBloc>().state.session;
+    final patientUid = switch (session) {
+      PatientSession(:final patient) => patient.uid,
+      _ => '',
+    };
+    _acting = true;
+    context.read<AppointmentsBloc>().add(
+      AppointmentCancelRequested(
+        appointmentUid: appointment.uid,
+        cancelledByUid: patientUid,
+        reason: choice.reason,
+        note: choice.note,
+      ),
+    );
   }
 
   Widget _topBarSliver(String? title, String? subtitle) => SliverPadding(

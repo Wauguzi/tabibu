@@ -467,5 +467,376 @@ void main() {
         ],
       );
     });
+
+    group('AppointmentCancelRequested', () {
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'reason and note join into one server note',
+        setUp: () {
+          when(
+            () => cache.cancelAppointment(
+              appointmentUid: 'a1',
+              cancelledByUid: 'p1',
+              cancelNote: 'I feel better\nSee you next term',
+            ),
+          ).thenAnswer((_) async => _appt('a1', status: 'Cancelled'));
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          const AppointmentCancelRequested(
+            appointmentUid: 'a1',
+            cancelledByUid: 'p1',
+            reason: 'I feel better',
+            note: 'See you next term',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(appointments: [_appt('a1')]),
+          AppointmentCancelSuccess(
+            appointment: _appt('a1', status: 'Cancelled'),
+            appointments: [_appt('a1', status: 'Cancelled')],
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'a note at the limit goes whole',
+        setUp: () {
+          final whole = 'a' * cancelNoteMaxLength;
+          when(
+            () => cache.cancelAppointment(
+              appointmentUid: 'a1',
+              cancelledByUid: 'p1',
+              cancelNote: whole,
+            ),
+          ).thenAnswer((_) async => _appt('a1', status: 'Cancelled'));
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          AppointmentCancelRequested(
+            appointmentUid: 'a1',
+            cancelledByUid: 'p1',
+            note: 'a' * cancelNoteMaxLength,
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(appointments: [_appt('a1')]),
+          AppointmentCancelSuccess(
+            appointment: _appt('a1', status: 'Cancelled'),
+            appointments: [_appt('a1', status: 'Cancelled')],
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'past the limit the composed note is cut to 300 points',
+        setUp: () {
+          when(
+            () => cache.cancelAppointment(
+              appointmentUid: 'a1',
+              cancelledByUid: 'p1',
+              cancelNote: 'r\n${'n' * (cancelNoteMaxLength - 2)}',
+            ),
+          ).thenAnswer((_) async => _appt('a1', status: 'Cancelled'));
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          AppointmentCancelRequested(
+            appointmentUid: 'a1',
+            cancelledByUid: 'p1',
+            reason: 'r',
+            note: 'n' * cancelNoteMaxLength,
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(appointments: [_appt('a1')]),
+          AppointmentCancelSuccess(
+            appointment: _appt('a1', status: 'Cancelled'),
+            appointments: [_appt('a1', status: 'Cancelled')],
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'a cancel keeps the offline flag',
+        setUp: () {
+          when(
+            () => cache.cancelAppointment(
+              appointmentUid: any(named: 'appointmentUid'),
+              cancelledByUid: any(named: 'cancelledByUid'),
+              cancelNote: any(named: 'cancelNote'),
+            ),
+          ).thenAnswer((_) async => _appt('a1', status: 'Cancelled'));
+        },
+        build: build,
+        seed: () =>
+            AppointmentsLoadSuccess(appointments: [_appt('a1')], offline: true),
+        act: (bloc) => bloc.add(
+          const AppointmentCancelRequested(
+            appointmentUid: 'a1',
+            cancelledByUid: 'p1',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(
+            appointments: [_appt('a1')],
+            offline: true,
+          ),
+          AppointmentCancelSuccess(
+            appointment: _appt('a1', status: 'Cancelled'),
+            appointments: [_appt('a1', status: 'Cancelled')],
+            offline: true,
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'offline fails with no call',
+        setUp: () {
+          when(() => internet.check()).thenAnswer((_) async => false);
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          const AppointmentCancelRequested(
+            appointmentUid: 'a1',
+            cancelledByUid: 'p1',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteFailure(
+            error: AppError.noInternet,
+            appointments: [_appt('a1')],
+          ),
+        ],
+        verify: (_) => verifyNever(
+          () => cache.cancelAppointment(
+            appointmentUid: any(named: 'appointmentUid'),
+            cancelledByUid: any(named: 'cancelledByUid'),
+            cancelNote: any(named: 'cancelNote'),
+          ),
+        ),
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'a queued write reports offline instead of success',
+        setUp: () {
+          when(
+            () => cache.cancelAppointment(
+              appointmentUid: any(named: 'appointmentUid'),
+              cancelledByUid: any(named: 'cancelledByUid'),
+              cancelNote: any(named: 'cancelNote'),
+            ),
+          ).thenAnswer(
+            (_) async =>
+                _appt('a1', status: 'Cancelled').copyWith(synced: false),
+          );
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          const AppointmentCancelRequested(
+            appointmentUid: 'a1',
+            cancelledByUid: 'p1',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(appointments: [_appt('a1')]),
+          AppointmentWriteFailure(
+            error: AppError.noInternet,
+            appointments: [_appt('a1')],
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'a refused cancel keeps the row',
+        setUp: () {
+          when(
+            () => cache.cancelAppointment(
+              appointmentUid: any(named: 'appointmentUid'),
+              cancelledByUid: any(named: 'cancelledByUid'),
+              cancelNote: any(named: 'cancelNote'),
+            ),
+          ).thenThrow(AppError.unknown);
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          const AppointmentCancelRequested(
+            appointmentUid: 'a1',
+            cancelledByUid: 'p1',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(appointments: [_appt('a1')]),
+          AppointmentWriteFailure(
+            error: AppError.unknown,
+            appointments: [_appt('a1')],
+          ),
+        ],
+      );
+    });
+
+    group('AppointmentRescheduleRequested', () {
+      final start = DateTime.utc(2026, 11, 12, 9);
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'books first, then cancels the old time',
+        setUp: () {
+          when(
+            () => cache.bookAppointment(
+              patientUid: 'p1',
+              appointmentUid: any(named: 'appointmentUid'),
+              doctorUid: 'd1',
+              start: start,
+              // ignore: avoid_redundant_argument_values — the mock matches the exact call.
+              type: 'Consultation',
+              caseUid: any(named: 'caseUid'),
+              symptomText: any(named: 'symptomText'),
+            ),
+          ).thenAnswer((_) async => _appt('a2'));
+          when(
+            () => cache.cancelAppointment(
+              appointmentUid: 'a1',
+              cancelledByUid: 'p1',
+              cancelNote: 'Moved to a new time',
+            ),
+          ).thenAnswer((_) async => _appt('a1', status: 'Cancelled'));
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          AppointmentRescheduleRequested(
+            appointmentUid: 'a1',
+            patientUid: 'p1',
+            doctorUid: 'd1',
+            type: 'Consultation',
+            start: start,
+            cancelledByUid: 'p1',
+            reason: 'Moved to a new time',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(appointments: [_appt('a1')]),
+          AppointmentRescheduleSuccess(
+            appointment: _appt('a2'),
+            appointments: [
+              _appt('a1', status: 'Cancelled'),
+              _appt('a2'),
+            ],
+          ),
+        ],
+        verify: (_) {
+          verifyInOrder([
+            () => cache.bookAppointment(
+              patientUid: 'p1',
+              appointmentUid: any(named: 'appointmentUid'),
+              doctorUid: 'd1',
+              start: start,
+              // ignore: avoid_redundant_argument_values — the mock matches the exact call.
+              type: 'Consultation',
+              caseUid: any(named: 'caseUid'),
+              symptomText: any(named: 'symptomText'),
+            ),
+            () => cache.cancelAppointment(
+              appointmentUid: 'a1',
+              cancelledByUid: 'p1',
+              cancelNote: 'Moved to a new time',
+            ),
+          ]);
+        },
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'a failed booking leaves the original alone',
+        setUp: () {
+          when(
+            () => cache.bookAppointment(
+              patientUid: any(named: 'patientUid'),
+              appointmentUid: any(named: 'appointmentUid'),
+              doctorUid: any(named: 'doctorUid'),
+              start: any(named: 'start'),
+              type: any(named: 'type'),
+              caseUid: any(named: 'caseUid'),
+              symptomText: any(named: 'symptomText'),
+            ),
+          ).thenThrow(AppError.unknown);
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          AppointmentRescheduleRequested(
+            appointmentUid: 'a1',
+            patientUid: 'p1',
+            doctorUid: 'd1',
+            type: 'Consultation',
+            start: start,
+            cancelledByUid: 'p1',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteInProgress(appointments: [_appt('a1')]),
+          AppointmentWriteFailure(
+            error: AppError.unknown,
+            appointments: [_appt('a1')],
+          ),
+        ],
+        verify: (_) => verifyNever(
+          () => cache.cancelAppointment(
+            appointmentUid: any(named: 'appointmentUid'),
+            cancelledByUid: any(named: 'cancelledByUid'),
+            cancelNote: any(named: 'cancelNote'),
+          ),
+        ),
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'offline fails with no call',
+        setUp: () {
+          when(() => internet.check()).thenAnswer((_) async => false);
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a1')]),
+        act: (bloc) => bloc.add(
+          AppointmentRescheduleRequested(
+            appointmentUid: 'a1',
+            patientUid: 'p1',
+            doctorUid: 'd1',
+            type: 'Consultation',
+            start: start,
+            cancelledByUid: 'p1',
+          ),
+        ),
+        expect: () => [
+          AppointmentWriteFailure(
+            error: AppError.noInternet,
+            appointments: [_appt('a1')],
+          ),
+        ],
+        verify: (_) {
+          verifyNever(
+            () => cache.bookAppointment(
+              patientUid: any(named: 'patientUid'),
+              appointmentUid: any(named: 'appointmentUid'),
+              doctorUid: any(named: 'doctorUid'),
+              start: any(named: 'start'),
+              type: any(named: 'type'),
+              caseUid: any(named: 'caseUid'),
+              symptomText: any(named: 'symptomText'),
+            ),
+          );
+          verifyNever(
+            () => cache.cancelAppointment(
+              appointmentUid: any(named: 'appointmentUid'),
+              cancelledByUid: any(named: 'cancelledByUid'),
+              cancelNote: any(named: 'cancelNote'),
+            ),
+          );
+        },
+      );
+    });
   });
 }

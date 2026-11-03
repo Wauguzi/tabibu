@@ -8,6 +8,7 @@ import 'package:tabibu/features/alerts/presentation/moh_protocol_screen.dart';
 import 'package:tabibu/features/appointments/presentation/appointments_screen.dart';
 import 'package:tabibu/features/appointments/presentation/booked_screen.dart';
 import 'package:tabibu/features/appointments/presentation/booking_requests_screen.dart';
+import 'package:tabibu/features/appointments/presentation/calendar_screen.dart';
 import 'package:tabibu/features/appointments/presentation/doctor_appointment_screen.dart';
 import 'package:tabibu/features/appointments/presentation/patient_appointment_screen.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
@@ -598,7 +599,20 @@ class PatientAppointmentRoute extends GoRouteData
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      PatientAppointmentScreen(appointmentUid: appointmentUid);
+      PatientAppointmentScreen(
+        appointmentUid: appointmentUid,
+        moved: state.extra == true,
+      );
+}
+
+/// The patient's month view.
+@TypedGoRoute<PatientCalendarRoute>(path: '${RoutePaths.patient}/calendar')
+class PatientCalendarRoute extends GoRouteData with $PatientCalendarRoute {
+  const PatientCalendarRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const CalendarScreen(role: .patient);
 }
 
 /// P-07; reached with pushReplacement (F-1).
@@ -753,6 +767,16 @@ class DoctorAppointmentRoute extends GoRouteData with $DoctorAppointmentRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       DoctorAppointmentScreen(appointmentUid: appointmentUid);
+}
+
+/// The doctor's month view.
+@TypedGoRoute<DoctorCalendarRoute>(path: '${RoutePaths.doctor}/calendar')
+class DoctorCalendarRoute extends GoRouteData with $DoctorCalendarRoute {
+  const DoctorCalendarRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const CalendarScreen(role: .doctor);
 }
 
 /// D-ORDER-CATALOGUE to D-ORDER-PATHOLOGIST.

@@ -6543,34 +6543,9 @@
     "@calendarYourDay": {
         "description": "Calendar day section"
     },
-    "calendarFreeSlot": "Free · {duration}",
-    "@calendarFreeSlot": {
-        "description": "Free slot line; the duration",
-        "placeholders": {
-            "duration": {
-                "type": "String"
-            }
-        }
-    },
-    "calendarFreeHint": "Good time to read reports.",
-    "@calendarFreeHint": {
-        "description": "Free slot hint"
-    },
     "calendarNewAppointment": "New appointment",
     "@calendarNewAppointment": {
         "description": "First appointment subtitle"
-    },
-    "calendarSubtitleBooked": "{title} · booked {when}",
-    "@calendarSubtitleBooked": {
-        "description": "Appointment subtitle; title and booking time",
-        "placeholders": {
-            "title": {
-                "type": "String"
-            },
-            "when": {
-                "type": "String"
-            }
-        }
     },
     "cancelAppointmentTitle": "Cancel your appointment?",
     "@cancelAppointmentTitle": {
@@ -6732,11 +6707,11 @@
     "@rescheduleCancelsCurrent": {
         "description": "Reschedule cancels first warning"
     },
-    "rescheduleNote": "Moving cancels this time and books a new one. The new time must be at least an hour away.",
+    "rescheduleNote": "Moving cancels this time and sends a new request. Your doctor must accept it. The new time must be at least an hour away.",
     "@rescheduleNote": {
         "description": "Reschedule how it works note"
     },
-    "rescheduleMoveTo": "Move to {when}",
+    "rescheduleMoveTo": "Request {when}",
     "@rescheduleMoveTo": {
         "description": "Reschedule primary button; the new time",
         "placeholders": {
@@ -6770,7 +6745,7 @@
             }
         }
     },
-    "rescheduleMovedTo": "Moved to {when}",
+    "rescheduleMovedTo": "New time requested: {when}",
     "@rescheduleMovedTo": {
         "description": "Rescheduled banner; the new time",
         "placeholders": {
@@ -6779,7 +6754,7 @@
             }
         }
     },
-    "rescheduleDoctorTold": "{doctor} has been told.",
+    "rescheduleDoctorTold": "{doctor} has been told and will confirm.",
     "@rescheduleDoctorTold": {
         "description": "Rescheduled banner body; the doctor",
         "placeholders": {

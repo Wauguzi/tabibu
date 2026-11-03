@@ -27,6 +27,7 @@ List<RouteBase> get $appRoutes => [
   $findDoctorRoute,
   $practitionerProfileRoute,
   $patientAppointmentRoute,
+  $patientCalendarRoute,
   $bookedRoute,
   $patientResultRoute,
   $explainedResultRoute,
@@ -39,6 +40,7 @@ List<RouteBase> get $appRoutes => [
   $reportsReadyRoute,
   $bookingRequestsRoute,
   $doctorAppointmentRoute,
+  $doctorCalendarRoute,
   $orderRoute,
   $orderSentRoute,
   $mohProtocolRoute,
@@ -1158,6 +1160,33 @@ mixin $PatientAppointmentRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $patientCalendarRoute => GoRouteData.$route(
+  path: '/patient/calendar',
+  hasOverriddenOnExit: false,
+  factory: $PatientCalendarRoute._fromState,
+);
+
+mixin $PatientCalendarRoute on GoRouteData {
+  static PatientCalendarRoute _fromState(GoRouterState state) =>
+      const PatientCalendarRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/calendar');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $bookedRoute => GoRouteData.$route(
   path: '/patient/appointment/:appointmentUid/booked',
   hasOverriddenOnExit: false,
@@ -1501,6 +1530,33 @@ mixin $DoctorAppointmentRoute on GoRouteData {
   String get location => GoRouteData.$location(
     '/doctor/appointment/${Uri.encodeComponent(_self.appointmentUid)}',
   );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorCalendarRoute => GoRouteData.$route(
+  path: '/doctor/calendar',
+  hasOverriddenOnExit: false,
+  factory: $DoctorCalendarRoute._fromState,
+);
+
+mixin $DoctorCalendarRoute on GoRouteData {
+  static DoctorCalendarRoute _fromState(GoRouterState state) =>
+      const DoctorCalendarRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/calendar');
 
   @override
   void go(BuildContext context) => context.go(location);
