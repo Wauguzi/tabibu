@@ -500,8 +500,11 @@ describe('bundle 59: parallel batches and reasoning', () => {
     assert.ok(elapsed < delayMs * 2.5, `expected ~1 delay, got ${elapsed}ms`);
   });
 
-  it('worker budget is 240 s and tile reasoning effort is none', () => {
-    assert.equal(TILE_REASONING_EFFORT, 'none');
+  it('worker budget is 240 s and tile reasoning effort is minimal', () => {
+    // `muse-spark-1.3` refuses 'none' with HTTP 400 (seen live, 3 Nov): only these are accepted.
+    const supported = ['minimal', 'low', 'medium', 'high', 'xhigh', 'max'];
+    assert.ok(supported.includes(TILE_REASONING_EFFORT));
+    assert.equal(TILE_REASONING_EFFORT, 'minimal');
     assert.equal(PREREAD_WORKER_TIMEOUT_MS, 240_000);
   });
 
@@ -595,7 +598,7 @@ describe('bundle 59: guarded write, log, seed race', () => {
     assert.equal((await runRef.get()).get('failureReason'), '');
   });
 
-  it('tile classify request sends reasoning.effort none', async () => {
+  it('tile classify request sends reasoning.effort minimal', async () => {
     const bodies: unknown[] = [];
     const fetch: FetchLike = async (url, init) => {
       assert.equal(String(url), META_RESPONSES_URL);
@@ -678,7 +681,7 @@ describe('bundle 59: guarded write, log, seed race', () => {
       { enabled: true, fetch, apiKey: 'test-key-not-real' },
     );
     assert.ok(bodies.length >= 1);
-    assert.deepEqual((bodies[0] as { reasoning: unknown }).reasoning, { effort: 'none' });
+    assert.deepEqual((bodies[0] as { reasoning: unknown }).reasoning, { effort: 'minimal' });
     const run = (
       await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
     ).data();

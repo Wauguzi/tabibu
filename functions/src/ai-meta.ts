@@ -24,10 +24,10 @@ export const MUSE_SPARK_MODEL = 'muse-spark-1.3';
 export const META_RESPONSES_URL = 'https://api.meta.ai/v1/responses';
 
 /** Allowed Responses API reasoning.effort values. */
-export type ReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
 
 /** Risk check and symptom summary: no heavy chain-of-thought (bundle 59). */
-export const TEXT_REASONING_EFFORT: ReasoningEffort = 'none';
+export const TEXT_REASONING_EFFORT: ReasoningEffort = 'minimal';
 
 export type FetchLike = (
   input: string | URL | Request,

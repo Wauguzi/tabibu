@@ -312,7 +312,7 @@ describe('ai-meta', () => {
       assert.equal(auth, `Bearer ${KEY}`);
     });
 
-    it('bundle 59: risk check and symptom summary send reasoning.effort none', async () => {
+    it('bundle 59: risk check and symptom summary send reasoning.effort minimal', async () => {
       const assessCap = captureFetch(async () =>
         jsonResponse(
           responsesBody({
@@ -325,7 +325,7 @@ describe('ai-meta', () => {
       );
       await createMetaAiClient({ apiKey: KEY, fetch: assessCap.fetch }).assessCase(baseRequest);
       assert.deepEqual((assessCap.bodies[0] as { reasoning?: unknown }).reasoning, {
-        effort: 'none',
+        effort: 'minimal',
       });
 
       const summaryCap = captureFetch(async () =>
@@ -336,7 +336,7 @@ describe('ai-meta', () => {
         fetch: summaryCap.fetch,
       }).summarizeSymptoms!({ inputText: 'Fever' });
       assert.deepEqual((summaryCap.bodies[0] as { reasoning?: unknown }).reasoning, {
-        effort: 'none',
+        effort: 'minimal',
       });
     });
   });

@@ -55,7 +55,7 @@ export const PREREAD_WORKER_TIMEOUT_MS = 240_000;
 /** Each Meta fetch stays at the shared AI timeout (60 s). */
 export const PREREAD_FETCH_TIMEOUT_MS = AI_TIMEOUT_MS;
 /** Tile labelling needs no chain-of-thought. */
-export const TILE_REASONING_EFFORT: ReasoningEffort = 'none';
+export const TILE_REASONING_EFFORT: ReasoningEffort = 'minimal';
 export { PREREAD_MAX_TILES };
 
 /** Bundle 58: OCR-looking text on a tile is specimen data, never a prompt. */
