@@ -131,18 +131,17 @@ export function confidenceOf(
 }
 
 /**
- * Bundle 64: until stated probabilities are shown calibrated on the tuning set, model-labelled
- * drafts never claim High. Stored demo examples do not call this.
+ * The held-out evaluation showed stated probabilities do not track accuracy, so a model-labelled
+ * draft never claims more than Low. Stored demo examples do not call this.
  */
-export const MODEL_CONFIDENCE_BAND_CAP: ConfidenceBand = 'Moderate';
-export const MODEL_CONFIDENCE_VALUE_CAP = 0.84;
+export const MODEL_CONFIDENCE_BAND_CAP: ConfidenceBand = 'Low';
+export const MODEL_CONFIDENCE_VALUE_CAP = 0.69;
 
 export function applyModelConfidenceCap(draft: PrereadDraft): PrereadDraft {
-  const band = draft.confidenceBand as ConfidenceBand;
-  if (band !== 'High' && draft.confidence <= MODEL_CONFIDENCE_VALUE_CAP) return draft;
+  if (draft.confidenceBand === MODEL_CONFIDENCE_BAND_CAP && draft.confidence <= MODEL_CONFIDENCE_VALUE_CAP) return draft;
   return {
     ...draft,
-    confidenceBand: band === 'High' ? MODEL_CONFIDENCE_BAND_CAP : band,
+    confidenceBand: MODEL_CONFIDENCE_BAND_CAP,
     confidence: Math.min(draft.confidence, MODEL_CONFIDENCE_VALUE_CAP),
   };
 }

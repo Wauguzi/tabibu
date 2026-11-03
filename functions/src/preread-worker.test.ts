@@ -516,8 +516,8 @@ describe('bundle 64: upscale and confidence cap', () => {
     const uncapped = histologyDraft(tiles, measurements);
     assert.equal(uncapped.confidenceBand, 'High');
     const capped = applyModelConfidenceCap(uncapped);
-    assert.equal(capped.confidenceBand, 'Moderate');
-    assert.ok(capped.confidence <= 0.84);
+    assert.equal(capped.confidenceBand, 'Low');
+    assert.ok(capped.confidence <= 0.69);
     // Stored demos use histologyDraft without the cap — still High.
     assert.equal(histologyDraft(tiles, measurements).confidenceBand, 'High');
   });

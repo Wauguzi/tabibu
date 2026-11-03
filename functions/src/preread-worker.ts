@@ -443,7 +443,7 @@ async function runPreread(
       tileScale: String(tileScale),
       tileUpscale: String(TILE_UPSCALE_FACTOR),
       // Stated-probability band; capped at Moderate until calibrated (bundle 64).
-      confidenceNote: 'stated-probability-band-capped-moderate',
+      confidenceNote: 'stated-probability-band-capped-low',
     },
   };
 }

@@ -76,8 +76,8 @@ or, for alerts, the fixed template.
 - SAM 3.1 overlay, Muse Voice Transcribe (`voice_input_enabled` stays off), and
   Muse Spark Open: not built.
 - A claim of accuracy beyond what §7 measured. The model's own stated
-  probabilities are not calibrated, so the confidence band is capped at
-  Moderate for every model-labelled draft.
+  probabilities are not calibrated (§7), so the confidence band is capped at
+  Low for every model-labelled draft.
 - Any model-written text reaching a person without an approval, except to the
   readers S-8 names, each labelled as AI.
 
@@ -158,7 +158,7 @@ off.
 | Live: explanation | Ready in about 15 s in English and Kiswahili on a signed report (3 Nov); `models.promptVersion` `report-text-v1`; no name, facility or placeholder in either text |
 | Evaluation, first run (3 Nov) | Too small to use: the staging could read only the first 100 rows of each split, almost all tumour, leaving 4 tuning tiles and 2 held-out tiles. **No accuracy figure comes from it**; latency and token cost were measured (minimal effort about 3 to 4 s a tile, low about 6 s, medium about 11 s) |
 | Evaluation, second run (4 Nov) | **To be filled from the three files of 4 Nov:** held-out accuracy, sensitivity and specificity with Wilson 95% intervals (n = 200); the three variants on 200 tuning tiles; the false-positive rate on the demo mosaics' normal tiles. Until then no accuracy is claimed |
-| Model evaluation threshold | Not met by anything quoted; the band stays capped at Moderate |
+| Model evaluation threshold | Not met by anything quoted; the band is capped at Low |
 | Manual run | Done by Theo on the live project; the device pass is separate (CRQ-0050) |
 
 The evaluation set is a community copy of PatchCamelyon on Hugging Face
