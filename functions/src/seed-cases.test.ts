@@ -16,6 +16,7 @@ import {
   type People,
   type SeedResult,
 } from './seed-cases';
+import { DEMO_CASE_STAGES } from './seed-cases-demo';
 import {
   histologyMeasurements,
   loadManifest,
@@ -32,19 +33,7 @@ const KEY = randomBytes(32).toString('hex');
 const FROM = new Date('2026-10-26T00:00:00+03:00');
 const PROJECT_ID = 'demo-tabibu';
 
-const STAGES: Record<string, string> = {
-  explained: 'ResultReleased',
-  signed: 'ReportSigned',
-  hero: 'PrereadReady',
-  lowConfidence: 'PrereadReady',
-  queued: 'PrereadQueued',
-  requested: 'PathologistRequested',
-  accepted: 'PathologistAccepted',
-  malaria: 'ReportSigned',
-  blood: 'ReportInProgress',
-  cancelled: 'Cancelled',
-  completed: 'Completed',
-};
+const STAGES: Record<string, string> = { ...DEMO_CASE_STAGES };
 
 const STAMPS = [
   'createdAt',
@@ -155,7 +144,20 @@ async function assertHistory(cases: Record<string, string>, now: Date): Promise<
     }
     const data = (await db.collection('cases').doc(caseUid).get()).data() ?? {};
     assert.ok(stamp(data.createdAt) <= stamp(data.lastUpdatedAt), key);
-    assert.equal(stamp(data.lastUpdatedAt), previous, `${key}: the case was last written by its last step`);
+    // Doctor slide registration at PathologistRequested updates the case without a stage log
+    // (registerSlides only transitions when the pathologist uploads). requestWithSlide ends there.
+    if (key === 'requestWithSlide') {
+      assert.ok(
+        stamp(data.lastUpdatedAt) >= previous,
+        `${key}: case older than its log`,
+      );
+    } else {
+      assert.equal(
+        stamp(data.lastUpdatedAt),
+        previous,
+        `${key}: the case was last written by its last step`,
+      );
+    }
     const slot = stamp((await db.collection('appointments').doc(String(data.appointmentUid)).get()).get('scheduledStart'));
     assert.ok(slot <= stamp(data.createdAt), `${key}: the visit comes before the order`);
   }
@@ -276,7 +278,7 @@ describe('seed-cases', function () {
       assert.equal(await read(doctor, draft), 403);
       assert.equal(await read(patient, draft), 403);
 
-      for (const key of ['hero', 'lowConfidence', 'queued']) {
+      for (const key of ['hero', 'lowConfidence', 'queued', 'sampleDue']) {
         const run = (await db().collection('cases').doc(first.cases[key]).collection('preread').get()).docs[0];
         assert.equal(await read(pathologist, path(key, `preread/${run.id}`)), 200, key);
         assert.equal(await read(doctor, path(key, `preread/${run.id}`)), 403, key);
@@ -330,7 +332,7 @@ describe('seed-cases', function () {
 
   it('computes every pre-read number from the stored labels', async () => {
     const manifest = loadManifest();
-    for (const key of ['hero', 'lowConfidence', 'malaria']) {
+    for (const key of ['hero', 'lowConfidence', 'malaria', 'sampleDue']) {
       const run = (await db().collection('cases').doc(first.cases[key]).collection('preread').get()).docs[0].data();
       const { labels, grid } = await storedJson(String(run.labelsPath));
       assert.equal(run.status, 'Ready');
@@ -373,6 +375,41 @@ describe('seed-cases', function () {
     const hero = (await db().collection('cases').doc(first.cases.hero).collection('preread').get()).docs[0].data();
     assert.equal(hero.draft.confidenceBand, 'High');
     assert.equal(hero.draft.urgency, 'Urgent');
+  });
+
+  it('bundle 67: request with slide, sample-due (no accession), and rejected with a reason', async () => {
+    const withSlide = await caseData('requestWithSlide');
+    assert.equal(withSlide.currentStage, 'PathologistRequested');
+    assert.equal(Array.isArray(withSlide.slideImages) ? withSlide.slideImages.length : 0, 1);
+    assert.equal(withSlide.labAccessionNo, '');
+    const notes = await db()
+      .collection('notifications')
+      .where('resourceUid', '==', first.cases.requestWithSlide)
+      .get();
+    assert.ok(
+      notes.docs.some((d) => d.get('templateKey') === 'pathologistRequested'),
+      'New case waiting notification',
+    );
+
+    const sampleDue = await caseData('sampleDue');
+    assert.equal(sampleDue.currentStage, 'PrereadReady');
+    assert.equal(sampleDue.labAccessionNo, '');
+    const sampleRun = (
+      await db().collection('cases').doc(first.cases.sampleDue).collection('preread').get()
+    ).docs[0].data();
+    assert.equal(sampleRun.status, 'Ready');
+
+    const rejected = await caseData('rejected');
+    assert.equal(rejected.currentStage, 'PathologistRejected');
+    const log = await db()
+      .collection('cases')
+      .doc(first.cases.rejected)
+      .collection('log')
+      .orderBy('seq')
+      .get();
+    const decline = log.docs.find((d) => d.get('actionType') === 'Reject');
+    assert.ok(decline);
+    assert.match(String(decline?.get('actionReason')), /Conflict of interest/i);
   });
 
   it('runs every step of every case forward, inside the history', async () => {

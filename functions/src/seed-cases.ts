@@ -42,6 +42,7 @@ import {
   onCaseWrittenHandler,
   recordSampleReceivedHandler,
   registerSlidesHandler,
+  rejectCaseHandler,
   reserveSlideUploadsHandler,
 } from './cases';
 import { nairobiDate, type Caller } from './common';
@@ -981,6 +982,66 @@ export async function seedCases(ctx: SeedCtx): Promise<SeedResult> {
       await addSlide(r, slideBytes(slideFor('queued')), 'image/jpeg', mpp);
       r.at(E - 2 * MIN);
       await accept(r, true);
+    }
+  }
+
+  // Bundle 67: PathologistRequested with one slide registered, so the request screen can accept a
+  // real case. The "New case waiting" notification is written by onCaseWritten (en and sw copy).
+  {
+    const r = await open({
+      key: 'requestWithSlide',
+      tests: [HISTOLOGY],
+      priority: 'Urgent',
+      notes: 'Left breast core biopsy after a BIRADS-4 mammogram. Two cores, 14G.',
+      symptoms: 'My mammogram found something and I need a needle biopsy of my breast.',
+      orderAt: recent(E - 90 * MIN),
+      requestPathologist: true,
+    });
+    if (r) {
+      r.at(r.t + 12 * MIN);
+      await addSlide(r, slideBytes(slideFor('queued')), 'image/jpeg', mpp);
+    }
+  }
+
+  // Bundle 67: accepted, Ready stored pre-read, no accession — the "record the sample" step.
+  // Stage is PrereadReady (the pre-read queue moves past PathologistAccepted); labAccessionNo stays empty.
+  {
+    const [orderAt, acceptAt] = withOpenRequest(backFrom(E - 70 * MIN, [25 * MIN]));
+    const r = await open({
+      key: 'sampleDue',
+      tests: [HISTOLOGY],
+      priority: 'Priority',
+      notes: 'Right axillary node sampling during breast-conserving surgery. Fresh tissue.',
+      symptoms: 'I am having breast surgery and my doctor will send a lymph node to the lab.',
+      orderAt,
+      requestPathologist: true,
+    });
+    if (r) {
+      r.at(r.t + 8 * MIN);
+      const imageUid = await addSlide(r, slideBytes(slideFor('hero')), 'image/jpeg', mpp);
+      r.at(acceptAt);
+      await accept(r, true);
+      await histologyPreread(r, 'hero', 'clear', imageUid);
+    }
+  }
+
+  // Bundle 67: pathologist declined with a reason — the doctor re-attaches another (bundle 66 UI).
+  {
+    const r = await open({
+      key: 'rejected',
+      tests: [SKIN_PUNCH],
+      priority: 'Routine',
+      notes: 'Pigmented lesion on the left forearm, 8 mm, changing colour. Excision with 2 mm margins.',
+      symptoms: 'A mole on my arm has changed colour and my doctor wants it checked.',
+      orderAt: recent(E - 5 * HOUR),
+      requestPathologist: true,
+    });
+    if (r) {
+      r.at(r.t + 40 * MIN);
+      await rejectCaseHandler(caseDeps(r), pathologist, {
+        caseUid: r.caseUid,
+        reason: 'Conflict of interest: this patient is under my own clinic this week.',
+      });
     }
   }
 

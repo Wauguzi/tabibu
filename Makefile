@@ -361,10 +361,11 @@ seed-directory:
 		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
 		  ./node_modules/.bin/ts-node src/seed-directory.ts --live
 
-# Ten demo cases, their appointments and two alerts for the demo accounts, backdated from SEED_FROM
-# (default 2026-10-26) to now, through the same handlers as the callables. Needs no password: it
-# reads the unlock-code key from Secret Manager with your Application Default Credentials. Run it
-# on the day: the waiting cases and the pending visit time out by the product's own rules.
+# Fourteen demo cases, their appointments and two alerts for the demo accounts, backdated from
+# SEED_FROM (default 2026-10-26) to now, through the same handlers as the callables. Needs no
+# password: it reads the unlock-code key from Secret Manager with your Application Default
+# Credentials. Run it on the day: the waiting cases and the pending visit time out by the product's
+# own rules.
 # e.g. make seed-cases CONFIRM=tabibu-86ea2 SEED_EMAIL_TEMPLATE='tabibu.demo+{role}@gmail.com' SEED_FROM=2026-10-26
 seed-cases:
 		@test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make seed-cases CONFIRM=$(PROJECT)"; exit 1; }
@@ -380,6 +381,11 @@ seed-cases-emulator:
 		  FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 \
 		  SEED_EMAIL_TEMPLATE="$(SEED_EMAIL_TEMPLATE)" SEED_FROM="$(SEED_FROM)" SEED_CASES_TAG="$(SEED_CASES_TAG)" \
 		  ./node_modules/.bin/ts-node src/seed-cases.ts
+
+# Read-only: every seeded demo case matches its expected stage, slides, accession and pre-read.
+# e.g. make check-demo SEED_CASES_TAG=…
+check-demo:
+		cd functions && ./node_modules/.bin/ts-node scripts/check-demo.ts
 
 # Until the app has an approval screen: verifies one practitioner as verifyPractitioner does
 # (status, then role claim). Dry run unless CONFIRM names the project.

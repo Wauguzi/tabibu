@@ -149,10 +149,33 @@ real Nairobi facilities, each with a `DEMO-` licence number. Their photos are st
 [Pexels](https://www.pexels.com/license/), free to use, with each photographer recorded in the
 file; they are not pictures of the named people.
 
-`make seed-cases` then gives the three accounts ten backdated cases at different stages, with two
-alerts. The slides are real public data (PatchCamelyon tiles, CC0, and cells from the U.S. National
-Library of Medicine's thin-smear set, fetched at seed time). The pre-reads are stored examples, each
-marked as one in the app, not live model output.
+`make seed-cases` then gives the three accounts fourteen backdated cases at different stages, with
+two alerts. Ids are keyed by `SEED_CASES_TAG` (empty by default). The slides are real public data
+(PatchCamelyon tiles, CC0, and cells from the U.S. National Library of Medicine's thin-smear set,
+fetched at seed time). The pre-reads are stored examples, each marked as one in the app, not live
+model output.
+
+| Key | Stage | What the demo uses it for |
+|---|---|---|
+| `requestWithSlide` | `PathologistRequested` | Pathologist: "New case waiting" (en: that title; sw: *Kesi mpya inasubiri*), one slide already registered — accept |
+| `sampleDue` | `PrereadReady` | Pathologist: Ready stored pre-read, **no** accession — record the sample, then score and sign |
+| `accepted` | `PathologistAccepted` | Pathologist: accepted, no slides yet (cytopathology) |
+| `hero` | `PrereadReady` | Pathologist: Ready pre-read with accession already set |
+| `queued` | `PrereadQueued` | Pathologist: slides in, pre-read still Queued |
+| `lowConfidence` | `PrereadReady` | Pathologist: Ready pre-read, Low confidence band |
+| `rejected` | `PathologistRejected` | Doctor: decline reason in the log — re-attach another pathologist |
+| `requested` | `PathologistRequested` | Pathologist: request without slides |
+| `signed` / `malaria` | `ReportSigned` | Doctor: unlock code / notifiable finding |
+| `explained` / `completed` | released / done | Patient and doctor after discuss |
+| `blood` / `cancelled` | in progress / cancelled | Edge stages |
+
+After seeding, run the read-only check (no writes):
+
+```sh
+cd functions && npx ts-node scripts/check-demo.ts
+# or, with the same tag you seeded:
+SEED_CASES_TAG=… npx ts-node scripts/check-demo.ts
+```
 
 ## Checking it
 
