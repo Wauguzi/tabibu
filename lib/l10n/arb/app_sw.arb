@@ -1645,5 +1645,37 @@
                 "type": "String"
             }
         }
-    }
+    },
+    "notificationOrderCreatedTitle": "Vipimo vimeagizwa",
+    "notificationPathologistRequestedTitle": "Kesi mpya inasubiri",
+    "notificationPathologistAcceptedTitle": "Kesi imekubaliwa",
+    "notificationPathologistAcceptedPatientTitle": "Vipimo vyako vinaendelea",
+    "notificationPathologistRejectedTitle": "Kesi haijachukuliwa",
+    "notificationCaseWithdrawnTitle": "Kesi imehamishwa",
+    "notificationPrereadReadyTitle": "Usomaji wa awali uko tayari",
+    "notificationPrereadFailedTitle": "Usomaji wa mkono unahitajika",
+    "notificationOrderCancelledTitle": "Agizo limeghairiwa",
+    "notificationCaseSharedTitle": "Ripoti imeshirikiwa nawe",
+    "notificationShareRedeemedTitle": "Ripoti iliyoshirikiwa imefunguliwa",
+    "notificationReportSignedTitle": "Ripoti iliyosainiwa iko tayari",
+    "notificationReportUpdatedTitle": "Ripoti imesasishwa",
+    "notificationShareCodeReissuedTitle": "Msimbo mpya wa ufikiaji",
+    "notificationCriticalReportUnopenedTitle": "Ripoti inasubiri",
+    "notificationResultsWithDoctorTitle": "Matokeo yako yako kwa daktari",
+    "notificationResultReleasedTitle": "Matokeo yako tayari",
+    "notificationTranslationReadyTitle": "Tafsiri iko tayari",
+    "notificationExplanationReadyTitle": "Maelezo yako tayari",
+    "notificationMdtInvitedTitle": "Mwaliko wa mjadala",
+    "notificationMdtInviteAcceptedTitle": "Mwaliko umekubaliwa",
+    "notificationMdtInviteDeclinedTitle": "Mwaliko umekataliwa",
+    "notificationMessageReceivedTitle": "Ujumbe mpya",
+    "notificationAlertDraftedTitle": "Arifa ya kukagua",
+    "notificationAlertDraftReminderTitle": "Arifa bado inasubiri",
+    "notificationAlertExpiredTitle": "Arifa imeisha muda",
+    "notificationAlertWithdrawnTitle": "Arifa imeondolewa",
+    "notificationAlertEvidenceChangedTitle": "Ushahidi wa arifa umebadilika",
+    "notificationAlertDeliveredClinicianTitle": "Arifa ya afya",
+    "notificationAlertDeliveredPatientTitle": "Taarifa ya afya",
+    "notificationConfirmatoryTestRequestedTitle": "Kipimo zaidi kinapendekezwa",
+    "notificationAlertDeliveryHeldTitle": "Utoaji wa arifa umesimamishwa"
 }

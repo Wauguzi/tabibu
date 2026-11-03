@@ -1872,20 +1872,64 @@ enum NotificationTemplate {
     return .unknown;
   }
 
-  String title(AppLocalizations l10n, Map<String, String> args) =>
-      switch (this) {
-        .appointmentRequested => l10n.notificationAppointmentRequestedTitle,
-        .caseDiscussionRequested =>
-          l10n.notificationCaseDiscussionRequestedTitle,
-        .appointmentAccepted => l10n.notificationAppointmentAcceptedTitle,
-        .appointmentDeclined => l10n.notificationAppointmentDeclinedTitle,
-        .appointmentExpired => l10n.notificationAppointmentExpiredTitle,
-        .appointmentCancelledByPatient =>
-          l10n.notificationAppointmentCancelledByPatientTitle,
-        .appointmentCancelledByDoctor =>
-          l10n.notificationAppointmentCancelledByDoctorTitle,
-        _ => '',
-      };
+  String title(
+    AppLocalizations l10n,
+    Map<String, String> args,
+  ) => switch (this) {
+    .appointmentRequested => l10n.notificationAppointmentRequestedTitle,
+    .caseDiscussionRequested => l10n.notificationCaseDiscussionRequestedTitle,
+    .appointmentAccepted => l10n.notificationAppointmentAcceptedTitle,
+    .appointmentDeclined => l10n.notificationAppointmentDeclinedTitle,
+    .appointmentExpired => l10n.notificationAppointmentExpiredTitle,
+    .appointmentCancelledByPatient =>
+      l10n.notificationAppointmentCancelledByPatientTitle,
+    .appointmentCancelledByDoctor =>
+      l10n.notificationAppointmentCancelledByDoctorTitle,
+    .orderCreated => l10n.notificationOrderCreatedTitle,
+    .pathologistRequested => l10n.notificationPathologistRequestedTitle,
+    .pathologistAccepted => l10n.notificationPathologistAcceptedTitle,
+    .pathologistAcceptedPatient =>
+      l10n.notificationPathologistAcceptedPatientTitle,
+    .pathologistRejected => l10n.notificationPathologistRejectedTitle,
+    .caseWithdrawn => l10n.notificationCaseWithdrawnTitle,
+    .prereadReady => l10n.notificationPrereadReadyTitle,
+    .prereadFailed => l10n.notificationPrereadFailedTitle,
+    .orderCancelled => l10n.notificationOrderCancelledTitle,
+    .caseShared => l10n.notificationCaseSharedTitle,
+    .shareRedeemed => l10n.notificationShareRedeemedTitle,
+    .reportSigned => l10n.notificationReportSignedTitle,
+    .reportUpdated => l10n.notificationReportUpdatedTitle,
+    .shareCodeReissued => l10n.notificationShareCodeReissuedTitle,
+    .criticalReportUnopened => l10n.notificationCriticalReportUnopenedTitle,
+    .resultsWithDoctor => l10n.notificationResultsWithDoctorTitle,
+    .resultReleased => l10n.notificationResultReleasedTitle,
+    .translationReady => l10n.notificationTranslationReadyTitle,
+    .explanationReady => l10n.notificationExplanationReadyTitle,
+    .mdtInvited => l10n.notificationMdtInvitedTitle,
+    .mdtInviteAccepted => l10n.notificationMdtInviteAcceptedTitle,
+    .mdtInviteDeclined => l10n.notificationMdtInviteDeclinedTitle,
+    .messageReceived => l10n.notificationMessageReceivedTitle,
+    .alertDrafted => l10n.notificationAlertDraftedTitle,
+    .alertDraftReminder => l10n.notificationAlertDraftReminderTitle,
+    .alertExpired => l10n.notificationAlertExpiredTitle,
+    .alertWithdrawn => l10n.notificationAlertWithdrawnTitle,
+    .alertEvidenceChanged => l10n.notificationAlertEvidenceChangedTitle,
+    .alertDeliveredClinician => l10n.notificationAlertDeliveredClinicianTitle,
+    .alertDeliveredPatient => l10n.notificationAlertDeliveredPatientTitle,
+    .confirmatoryTestRequested =>
+      l10n.notificationConfirmatoryTestRequestedTitle,
+    .alertDeliveryHeld => l10n.notificationAlertDeliveryHeldTitle,
+    .pathologistRequestExpired => l10n.notificationPathologistRejectedTitle,
+    .criticalReportUnopenedSigner =>
+      l10n.notificationCriticalReportUnopenedTitle,
+    .resultUpdateWithDoctor => l10n.notificationResultsWithDoctorTitle,
+    .mdtMessageReceived => l10n.notificationMessageReceivedTitle,
+    .alertDeliveredClinicianDemo =>
+      l10n.notificationAlertDeliveredClinicianTitle,
+    .alertDeliveredPatientDemo => l10n.notificationAlertDeliveredPatientTitle,
+    .alertDeliveryStopped => l10n.notificationAlertDeliveryHeldTitle,
+    _ => '',
+  };
 
   String body(
     AppLocalizations l10n,

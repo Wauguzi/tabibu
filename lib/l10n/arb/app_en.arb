@@ -7894,5 +7894,133 @@
                 "type": "String"
             }
         }
+    },
+    "notificationOrderCreatedTitle": "Tests ordered",
+    "@notificationOrderCreatedTitle": {
+        "description": "Inbox row title for the orderCreated notification"
+    },
+    "notificationPathologistRequestedTitle": "New case waiting",
+    "@notificationPathologistRequestedTitle": {
+        "description": "Inbox row title for the pathologistRequested notification"
+    },
+    "notificationPathologistAcceptedTitle": "Case accepted",
+    "@notificationPathologistAcceptedTitle": {
+        "description": "Inbox row title for the pathologistAccepted notification"
+    },
+    "notificationPathologistAcceptedPatientTitle": "Your tests are in progress",
+    "@notificationPathologistAcceptedPatientTitle": {
+        "description": "Inbox row title for the pathologistAcceptedPatient notification"
+    },
+    "notificationPathologistRejectedTitle": "Case not taken",
+    "@notificationPathologistRejectedTitle": {
+        "description": "Inbox row title for the pathologistRejected notification"
+    },
+    "notificationCaseWithdrawnTitle": "Case reassigned",
+    "@notificationCaseWithdrawnTitle": {
+        "description": "Inbox row title for the caseWithdrawn notification"
+    },
+    "notificationPrereadReadyTitle": "Pre-read ready",
+    "@notificationPrereadReadyTitle": {
+        "description": "Inbox row title for the prereadReady notification"
+    },
+    "notificationPrereadFailedTitle": "Manual read needed",
+    "@notificationPrereadFailedTitle": {
+        "description": "Inbox row title for the prereadFailed notification"
+    },
+    "notificationOrderCancelledTitle": "Order cancelled",
+    "@notificationOrderCancelledTitle": {
+        "description": "Inbox row title for the orderCancelled notification"
+    },
+    "notificationCaseSharedTitle": "Report shared with you",
+    "@notificationCaseSharedTitle": {
+        "description": "Inbox row title for the caseShared notification"
+    },
+    "notificationShareRedeemedTitle": "Shared report opened",
+    "@notificationShareRedeemedTitle": {
+        "description": "Inbox row title for the shareRedeemed notification"
+    },
+    "notificationReportSignedTitle": "Signed report ready",
+    "@notificationReportSignedTitle": {
+        "description": "Inbox row title for the reportSigned notification"
+    },
+    "notificationReportUpdatedTitle": "Report updated",
+    "@notificationReportUpdatedTitle": {
+        "description": "Inbox row title for the reportUpdated notification"
+    },
+    "notificationShareCodeReissuedTitle": "New access code",
+    "@notificationShareCodeReissuedTitle": {
+        "description": "Inbox row title for the shareCodeReissued notification"
+    },
+    "notificationCriticalReportUnopenedTitle": "Report waiting",
+    "@notificationCriticalReportUnopenedTitle": {
+        "description": "Inbox row title for the criticalReportUnopened notification"
+    },
+    "notificationResultsWithDoctorTitle": "Results with your doctor",
+    "@notificationResultsWithDoctorTitle": {
+        "description": "Inbox row title for the resultsWithDoctor notification"
+    },
+    "notificationResultReleasedTitle": "Result ready",
+    "@notificationResultReleasedTitle": {
+        "description": "Inbox row title for the resultReleased notification"
+    },
+    "notificationTranslationReadyTitle": "Translation ready",
+    "@notificationTranslationReadyTitle": {
+        "description": "Inbox row title for the translationReady notification"
+    },
+    "notificationExplanationReadyTitle": "Explanation ready",
+    "@notificationExplanationReadyTitle": {
+        "description": "Inbox row title for the explanationReady notification"
+    },
+    "notificationMdtInvitedTitle": "Consult invitation",
+    "@notificationMdtInvitedTitle": {
+        "description": "Inbox row title for the mdtInvited notification"
+    },
+    "notificationMdtInviteAcceptedTitle": "Invitation accepted",
+    "@notificationMdtInviteAcceptedTitle": {
+        "description": "Inbox row title for the mdtInviteAccepted notification"
+    },
+    "notificationMdtInviteDeclinedTitle": "Invitation declined",
+    "@notificationMdtInviteDeclinedTitle": {
+        "description": "Inbox row title for the mdtInviteDeclined notification"
+    },
+    "notificationMessageReceivedTitle": "New message",
+    "@notificationMessageReceivedTitle": {
+        "description": "Inbox row title for the messageReceived notification"
+    },
+    "notificationAlertDraftedTitle": "Alert to review",
+    "@notificationAlertDraftedTitle": {
+        "description": "Inbox row title for the alertDrafted notification"
+    },
+    "notificationAlertDraftReminderTitle": "Alert still waiting",
+    "@notificationAlertDraftReminderTitle": {
+        "description": "Inbox row title for the alertDraftReminder notification"
+    },
+    "notificationAlertExpiredTitle": "Alert expired",
+    "@notificationAlertExpiredTitle": {
+        "description": "Inbox row title for the alertExpired notification"
+    },
+    "notificationAlertWithdrawnTitle": "Alert withdrawn",
+    "@notificationAlertWithdrawnTitle": {
+        "description": "Inbox row title for the alertWithdrawn notification"
+    },
+    "notificationAlertEvidenceChangedTitle": "Alert evidence changed",
+    "@notificationAlertEvidenceChangedTitle": {
+        "description": "Inbox row title for the alertEvidenceChanged notification"
+    },
+    "notificationAlertDeliveredClinicianTitle": "Health alert",
+    "@notificationAlertDeliveredClinicianTitle": {
+        "description": "Inbox row title for the alertDeliveredClinician notification"
+    },
+    "notificationAlertDeliveredPatientTitle": "Health notice",
+    "@notificationAlertDeliveredPatientTitle": {
+        "description": "Inbox row title for the alertDeliveredPatient notification"
+    },
+    "notificationConfirmatoryTestRequestedTitle": "Further test advised",
+    "@notificationConfirmatoryTestRequestedTitle": {
+        "description": "Inbox row title for the confirmatoryTestRequested notification"
+    },
+    "notificationAlertDeliveryHeldTitle": "Alert delivery held",
+    "@notificationAlertDeliveryHeldTitle": {
+        "description": "Inbox row title for the alertDeliveryHeld notification"
     }
 }

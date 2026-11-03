@@ -170,10 +170,9 @@ class _CasesScreenState extends State<CasesScreen> {
     );
   }
 
-  Widget _chips(List<CaseModel> all) => Wrap(
-    spacing: AppSpacing.xs,
-    runSpacing: AppSpacing.xs,
-    children: [
+  /// One scrolling row: the five filters take a single line, not two.
+  Widget _chips(List<CaseModel> all) {
+    final chips = [
       TabibuFilterChip(
         label: context.l10n.doctorCasesFilterAll(all.length),
         selected: _filter == .all,
@@ -199,8 +198,20 @@ class _CasesScreenState extends State<CasesScreen> {
         selected: _filter == .closed,
         onTap: () => setState(() => _filter = .closed),
       ),
-    ],
-  );
+    ];
+    return SingleChildScrollView(
+      scrollDirection: .horizontal,
+      clipBehavior: .none,
+      child: Row(
+        children: [
+          for (final (i, chip) in chips.indexed) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.xs),
+            chip,
+          ],
+        ],
+      ),
+    );
+  }
 
   List<Widget> _sections(List<CaseModel> searched) {
     final filtered = searched.where((c) => _matches(c, _filter)).toList();

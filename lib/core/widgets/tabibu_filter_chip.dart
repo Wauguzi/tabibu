@@ -47,7 +47,9 @@ class TabibuFilterChip extends StatelessWidget {
                   horizontal: AppSpacing.md,
                   vertical: AppSpacing.xs,
                 ),
+                // Hugs the label: in a Wrap a plain Center takes the row.
                 child: Center(
+                  widthFactor: 1,
                   child: Text(
                     label,
                     style: textTheme.titleMedium?.copyWith(

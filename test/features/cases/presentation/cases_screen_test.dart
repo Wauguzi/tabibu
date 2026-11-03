@@ -235,12 +235,26 @@ void main() {
       );
     });
 
+    testWidgets('the filters sit in one horizontal scroll row', (tester) async {
+      _useTallSurface(tester);
+      await pumpScreen(tester, cases: CasesLoadSuccess(cases: nineCases()));
+
+      final scrollers = find.byWidgetPredicate(
+        (w) =>
+            w is SingleChildScrollView && w.scrollDirection == Axis.horizontal,
+      );
+      expect(scrollers, findsOneWidget);
+    });
+
     testWidgets('chips and search combine', (tester) async {
       _useTallSurface(tester);
       final l10n = lookupAppLocalizations(const Locale('en'));
       await pumpScreen(tester, cases: CasesLoadSuccess(cases: nineCases()));
 
-      await tester.tap(find.text(l10n.doctorCasesWithPathologist).first);
+      final withPathologist = find.text(l10n.doctorCasesWithPathologist).first;
+      await tester.ensureVisible(withPathologist);
+      await tester.pump();
+      await tester.tap(withPathologist);
       await tester.pump();
       expect(find.byType(CaseRow), findsNWidgets(2));
 
@@ -405,7 +419,10 @@ void main() {
       );
 
       await tester.enterText(find.byType(SearchField), 'zawadi');
-      await tester.tap(find.text(l10n.doctorCasesClosed).first);
+      final closed = find.text(l10n.doctorCasesClosed).first;
+      await tester.ensureVisible(closed);
+      await tester.pump();
+      await tester.tap(closed);
       await tester.pump();
       expect(find.byType(CaseRow), findsNWidgets(4));
 
