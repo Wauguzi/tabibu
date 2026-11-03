@@ -23,6 +23,7 @@ import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_history_row.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_patient_card.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_timeline_card.dart';
+import 'package:tabibu/features/cases/presentation/widgets/slides_card.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -315,6 +316,10 @@ class _Body extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         KeyValueCard(title: l10n.doctorCaseOrder, rows: orderRows),
+        if (caseModel.slideImages.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.md),
+          SlidesCard(slides: caseModel.slideImages),
+        ],
         if (openable) ...[
           const SizedBox(height: AppSpacing.lg),
           TabibuButton.primary(

@@ -12,6 +12,7 @@ import 'package:tabibu/features/alerts/data/models/notifiable_disease_model.dart
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_history_row.dart';
+import 'package:tabibu/features/cases/presentation/widgets/slides_card.dart';
 import 'package:tabibu/features/preread/data/datasources/preread_storage.dart';
 import 'package:tabibu/features/preread/data/models/preread_model.dart';
 import 'package:tabibu/features/preread/presentation/widgets/slide_viewer.dart';
@@ -642,6 +643,15 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                               if (ready && preread != null) ...[
                                 const SizedBox(height: AppSpacing.md),
                                 _PrereadCard(preread: preread),
+                              ],
+                              // Every slide the doctor attached, as the
+                              // picture alone; the viewer shows the AI's one.
+                              if (state.caseModel?.slideImages.isNotEmpty ==
+                                  true) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                SlidesCard(
+                                  slides: state.caseModel!.slideImages,
+                                ),
                               ],
                               if (locked) ...[
                                 const SizedBox(height: AppSpacing.md),

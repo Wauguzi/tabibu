@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/cases/presentation/widgets/slides_card.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -90,6 +91,10 @@ class _SampleReceivedViewState extends State<SampleReceivedView> {
             title: l10n.doctorCaseOrder,
             rows: [(l10n.doctorCaseTest, tests)],
           ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+        if (widget.caseModel.slideImages.isNotEmpty) ...[
+          SlidesCard(slides: widget.caseModel.slideImages),
           const SizedBox(height: AppSpacing.md),
         ],
         TabibuTextField(
