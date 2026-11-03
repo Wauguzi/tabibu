@@ -3,20 +3,16 @@ import 'dart:async';
 import 'package:collection/collection.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
-import 'package:tabibu/core/constants/app_radii.dart';
-import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
-import 'package:tabibu/core/constants/app_status_colors.dart';
-import 'package:tabibu/core/constants/app_styles.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/reference_data_helper.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
-import 'package:tabibu/features/alerts/data/models/guidance_source_model.dart';
 import 'package:tabibu/features/alerts/data/models/public_health_guidance_model.dart';
+import 'package:tabibu/features/alerts/presentation/widgets/source_link.dart';
+import 'package:tabibu/features/alerts/presentation/widgets/steps_card.dart';
 import 'package:tabibu/features/orders/data/advisory_protocol.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 /// D-MOH-PROTOCOL (F-13): the clinician guidance a risk-check advisory
 /// points to, verbatim from the bundled register, each step linked to its
@@ -110,7 +106,7 @@ class _MohProtocolScreenState extends State<MohProtocolScreen> {
         body: protocol.body(l10n),
       ),
       const SizedBox(height: AppSpacing.md),
-      _StepsCard(
+      StepsCard(
         steps: [
           for (final step in steps)
             if (swahili) step.textSw else step.textEn,
@@ -126,92 +122,7 @@ class _MohProtocolScreenState extends State<MohProtocolScreen> {
       const SizedBox(height: AppSpacing.md),
       Text(l10n.mohCaption, style: Theme.of(context).textTheme.bodyMedium),
       const SizedBox(height: AppSpacing.sm),
-      for (final source in usedSources) _SourceLink(source: source),
+      for (final source in usedSources) SourceLink(source: source),
     ];
-  }
-}
-
-/// The protocol's steps, numbered, on one white card.
-class _StepsCard extends StatelessWidget {
-  const _StepsCard({required this.steps});
-
-  final List<String> steps;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final status = Theme.of(context).extension<AppStatusColors>()!;
-    final textTheme = Theme.of(context).textTheme;
-    final isDark = scheme.brightness == .dark;
-    return Container(
-      padding: AppStyles.cardPadding,
-      decoration: BoxDecoration(
-        color: isDark
-            ? scheme.surfaceContainerHigh
-            : scheme.surfaceContainerLowest,
-        borderRadius: BorderRadius.circular(AppRadii.card),
-        boxShadow: AppShadows.card(),
-      ),
-      child: Column(
-        crossAxisAlignment: .start,
-        children: [
-          for (var i = 0; i < steps.length; i++) ...[
-            if (i > 0) const SizedBox(height: AppSpacing.sm),
-            Row(
-              crossAxisAlignment: .start,
-              children: [
-                Container(
-                  width: 28,
-                  height: 28,
-                  alignment: .center,
-                  decoration: BoxDecoration(shape: .circle, color: status.ink),
-                  child: Text(
-                    '${i + 1}',
-                    style: textTheme.labelLarge?.copyWith(
-                      color: scheme.surfaceContainerLowest,
-                    ),
-                  ),
-                ),
-                const SizedBox(width: AppSpacing.sm),
-                Expanded(child: Text(steps[i], style: textTheme.bodyLarge)),
-              ],
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-}
-
-/// A source's title as a link to the document (design system §4.5).
-class _SourceLink extends StatelessWidget {
-  const _SourceLink({required this.source});
-
-  final GuidanceSourceModel source;
-
-  @override
-  Widget build(BuildContext context) {
-    final scheme = Theme.of(context).colorScheme;
-    final uri = Uri.tryParse(source.url);
-    final label = context.l10n.mohSource(source.title);
-    return Semantics(
-      link: true,
-      label: label,
-      excludeSemantics: true,
-      child: Tappable(
-        onTap: uri == null ? null : () => unawaited(launchUrl(uri)),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-          child: Text(
-            label,
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: scheme.primary,
-              decoration: TextDecoration.underline,
-              decorationColor: scheme.primary,
-            ),
-          ),
-        ),
-      ),
-    );
   }
 }
