@@ -1,21 +1,111 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
+import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_bloc.dart';
+import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_event.dart';
+import 'package:tabibu/features/reports/presentation/widgets/diff_card.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
-/// CS-09. A back button only, until its bundle builds the screen.
-class CompareScreen extends StatelessWidget {
+/// CS-09. The AI draft against the signed report, for the signer only: the
+/// impression/diagnosis and findings/comments pairs, each AI text on the AI
+/// surface and each signed text on the edited surface (H-5).
+class CompareScreen extends StatefulWidget {
   const CompareScreen({required this.caseUid, super.key});
 
   final String caseUid;
 
   @override
-  Widget build(BuildContext context) => Scaffold(
-    body: SafeArea(
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: TopBar(backLabel: context.l10n.commonBack, onBack: context.pop),
+  State<CompareScreen> createState() => _CompareScreenState();
+}
+
+class _CompareScreenState extends State<CompareScreen> {
+  @override
+  void initState() {
+    super.initState();
+    final me = switch (context.read<AuthBloc>().state.session) {
+      PractitionerSession(:final doctor) => doctor.uid,
+      _ => '',
+    };
+    final workspace = context.read<CaseWorkspaceBloc>();
+    if (workspace.state.caseUid != widget.caseUid) {
+      workspace.add(
+        CaseWorkspaceOpened(caseUid: widget.caseUid, pathologistUid: me),
+      );
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = context.l10n;
+    final state = context.watch<CaseWorkspaceBloc>().state;
+    final me = switch (context.watch<AuthBloc>().state.session) {
+      PractitionerSession(:final doctor) => doctor.uid,
+      _ => '',
+    };
+    final signed = state.signed;
+    final preread = state.preread;
+    final gated =
+        signed == null || preread == null || signed.pathologistUid != me;
+    final orderNumber =
+        state.caseModel?.orderNumber ?? signed?.orderNumber ?? '';
+
+    return Scaffold(
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.all(AppSpacing.md),
+          children: [
+            TopBar(
+              backLabel: l10n.commonBack,
+              onBack: context.pop,
+              title: l10n.compareTitle,
+              subtitle: gated ? null : l10n.compareSubtitle(orderNumber),
+            ),
+            if (gated) ...[
+              const SizedBox(height: AppSpacing.sectionGap),
+              // One message for a missing pre-read and for a report signed
+              // by someone else: the gate must not say which (H-4).
+              EmptyState(title: l10n.deskNoAiDraft),
+            ] else ...[
+              const SizedBox(height: AppSpacing.md),
+              _pair(
+                field: l10n.reportSectionDiagnosis,
+                aiText: preread.draft.impression,
+                yoursText: signed.diagnosis,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              _pair(
+                field: l10n.reportQuestionFindings,
+                aiText: preread.draft.findings
+                    .map((f) => f.text)
+                    .where((t) => t.isNotEmpty)
+                    .join('\n'),
+                yoursText: signed.comments,
+              ),
+            ],
+          ],
+        ),
       ),
-    ),
-  );
+    );
+  }
+
+  /// One AI/signed pair. Equal texts differ in nothing but the surfaces:
+  /// bundle 35 made no "No change" key, so no marker is shown.
+  Widget _pair({
+    required String field,
+    required String aiText,
+    required String yoursText,
+  }) {
+    final l10n = context.l10n;
+    return DiffCard(
+      field: field,
+      aiLabel: l10n.workspaceAiDraft,
+      aiText: aiText,
+      yoursLabel: l10n.compareYourReport,
+      yoursText: yoursText,
+    );
+  }
 }
