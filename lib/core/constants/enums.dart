@@ -445,12 +445,10 @@ enum AppError implements Exception {
     .invalidOrder => l10n.errorInvalidOrder,
     .invalidPathologist => l10n.errorInvalidPathologist,
     .dailyOrderLimit => l10n.errorDailyOrderLimit,
-    // Bundle 46 keys (errorWrongShareCode / Expired / Locked / Closed) once
-    // Muse lands them; until then the generic failure keeps the build green.
-    .wrongShareCode => l10n.errorUnknown,
-    .shareExpired => l10n.errorUnknown,
-    .shareLocked => l10n.errorUnknown,
-    .shareClosed => l10n.errorUnknown,
+    .wrongShareCode => l10n.shareCodeWrong,
+    .shareExpired => l10n.shareCodeExpired,
+    .shareLocked => l10n.shareCodeLocked,
+    .shareClosed => l10n.shareCodeUsed,
     .practitionerPendingVerification =>
       l10n.errorPractitionerPendingVerification,
     .noRoleAssigned => l10n.errorNoRoleAssigned,
