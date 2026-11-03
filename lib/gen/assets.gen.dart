@@ -250,6 +250,9 @@ class $AssetsIconsGen {
   SvgGenImage get passwordVisibleIcon =>
       const SvgGenImage('assets/icons/password_visible_icon.svg');
 
+  /// File path: assets/icons/pause_icon.svg
+  SvgGenImage get pauseIcon => const SvgGenImage('assets/icons/pause_icon.svg');
+
   /// File path: assets/icons/person_icon.svg
   SvgGenImage get personIcon =>
       const SvgGenImage('assets/icons/person_icon.svg');
@@ -278,6 +281,10 @@ class $AssetsIconsGen {
   /// File path: assets/icons/search_rounded_icon.svg
   SvgGenImage get searchRoundedIcon =>
       const SvgGenImage('assets/icons/search_rounded_icon.svg');
+
+  /// File path: assets/icons/send_outline_icon.svg
+  SvgGenImage get sendOutlineIcon =>
+      const SvgGenImage('assets/icons/send_outline_icon.svg');
 
   /// File path: assets/icons/share_icon.svg
   SvgGenImage get shareIcon => const SvgGenImage('assets/icons/share_icon.svg');
@@ -323,6 +330,14 @@ class $AssetsIconsGen {
   /// File path: assets/icons/verification_badge.svg
   SvgGenImage get verificationBadge =>
       const SvgGenImage('assets/icons/verification_badge.svg');
+
+  /// File path: assets/icons/zoom_in_icon.svg
+  SvgGenImage get zoomInIcon =>
+      const SvgGenImage('assets/icons/zoom_in_icon.svg');
+
+  /// File path: assets/icons/zoom_out_icon.svg
+  SvgGenImage get zoomOutIcon =>
+      const SvgGenImage('assets/icons/zoom_out_icon.svg');
 
   /// List of all assets
   List<dynamic> get values => [
@@ -371,6 +386,7 @@ class $AssetsIconsGen {
     passwordHiddenIcon,
     passwordIcon,
     passwordVisibleIcon,
+    pauseIcon,
     personIcon,
     phoneIcon,
     photoIcon,
@@ -379,6 +395,7 @@ class $AssetsIconsGen {
     refreshIcon,
     resultsIcon,
     searchRoundedIcon,
+    sendOutlineIcon,
     shareIcon,
     shieldIcon,
     signOutIcon,
@@ -391,6 +408,8 @@ class $AssetsIconsGen {
     tickIcon,
     uploadIcon,
     verificationBadge,
+    zoomInIcon,
+    zoomOutIcon,
   ];
 }
 
