@@ -10,7 +10,7 @@ export interface DemoCaseExpectation {
   /** Empty string means the accession must be blank (record-sample demo). */
   accession: 'any' | 'empty' | 'set';
   /** Ready = a stored Ready pre-read must exist; none = no preread docs; any = ignore. */
-  preread: 'Ready' | 'Queued' | 'none' | 'any';
+  preread: 'Ready' | 'Queued' | 'QueuedOrReady' | 'none' | 'any';
 }
 
 /** Every staged case the demo accounts should see after `make seed-cases`. */
@@ -25,7 +25,8 @@ export const DEMO_CASE_EXPECTATIONS: readonly DemoCaseExpectation[] = [
   { key: 'accepted', stage: 'PathologistAccepted', minSlides: 0, accession: 'empty', preread: 'none' },
   { key: 'malaria', stage: 'ReportSigned', minSlides: 1, accession: 'set', preread: 'Ready' },
   { key: 'requested', stage: 'PathologistRequested', minSlides: 0, accession: 'empty', preread: 'none' },
-  { key: 'queued', stage: 'PrereadQueued', minSlides: 1, accession: 'empty', preread: 'Queued' },
+  // The live worker may finish this run before the check: Queued or already Ready are both right.
+  { key: 'queued', stage: 'PrereadQueued', minSlides: 1, accession: 'empty', preread: 'QueuedOrReady' },
   // Bundle 67 additions:
   { key: 'requestWithSlide', stage: 'PathologistRequested', minSlides: 1, accession: 'empty', preread: 'none' },
   { key: 'sampleDue', stage: 'PrereadReady', minSlides: 1, accession: 'empty', preread: 'Ready' },

@@ -78,7 +78,8 @@ async function main(): Promise<void> {
 
     rows.push({ key: exp.key, caseUid, stage, pathologistUid, slides, accession, preread });
 
-    if (stage !== exp.stage) {
+    const stageOk = exp.preread === 'QueuedOrReady' ? ['PrereadQueued', 'PrereadReady'].includes(stage) : stage === exp.stage;
+    if (!stageOk) {
       fail(`${exp.key}: stage ${stage} (expected ${exp.stage})`);
     }
     if (slides < exp.minSlides) {
@@ -95,6 +96,9 @@ async function main(): Promise<void> {
     }
     if (exp.preread === 'Queued' && preread !== 'Queued') {
       fail(`${exp.key}: preread ${preread} (expected Queued)`);
+    }
+    if (exp.preread === 'QueuedOrReady' && !['Queued', 'Ready'].includes(preread)) {
+      fail(`${exp.key}: preread ${preread} (expected Queued or Ready)`);
     }
     if (exp.preread === 'none' && preread !== 'none') {
       fail(`${exp.key}: preread ${preread} (expected none)`);
