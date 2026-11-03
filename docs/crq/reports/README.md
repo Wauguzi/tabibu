@@ -56,6 +56,7 @@ patient reads, or the alert path.
 | [CRQ-0047](./CRQ-0047-model-performance-signals.md) | Model performance signals | 2026-11-01 | Implemented |
 | [CRQ-0048](./CRQ-0048-feature-data-sources-and-indexes.md) | Firebase feature data sources and the index check | 2026-11-01 | Implemented |
 | [CRQ-0049](./CRQ-0049-outbreak-alerts.md) | Outbreak alerts | 2026-11-01 | Implemented — detector and delivery built (`d05d289`), not deployed; source urls to re-verify |
+| [CRQ-0050](./CRQ-0050-role-screens-and-flows.md) | The patient, doctor and pathologist screens: every designed screen whose backend exists | 2026-11-02 | In progress — `feat/ui`; rounds 5 and 6 still landing |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.
