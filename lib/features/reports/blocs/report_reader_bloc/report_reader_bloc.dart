@@ -23,9 +23,11 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
     ReportCacheHelper? reports,
     ReportFirebase? remote,
     InternetService? internet,
+    Future<void> Function(Duration)? delay,
   }) : _reports = reports ?? getIt<ReportCacheHelper>(),
        _remote = remote ?? getIt<ReportFirebase>(),
        _internet = internet ?? getIt<InternetService>(),
+       _delay = delay ?? Future<void>.delayed,
        super(const ReportReaderInitial()) {
     // The last report opened is the one on screen.
     on<ReportReaderOpened>(_onOpened, transformer: restartable());
@@ -38,6 +40,12 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
   final ReportCacheHelper _reports;
   final ReportFirebase _remote;
   final InternetService _internet;
+  final Future<void> Function(Duration) _delay;
+
+  /// After Mark as discussed the explanation drafts are written by a worker a
+  /// few seconds later; the screen looks for them this often, for this long.
+  static const pollEvery = Duration(seconds: 3);
+  static const pollFor = Duration(seconds: 90);
 
   static const _languages = ['en', 'sw'];
   static const _offline = <AppError>{
@@ -89,7 +97,10 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
               caseUid: event.caseUid,
               textUid: id,
             );
-            if (draft != null) explanations[language] = draft;
+            // A text still queued or running has nothing to read yet.
+            if (draft != null && draft.statusValue == .ready) {
+              explanations[language] = draft;
+            }
           }
           final text = offline
               ? await _reports.getApprovedText(event.caseUid, id)
@@ -145,6 +156,51 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
       );
     } on Object catch (e) {
       emit(_failure(e));
+      return;
+    }
+    await _awaitDrafts(emit, report.uid);
+  }
+
+  /// Looks for the explanation drafts until each language is Ready, Failed or
+  /// [pollFor] has passed, so they appear without the doctor asking. A failed
+  /// read is retried at the next tick; nothing is shown that is not Ready.
+  Future<void> _awaitDrafts(
+    Emitter<ReportReaderState> emit,
+    String reportUid,
+  ) async {
+    final caseUid = state.caseUid;
+    final ticks = pollFor.inMilliseconds ~/ pollEvery.inMilliseconds;
+    for (var tick = 0; tick <= ticks; tick++) {
+      if (tick > 0) await _delay(pollEvery);
+      if (emit.isDone || state.caseUid != caseUid || state.role != .doctor) {
+        return;
+      }
+      final ready = <String, ReportTextModel>{};
+      var pending = false;
+      for (final language in _languages) {
+        final id = reportTextId(reportUid, .explanation, language);
+        ReportTextModel? text;
+        try {
+          text = await _remote.fetchReportText(caseUid: caseUid, textUid: id);
+        } on Object catch (_) {
+          text = null;
+        }
+        final status = text?.statusValue;
+        if (text == null || status == .queued || status == .running) {
+          pending = true;
+        } else if (status == .ready) {
+          ready[language] = text;
+        }
+      }
+      if (emit.isDone || state.caseUid != caseUid) return;
+      if (ready.isNotEmpty &&
+          !const MapEquality<String, ReportTextModel>().equals(
+            ready,
+            state.explanations,
+          )) {
+        emit(_copy(ReportReaderLoadSuccess.new, explanations: ready));
+      }
+      if (!pending) return;
     }
   }
 

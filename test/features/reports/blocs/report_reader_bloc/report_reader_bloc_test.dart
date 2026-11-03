@@ -42,8 +42,13 @@ void main() {
   late _MockRemote remote;
   late _MockInternet internet;
 
-  ReportReaderBloc build() =>
-      ReportReaderBloc(reports: reports, remote: remote, internet: internet);
+  ReportReaderBloc build() => ReportReaderBloc(
+    reports: reports,
+    remote: remote,
+    internet: internet,
+    // No real waiting between polls.
+    delay: (_) async {},
+  );
 
   void neverDecided() => verifyNever(
     () => remote.approveReportText(
@@ -144,6 +149,26 @@ void main() {
     );
 
     blocTest<ReportReaderBloc, ReportReaderState>(
+      'a draft still queued has nothing to read, so it is left out',
+      setUp: () {
+        when(
+          () => reports.syncReports('d1', role: Role.doctor),
+        ).thenAnswer((_) async => [_report(released: true)]);
+        when(
+          () => remote.fetchReportText(
+            caseUid: _case,
+            textUid: 'v1_Explanation_en',
+          ),
+        ).thenAnswer((_) async => _draft.copyWith(status: 'Queued'));
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const ReportReaderOpened(uid: 'd1', role: Role.doctor, caseUid: _case),
+      ),
+      verify: (bloc) => expect(bloc.state.explanations, isEmpty),
+    );
+
+    blocTest<ReportReaderBloc, ReportReaderState>(
       'offline, approved texts come from the phone and no draft is read',
       setUp: () {
         when(
@@ -195,6 +220,77 @@ void main() {
       verify: (bloc) {
         expect(bloc.state, isA<ReportDiscussedSuccess>());
         expect(bloc.state.report?.releasedToPatient, isTrue);
+      },
+    );
+
+    blocTest<ReportReaderBloc, ReportReaderState>(
+      'the drafts appear by themselves once the worker has written them',
+      setUp: () {
+        when(
+          () => remote.markDiscussed(caseUid: _case, reportUid: 'v1'),
+        ).thenAnswer((_) async => {'status': 'ok'});
+        var reads = 0;
+        when(
+          () => remote.fetchReportText(
+            caseUid: any(named: 'caseUid'),
+            textUid: any(named: 'textUid'),
+          ),
+        ).thenAnswer((invocation) async {
+          reads++;
+          final id = invocation.namedArguments[#textUid] as String;
+          // The first round of reads finds both still queued, the second ready.
+          if (reads <= 2) {
+            return ReportTextModel.empty().copyWith(uid: id, status: 'Queued');
+          }
+          return ReportTextModel.empty().copyWith(
+            uid: id,
+            status: 'Ready',
+            machineText: {'found': 'Text for $id'},
+          );
+        });
+      },
+      build: build,
+      seed: () => loaded(Role.doctor),
+      act: (bloc) => bloc.add(const ReportDiscussedRequested()),
+      verify: (bloc) {
+        expect(bloc.state, isA<ReportReaderLoadSuccess>());
+        expect(bloc.state.explanations.keys, unorderedEquals(['en', 'sw']));
+        expect(bloc.state.report?.releasedToPatient, isTrue);
+      },
+    );
+
+    blocTest<ReportReaderBloc, ReportReaderState>(
+      'a draft that failed is never shown, and the looking stops',
+      setUp: () {
+        when(
+          () => remote.markDiscussed(caseUid: _case, reportUid: 'v1'),
+        ).thenAnswer((_) async => {'status': 'ok'});
+        when(
+          () => remote.fetchReportText(
+            caseUid: any(named: 'caseUid'),
+            textUid: any(named: 'textUid'),
+          ),
+        ).thenAnswer(
+          (invocation) async => ReportTextModel.empty().copyWith(
+            uid: invocation.namedArguments[#textUid] as String,
+            status: 'Failed',
+            failureReason: 'NumberCheck',
+          ),
+        );
+      },
+      build: build,
+      seed: () => loaded(Role.doctor),
+      act: (bloc) => bloc.add(const ReportDiscussedRequested()),
+      verify: (bloc) {
+        expect(bloc.state, isA<ReportDiscussedSuccess>());
+        expect(bloc.state.explanations, isEmpty);
+        // Two languages, read once each: a failure ends the wait.
+        verify(
+          () => remote.fetchReportText(
+            caseUid: any(named: 'caseUid'),
+            textUid: any(named: 'textUid'),
+          ),
+        ).called(2);
       },
     );
 
