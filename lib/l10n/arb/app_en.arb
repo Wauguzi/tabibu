@@ -5357,6 +5357,27 @@
     "@compareYourReport": {
         "description": "Comparison box label for the signed text"
     },
+    "compareNoChange": "No change",
+    "@compareNoChange": {
+        "description": "Marker on a comparison pair whose texts are equal"
+    },
+    "compareNoDraft": "No AI draft for this case",
+    "@compareNoDraft": {
+        "description": "Comparison empty state; also shown when the report is another signer's"
+    },
+    "compareSummary": "Signed {date} · both kept on record",
+    "@compareSummary": {
+        "description": "Comparison summary line; date is formatted",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "explanationRejectBody": "This explanation won't be sent to the patient.",
+    "@explanationRejectBody": {
+        "description": "Reject confirmation sheet body; re-requesting is impossible once released"
+    },
     "explanationMarkButton": "Mark as discussed",
     "@explanationMarkButton": {
         "description": "Report button opening the mark-discussed sheet"
@@ -5425,10 +5446,6 @@
     "explainedAiAttribution": "Explanation prepared with AI and approved by your doctor",
     "@explainedAiAttribution": {
         "description": "Patient explanation AI line"
-    },
-    "explainedAudioLine": "The audio reads the approved text.",
-    "@explainedAudioLine": {
-        "description": "Patient explanation read-aloud line"
     },
     "explainedDiscussedChip": "Discussed with {doctor} · {date}",
     "@explainedDiscussedChip": {
@@ -5784,10 +5801,6 @@
     "healthNoticeReadGuidance": "Read the official guidance",
     "@healthNoticeReadGuidance": {
         "description": "Guidance button"
-    },
-    "healthNoticeHotlines": "Call a health hotline",
-    "@healthNoticeHotlines": {
-        "description": "Hotline label; numbers come from the guidance asset"
     },
     "healthNoticeFindDoctor": "Find a doctor near me",
     "@healthNoticeFindDoctor": {

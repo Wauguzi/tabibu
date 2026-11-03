@@ -1084,6 +1084,10 @@
     "compareTitle": "Linganisha",
     "compareSubtitle": "{caseNumber} · rasimu ya AI dhidi ya ripoti yako",
     "compareYourReport": "Ripoti yako",
+    "compareNoChange": "Hakuna mabadiliko",
+    "compareNoDraft": "Hakuna rasimu ya AI kwa kesi hii",
+    "compareSummary": "Imesainiwa {date} · zote zimehifadhiwa",
+    "explanationRejectBody": "Maelezo haya hayatatumwa kwa mgonjwa.",
     "explanationMarkButton": "Weka kama imejadiliwa",
     "explanationMarkTitle": "Weka kama imejadiliwa na {name}?",
     "explanationInPerson": "Ana kwa ana",
@@ -1098,7 +1102,6 @@
     "explanationRejected": "Imekataliwa",
     "explanationWaitingForDraft": "Inasubiri rasimu ya AI",
     "explainedAiAttribution": "Maelezo yametayarishwa kwa AI na kukubaliwa na daktari wako",
-    "explainedAudioLine": "Sauti inasoma maandishi yaliyokubaliwa.",
     "explainedDiscussedChip": "Mmezungumza na {doctor} · {date}",
     "explainedHeadline": "Muhtasari wa {doctor} kuhusu matokeo yako",
     "explainedListenMeta": "Unasomewa kwa {language} · {duration}",
@@ -1159,6 +1162,5 @@
     "healthNoticeAttribution": "Imeidhinishwa kutolewa na daktari aliyeidhinishwa wa Tabibu. Mwongozo: {source}",
     "healthNoticeLocationLine": "Tabibu haifuatilii wala kusambaza mahali ulipo kwa watu wengine.",
     "healthNoticeReadGuidance": "Soma mwongozo rasmi",
-    "healthNoticeHotlines": "Piga laini ya msaada ya afya",
     "healthNoticeFindDoctor": "Tafuta daktari karibu nami"
 }

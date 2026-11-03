@@ -1,13 +1,17 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
+import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_bloc.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_event.dart';
+import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/presentation/widgets/diff_card.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// CS-09. The AI draft against the signed report, for the signer only: the
@@ -68,8 +72,14 @@ class _CompareScreenState extends State<CompareScreen> {
               const SizedBox(height: AppSpacing.sectionGap),
               // One message for a missing pre-read and for a report signed
               // by someone else: the gate must not say which (H-4).
-              EmptyState(title: l10n.deskNoAiDraft),
+              EmptyState(title: l10n.compareNoDraft),
             ] else ...[
+              const SizedBox(height: AppSpacing.md),
+              NoticeCard(
+                variant: .info,
+                icon: Assets.icons.documentIcon,
+                body: l10n.compareSummary(_signedDate(signed)),
+              ),
               const SizedBox(height: AppSpacing.md),
               _pair(
                 field: l10n.reportSectionDiagnosis,
@@ -92,8 +102,14 @@ class _CompareScreenState extends State<CompareScreen> {
     );
   }
 
-  /// One AI/signed pair. Equal texts differ in nothing but the surfaces:
-  /// bundle 35 made no "No change" key, so no marker is shown.
+  String _signedDate(PathologyReportModel signed) {
+    final at = nairobiTimeOf(signed.signedAt);
+    if (at == null) return '';
+    final language = Localizations.localeOf(context).languageCode;
+    return DateFormat('EEE d MMM', language).format(at);
+  }
+
+  /// One AI/signed pair; equal texts carry the "No change" marker.
   Widget _pair({
     required String field,
     required String aiText,
@@ -106,6 +122,7 @@ class _CompareScreenState extends State<CompareScreen> {
       aiText: aiText,
       yoursLabel: l10n.compareYourReport,
       yoursText: yoursText,
+      note: aiText == yoursText ? l10n.compareNoChange : null,
     );
   }
 }

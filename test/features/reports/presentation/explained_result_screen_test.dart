@@ -212,7 +212,6 @@ void main() {
 
         expect(find.byType(ListenCard), findsNothing);
         expect(find.text(l10n.explainedAiAttribution), findsNothing);
-        expect(find.text(l10n.explainedAudioLine), findsNothing);
         expect(find.byType(ReportTextCard), findsNothing);
         expect(find.text(l10n.explainedViewFullReport), findsOneWidget);
       });

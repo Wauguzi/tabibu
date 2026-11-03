@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
@@ -166,7 +168,7 @@ void main() {
         ),
       );
 
-      expect(find.text(l10n.deskNoAiDraft), findsOneWidget);
+      expect(find.text(l10n.compareNoDraft), findsOneWidget);
       expect(find.byType(DiffCard), findsNothing);
       expect(
         find.text(l10n.compareSubtitle('ODR-AO-AW-02112026-001')),
@@ -190,7 +192,7 @@ void main() {
       );
 
       expect(find.text(l10n.compareTitle), findsOneWidget);
-      expect(find.text(l10n.deskNoAiDraft), findsOneWidget);
+      expect(find.text(l10n.compareNoDraft), findsOneWidget);
       expect(find.byType(DiffCard), findsNothing);
       // No subtitle, no AI text, no signed text.
       expect(
@@ -204,10 +206,9 @@ void main() {
       );
     });
 
-    testWidgets('equal texts show on both sides with no marker', (
-      tester,
-    ) async {
+    testWidgets('equal texts carry the no-change marker', (tester) async {
       _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
       final same = _signed().copyWith(
         diagnosis: 'Atypical cells, see comment.',
         comments: 'One node with suspicious cells.\nLargest focus 2.6 mm.',
@@ -222,13 +223,36 @@ void main() {
         ),
       );
 
-      // Bundle 35 made no "No change" key: the identical texts speak.
       expect(find.text('Atypical cells, see comment.'), findsNWidgets(2));
       expect(
         find.text('One node with suspicious cells.\nLargest focus 2.6 mm.'),
         findsNWidgets(2),
       );
       expect(find.byType(DiffCard), findsNWidgets(2));
+      expect(find.text(l10n.compareNoChange), findsNWidgets(2));
+    });
+
+    testWidgets('changed texts carry no marker, with the summary', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpScreen(
+        tester,
+        state: CaseWorkspaceLoadSuccess(
+          caseUid: 'case-1',
+          caseModel: _case(),
+          signed: _signed(),
+          preread: _preread(),
+        ),
+      );
+
+      expect(find.text(l10n.compareNoChange), findsNothing);
+      final date = DateFormat(
+        'EEE d MMM',
+        'en',
+      ).format(nairobiTimeOf('2026-10-27T07:42:00Z')!);
+      expect(find.text(l10n.compareSummary(date)), findsOneWidget);
     });
 
     testWidgets('renders in Swahili, dark, at 1.3x', (tester) async {

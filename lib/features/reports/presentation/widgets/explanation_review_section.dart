@@ -94,6 +94,7 @@ class ExplanationReviewSection extends StatelessWidget {
     final confirmed = await showSettledSheet<bool>(
       context,
       title: title,
+      subtitle: l10n.explanationRejectBody,
       cancelLabel: l10n.commonCancel,
       builder: (sheet) => TabibuButton.primary(
         label: l10n.alertReviewReject,
