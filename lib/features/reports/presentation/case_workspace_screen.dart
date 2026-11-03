@@ -417,6 +417,11 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                     child: SampleReceivedView(
                       caseModel: asked,
                       busy: state is CaseWorkspaceWriteInProgress,
+                      suggested: suggestedAccession(
+                        orderNumber: asked.orderNumber,
+                        firstName: _me.firstName,
+                        lastName: _me.lastName,
+                      ),
                       onRecord: (accession) =>
                           _add(CaseSampleReceived(labAccessionNo: accession)),
                     ),

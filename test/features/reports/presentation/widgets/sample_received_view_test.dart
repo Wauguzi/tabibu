@@ -66,12 +66,44 @@ void main() {
     expect(recorded, ['NH/26/0108']);
   });
 
+  testWidgets('a typographic dash or a space is put right as it is typed', (
+    tester,
+  ) async {
+    final recorded = await pump(tester, suggested: '');
+
+    // An en dash and a space, as a phone keyboard can leave them.
+    await tester.enterText(field(), 'LAB\u2013WK 03112026\u2013005');
+    await tester.pump();
+    expect(
+      tester.widget<TextField>(field()).controller?.text,
+      'LAB-WK03112026-005',
+    );
+
+    await tester.tap(find.text(en.doctorCaseSampleReceived));
+    await tester.pump();
+    expect(find.text(en.workspaceSampleInvalid), findsNothing);
+    expect(recorded, ['LAB-WK03112026-005']);
+  });
+
+  testWidgets('the exact suggested number typed by hand is accepted', (
+    tester,
+  ) async {
+    final recorded = await pump(tester, suggested: '');
+
+    await tester.enterText(field(), 'LAB-WK-03112026-005');
+    await tester.tap(find.text(en.doctorCaseSampleReceived));
+    await tester.pump();
+
+    expect(find.text(en.workspaceSampleInvalid), findsNothing);
+    expect(recorded, ['LAB-WK-03112026-005']);
+  });
+
   testWidgets('a number the lab could not use is refused with a reason', (
     tester,
   ) async {
     final recorded = await pump(tester);
 
-    await tester.enterText(field(), 'has space');
+    await tester.enterText(field(), '');
     await tester.tap(find.text(en.doctorCaseSampleReceived));
     await tester.pump();
 

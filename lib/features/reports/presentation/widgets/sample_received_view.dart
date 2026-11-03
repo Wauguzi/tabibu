@@ -1,3 +1,4 @@
+import 'package:flutter/services.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -30,6 +31,22 @@ class SampleReceivedView extends StatefulWidget {
 
 class _SampleReceivedViewState extends State<SampleReceivedView> {
   static final _shape = RegExp(r'^[A-Za-z0-9/-]{1,30}$');
+
+  /// Keyboards swap a hyphen for a typographic dash and add spaces; both are
+  /// put right as they are typed, and anything else the lab does not use is
+  /// not accepted at all.
+  static final _typing = TextInputFormatter.withFunction((old, value) {
+    final text = value.text
+        .replaceAll(RegExp('[\u2010-\u2015\u2212]'), '-')
+        .replaceAll(RegExp('[^A-Za-z0-9/-]'), '');
+    if (text == value.text) return value;
+    return TextEditingValue(
+      text: text,
+      selection: TextSelection.collapsed(
+        offset: text.length.clamp(0, value.selection.end.clamp(0, text.length)),
+      ),
+    );
+  });
 
   late final _accession = TextEditingController(text: widget.suggested);
   bool _invalid = false;
@@ -86,6 +103,7 @@ class _SampleReceivedViewState extends State<SampleReceivedView> {
           bordered: true,
           readOnly: widget.busy,
           maxLength: 30,
+          inputFormatters: [_typing],
           errorText: _invalid ? l10n.workspaceSampleInvalid : null,
           onChanged: (_) {
             if (_invalid) setState(() => _invalid = false);

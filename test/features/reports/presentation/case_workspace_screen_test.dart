@@ -18,6 +18,7 @@ import 'package:tabibu/features/alerts/data/models/notifiable_disease_model.dart
 import 'package:tabibu/features/alerts/data/models/notifiable_lab_test_model.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
+import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/data/models/ordered_test_model.dart';
 import 'package:tabibu/features/preread/data/datasources/preread_storage.dart';
@@ -478,6 +479,48 @@ void main() {
             const CaseRequestDeclined(reason: 'On leave this week'),
           ),
         ).called(1);
+      });
+    });
+
+    group('an accepted case with no sample recorded', () {
+      testWidgets('opens on the accession, starting from a made-up number', (
+        tester,
+      ) async {
+        final base = RoleSessions.pathologist;
+        when(() => authBloc.state).thenReturn(
+          SignInSuccess(
+            session: PractitionerSession(
+              doctor: base.doctor.copyWith(
+                uid: 'path-1',
+                firstName: 'Wanjiru',
+                lastName: 'Kamau',
+              ),
+              roles: base.roles,
+            ),
+          ),
+        );
+        await pumpScreen(
+          tester,
+          const CaseWorkspaceLoadSuccess(
+            caseUid: _caseUid,
+            caseModel: CaseModel(
+              uid: _caseUid,
+              orderNumber: 'ODR-AO-AO-03112026-005',
+              currentStage: 'PrereadReady',
+              pathologistUid: 'path-1',
+            ),
+          ),
+        );
+
+        expect(find.text(l10n.workspaceSampleTitle), findsOneWidget);
+        // Today's date is in the number, so it is read by its shape.
+        final field = tester.widget<TextField>(
+          find.descendant(
+            of: find.byType(TabibuTextField),
+            matching: find.byType(TextField),
+          ),
+        );
+        expect(field.controller?.text, matches(RegExp(r'^LAB-WK-\d{8}-005$')));
       });
     });
 
