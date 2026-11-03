@@ -1,20 +1,18 @@
 #!/usr/bin/env npx ts-node
 // cspell:ignore muse Camelyon pcam
 /**
- * Pre-read tile classifier evaluation and prompt tuning (bundles 57 / 59).
+ * Pre-read tile classifier evaluation and prompt tuning (bundles 57 / 59 / 60).
  *
  * - Held-out set (`data/eval_pcam/`): never tune a prompt against these tiles.
- * - Tuning set (`data/tune_pcam/`): 60 balanced PatchCamelyon *train* rows reserved below,
- *   disjoint from the seed mosaics and the held-out set. Stage files before `--live --tune`.
+ * - Tuning set (`data/tune_pcam/`): staged by `stage-pcam.ts --fetch` from PatchCamelyon train.
  *
- * The API key is read only from `META_API_KEY` in the environment and is never printed.
+ * The API key is read only from `META_API_KEY` and is never printed.
  *
  * Usage:
- *   npx ts-node scripts/eval-preread.ts              # dry plan
- *   npx ts-node scripts/eval-preread.ts --live       # held-out metrics (current prompt)
- *   npx ts-node scripts/eval-preread.ts --live --tune  # v2 vs v3 on the tuning set only
+ *   npx ts-node scripts/eval-preread.ts                 # dry plan
+ *   npx ts-node scripts/eval-preread.ts --live --tune   # v2 vs v3 on tune set; writes chosen-version.txt
+ *   npx ts-node scripts/eval-preread.ts --live          # held-out for the live prompt (refuses if chosen on held-out)
  */
-import { createHash } from 'node:crypto';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -31,48 +29,62 @@ import {
 
 const LIVE = process.argv.includes('--live');
 const TUNE = process.argv.includes('--tune');
+const YES_SPEND = process.argv.includes('--yes-spend');
 const ROOT = join(__dirname, '..');
 const OUT = join(ROOT, 'scripts', 'eval-preread-results.json');
+const CHOSEN = join(ROOT, 'scripts', 'chosen-version.txt');
 const HELD_OUT_MANIFEST = join(ROOT, 'data', 'eval_pcam', 'manifest.json');
 const TUNE_MANIFEST = join(ROOT, 'data', 'tune_pcam', 'manifest.json');
-
-/**
- * Reserved PatchCamelyon train-split row indices for prompt tuning (bundle 59).
- * Each row's class is read from the dataset when staged, never assumed here; ids stay outside the demo mosaic sources
- * (`train/0`…`train/99` style names in slides.json) and outside the held-out eval tree.
- * Labels and PNG paths come from `data/tune_pcam/manifest.json` when Theo stages the pull.
- */
-export const TUNE_PCAM_TRAIN_ROWS: readonly number[] = [
-  // First reservation (30).
-  12010, 12011, 12012, 12013, 12014, 12015, 12016, 12017, 12018, 12019, 12020, 12021, 12022,
-  12023, 12024, 12025, 12026, 12027, 12028, 12029, 12030, 12031, 12032, 12033, 12034, 12035,
-  12036, 12037, 12038, 12039,
-  // Second reservation (30).
-  22010, 22011, 22012, 22013, 22014, 22015, 22016, 22017, 22018, 22019, 22020, 22021, 22022,
-  22023, 22024, 22025, 22026, 22027, 22028, 22029, 22030, 22031, 22032, 22033, 22034, 22035,
-  22036, 22037, 22038, 22039,
-];
+/** Hard cap on model tile calls per invocation unless `--yes-spend`. */
+const MAX_TILE_CALLS = 300;
 
 interface Sample {
   id: string;
   label: 'Tumour' | 'Normal';
   path: string;
+  split?: string;
   row?: number;
+}
+
+interface Interval {
+  low: number;
+  high: number;
 }
 
 interface Metrics {
   promptVersion: string;
   n: number;
+  nTumour: number;
+  nNormal: number;
   accuracy: number;
+  accuracyWilson95: Interval;
   sensitivity: number;
+  sensitivityWilson95: Interval;
   specificity: number;
+  specificityWilson95: Interval;
   confusion: { tp: number; tn: number; fp: number; fn: number };
   latencyMsMean: number;
+  smallSample: boolean;
 }
 
 function loadManifest(path: string): Sample[] {
   if (!existsSync(path)) return [];
   return JSON.parse(readFileSync(path, 'utf8')) as Sample[];
+}
+
+/** Wilson score interval for a binomial proportion (z ≈ 1.96 → 95%). */
+export function wilson95(successes: number, n: number): Interval {
+  if (n <= 0) return { low: 0, high: 0 };
+  const z = 1.96;
+  const p = successes / n;
+  const z2 = z * z;
+  const denom = 1 + z2 / n;
+  const centre = p + z2 / (2 * n);
+  const margin = z * Math.sqrt((p * (1 - p) + z2 / (4 * n)) / n);
+  return {
+    low: Math.max(0, (centre - margin) / denom),
+    high: Math.min(1, (centre + margin) / denom),
+  };
 }
 
 function metricsOf(
@@ -84,22 +96,35 @@ function metricsOf(
   let fp = 0;
   let fn = 0;
   let latency = 0;
+  let nTumour = 0;
+  let nNormal = 0;
   for (const r of rows) {
     latency += r.ms;
+    if (r.truth === 'Tumour') nTumour += 1;
+    else nNormal += 1;
     if (r.truth === 'Tumour' && r.pred === 'Tumour') tp += 1;
     else if (r.truth === 'Normal' && r.pred === 'Normal') tn += 1;
     else if (r.truth === 'Normal' && r.pred === 'Tumour') fp += 1;
     else fn += 1;
   }
   const n = rows.length;
+  const accuracy = n === 0 ? 0 : (tp + tn) / n;
+  const sensitivity = tp + fn === 0 ? 0 : tp / (tp + fn);
+  const specificity = tn + fp === 0 ? 0 : tn / (tn + fp);
   return {
     promptVersion,
     n,
-    accuracy: n === 0 ? 0 : (tp + tn) / n,
-    sensitivity: tp + fn === 0 ? 0 : tp / (tp + fn),
-    specificity: tn + fp === 0 ? 0 : tn / (tn + fp),
+    nTumour,
+    nNormal,
+    accuracy,
+    accuracyWilson95: wilson95(tp + tn, n),
+    sensitivity,
+    sensitivityWilson95: wilson95(tp, tp + fn),
+    specificity,
+    specificityWilson95: wilson95(tn, tn + fp),
     confusion: { tp, tn, fp, fn },
     latencyMsMean: n === 0 ? 0 : latency / n,
+    smallSample: n < 100,
   };
 }
 
@@ -109,9 +134,15 @@ function printMetrics(m: Metrics): void {
       {
         promptVersion: m.promptVersion,
         n: m.n,
+        nTumour: m.nTumour,
+        nNormal: m.nNormal,
+        smallSample: m.smallSample,
         accuracy: m.accuracy,
+        accuracyWilson95: m.accuracyWilson95,
         sensitivity: m.sensitivity,
+        sensitivityWilson95: m.sensitivityWilson95,
         specificity: m.specificity,
+        specificityWilson95: m.specificityWilson95,
         confusion: m.confusion,
         latencyMsMean: m.latencyMsMean,
       },
@@ -121,7 +152,6 @@ function printMetrics(m: Metrics): void {
   );
 }
 
-/** v2 instructions (pre–central-32 rule) for an A/B tune pass only. */
 function instructionsV2(): string {
   return [
     'Classify each pathology tile image. Profile: Cancer.',
@@ -198,7 +228,9 @@ async function classifyOne(
     },
     body: JSON.stringify(body),
   });
-  if (!response.ok) throw new Error(`classify failed statusClass=${response.status >= 500 ? '5xx' : '4xx'}`);
+  if (!response.ok) {
+    throw new Error(`classify failed statusClass=${response.status >= 500 ? '5xx' : '4xx'}`);
+  }
   const text = await response.text();
   const parsed = JSON.parse(text) as {
     output?: { content?: { type?: string; text?: string }[] }[];
@@ -214,7 +246,6 @@ async function classifyOne(
   }
   const structured = JSON.parse(jsonText) as { tiles?: { id?: string; label?: string }[] };
   const pred = structured.tiles?.[0]?.label === 'Tumour' ? 'Tumour' : 'Normal';
-  void createHash('sha256').update(bytes).digest('hex');
   return { pred, ms: Date.now() - started };
 }
 
@@ -232,37 +263,55 @@ async function scoreSet(
   return metricsOf(promptVersion, rows);
 }
 
+function assertSpend(tileCalls: number): void {
+  if (tileCalls <= MAX_TILE_CALLS) return;
+  if (!YES_SPEND) {
+    throw new Error(
+      `Refusing ${tileCalls} tile calls (cap ${MAX_TILE_CALLS}). Pass --yes-spend to proceed.`,
+    );
+  }
+}
+
 async function main(): Promise<void> {
   const heldOut = loadManifest(HELD_OUT_MANIFEST);
   const tune = loadManifest(TUNE_MANIFEST);
   const hasKey = Boolean(process.env.META_API_KEY);
+  const chosen = existsSync(CHOSEN) ? readFileSync(CHOSEN, 'utf8').trim() : '';
 
-  console.log(
-    JSON.stringify(
-      {
-        plan: TUNE
-          ? 'PatchCamelyon tuning set: compare preread-classify-v2 vs v3 (never the held-out set)'
-          : 'PatchCamelyon held-out classify via Muse Spark 1.3 vision',
-        promptVersionLive: PREREAD_PROMPT_VERSION,
-        promptVersionsCompared: TUNE
-          ? [PREREAD_PROMPT_VERSION_V2, PREREAD_PROMPT_VERSION]
-          : [PREREAD_PROMPT_VERSION],
-        pcamRuleInV3: PREREAD_PCAM_LABEL_RULE.slice(0, 80) + '…',
-        tilesPerRequest: PREREAD_TILES_PER_REQUEST,
-        heldOutCount: heldOut.length,
-        tuneManifestCount: tune.length,
-        tuneReservedRows: TUNE_PCAM_TRAIN_ROWS.length,
-        tuneReservedRowIds: TUNE_PCAM_TRAIN_ROWS,
-        heldOutManifest: HELD_OUT_MANIFEST,
-        tuneManifest: TUNE_MANIFEST,
-        live: LIVE,
-        tune: TUNE,
-        hasKey,
-      },
-      null,
-      2,
-    ),
-  );
+  if (TUNE && heldOut.length > 0 && tune.length === 0) {
+    // Guard: never treat eval_pcam as a tuning set.
+    console.log('Refusing --tune: tuning uses data/tune_pcam only, never eval_pcam.');
+    process.exitCode = 1;
+    return;
+  }
+
+  const header = {
+    plan: TUNE
+      ? 'PatchCamelyon tuning set: compare preread-classify-v2 vs v3 (never the held-out set)'
+      : 'PatchCamelyon held-out classify via Muse Spark 1.3 vision',
+    smallSampleNote:
+      'With fewer than 100 tiles per set these are small-sample estimates (Wilson 95% intervals).',
+    promptVersionLive: PREREAD_PROMPT_VERSION,
+    promptVersionsCompared: TUNE
+      ? [PREREAD_PROMPT_VERSION_V2, PREREAD_PROMPT_VERSION]
+      : [PREREAD_PROMPT_VERSION],
+    pcamRuleInV3: PREREAD_PCAM_LABEL_RULE.slice(0, 80) + '…',
+    tilesPerRequest: PREREAD_TILES_PER_REQUEST,
+    heldOutCount: heldOut.length,
+    tuneManifestCount: tune.length,
+    chosenVersionFile: chosen || null,
+    heldOutManifest: HELD_OUT_MANIFEST,
+    tuneManifest: TUNE_MANIFEST,
+    stageHint:
+      tune.length === 0 || heldOut.length === 0
+        ? 'Run: npx ts-node scripts/stage-pcam.ts --fetch'
+        : null,
+    live: LIVE,
+    tune: TUNE,
+    hasKey,
+    maxTileCalls: MAX_TILE_CALLS,
+  };
+  console.log(JSON.stringify(header, null, 2));
 
   if (!LIVE) {
     console.log('Dry run only. Pass --live with META_API_KEY to measure. Never prints the key.');
@@ -278,18 +327,34 @@ async function main(): Promise<void> {
   if (TUNE) {
     if (tune.length === 0) {
       console.log(
-        'No tuning manifest at data/tune_pcam/manifest.json; stage the 60 reserved train rows first.',
+        'No tuning manifest at data/tune_pcam/manifest.json; run: npx ts-node scripts/stage-pcam.ts --fetch',
       );
+      process.exitCode = 1;
       return;
     }
+    // Two prompt versions × n tiles.
+    assertSpend(tune.length * 2);
     const v2 = await scoreSet(tune, PREREAD_PROMPT_VERSION_V2, instructionsV2(), apiKey);
     const v3 = await scoreSet(tune, PREREAD_PROMPT_VERSION, instructionsV3(), apiKey);
+    if (v2.smallSample || v3.smallSample) {
+      console.log(
+        JSON.stringify({
+          warning: 'small-sample estimates (n < 100); see Wilson 95% intervals',
+          n: tune.length,
+        }),
+      );
+    }
     printMetrics(v2);
     printMetrics(v3);
+    // Choose the higher accuracy; ties keep the live (v3) prompt.
+    const winner =
+      v2.accuracy > v3.accuracy ? PREREAD_PROMPT_VERSION_V2 : PREREAD_PROMPT_VERSION;
+    writeFileSync(CHOSEN, `${winner}\n`);
     const report = {
       set: 'tune',
       note: 'Quoted only from this run. Held-out tiles were not used for tuning.',
       model: MUSE_SPARK_MODEL,
+      chosenVersion: winner,
       byPromptVersion: [v2, v3],
     };
     writeFileSync(OUT, JSON.stringify(report, null, 2));
@@ -298,15 +363,39 @@ async function main(): Promise<void> {
   }
 
   if (heldOut.length === 0) {
-    console.log('No held-out manifest at data/eval_pcam/manifest.json; nothing to score.');
+    console.log(
+      'No held-out manifest at data/eval_pcam/manifest.json; run: npx ts-node scripts/stage-pcam.ts --fetch',
+    );
+    process.exitCode = 1;
     return;
   }
-  const current = await scoreSet(
-    heldOut,
-    PREREAD_PROMPT_VERSION,
-    instructionsV3(),
-    apiKey,
-  );
+
+  // Refuse held-out numbers for a prompt that was chosen by shopping on held-out:
+  // after --tune, only the chosen version may be scored on held-out.
+  if (chosen && chosen !== PREREAD_PROMPT_VERSION) {
+    console.log(
+      JSON.stringify({
+        refused: true,
+        reason:
+          'held-out is only printed for the version in scripts/chosen-version.txt (from --tune)',
+        chosen,
+        livePrompt: PREREAD_PROMPT_VERSION,
+      }),
+    );
+    process.exitCode = 1;
+    return;
+  }
+
+  assertSpend(heldOut.length);
+  const current = await scoreSet(heldOut, PREREAD_PROMPT_VERSION, instructionsV3(), apiKey);
+  if (current.smallSample) {
+    console.log(
+      JSON.stringify({
+        warning: 'small-sample estimates (n < 100); see Wilson 95% intervals',
+        n: heldOut.length,
+      }),
+    );
+  }
   printMetrics(current);
   const report = {
     set: 'held-out',
@@ -319,7 +408,6 @@ async function main(): Promise<void> {
 }
 
 main().catch((error) => {
-  // Never echo the key or response bodies.
   console.error(error instanceof Error ? error.message : 'eval failed');
   process.exitCode = 1;
 });

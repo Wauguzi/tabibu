@@ -150,3 +150,10 @@ test/firestore_rules/node_modules/
 
 # The share-code HMAC key for the emulator; production reads Secret Manager.
 functions/.secret.local
+
+# Staged PatchCamelyon tiles for eval / tune (bundle 60); never commit binaries.
+functions/data/tune_pcam/
+functions/data/eval_pcam/
+functions/scripts/eval-preread-results.json
+functions/scripts/chosen-version.txt
+functions/lib-scripts/

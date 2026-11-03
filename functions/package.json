@@ -5,7 +5,8 @@
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "lint": "eslint src",
-    "test": "mocha"
+    "test": "mocha",
+    "check-scripts": "tsc -p tsconfig.scripts.json"
   },
   "engines": {
     "node": "22"
