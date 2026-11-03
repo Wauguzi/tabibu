@@ -33,6 +33,12 @@ final class CaseDraftEdited extends CaseWorkspaceEvent {
   List<Object?> get props => [fields];
 }
 
+/// Start the report from the AI pre-read's draft (H-20). Allowed once the
+/// pre-read is scored and the diagnosis is still empty.
+final class CaseDraftStartedFromPreread extends CaseWorkspaceEvent {
+  const CaseDraftStartedFromPreread();
+}
+
 /// The pathologist's honest score of the AI pre-read, required before a
 /// report started from a pre-read can be signed.
 final class CasePrereadScored extends CaseWorkspaceEvent {

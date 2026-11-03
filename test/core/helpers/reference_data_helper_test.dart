@@ -5,6 +5,8 @@ import 'dart:ui' show Locale;
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tabibu/core/helpers/reference_data_helper.dart';
+import 'package:tabibu/features/alerts/data/models/notifiable_disease_model.dart';
+import 'package:tabibu/features/alerts/data/models/notifiable_lab_test_model.dart';
 import 'package:tabibu/features/orders/data/advisory_protocol.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -64,11 +66,17 @@ void main() {
         'insurers.json',
         'report_templates.json',
         'public_health_guidance.json',
+        'notifiable_diseases.json',
       ])
         'assets/data/$name': File('assets/data/$name').readAsStringSync(),
     });
     helper = ReferenceDataHelper(bundle: bundle);
   });
+
+  // Blood smear Confirms malaria; genome sequencing is Supportive only.
+  const malariaSmear = '9f7bb988-7068-4bc4-a7c5-08c690da9482';
+  const malariaSupportive = '9f7bb989-8d93-4636-b268-443c9c91a73b';
+  const histologyOnly = 'histology-case-no-confirm-mapping';
 
   test('the catalogue counts', () async {
     expect(await helper.labTests(), hasLength(247));
@@ -91,6 +99,47 @@ void main() {
     );
     expect(vhf.bullets.where((b) => b.audienceValue == .clinician), isNotEmpty);
     expect(identical(guidance, await helper.publicHealthGuidance()), isTrue);
+  });
+
+  test('the notifiable register loads once and caches', () async {
+    final diseases = await helper.notifiableDiseases();
+    expect(diseases, hasLength(38));
+    expect(diseases.any((d) => d.diseaseId == 'malaria'), isTrue);
+    expect(identical(diseases, await helper.notifiableDiseases()), isTrue);
+    expect(bundle.loads['assets/data/notifiable_diseases.json'], 1);
+  });
+
+  test('confirmableDiseases: malaria on a blood-smear case', () async {
+    final diseases = await helper.notifiableDiseases();
+    final confirmable = confirmableDiseases(diseases, [malariaSmear]);
+    expect(confirmable.map((d) => d.diseaseId), contains('malaria'));
+  });
+
+  test('confirmableDiseases: nothing on a histology case', () async {
+    final diseases = await helper.notifiableDiseases();
+    expect(confirmableDiseases(diseases, [histologyOnly]), isEmpty);
+  });
+
+  test(
+    'confirmableDiseases: a Supportive-only test confirms nothing',
+    () async {
+      final diseases = await helper.notifiableDiseases();
+      expect(confirmableDiseases(diseases, [malariaSupportive]), isEmpty);
+    },
+  );
+
+  test('confirmableDiseases skips NotListed even with a Confirms test', () {
+    final disease = NotifiableDiseaseModel.empty().copyWith(
+      diseaseId: 'x',
+      reportingCategory: 'NotListed',
+      labTests: [
+        NotifiableLabTestModel.empty().copyWith(
+          labTestId: 't1',
+          strength: 'Confirms',
+        ),
+      ],
+    );
+    expect(confirmableDiseases([disease], ['t1']), isEmpty);
   });
 
   test('every test type maps to exactly one template', () async {

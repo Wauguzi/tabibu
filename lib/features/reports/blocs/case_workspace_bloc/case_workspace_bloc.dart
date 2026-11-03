@@ -37,6 +37,11 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     on<CaseWorkspaceOpened>(_onOpened, transformer: restartable());
     // Edits apply in the order they were made.
     on<CaseDraftEdited>(_onEdited, transformer: sequential());
+    // Through the same queue as edits, so it never races one.
+    on<CaseDraftStartedFromPreread>(
+      (_, emit) => _onEdited(_fromPreread(), emit),
+      transformer: sequential(),
+    );
     // One score and one signature at a time; a double tap must not repeat.
     on<CasePrereadScored>(_onScored, transformer: droppable());
     on<CaseSignRequested>(_onSign, transformer: droppable());
@@ -80,8 +85,9 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
         event.pathologistUid,
       )).firstWhereOrNull((c) => c.uid == event.caseUid);
 
+      final signedUid = caseModel?.currentReportUid ?? '';
       var draft = await _draftFor(event, online: online);
-      if (draft == null && online) {
+      if (draft == null && online && signedUid.isEmpty) {
         // Opening an assigned case starts its report; the server copies a
         // ready pre-read into it (and records when work began).
         await _remote.startReport(caseUid: event.caseUid, kind: 'Initial');
@@ -110,6 +116,19 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
                 event.pathologistUid,
               );
       }
+      PathologyReportModel? signed;
+      if (signedUid.isNotEmpty) {
+        final reports = online
+            ? await _reports.syncReports(
+                event.pathologistUid,
+                role: .pathologist,
+              )
+            : await _reports.getReports(
+                event.pathologistUid,
+                role: .pathologist,
+              );
+        signed = reports.firstWhereOrNull((r) => r.uid == signedUid);
+      }
       final shownAt = state.prereadShownAt.isNotEmpty
           ? state.prereadShownAt
           : (preread != null ? _now().toUtc().toIso8601String() : '');
@@ -122,6 +141,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
           draft: draft,
           preread: preread,
           score: score,
+          signed: signed,
           prereadShownAt: shownAt,
           offline: !online,
         ),
@@ -165,17 +185,55 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     CaseDraftEdited event,
     Emitter<CaseWorkspaceState> emit,
   ) async {
-    if (state.draft == null || event.fields.isEmpty) return;
+    final current = state.draft;
+    if (current == null || event.fields.isEmpty) return;
+    // The rules let a diagnosis start only once a ready pre-read is scored
+    // (H-20); refused here, nothing reaches the server.
+    final fields = Map<String, dynamic>.of(event.fields);
+    final diagnosis = fields['diagnosis'];
+    if (state.needsScore &&
+        (fields.containsKey('startedFromPreread') ||
+            (diagnosis is String && diagnosis.trim().isNotEmpty))) {
+      emit(_failure(AppError.invalidDecision));
+      return;
+    }
+    if (diagnosis is String &&
+        diagnosis.trim().isNotEmpty &&
+        current.diagnosisStartedAt.isEmpty) {
+      fields['diagnosisStartedAt'] = _now().toUtc().toIso8601String();
+    }
     try {
       final draft = await _reports.saveDraftFields(
         caseUid: state.caseUid,
         pathologistUid: state.pathologistUid,
-        fields: event.fields,
+        fields: fields,
       );
       emit(_with(CaseDraftSaveSuccess.new, draft: draft));
     } on Object catch (e) {
       emit(_failure(e));
     }
+  }
+
+  /// The AI draft as the server compares it at signing: the impression
+  /// as the diagnosis, the findings' texts as the comments (H-20). An
+  /// empty event when there is nothing to adopt.
+  CaseDraftEdited _fromPreread() {
+    final preread = state.preread;
+    final draft = state.draft;
+    if (preread == null ||
+        !preread.isReady ||
+        draft == null ||
+        draft.startedFromPreread ||
+        draft.diagnosis.isNotEmpty) {
+      return const CaseDraftEdited(fields: {});
+    }
+    return CaseDraftEdited(
+      fields: {
+        'diagnosis': preread.draft.impression,
+        'comments': preread.draft.findings.map((f) => f.text).join('\n'),
+        'startedFromPreread': true,
+      },
+    );
   }
 
   Future<void> _onScored(

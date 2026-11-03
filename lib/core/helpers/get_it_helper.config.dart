@@ -66,6 +66,8 @@ import 'package:tabibu/features/practitioners/data/cache/practitioner_cache_help
     as _i750;
 import 'package:tabibu/features/practitioners/data/datasources/practitioner_firebase.dart'
     as _i821;
+import 'package:tabibu/features/preread/data/datasources/preread_storage.dart'
+    as _i434;
 import 'package:tabibu/features/reports/data/cache/report_cache_helper.dart'
     as _i726;
 import 'package:tabibu/features/reports/data/datasources/report_firebase.dart'
@@ -190,6 +192,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i275.ProfileStorage>(
       () => _i275.ProfileStorage(storage: gh<_i457.FirebaseStorage>()),
+    );
+    gh.lazySingleton<_i434.PrereadStorage>(
+      () => _i434.PrereadStorage(storage: gh<_i457.FirebaseStorage>()),
     );
     gh.lazySingleton<_i656.AppointmentFirebase>(
       () => _i656.AppointmentFirebase(

@@ -5,6 +5,8 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/cases/data/cache/case_cache_helper.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/preread/data/models/preread_draft_model.dart';
+import 'package:tabibu/features/preread/data/models/preread_finding_model.dart';
 import 'package:tabibu/features/preread/data/models/preread_model.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_bloc.dart';
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_event.dart';
@@ -39,6 +41,13 @@ final PrereadModel _preread = PrereadModel.empty().copyWith(
   uid: 'run1',
   caseUid: _case,
   status: JobStatus.ready.value,
+  draft: const PrereadDraftModel(
+    impression: 'Plasmodium falciparum trophozoites',
+    findings: [
+      PrereadFindingModel(text: 'Ring forms in RBCs'),
+      PrereadFindingModel(text: 'No gametocytes seen'),
+    ],
+  ),
 );
 final PrereadScoreModel _score = PrereadScoreModel.empty().copyWith(
   uid: 'run1',
@@ -52,6 +61,11 @@ final PathologyReportModel _signed = PathologyReportModel.empty().copyWith(
 const _sign = CaseSignRequested(signaturePng: 'iVBORw0KGgo=', attested: true);
 
 void main() {
+  setUpAll(() {
+    registerFallbackValue(Role.pathologist);
+    registerFallbackValue(<String, dynamic>{});
+  });
+
   late _MockReports reports;
   late _MockRemote remote;
   late _MockCases cases;
@@ -198,6 +212,90 @@ void main() {
         );
       },
     );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a signed case loads the report and never starts one',
+      setUp: () {
+        when(() => cases.getCases(_me)).thenAnswer(
+          (_) async => [
+            CaseModel.empty().copyWith(
+              uid: _case,
+              currentReportUid: 'r1',
+              prereadRunUid: 'run1',
+            ),
+          ],
+        );
+        when(
+          () => reports.syncDraft(caseUid: _case, pathologistUid: _me),
+        ).thenAnswer((_) async => _draft);
+        when(
+          () => remote.fetchPreread(caseUid: _case, runUid: 'run1'),
+        ).thenAnswer((_) async => _preread);
+        when(
+          () => reports.syncPrereadScore(
+            caseUid: _case,
+            runUid: 'run1',
+            pathologistUid: _me,
+          ),
+        ).thenAnswer((_) async => _score);
+        when(
+          () => reports.syncReports(_me, role: Role.pathologist),
+        ).thenAnswer((_) async => [_signed]);
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const CaseWorkspaceOpened(caseUid: _case, pathologistUid: _me),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.signed, _signed);
+        verifyNever(
+          () => remote.startReport(
+            caseUid: any(named: 'caseUid'),
+            kind: any(named: 'kind'),
+          ),
+        );
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'offline, a signed case reads the cached report',
+      setUp: () {
+        when(() => internet.check()).thenAnswer((_) async => false);
+        when(() => cases.getCases(_me)).thenAnswer(
+          (_) async => [
+            CaseModel.empty().copyWith(
+              uid: _case,
+              currentReportUid: 'r1',
+              prereadRunUid: 'run1',
+            ),
+          ],
+        );
+        when(
+          () => reports.getDraft(_case, _me),
+        ).thenAnswer((_) async => _draft);
+        when(
+          () => reports.getPrereadScore(_case, 'run1', _me),
+        ).thenAnswer((_) async => _score);
+        when(
+          () => reports.getReports(_me, role: Role.pathologist),
+        ).thenAnswer((_) async => [_signed]);
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const CaseWorkspaceOpened(caseUid: _case, pathologistUid: _me),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.offline, isTrue);
+        expect(bloc.state.signed, _signed);
+        verifyNever(() => reports.syncReports(any(), role: any(named: 'role')));
+        verifyNever(
+          () => remote.startReport(
+            caseUid: any(named: 'caseUid'),
+            kind: any(named: 'kind'),
+          ),
+        );
+      },
+    );
   });
 
   group('edit', () {
@@ -208,13 +306,16 @@ void main() {
             () => reports.saveDraftFields(
               caseUid: _case,
               pathologistUid: _me,
-              fields: {'diagnosis': 'Metastatic carcinoma'},
+              fields: any(named: 'fields'),
             ),
           ).thenAnswer(
-            (_) async => _draft.copyWith(diagnosis: 'Metastatic carcinoma'),
+            (_) async => _draft.copyWith(
+              diagnosis: 'Metastatic carcinoma',
+              diagnosisStartedAt: _shown.toIso8601String(),
+            ),
           ),
       build: build,
-      seed: loaded,
+      seed: () => loaded(score: _score),
       act: (bloc) => bloc.add(
         const CaseDraftEdited(fields: {'diagnosis': 'Metastatic carcinoma'}),
       ),
@@ -222,6 +323,217 @@ void main() {
         expect(bloc.state, isA<CaseDraftSaveSuccess>());
         expect(bloc.state.draft?.diagnosis, 'Metastatic carcinoma');
       },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'refuses a diagnosis while a score is still due (H-20)',
+      build: build,
+      seed: loaded,
+      act: (bloc) => bloc.add(
+        const CaseDraftEdited(fields: {'diagnosis': 'Metastatic carcinoma'}),
+      ),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceWriteFailure>());
+        expect(
+          (bloc.state as CaseWorkspaceWriteFailure).error,
+          AppError.invalidDecision,
+        );
+        verifyNever(
+          () => reports.saveDraftFields(
+            caseUid: any(named: 'caseUid'),
+            pathologistUid: any(named: 'pathologistUid'),
+            fields: any(named: 'fields'),
+          ),
+        );
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'adds diagnosisStartedAt on the first non-empty diagnosis',
+      setUp: () =>
+          when(
+            () => reports.saveDraftFields(
+              caseUid: _case,
+              pathologistUid: _me,
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer(
+            (_) async => _draft.copyWith(
+              diagnosis: 'First diagnosis',
+              diagnosisStartedAt: _shown.toIso8601String(),
+            ),
+          ),
+      build: build,
+      seed: () => loaded(score: _score),
+      act: (bloc) => bloc.add(
+        const CaseDraftEdited(fields: {'diagnosis': 'First diagnosis'}),
+      ),
+      verify: (_) {
+        final fields =
+            verify(
+                  () => reports.saveDraftFields(
+                    caseUid: _case,
+                    pathologistUid: _me,
+                    fields: captureAny(named: 'fields'),
+                  ),
+                ).captured.single
+                as Map<String, dynamic>;
+        expect(fields['diagnosisStartedAt'], _shown.toIso8601String());
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'does not re-stamp diagnosisStartedAt on later diagnosis edits',
+      setUp: () =>
+          when(
+            () => reports.saveDraftFields(
+              caseUid: _case,
+              pathologistUid: _me,
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer(
+            (_) async => _draft.copyWith(
+              diagnosis: 'Second diagnosis',
+              diagnosisStartedAt: '2026-11-02T08:00:00.000Z',
+            ),
+          ),
+      build: build,
+      seed: () => loaded(
+        score: _score,
+        draft: _draft.copyWith(
+          diagnosis: 'First diagnosis',
+          diagnosisStartedAt: '2026-11-02T08:00:00.000Z',
+        ),
+      ),
+      act: (bloc) => bloc.add(
+        const CaseDraftEdited(fields: {'diagnosis': 'Second diagnosis'}),
+      ),
+      verify: (_) {
+        final fields =
+            verify(
+                  () => reports.saveDraftFields(
+                    caseUid: _case,
+                    pathologistUid: _me,
+                    fields: captureAny(named: 'fields'),
+                  ),
+                ).captured.single
+                as Map<String, dynamic>;
+        expect(fields.containsKey('diagnosisStartedAt'), isFalse);
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'comments may be edited before scoring',
+      setUp: () => when(
+        () => reports.saveDraftFields(
+          caseUid: _case,
+          pathologistUid: _me,
+          fields: {'comments': 'Looking at tile 3'},
+        ),
+      ).thenAnswer((_) async => _draft.copyWith(comments: 'Looking at tile 3')),
+      build: build,
+      seed: loaded,
+      act: (bloc) => bloc.add(
+        const CaseDraftEdited(fields: {'comments': 'Looking at tile 3'}),
+      ),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseDraftSaveSuccess>());
+        expect(bloc.state.needsScore, isTrue);
+        expect(bloc.state.draft?.comments, 'Looking at tile 3');
+      },
+    );
+  });
+
+  group('start from pre-read (H-20)', () {
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'sends impression, findings, startedFromPreread and diagnosisStartedAt',
+      setUp: () =>
+          when(
+            () => reports.saveDraftFields(
+              caseUid: _case,
+              pathologistUid: _me,
+              fields: any(named: 'fields'),
+            ),
+          ).thenAnswer(
+            (_) async => _draft.copyWith(
+              diagnosis: _preread.draft.impression,
+              comments: 'Ring forms in RBCs\nNo gametocytes seen',
+              startedFromPreread: true,
+              diagnosisStartedAt: _shown.toIso8601String(),
+            ),
+          ),
+      build: build,
+      seed: () => loaded(score: _score),
+      act: (bloc) => bloc.add(const CaseDraftStartedFromPreread()),
+      verify: (_) {
+        final fields =
+            verify(
+                  () => reports.saveDraftFields(
+                    caseUid: _case,
+                    pathologistUid: _me,
+                    fields: captureAny(named: 'fields'),
+                  ),
+                ).captured.single
+                as Map<String, dynamic>;
+        expect(fields['diagnosis'], _preread.draft.impression);
+        expect(fields['comments'], 'Ring forms in RBCs\nNo gametocytes seen');
+        expect(fields['startedFromPreread'], isTrue);
+        expect(fields['diagnosisStartedAt'], _shown.toIso8601String());
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'is a no-op when the pre-read is not ready',
+      build: build,
+      seed: () => loaded(
+        score: _score,
+        preread: _preread.copyWith(status: JobStatus.queued.value),
+      ),
+      act: (bloc) => bloc.add(const CaseDraftStartedFromPreread()),
+      expect: () => <CaseWorkspaceState>[],
+      verify: (_) => verifyNever(
+        () => reports.saveDraftFields(
+          caseUid: any(named: 'caseUid'),
+          pathologistUid: any(named: 'pathologistUid'),
+          fields: any(named: 'fields'),
+        ),
+      ),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'is a no-op when the draft already started from the pre-read',
+      build: build,
+      seed: () => loaded(
+        score: _score,
+        draft: _draft.copyWith(startedFromPreread: true),
+      ),
+      act: (bloc) => bloc.add(const CaseDraftStartedFromPreread()),
+      expect: () => <CaseWorkspaceState>[],
+      verify: (_) => verifyNever(
+        () => reports.saveDraftFields(
+          caseUid: any(named: 'caseUid'),
+          pathologistUid: any(named: 'pathologistUid'),
+          fields: any(named: 'fields'),
+        ),
+      ),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'is a no-op when the diagnosis is already set',
+      build: build,
+      seed: () => loaded(
+        score: _score,
+        draft: _draft.copyWith(diagnosis: 'Already written'),
+      ),
+      act: (bloc) => bloc.add(const CaseDraftStartedFromPreread()),
+      expect: () => <CaseWorkspaceState>[],
+      verify: (_) => verifyNever(
+        () => reports.saveDraftFields(
+          caseUid: any(named: 'caseUid'),
+          pathologistUid: any(named: 'pathologistUid'),
+          fields: any(named: 'fields'),
+        ),
+      ),
     );
   });
 
