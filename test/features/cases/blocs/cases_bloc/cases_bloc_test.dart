@@ -330,5 +330,223 @@ void main() {
         ],
       );
     });
+
+    group('CaseNotesSaveRequested', () {
+      blocTest<CasesBloc, CasesState>(
+        'saves notes and replaces that case in the list',
+        setUp: () {
+          when(
+            () => cases.saveDoctorNotes(
+              caseUid: 'c1',
+              clinicalNotes: 'Suspect TB.',
+            ),
+          ).thenAnswer(
+            (_) async => _case(
+              'c1',
+            ).copyWith(clinicalNotes: 'Suspect TB.', synced: false),
+          );
+        },
+        build: build,
+        seed: () => CasesLoadSuccess(
+          cases: [
+            _case('c1').copyWith(clinicalNotes: 'old'),
+            _case('c2'),
+          ],
+          reports: [_report('r1')],
+        ),
+        act: (bloc) => bloc.add(
+          const CaseNotesSaveRequested(
+            caseUid: 'c1',
+            clinicalNotes: 'Suspect TB.',
+          ),
+        ),
+        expect: () => [
+          CaseWriteInProgress(
+            cases: [
+              _case('c1').copyWith(clinicalNotes: 'old'),
+              _case('c2'),
+            ],
+            reports: [_report('r1')],
+          ),
+          CaseNotesSaveSuccess(
+            cases: [
+              _case('c1').copyWith(clinicalNotes: 'Suspect TB.', synced: false),
+              _case('c2'),
+            ],
+            reports: [_report('r1')],
+          ),
+        ],
+        verify: (_) {
+          verify(
+            () => cases.saveDoctorNotes(
+              caseUid: 'c1',
+              clinicalNotes: 'Suspect TB.',
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<CasesBloc, CasesState>(
+        'unchanged text never calls the helper',
+        build: build,
+        seed: () => CasesLoadSuccess(
+          cases: [_case('c1').copyWith(clinicalNotes: 'same')],
+        ),
+        act: (bloc) => bloc.add(
+          const CaseNotesSaveRequested(
+            caseUid: 'c1',
+            clinicalNotes: '  same  ',
+          ),
+        ),
+        expect: () => <CasesState>[],
+        verify: (_) {
+          verifyNever(
+            () => cases.saveDoctorNotes(
+              caseUid: any(named: 'caseUid'),
+              clinicalNotes: any(named: 'clinicalNotes'),
+            ),
+          );
+        },
+      );
+
+      blocTest<CasesBloc, CasesState>(
+        'keeps the offline flag through a successful save',
+        setUp: () {
+          when(
+            () => cases.saveDoctorNotes(caseUid: 'c1', clinicalNotes: 'queued'),
+          ).thenAnswer(
+            (_) async =>
+                _case('c1').copyWith(clinicalNotes: 'queued', synced: false),
+          );
+        },
+        build: build,
+        seed: () => CasesLoadSuccess(cases: [_case('c1')], offline: true),
+        act: (bloc) => bloc.add(
+          const CaseNotesSaveRequested(caseUid: 'c1', clinicalNotes: 'queued'),
+        ),
+        expect: () => [
+          CaseWriteInProgress(cases: [_case('c1')], offline: true),
+          CaseNotesSaveSuccess(
+            cases: [
+              _case('c1').copyWith(clinicalNotes: 'queued', synced: false),
+            ],
+            offline: true,
+          ),
+        ],
+      );
+
+      blocTest<CasesBloc, CasesState>(
+        'failure keeps the old notes',
+        setUp: () {
+          when(
+            () => cases.saveDoctorNotes(caseUid: 'c1', clinicalNotes: 'new'),
+          ).thenThrow(AppError.permissionDenied);
+        },
+        build: build,
+        seed: () => CasesLoadSuccess(
+          cases: [_case('c1').copyWith(clinicalNotes: 'old')],
+        ),
+        act: (bloc) => bloc.add(
+          const CaseNotesSaveRequested(caseUid: 'c1', clinicalNotes: 'new'),
+        ),
+        expect: () => [
+          CaseWriteInProgress(
+            cases: [_case('c1').copyWith(clinicalNotes: 'old')],
+          ),
+          CaseWriteFailure(
+            error: AppError.permissionDenied,
+            cases: [_case('c1').copyWith(clinicalNotes: 'old')],
+          ),
+        ],
+      );
+
+      test('two saves in order both reach the helper in order', () async {
+        final firstStarted = Completer<void>();
+        final releaseFirst = Completer<CaseModel>();
+        final calls = <String>[];
+
+        when(() => cases.getCases('u1')).thenAnswer((_) async => [_case('c1')]);
+        when(
+          () => reports.getReports('u1', role: Role.doctor),
+        ).thenAnswer((_) async => []);
+        when(
+          () => cases.syncCases('u1'),
+        ).thenAnswer((_) async => [_case('c1')]);
+        when(
+          () => reports.syncReports('u1', role: Role.doctor),
+        ).thenAnswer((_) async => []);
+        when(
+          () => cases.saveDoctorNotes(
+            caseUid: 'c1',
+            clinicalNotes: any(named: 'clinicalNotes'),
+          ),
+        ).thenAnswer((invocation) async {
+          final text = invocation.namedArguments[#clinicalNotes]! as String;
+          calls.add(text);
+          if (text == 'first') {
+            firstStarted.complete();
+            return await releaseFirst.future;
+          }
+          return _case('c1').copyWith(clinicalNotes: text);
+        });
+
+        final bloc = build()
+          ..add(const CasesRequested(uid: 'u1', role: Role.doctor));
+        await expectLater(
+          bloc.stream,
+          emitsThrough(CasesLoadSuccess(cases: [_case('c1')])),
+        );
+
+        bloc
+          ..add(
+            const CaseNotesSaveRequested(caseUid: 'c1', clinicalNotes: 'first'),
+          )
+          ..add(
+            const CaseNotesSaveRequested(
+              caseUid: 'c1',
+              clinicalNotes: 'second',
+            ),
+          );
+        await firstStarted.future;
+        expect(calls, ['first']);
+        releaseFirst.complete(_case('c1').copyWith(clinicalNotes: 'first'));
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            CaseNotesSaveSuccess(
+              cases: [_case('c1').copyWith(clinicalNotes: 'second')],
+            ),
+          ),
+        );
+        expect(calls, ['first', 'second']);
+        await bloc.close();
+      });
+
+      blocTest<CasesBloc, CasesState>(
+        'trims whitespace before saving',
+        setUp: () {
+          when(
+            () =>
+                cases.saveDoctorNotes(caseUid: 'c1', clinicalNotes: 'trimmed'),
+          ).thenAnswer(
+            (_) async => _case('c1').copyWith(clinicalNotes: 'trimmed'),
+          );
+        },
+        build: build,
+        seed: () => CasesLoadSuccess(cases: [_case('c1')]),
+        act: (bloc) => bloc.add(
+          const CaseNotesSaveRequested(
+            caseUid: 'c1',
+            clinicalNotes: '  trimmed  \n',
+          ),
+        ),
+        verify: (_) {
+          verify(
+            () =>
+                cases.saveDoctorNotes(caseUid: 'c1', clinicalNotes: 'trimmed'),
+          ).called(1);
+        },
+      );
+    });
   });
 }

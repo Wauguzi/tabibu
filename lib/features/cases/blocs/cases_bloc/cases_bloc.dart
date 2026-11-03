@@ -24,6 +24,8 @@ class CasesBloc extends Bloc<CasesEvent, CasesState> {
     on<CasesRefreshed>(_onRefreshed, transformer: droppable());
     // Log pulls must not race each other.
     on<CaseLogRequested>(_onLog, transformer: sequential());
+    // Two note saves in a row both land, in order.
+    on<CaseNotesSaveRequested>(_onNotesSave, transformer: sequential());
     on<CasesReset>((_, emit) => emit(const CasesInitial()));
   }
 
@@ -192,6 +194,64 @@ class CasesBloc extends Bloc<CasesEvent, CasesState> {
       );
     } on Object catch (e) {
       emit(_failure(e));
+    }
+  }
+
+  Future<void> _onNotesSave(
+    CaseNotesSaveRequested event,
+    Emitter<CasesState> emit,
+  ) async {
+    final trimmed = event.clinicalNotes.trim();
+    CaseModel? current;
+    for (final c in state.cases) {
+      if (c.uid == event.caseUid) {
+        current = c;
+        break;
+      }
+    }
+    if (current != null && current.clinicalNotes == trimmed) {
+      return;
+    }
+
+    emit(
+      CaseWriteInProgress(
+        cases: state.cases,
+        reports: state.reports,
+        logs: state.logs,
+        offline: state.offline,
+      ),
+    );
+    try {
+      final edited = await _cases.saveDoctorNotes(
+        caseUid: event.caseUid,
+        clinicalNotes: trimmed,
+      );
+      final next = [
+        for (final c in state.cases)
+          if (c.uid == event.caseUid) edited else c,
+      ];
+      // If the case was missing from state, still surface the saved model.
+      final cases = next.any((c) => c.uid == event.caseUid)
+          ? next
+          : [...next, edited];
+      emit(
+        CaseNotesSaveSuccess(
+          cases: cases,
+          reports: state.reports,
+          logs: state.logs,
+          offline: state.offline,
+        ),
+      );
+    } on Object catch (e) {
+      emit(
+        CaseWriteFailure(
+          error: _toAppError(e),
+          cases: state.cases,
+          reports: state.reports,
+          logs: state.logs,
+          offline: state.offline,
+        ),
+      );
     }
   }
 }

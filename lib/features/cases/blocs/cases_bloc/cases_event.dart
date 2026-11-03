@@ -40,6 +40,20 @@ final class CaseLogRequested extends CasesEvent {
   List<Object?> get props => [caseUid, role];
 }
 
+/// Persist the doctor's clinical notes on a case (Hive first; queues offline).
+final class CaseNotesSaveRequested extends CasesEvent {
+  const CaseNotesSaveRequested({
+    required this.caseUid,
+    required this.clinicalNotes,
+  });
+
+  final String caseUid;
+  final String clinicalNotes;
+
+  @override
+  List<Object?> get props => [caseUid, clinicalNotes];
+}
+
 /// Back to the initial state on sign-out.
 final class CasesReset extends CasesEvent {
   const CasesReset();

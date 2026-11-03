@@ -60,3 +60,36 @@ final class CasesLoadFailure extends CasesState {
   @override
   List<Object?> get props => [...super.props, error];
 }
+
+final class CaseWriteInProgress extends CasesState {
+  const CaseWriteInProgress({
+    super.cases,
+    super.reports,
+    super.logs,
+    super.offline,
+  });
+}
+
+final class CaseNotesSaveSuccess extends CasesState {
+  const CaseNotesSaveSuccess({
+    super.cases,
+    super.reports,
+    super.logs,
+    super.offline,
+  });
+}
+
+final class CaseWriteFailure extends CasesState {
+  const CaseWriteFailure({
+    required this.error,
+    super.cases,
+    super.reports,
+    super.logs,
+    super.offline,
+  });
+
+  final AppError error;
+
+  @override
+  List<Object?> get props => [...super.props, error];
+}
