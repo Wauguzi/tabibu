@@ -32,8 +32,9 @@ Indie developer track, "Build for Your World" theme. The hackathon's inference p
 | Modal | Inference partner | Compute for the AI service, on partner credits |
 | Fireworks | Inference partner | Not used by Tabibu |
 
-The AI service that calls these models is the next branch; the architecture's §16 says what is
-built today.
+> [!NOTE]
+> The AI service that calls these models is the next branch; the architecture's §16 says what is
+> built today.
 
 ## How it works
 
@@ -79,9 +80,11 @@ sequenceDiagram
     F-->>P: Result and approved explanation
 ```
 
-AI output reaches a person through a one-tap approval, or, where the threat model's S-8 names the
-reader as the qualified person who acts on it, directly. Either way it is labelled as AI. The
-details are in the [architecture](docs/architecture/reports/mobile_architecture.md), the
+> [!IMPORTANT]
+> AI output reaches a person through a one-tap approval, or, where the threat model's S-8 names the
+> reader as the qualified person who acts on it, directly. Either way it is labelled as AI.
+
+The details are in the [architecture](docs/architecture/reports/mobile_architecture.md), the
 [AI service](docs/architecture/reports/ai_preread_service.md), the
 [notifications engine](docs/architecture/reports/notifications_engine.md), the
 [outbreak alert engine](docs/architecture/reports/outbreak_alert_engine.md) and the
@@ -113,8 +116,11 @@ password:
 | Doctor | `tabibu.demo+doctor@gmail.com` | Dr. Achieng Odhiambo, Mbagathi District Hospital; also the alert approver |
 | Pathologist | `tabibu.demo+pathologist@gmail.com` | Dr. Wanjiru Kamau, Kenyatta National Hospital |
 
-The password is shared with the judges alongside the submission, never in this repository. The
-accounts come from `make seed-live`, which also adds two clinic patients and an admin account for
+> [!WARNING]
+> The password is shared with the judges alongside the submission, never in this repository. No
+> credential belongs in code, assets, fixtures or docs.
+
+The accounts come from `make seed-live`, which also adds two clinic patients and an admin account for
 the Firebase console.
 
 So that a patient's search and a doctor's pathologist picker have people to show, `make
@@ -134,6 +140,10 @@ make functions-test          # Cloud Functions on the emulator
 make spell                   # spelling, English and Kiswahili terms
 make secrets                 # secret scan
 ```
+
+> [!TIP]
+> To spell-check only the files you edited, run
+> `npx cspell --no-progress -c .github/cspell.json <files>`; `make spell` covers the whole tree.
 
 Every user-visible string lives in both `lib/l10n/arb/app_en.arb` and `app_sw.arb`; `make l10n`
 regenerates the localizations.
