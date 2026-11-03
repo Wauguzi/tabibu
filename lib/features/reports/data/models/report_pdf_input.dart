@@ -299,7 +299,7 @@ abstract class ReportPdfInput with _$ReportPdfInput {
         sectionKey: ReportSection.clinicalNotes.value,
         lines: [PdfLine(value: clinicalNotes)],
       ),
-      ..._blocksFromResponses(report.responses),
+      ...reportBlocksFromResponses(report.responses),
     ];
     final age = PdfSubject.ageFromDateOfBirth(dateOfBirth, now);
 
@@ -355,7 +355,8 @@ abstract class ReportPdfInput with _$ReportPdfInput {
   }
 }
 
-List<PdfBlock> _blocksFromResponses(List<ReportResponseModel> responses) {
+/// The responses grouped into one block per section, in the PDF's order.
+List<PdfBlock> reportBlocksFromResponses(List<ReportResponseModel> responses) {
   // Question order restarts in every section, so sections sort by their
   // enum position (every template lists them in that order) and only then
   // by question order; an unknown section goes last.
