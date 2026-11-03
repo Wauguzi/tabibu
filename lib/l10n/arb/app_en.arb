@@ -8117,5 +8117,13 @@
     "workspaceSampleSuggested": "Made for you. Replace it if the lab gave another.",
     "@workspaceSampleSuggested": {
         "description": "Pathologist: the accession number field starts with a generated value"
+    },
+    "workspaceZoomIn": "Zoom in",
+    "@workspaceZoomIn": {
+        "description": "Pathologist slide viewer: zoom in control label"
+    },
+    "workspaceZoomOut": "Zoom out",
+    "@workspaceZoomOut": {
+        "description": "Pathologist slide viewer: zoom out control label"
     }
 }

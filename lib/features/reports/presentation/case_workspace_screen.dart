@@ -508,9 +508,8 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                 legendHigh: preread?.profileValue == .malaria
                                     ? l10n.workspaceLegendLikelyParasite
                                     : l10n.workspaceLegendLikelyTumour,
-                                // No ARB keys yet (bundle 35 skipped zoom).
-                                zoomInLabel: '＋',
-                                zoomOutLabel: '－',
+                                zoomInLabel: l10n.workspaceZoomIn,
+                                zoomOutLabel: l10n.workspaceZoomOut,
                               ),
                             if (ready && preread != null) ...[
                               const SizedBox(height: AppSpacing.md),
@@ -822,6 +821,7 @@ class _ReportSection extends StatelessWidget {
         ),
         const SizedBox(height: AppSpacing.md),
         CheckRow(
+          circle: true,
           label: l10n.workspaceCriticalFinding,
           value: draft.isCritical,
           onChanged: locked ? null : onCritical,
@@ -835,6 +835,7 @@ class _ReportSection extends StatelessWidget {
           for (final disease in confirmable) ...[
             const SizedBox(height: AppSpacing.xs),
             CheckRow(
+              circle: true,
               label: l10n.workspacePositiveFor(
                 workspaceDiseaseName(disease, language),
               ),

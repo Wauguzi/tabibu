@@ -1697,5 +1697,7 @@
     "workspaceSampleLabel": "Namba ya usajili wa sampuli",
     "workspaceSampleHint": "Kwa mfano NH/26/0106",
     "workspaceSampleInvalid": "Tumia hadi herufi, namba, / au - 30.",
-    "workspaceSampleSuggested": "Imetengenezwa kwa ajili yako. Ibadilishe maabara ikikupa nyingine."
+    "workspaceSampleSuggested": "Imetengenezwa kwa ajili yako. Ibadilishe maabara ikikupa nyingine.",
+    "workspaceZoomIn": "Kuza",
+    "workspaceZoomOut": "Punguza"
 }

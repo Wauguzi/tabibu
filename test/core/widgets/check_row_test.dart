@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/core/widgets/check_row.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 
 import '../../helpers/helpers.dart';
 
@@ -31,6 +33,51 @@ void main() {
         ),
       );
       handle.dispose();
+    });
+
+    testWidgets('circle: the ticked and the empty circle replace the box', (
+      tester,
+    ) async {
+      var on = false;
+      await tester.pumpApp(
+        StatefulBuilder(
+          builder: (context, setState) => CheckRow(
+            circle: true,
+            label: 'Critical finding',
+            value: on,
+            onChanged: (value) => setState(() => on = value),
+          ),
+        ),
+      );
+
+      expect(find.byType(Checkbox), findsNothing);
+      AssetIcon icon() => tester.widget<AssetIcon>(find.byType(AssetIcon));
+      expect(icon().asset, Assets.icons.checkUnselectedIcon);
+
+      await tester.tap(find.text('Critical finding'));
+      await tester.pump();
+      expect(on, isTrue);
+      expect(icon().asset, Assets.icons.checkSelectedIcon);
+    });
+
+    testWidgets('circle: without onChanged it is muted and inert', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        const CheckRow(
+          circle: true,
+          label: 'Critical finding',
+          value: true,
+          onChanged: null,
+        ),
+      );
+
+      await tester.tap(find.text('Critical finding'));
+      await tester.pump();
+      expect(
+        tester.widget<AssetIcon>(find.byType(AssetIcon)).asset,
+        Assets.icons.checkSelectedIcon,
+      );
     });
 
     testWidgets('without onChanged it is disabled', (tester) async {

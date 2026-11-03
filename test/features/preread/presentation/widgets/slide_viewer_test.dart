@@ -3,7 +3,9 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
+import 'package:tabibu/core/widgets/circle_icon_button.dart';
 import 'package:tabibu/features/preread/presentation/widgets/slide_viewer.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
@@ -81,6 +83,57 @@ void main() {
       await tester.pumpApp(viewer(heatmapOn: false, onHeatmapChanged: (_) {}));
       expect(find.text('Tiles'), findsNothing);
       expect(find.text('Heat map'), findsOneWidget);
+    });
+
+    testWidgets('the zoom pill sits at the right edge, with its own icons', (
+      tester,
+    ) async {
+      await tester.pumpApp(viewer(heatmapOn: true, onHeatmapChanged: (_) {}));
+      await tester.pump();
+
+      final pill = tester.getRect(
+        find
+            .ancestor(
+              of: find.bySemanticsLabel('Zoom in'),
+              matching: find.byType(DecoratedBox),
+            )
+            .first,
+      );
+      final image = tester.getRect(
+        find
+            .descendant(
+              of: find.byType(SlideViewer),
+              matching: find.byType(ClipRRect),
+            )
+            .first,
+      );
+      // The pill ends at the image's corner, not part-way along the row.
+      expect(image.right - pill.right, AppSpacing.xs);
+
+      final icons = tester
+          .widgetList<CircleIconButton>(find.byType(CircleIconButton))
+          .map((b) => b.icon)
+          .toList();
+      expect(icons, contains(Assets.icons.zoomInIcon));
+      expect(icons, contains(Assets.icons.zoomOutIcon));
+    });
+
+    testWidgets('a hairline between the two stops short of the pill edges', (
+      tester,
+    ) async {
+      await tester.pumpApp(viewer(heatmapOn: true, onHeatmapChanged: (_) {}));
+      await tester.pump();
+
+      final divider = tester.getRect(find.byType(Divider));
+      final zoomIn = tester.getRect(
+        find.byWidgetPredicate(
+          (w) => w is CircleIconButton && w.icon == Assets.icons.zoomInIcon,
+        ),
+      );
+      // Inside the button column on both sides: it touches neither edge.
+      expect(divider.left, greaterThan(zoomIn.left));
+      expect(divider.right, lessThan(zoomIn.right));
+      expect(divider.height, 1);
     });
 
     testWidgets('zoom buttons change scale and stop at the bounds', (

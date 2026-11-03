@@ -1,5 +1,3 @@
-import 'dart:math' as math;
-
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
@@ -173,7 +171,7 @@ class _SlideViewerState extends State<SlideViewer> {
                           child: Row(
                             crossAxisAlignment: .start,
                             children: [
-                              Flexible(
+                              Expanded(
                                 child: Wrap(
                                   spacing: AppSpacing.xs,
                                   runSpacing: AppSpacing.xs,
@@ -400,20 +398,27 @@ class _ZoomPill extends StatelessWidget {
           mainAxisSize: .min,
           children: [
             CircleIconButton(
-              icon: Assets.icons.addIcon,
+              icon: Assets.icons.zoomInIcon,
               onTap: onZoomIn,
               semanticLabel: zoomInLabel,
               onCard: true,
+              iconSize: 20,
             ),
-            // cancelIcon rotated stands in for zoomOut until T-1 lands.
-            Transform.rotate(
-              angle: math.pi / 4,
-              child: CircleIconButton(
-                icon: Assets.icons.cancelIcon,
-                onTap: onZoomOut,
-                semanticLabel: zoomOutLabel,
-                onCard: true,
+            // A hairline set in from the sides so it never meets the edges.
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+              child: Divider(
+                height: 1,
+                thickness: 1,
+                color: scheme.outlineVariant,
               ),
+            ),
+            CircleIconButton(
+              icon: Assets.icons.zoomOutIcon,
+              onTap: onZoomOut,
+              semanticLabel: zoomOutLabel,
+              onCard: true,
+              iconSize: 20,
             ),
           ],
         ),
