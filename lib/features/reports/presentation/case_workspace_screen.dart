@@ -177,7 +177,8 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         for (final q in section.questions) {
           _answers.putIfAbsent(
             _answerKey(section.sectionKey, q.questionKey),
-            TextEditingController.new,
+            // Typing opens or closes Sign at once.
+            () => TextEditingController()..addListener(_onFieldEdited),
           );
         }
       }
@@ -201,20 +202,23 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     ];
   }
 
-  /// Required questions the saved draft has no answer for.
-  bool _missingRequired(ReportDraftModel draft) {
+  /// A required question with nothing typed in it yet.
+  bool _missingRequired() {
     for (final (section, questions) in _sections) {
       for (final q in questions) {
-        if (q.required &&
-            _answerIn(
-              draft,
-              _answerKey(section.sectionKey, q.questionKey),
-            ).trim().isEmpty) {
-          return true;
-        }
+        final text =
+            _answers[_answerKey(section.sectionKey, q.questionKey)]?.text ?? '';
+        if (q.required && text.trim().isEmpty) return true;
       }
     }
     return false;
+  }
+
+  /// Sign opens once the diagnosis and every required answer are typed. What
+  /// is typed is saved first, so nothing waits on a separate Save draft.
+  void _signFrom(CaseWorkspaceState state, ReportDraftModel draft) {
+    _saveDraft(draft);
+    unawaited(_openSign(state));
   }
 
   List<ReportResponseModel> _responsesNow() => [
@@ -432,36 +436,38 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
       },
       builder: (context, state) {
         if (state.signed != null && state.caseModel != null) {
-          return Scaffold(
-            body: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.screenMargin,
-                      AppSpacing.md,
-                      AppSpacing.screenMargin,
-                      0,
+          return _DismissKeyboard(
+            child: Scaffold(
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenMargin,
+                        AppSpacing.md,
+                        AppSpacing.screenMargin,
+                        0,
+                      ),
+                      child: TopBar(
+                        backLabel: l10n.commonBack,
+                        onBack: context.pop,
+                        title: state.caseModel!.orderNumber,
+                        subtitle: workspaceSubtitle(state.caseModel),
+                      ),
                     ),
-                    child: TopBar(
-                      backLabel: l10n.commonBack,
-                      onBack: context.pop,
-                      title: state.caseModel!.orderNumber,
-                      subtitle: workspaceSubtitle(state.caseModel),
+                    Expanded(
+                      child: ListView(
+                        padding: const EdgeInsets.all(AppSpacing.screenMargin),
+                        children: [
+                          SignedCaseView(
+                            report: state.signed!,
+                            caseModel: state.caseModel!,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.all(AppSpacing.screenMargin),
-                      children: [
-                        SignedCaseView(
-                          report: state.signed!,
-                          caseModel: state.caseModel!,
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -473,34 +479,36 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
             asked.currentStageValue == .pathologistRequested &&
             asked.requestedPathologistUid == _uid &&
             state.draft == null) {
-          return Scaffold(
-            body: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.screenMargin,
-                      AppSpacing.md,
-                      AppSpacing.screenMargin,
-                      0,
+          return _DismissKeyboard(
+            child: Scaffold(
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenMargin,
+                        AppSpacing.md,
+                        AppSpacing.screenMargin,
+                        0,
+                      ),
+                      child: TopBar(
+                        backLabel: l10n.commonBack,
+                        onBack: context.pop,
+                        title: asked.orderNumber,
+                        subtitle: workspaceSubtitle(asked),
+                      ),
                     ),
-                    child: TopBar(
-                      backLabel: l10n.commonBack,
-                      onBack: context.pop,
-                      title: asked.orderNumber,
-                      subtitle: workspaceSubtitle(asked),
+                    Expanded(
+                      child: CaseRequestView(
+                        caseModel: asked,
+                        busy: state is CaseWorkspaceWriteInProgress,
+                        onAccept: () => _add(const CaseRequestAccepted()),
+                        onDecline: (reason) =>
+                            _add(CaseRequestDeclined(reason: reason)),
+                      ),
                     ),
-                  ),
-                  Expanded(
-                    child: CaseRequestView(
-                      caseModel: asked,
-                      busy: state is CaseWorkspaceWriteInProgress,
-                      onAccept: () => _add(const CaseRequestAccepted()),
-                      onDecline: (reason) =>
-                          _add(CaseRequestDeclined(reason: reason)),
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           );
@@ -511,38 +519,40 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
             asked.pathologistUid == _uid &&
             asked.awaitsSample &&
             state.draft == null) {
-          return Scaffold(
-            body: SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.screenMargin,
-                      AppSpacing.md,
-                      AppSpacing.screenMargin,
-                      0,
-                    ),
-                    child: TopBar(
-                      backLabel: l10n.commonBack,
-                      onBack: context.pop,
-                      title: asked.orderNumber,
-                      subtitle: workspaceSubtitle(asked),
-                    ),
-                  ),
-                  Expanded(
-                    child: SampleReceivedView(
-                      caseModel: asked,
-                      busy: state is CaseWorkspaceWriteInProgress,
-                      suggested: suggestedAccession(
-                        orderNumber: asked.orderNumber,
-                        firstName: _me.firstName,
-                        lastName: _me.lastName,
+          return _DismissKeyboard(
+            child: Scaffold(
+              body: SafeArea(
+                child: Column(
+                  children: [
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        AppSpacing.screenMargin,
+                        AppSpacing.md,
+                        AppSpacing.screenMargin,
+                        0,
                       ),
-                      onRecord: (accession) =>
-                          _add(CaseSampleReceived(labAccessionNo: accession)),
+                      child: TopBar(
+                        backLabel: l10n.commonBack,
+                        onBack: context.pop,
+                        title: asked.orderNumber,
+                        subtitle: workspaceSubtitle(asked),
+                      ),
                     ),
-                  ),
-                ],
+                    Expanded(
+                      child: SampleReceivedView(
+                        caseModel: asked,
+                        busy: state is CaseWorkspaceWriteInProgress,
+                        suggested: suggestedAccession(
+                          orderNumber: asked.orderNumber,
+                          firstName: _me.firstName,
+                          lastName: _me.lastName,
+                        ),
+                        onRecord: (accession) =>
+                            _add(CaseSampleReceived(labAccessionNo: accession)),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -554,168 +564,187 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         final locked = state.needsScore;
         final loading = state is CaseWorkspaceLoadInProgress && draft == null;
 
-        return Scaffold(
-          body: SafeArea(
-            child: Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(
-                    AppSpacing.screenMargin,
-                    AppSpacing.md,
-                    AppSpacing.screenMargin,
-                    0,
+        return _DismissKeyboard(
+          child: Scaffold(
+            body: SafeArea(
+              child: Column(
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(
+                      AppSpacing.screenMargin,
+                      AppSpacing.md,
+                      AppSpacing.screenMargin,
+                      0,
+                    ),
+                    child: TopBar(
+                      backLabel: l10n.commonBack,
+                      onBack: context.pop,
+                      title: state.caseModel?.orderNumber ?? '',
+                      subtitle: workspaceSubtitle(state.caseModel),
+                    ),
                   ),
-                  child: TopBar(
-                    backLabel: l10n.commonBack,
-                    onBack: context.pop,
-                    title: state.caseModel?.orderNumber ?? '',
-                    subtitle: workspaceSubtitle(state.caseModel),
-                  ),
-                ),
-                Expanded(
-                  child: loading
-                      ? Center(
-                          child: LoadingView(
-                            semanticLabel: MaterialLocalizations.of(
-                              context,
-                            ).modalBarrierDismissLabel,
-                          ),
-                        )
-                      : ListView(
-                          padding: const EdgeInsets.all(
-                            AppSpacing.screenMargin,
-                          ),
-                          children: [
-                            if (state.offline) ...[
-                              ConnectivityBanner(
-                                state: .offline,
-                                title: l10n.notificationsOfflineTitle,
-                                body: l10n.notificationsOfflineBody,
-                                retryLabel: l10n.commonRetry,
-                                onRetry: () => _add(
-                                  CaseWorkspaceOpened(
-                                    caseUid: widget.caseUid,
-                                    pathologistUid: _uid,
+                  Expanded(
+                    child: loading
+                        ? Center(
+                            child: LoadingView(
+                              semanticLabel: MaterialLocalizations.of(
+                                context,
+                              ).modalBarrierDismissLabel,
+                            ),
+                          )
+                        : ListView(
+                            keyboardDismissBehavior: .onDrag,
+                            padding: const EdgeInsets.all(
+                              AppSpacing.screenMargin,
+                            ),
+                            children: [
+                              if (state.offline) ...[
+                                ConnectivityBanner(
+                                  state: .offline,
+                                  title: l10n.notificationsOfflineTitle,
+                                  body: l10n.notificationsOfflineBody,
+                                  retryLabel: l10n.commonRetry,
+                                  onRetry: () => _add(
+                                    CaseWorkspaceOpened(
+                                      caseUid: widget.caseUid,
+                                      pathologistUid: _uid,
+                                    ),
                                   ),
                                 ),
+                                const SizedBox(height: AppSpacing.md),
+                              ],
+                              _Chips(
+                                priority: state.caseModel?.priorityValue,
+                                ready: ready,
                               ),
                               const SizedBox(height: AppSpacing.md),
-                            ],
-                            _Chips(
-                              priority: state.caseModel?.priorityValue,
-                              ready: ready,
-                            ),
-                            const SizedBox(height: AppSpacing.md),
-                            if (_slideUrl != null)
-                              SlideViewer(
-                                image: NetworkImage(_slideUrl!),
-                                heatmap: _heatmapUrl == null
-                                    ? null
-                                    : NetworkImage(_heatmapUrl!),
-                                heatmapOn: _heatmapOn,
-                                onHeatmapChanged: (v) =>
-                                    setState(() => _heatmapOn = v),
-                                heatmapLabel: l10n.workspaceHeatmap,
-                                tilesLabel: '',
-                                scaleLabel: workspaceScaleLabel(
-                                  preread?.micronsPerPixel ?? 0,
+                              if (_slideUrl != null)
+                                SlideViewer(
+                                  image: NetworkImage(_slideUrl!),
+                                  heatmap: _heatmapUrl == null
+                                      ? null
+                                      : NetworkImage(_heatmapUrl!),
+                                  heatmapOn: _heatmapOn,
+                                  onHeatmapChanged: (v) =>
+                                      setState(() => _heatmapOn = v),
+                                  heatmapLabel: l10n.workspaceHeatmap,
+                                  tilesLabel: '',
+                                  scaleLabel: workspaceScaleLabel(
+                                    preread?.micronsPerPixel ?? 0,
+                                  ),
+                                  legendLow: l10n.workspaceLegendNormal,
+                                  legendHigh: preread?.profileValue == .malaria
+                                      ? l10n.workspaceLegendLikelyParasite
+                                      : l10n.workspaceLegendLikelyTumour,
+                                  zoomInLabel: l10n.workspaceZoomIn,
+                                  zoomOutLabel: l10n.workspaceZoomOut,
                                 ),
-                                legendLow: l10n.workspaceLegendNormal,
-                                legendHigh: preread?.profileValue == .malaria
-                                    ? l10n.workspaceLegendLikelyParasite
-                                    : l10n.workspaceLegendLikelyTumour,
-                                zoomInLabel: l10n.workspaceZoomIn,
-                                zoomOutLabel: l10n.workspaceZoomOut,
-                              ),
-                            if (ready && preread != null) ...[
+                              if (ready && preread != null) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                _PrereadCard(preread: preread),
+                              ],
+                              if (locked) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                WorkspaceScoreCard(
+                                  findings: _findingsVerdict,
+                                  impression: _impressionVerdict,
+                                  urgency: _urgencyVerdict,
+                                  measurements: _measurementsVerdict,
+                                  tiles: _tilesVerdict,
+                                  overall: _overall,
+                                  comment: _scoreComment,
+                                  onFindings: (v) =>
+                                      setState(() => _findingsVerdict = v),
+                                  onImpression: (v) =>
+                                      setState(() => _impressionVerdict = v),
+                                  onUrgency: (v) =>
+                                      setState(() => _urgencyVerdict = v),
+                                  onMeasurements: (v) =>
+                                      setState(() => _measurementsVerdict = v),
+                                  onTiles: (v) =>
+                                      setState(() => _tilesVerdict = v),
+                                  onOverall: (v) =>
+                                      setState(() => _overall = v),
+                                  onSave: _saveScore,
+                                  saving: state is CaseWorkspaceWriteInProgress,
+                                ),
+                                const SizedBox(height: AppSpacing.sm),
+                                Text(
+                                  l10n.scoreLockLine,
+                                  style: Theme.of(context).textTheme.bodySmall,
+                                ),
+                              ],
+                              if (draft != null) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                _ReportSection(
+                                  draft: draft,
+                                  preread: preread,
+                                  locked: locked,
+                                  writeOwn: _writeOwn,
+                                  diagnosis: _diagnosis,
+                                  comments: _comments,
+                                  confirmable: _confirmable,
+                                  sections: _sections,
+                                  answers: _answers,
+                                  missingRequired: _missingRequired(),
+                                  onWriteOwn: () =>
+                                      setState(() => _writeOwn = true),
+                                  onStartFromAi: () =>
+                                      _add(const CaseDraftStartedFromPreread()),
+                                  onDiagnosisType: (t) =>
+                                      _setDiagnosisType(draft, t),
+                                  onCritical: (v) => _setCritical(draft, v),
+                                  onNotifiable: (id, {required on}) =>
+                                      _toggleNotifiable(draft, id, on: on),
+                                ),
+                              ],
                               const SizedBox(height: AppSpacing.md),
-                              _PrereadCard(preread: preread),
-                            ],
-                            if (locked) ...[
-                              const SizedBox(height: AppSpacing.md),
-                              WorkspaceScoreCard(
-                                findings: _findingsVerdict,
-                                impression: _impressionVerdict,
-                                urgency: _urgencyVerdict,
-                                measurements: _measurementsVerdict,
-                                tiles: _tilesVerdict,
-                                overall: _overall,
-                                comment: _scoreComment,
-                                onFindings: (v) =>
-                                    setState(() => _findingsVerdict = v),
-                                onImpression: (v) =>
-                                    setState(() => _impressionVerdict = v),
-                                onUrgency: (v) =>
-                                    setState(() => _urgencyVerdict = v),
-                                onMeasurements: (v) =>
-                                    setState(() => _measurementsVerdict = v),
-                                onTiles: (v) =>
-                                    setState(() => _tilesVerdict = v),
-                                onOverall: (v) => setState(() => _overall = v),
-                                onSave: _saveScore,
-                                saving: state is CaseWorkspaceWriteInProgress,
-                              ),
-                              const SizedBox(height: AppSpacing.sm),
-                              Text(
-                                l10n.scoreLockLine,
-                                style: Theme.of(context).textTheme.bodySmall,
+                              CaseHistoryRow(
+                                caseUid: widget.caseUid,
+                                role: .pathologist,
                               ),
                             ],
-                            if (draft != null) ...[
-                              const SizedBox(height: AppSpacing.md),
-                              _ReportSection(
-                                draft: draft,
-                                preread: preread,
-                                locked: locked,
-                                writeOwn: _writeOwn,
-                                diagnosis: _diagnosis,
-                                comments: _comments,
-                                confirmable: _confirmable,
-                                sections: _sections,
-                                answers: _answers,
-                                missingRequired: _missingRequired(draft),
-                                onWriteOwn: () =>
-                                    setState(() => _writeOwn = true),
-                                onStartFromAi: () =>
-                                    _add(const CaseDraftStartedFromPreread()),
-                                onDiagnosisType: (t) =>
-                                    _setDiagnosisType(draft, t),
-                                onCritical: (v) => _setCritical(draft, v),
-                                onNotifiable: (id, {required on}) =>
-                                    _toggleNotifiable(draft, id, on: on),
-                              ),
-                            ],
-                            const SizedBox(height: AppSpacing.md),
-                            CaseHistoryRow(
-                              caseUid: widget.caseUid,
-                              role: .pathologist,
-                            ),
-                          ],
-                        ),
-                ),
-                if (draft != null)
-                  BottomActionBar(
-                    secondary: TabibuButton.outline(
-                      label: l10n.workspaceSaveDraft,
-                      onTap: locked ? null : () => _saveDraft(draft),
-                    ),
-                    primary: TabibuButton.primary(
-                      label: l10n.workspaceSignReport,
-                      onTap:
-                          draft.diagnosis.trim().isEmpty ||
-                              locked ||
-                              _missingRequired(draft)
-                          ? null
-                          : () => _openSign(state),
-                    ),
+                          ),
                   ),
-              ],
+                  if (draft != null)
+                    BottomActionBar(
+                      secondary: TabibuButton.outline(
+                        label: l10n.workspaceSaveDraft,
+                        onTap: locked ? null : () => _saveDraft(draft),
+                      ),
+                      primary: TabibuButton.primary(
+                        label: l10n.workspaceSignReport,
+                        onTap:
+                            _diagnosis.text.trim().isEmpty ||
+                                locked ||
+                                _missingRequired()
+                            ? null
+                            : () => _signFrom(state, draft),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         );
       },
     );
   }
+}
+
+/// A tap on empty space drops the keyboard; fields and buttons keep their own
+/// taps.
+class _DismissKeyboard extends StatelessWidget {
+  const _DismissKeyboard({required this.child});
+
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => GestureDetector(
+    behavior: HitTestBehavior.translucent,
+    onTap: () => FocusManager.instance.primaryFocus?.unfocus(),
+    child: child,
+  );
 }
 
 class _Chips extends StatelessWidget {

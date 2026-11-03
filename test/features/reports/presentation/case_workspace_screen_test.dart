@@ -608,16 +608,72 @@ void main() {
         expect(find.text(l10n.reportSectionMicroscopic), findsWidgets);
       });
 
-      testWidgets('Sign stays closed, with its reason, until they are saved', (
+      Finder answerField(String label) => find.descendant(
+        of: questionField(label),
+        matching: find.byType(TextField),
+      );
+
+      TabibuButton signButton(WidgetTester tester) =>
+          tester.widget<TabibuButton>(
+            find.widgetWithText(TabibuButton, l10n.workspaceSignReport),
+          );
+
+      testWidgets('Sign stays closed, with its reason, until they are typed', (
         tester,
       ) async {
         await pumpScreen(tester, loaded(draft()));
 
         expect(find.text(l10n.workspaceRequiredBeforeSign), findsOneWidget);
-        final sign = tester.widget<TabibuButton>(
-          find.widgetWithText(TabibuButton, l10n.workspaceSignReport),
+        expect(signButton(tester).onTap, isNull);
+
+        await tester.enterText(
+          answerField(l10n.reportQuestionSpecimenDescription),
+          'One lymph node, 6 mm.',
         );
-        expect(sign.onTap, isNull);
+        await tester.pump();
+        // One of the two required ones is still empty.
+        expect(signButton(tester).onTap, isNull);
+      });
+
+      testWidgets('Sign opens as soon as the required ones are typed, and '
+          'saves them first', (tester) async {
+        await pumpScreen(tester, loaded(draft()));
+
+        await tester.enterText(
+          answerField(l10n.reportQuestionSpecimenDescription),
+          'One lymph node, 6 mm.',
+        );
+        await tester.enterText(
+          answerField(l10n.reportQuestionMicroscopicDescription),
+          'A focus of carcinoma cells.',
+        );
+        await tester.pump();
+
+        expect(find.text(l10n.workspaceRequiredBeforeSign), findsNothing);
+        expect(signButton(tester).onTap, isNotNull);
+
+        await tester.tap(find.text(l10n.workspaceSignReport));
+        await tester.pump();
+
+        final sent = verify(
+          () => blocs.caseWorkspace.add(captureAny()),
+        ).captured.whereType<CaseDraftEdited>().single;
+        expect((sent.fields['responses'] as List<dynamic>).length, 2);
+      });
+
+      testWidgets('a tap outside the fields drops the keyboard', (
+        tester,
+      ) async {
+        await pumpScreen(tester, loaded(draft()));
+
+        final field = answerField(l10n.reportQuestionSpecimenSize);
+        await tester.tap(field);
+        await tester.pump();
+        expect(tester.widget<TextField>(field).focusNode?.hasFocus, isTrue);
+
+        await tester.tap(find.text(l10n.reportSectionMicroscopic).first);
+        await tester.pump();
+        expect(tester.widget<TextField>(field).focusNode?.hasFocus, isFalse);
       });
 
       testWidgets('saved answers fill the fields and open Sign', (

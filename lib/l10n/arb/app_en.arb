@@ -8126,7 +8126,7 @@
     "@workspaceZoomOut": {
         "description": "Pathologist slide viewer: zoom out control label"
     },
-    "workspaceRequiredBeforeSign": "Fill the starred fields and save the draft to sign.",
+    "workspaceRequiredBeforeSign": "Fill the starred fields to sign.",
     "@workspaceRequiredBeforeSign": {
         "description": "Pathologist workspace: why Sign is closed while a required template question is unanswered"
     }
