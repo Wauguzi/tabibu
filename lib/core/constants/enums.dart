@@ -464,16 +464,13 @@ enum AppError implements Exception {
     .shareExpired => l10n.shareCodeExpired,
     .shareLocked => l10n.shareCodeLocked,
     .shareClosed => l10n.shareCodeUsed,
-    // Bundle 55 adds errorSlidesNotRequired, errorInvalidStage,
-    // errorNotOnCase, errorTooManySlides, errorSlideNotUploaded,
-    // errorSlideNotReserved and errorInvalidSlides.
-    .slidesNotRequired ||
-    .invalidStage ||
-    .notOnCase ||
-    .tooManySlides ||
-    .slideNotUploaded ||
-    .slideNotReserved ||
-    .invalidSlides => l10n.errorUnknown,
+    .slidesNotRequired => l10n.errorSlidesNotRequired,
+    .invalidStage => l10n.errorInvalidStage,
+    .notOnCase => l10n.errorNotOnCase,
+    .tooManySlides => l10n.errorTooManySlides,
+    .slideNotUploaded => l10n.errorSlideNotUploaded,
+    .slideNotReserved => l10n.errorSlideNotReserved,
+    .invalidSlides => l10n.errorInvalidSlides,
     .practitionerPendingVerification =>
       l10n.errorPractitionerPendingVerification,
     .noRoleAssigned => l10n.errorNoRoleAssigned,

@@ -6,11 +6,15 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/utils/text_fold.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
+import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_bloc.dart';
+import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_state.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_bloc.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_event.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_state.dart';
 import 'package:tabibu/features/orders/data/advisory_protocol.dart';
+import 'package:tabibu/features/orders/presentation/widgets/order_slides_card.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -43,6 +47,26 @@ class _OrderSendStepState extends State<OrderSendStep> {
     final advisoryKey = check?.advisoryKey ?? '';
     final protocol = AdvisoryProtocol.fromKey(advisoryKey);
     final needle = foldForSearch(_query.trim());
+    // The slides card reads the case: the upload bloc's synced copy when it
+    // is this case, else the cases list. It stays hidden while another
+    // case's upload runs.
+    final upload = context.watch<SlideUploadBloc>().state;
+    final foreignBusy =
+        upload is SlideUploadInProgress &&
+        upload.caseUid.isNotEmpty &&
+        upload.caseUid != draft.caseUid;
+    final synced = upload.caseModel;
+    final requiresSlides =
+        !foreignBusy &&
+        (synced != null && synced.uid == draft.caseUid
+            ? synced.requiresSlides
+            : context
+                      .watch<CasesBloc>()
+                      .state
+                      .cases
+                      .firstWhereOrNull((c) => c.uid == draft.caseUid)
+                      ?.requiresSlides ??
+                  false);
     final pathologists = [
       for (final p in state.pathologists)
         if (needle.isEmpty ||
@@ -94,6 +118,13 @@ class _OrderSendStepState extends State<OrderSendStep> {
                       ? null
                       : (value) =>
                             _add(OrderProtocolConfirmed(confirmed: value)),
+                ),
+              ],
+              if (requiresSlides) ...[
+                const SizedBox(height: AppSpacing.md),
+                OrderSlidesCard(
+                  caseUid: draft.caseUid,
+                  doctorUid: draft.doctorUid,
                 ),
               ],
               const SizedBox(height: AppSpacing.lg),

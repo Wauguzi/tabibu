@@ -10,6 +10,9 @@ import 'package:tabibu/features/appointments/data/models/appointment_model.dart'
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
+import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_state.dart';
+import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_draft.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_event.dart';
@@ -282,6 +285,57 @@ void main() {
         await pumpScreen(tester);
 
         expect(find.text(_en.orderSendTitle), findsOneWidget);
+      });
+
+      testWidgets('the slides card shows when the case needs slides', (
+        tester,
+      ) async {
+        order(_editing(created()));
+        when(() => blocs.cases.state).thenReturn(
+          CasesLoadSuccess(
+            cases: [
+              const CaseModel().copyWith(uid: 'case-1', requiresSlides: true),
+            ],
+          ),
+        );
+        await pumpScreen(tester);
+
+        expect(find.text(_en.orderSlidesTitle), findsOneWidget);
+      });
+
+      testWidgets('the slides card hides when the case needs none', (
+        tester,
+      ) async {
+        order(_editing(created()));
+        when(() => blocs.cases.state).thenReturn(
+          CasesLoadSuccess(
+            cases: [
+              const CaseModel().copyWith(uid: 'case-1', requiresSlides: false),
+            ],
+          ),
+        );
+        await pumpScreen(tester);
+
+        expect(find.text(_en.orderSlidesTitle), findsNothing);
+      });
+
+      testWidgets("the slides card hides while another case's upload runs", (
+        tester,
+      ) async {
+        order(_editing(created()));
+        when(() => blocs.cases.state).thenReturn(
+          CasesLoadSuccess(
+            cases: [
+              const CaseModel().copyWith(uid: 'case-1', requiresSlides: true),
+            ],
+          ),
+        );
+        when(
+          () => blocs.slideUpload.state,
+        ).thenReturn(const SlideUploadInProgress(caseUid: 'case-9'));
+        await pumpScreen(tester);
+
+        expect(find.text(_en.orderSlidesTitle), findsNothing);
       });
 
       testWidgets('while it runs: a status, no AI frame, send closed', (

@@ -489,7 +489,21 @@
     "zinazokufikia",
     "zinazopendekezwa",
     "zito",
-    "Zote"
+    "Zote",
+    "baadhi",
+    "haihitaji",
+    "haikupakiwa",
+    "haikutengwa",
+    "haziwezi",
+    "huna",
+    "kila",
+    "kuongezwa",
+    "mstari",
+    "nyingi",
+    "sahihi",
+    "slaidi",
+    "ufikiaji",
+    "ujaribu"
   ],
   "ignorePaths": [
     "**/lib/firebase_options.dart",

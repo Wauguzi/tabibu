@@ -1554,5 +1554,96 @@
     "helpPreread": "Jinsi usomaji wa awali wa AI unavyofanya kazi",
     "helpPrereadBody": "AI huweka alama kwenye vigae inavyodhani vinaonyesha uvimbe na kupendekeza vipimo. Haisaini kamwe. Unakagua kazi yake na kusaini ripoti ya mwisho.",
     "helpSigning": "Kusaini na mabadiliko",
-    "helpSigningBody": "Ipe alama rasimu ya AI, andika ripoti yako, kisha weka tiki kwenye kisanduku cha mapitio, saini jina lako na uguse Saini. Ripoti iliyosainiwa huenda kwa daktari."
+    "helpSigningBody": "Ipe alama rasimu ya AI, andika ripoti yako, kisha weka tiki kwenye kisanduku cha mapitio, saini jina lako na uguse Saini. Ripoti iliyosainiwa huenda kwa daktari.",
+    "errorSlidesNotRequired": "Kesi hii haihitaji slaidi.",
+    "@errorSlidesNotRequired": {
+        "description": "Slide upload refused: the case takes no slides"
+    },
+    "errorInvalidStage": "Slaidi haziwezi kuongezwa kwenye kesi hii tena.",
+    "@errorInvalidStage": {
+        "description": "Slide upload refused: the case has moved past the stage that takes slides"
+    },
+    "errorNotOnCase": "Huna ufikiaji wa kesi hii tena.",
+    "@errorNotOnCase": {
+        "description": "Slide upload refused: the doctor is not on the case"
+    },
+    "errorTooManySlides": "Slaidi ni nyingi mno kwa kesi hii.",
+    "@errorTooManySlides": {
+        "description": "Slide upload refused: the case already holds the maximum slides"
+    },
+    "errorSlideNotUploaded": "Slaidi moja haikupakiwa. Jaribu tena.",
+    "@errorSlideNotUploaded": {
+        "description": "One slide failed to reach Storage; its row keeps Retry"
+    },
+    "errorSlideNotReserved": "Slaidi moja haikutengwa. Jaribu tena.",
+    "@errorSlideNotReserved": {
+        "description": "One slide missed its reservation; its row keeps Retry"
+    },
+    "errorInvalidSlides": "Baadhi ya slaidi si sahihi. Angalia kila mstari na ujaribu tena.",
+    "@errorInvalidSlides": {
+        "description": "Slides refused without a specific cause, including rows missing a pixel size"
+    },
+    "orderSlidesTitle": "Slaidi",
+    "@orderSlidesTitle": {
+        "description": "Send step section title for the slide uploads"
+    },
+    "orderSlidesBody": "Kesi hii inahitaji picha za slaidi. Ongeza kila slaidi, weka ukubwa wake wa pikseli, kisha pakia.",
+    "@orderSlidesBody": {
+        "description": "Send step slides section: why the case needs slides"
+    },
+    "orderSlidesAdd": "Ongeza slaidi",
+    "@orderSlidesAdd": {
+        "description": "Send step slides section: open the file picker"
+    },
+    "orderSlidesUpload": "Pakia",
+    "@orderSlidesUpload": {
+        "description": "Send step slides section: upload the added slides"
+    },
+    "orderSlidesRemove": "Ondoa {fileName}",
+    "@orderSlidesRemove": {
+        "description": "Send step slide row: delete label naming the file",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "orderSlidesPixelSizeLabel": "Ukubwa wa pikseli (µm/px)",
+    "@orderSlidesPixelSizeLabel": {
+        "description": "Send step slide row: pixel size field label"
+    },
+    "orderSlidesPixelSizeHint": "Kwa mfano 0.25",
+    "@orderSlidesPixelSizeHint": {
+        "description": "Send step slide row: pixel size field hint"
+    },
+    "orderSlidesPixelSizeInvalid": "Weka namba kati ya 0 na 100.",
+    "@orderSlidesPixelSizeInvalid": {
+        "description": "Send step slide row: pixel size field error"
+    },
+    "orderSlidesUploading": "Inapakia…",
+    "@orderSlidesUploading": {
+        "description": "Send step slide row: the slide is on its way"
+    },
+    "orderSlidesUploaded": "Imepakiwa",
+    "@orderSlidesUploaded": {
+        "description": "Send step slide row: the slide reached the case"
+    },
+    "orderSlidesMetaJpeg": "{size} · JPEG",
+    "@orderSlidesMetaJpeg": {
+        "description": "Send step slide row: size line for a JPEG",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "orderSlidesMetaPng": "{size} · PNG",
+    "@orderSlidesMetaPng": {
+        "description": "Send step slide row: size line for a PNG",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    }
 }

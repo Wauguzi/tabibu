@@ -248,6 +248,47 @@ void main() {
       }
     });
 
+    test('slide errors resolve to their own copy, never unknown', () {
+      final cases = {
+        AppError.slidesNotRequired: (
+          'This case does not need slides.',
+          'Kesi hii haihitaji slaidi.',
+        ),
+        AppError.invalidStage: (
+          'Slides can no longer be added to this case.',
+          'Slaidi haziwezi kuongezwa kwenye kesi hii tena.',
+        ),
+        AppError.notOnCase: (
+          'You no longer have access to this case.',
+          'Huna ufikiaji wa kesi hii tena.',
+        ),
+        AppError.tooManySlides: (
+          'Too many slides for this case.',
+          'Slaidi ni nyingi mno kwa kesi hii.',
+        ),
+        AppError.slideNotUploaded: (
+          'A slide was not uploaded. Try again.',
+          'Slaidi moja haikupakiwa. Jaribu tena.',
+        ),
+        AppError.slideNotReserved: (
+          'A slide was not reserved. Try again.',
+          'Slaidi moja haikutengwa. Jaribu tena.',
+        ),
+        AppError.invalidSlides: (
+          'Some slides are not valid. Check each row and try again.',
+          'Baadhi ya slaidi si sahihi. Angalia kila mstari na ujaribu tena.',
+        ),
+      };
+      for (final entry in cases.entries) {
+        expect(
+          entry.value.$1,
+          isNot('Something went wrong. Please try again.'),
+        );
+        expect(entry.key.description(en), entry.value.$1);
+        expect(entry.key.description(sw), entry.value.$2);
+      }
+    });
+
     test('spot-checks', () {
       expect(
         AppError.kmpdcNumberInUse.description(en),

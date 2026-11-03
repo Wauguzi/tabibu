@@ -6,6 +6,7 @@ import 'package:injectable/injectable.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/auth/data/datasources/profile_storage.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
+import 'package:tabibu/features/cases/data/datasources/slide_storage.dart';
 
 /// Picks the files sign-up uploads, as bytes, so one path serves mobile and
 /// the web demo (where a picked file has no path). Null means the person
@@ -22,6 +23,7 @@ class FilePickerService {
   static const double photoMaxSide = 1024;
   static const int photoQuality = 85;
   static const licenceExtensions = ['pdf', 'jpg', 'jpeg', 'png'];
+  static const slideExtensions = ['jpg', 'jpeg', 'png'];
 
   Future<UploadFile?> pickPhoto({required bool fromCamera}) async {
     final XFile? picked;
@@ -84,6 +86,45 @@ class FilePickerService {
     if (size >= ProfileStorage.maxLicenseBytes) throw AppError.fileTooLarge;
     final contentType = contentTypeFor(name, null);
     if (contentType == null) throw AppError.invalidLicense;
+    return UploadFile(
+      bytes: await readBytes(),
+      contentType: contentType,
+      name: name,
+    );
+  }
+
+  /// Slide images for a case: JPEG or PNG, each under the Storage limit.
+  /// Empty when the person cancels; one oversize or unreadable file refuses
+  /// the whole pick, like a licence.
+  Future<List<UploadFile>> pickSlides() async {
+    final files = await FilePicker.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: slideExtensions,
+    );
+    return [
+      for (final file in files)
+        await slideFrom(
+          name: file.name,
+          size: file.lengthSync() ?? await file.length() ?? 0,
+          readBytes: file.readAsBytes,
+        ),
+    ];
+  }
+
+  /// The checks on a picked slide, before its bytes are read. The upload
+  /// bloc sniffs the bytes again and refuses what is not an image.
+  @visibleForTesting
+  static Future<UploadFile> slideFrom({
+    required String name,
+    required int size,
+    required Future<Uint8List> Function() readBytes,
+  }) async {
+    if (size >= SlideStorage.maxSlideBytes) throw AppError.fileTooLarge;
+    final contentType = contentTypeFor(name, null);
+    if (contentType == null) throw AppError.invalidSlides;
+    if (contentType != SlideStorage.jpeg && contentType != SlideStorage.png) {
+      throw AppError.invalidSlides;
+    }
     return UploadFile(
       bytes: await readBytes(),
       contentType: contentType,

@@ -7803,5 +7803,96 @@
     "helpSigningBody": "Score the AI draft, write your report, then tick the review box, sign your name and tap Sign. The signed report goes to the doctor.",
     "@helpSigningBody": {
         "description": "Signing guide answer"
+    },
+    "errorSlidesNotRequired": "This case does not need slides.",
+    "@errorSlidesNotRequired": {
+        "description": "Slide upload refused: the case takes no slides"
+    },
+    "errorInvalidStage": "Slides can no longer be added to this case.",
+    "@errorInvalidStage": {
+        "description": "Slide upload refused: the case has moved past the stage that takes slides"
+    },
+    "errorNotOnCase": "You no longer have access to this case.",
+    "@errorNotOnCase": {
+        "description": "Slide upload refused: the doctor is not on the case"
+    },
+    "errorTooManySlides": "Too many slides for this case.",
+    "@errorTooManySlides": {
+        "description": "Slide upload refused: the case already holds the maximum slides"
+    },
+    "errorSlideNotUploaded": "A slide was not uploaded. Try again.",
+    "@errorSlideNotUploaded": {
+        "description": "One slide failed to reach Storage; its row keeps Retry"
+    },
+    "errorSlideNotReserved": "A slide was not reserved. Try again.",
+    "@errorSlideNotReserved": {
+        "description": "One slide missed its reservation; its row keeps Retry"
+    },
+    "errorInvalidSlides": "Some slides are not valid. Check each row and try again.",
+    "@errorInvalidSlides": {
+        "description": "Slides refused without a specific cause, including rows missing a pixel size"
+    },
+    "orderSlidesTitle": "Slides",
+    "@orderSlidesTitle": {
+        "description": "Send step section title for the slide uploads"
+    },
+    "orderSlidesBody": "This case needs slide images. Add each slide, set its pixel size, then upload.",
+    "@orderSlidesBody": {
+        "description": "Send step slides section: why the case needs slides"
+    },
+    "orderSlidesAdd": "Add slides",
+    "@orderSlidesAdd": {
+        "description": "Send step slides section: open the file picker"
+    },
+    "orderSlidesUpload": "Upload",
+    "@orderSlidesUpload": {
+        "description": "Send step slides section: upload the added slides"
+    },
+    "orderSlidesRemove": "Remove {fileName}",
+    "@orderSlidesRemove": {
+        "description": "Send step slide row: delete label naming the file",
+        "placeholders": {
+            "fileName": {
+                "type": "String"
+            }
+        }
+    },
+    "orderSlidesPixelSizeLabel": "Pixel size (µm/px)",
+    "@orderSlidesPixelSizeLabel": {
+        "description": "Send step slide row: pixel size field label"
+    },
+    "orderSlidesPixelSizeHint": "For example 0.25",
+    "@orderSlidesPixelSizeHint": {
+        "description": "Send step slide row: pixel size field hint"
+    },
+    "orderSlidesPixelSizeInvalid": "Enter a number between 0 and 100.",
+    "@orderSlidesPixelSizeInvalid": {
+        "description": "Send step slide row: pixel size field error"
+    },
+    "orderSlidesUploading": "Uploading…",
+    "@orderSlidesUploading": {
+        "description": "Send step slide row: the slide is on its way"
+    },
+    "orderSlidesUploaded": "Uploaded",
+    "@orderSlidesUploaded": {
+        "description": "Send step slide row: the slide reached the case"
+    },
+    "orderSlidesMetaJpeg": "{size} · JPEG",
+    "@orderSlidesMetaJpeg": {
+        "description": "Send step slide row: size line for a JPEG",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
+    },
+    "orderSlidesMetaPng": "{size} · PNG",
+    "@orderSlidesMetaPng": {
+        "description": "Send step slide row: size line for a PNG",
+        "placeholders": {
+            "size": {
+                "type": "String"
+            }
+        }
     }
 }

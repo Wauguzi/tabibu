@@ -5,6 +5,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/services/file_picker_service.dart';
 import 'package:tabibu/features/auth/data/datasources/profile_storage.dart';
+import 'package:tabibu/features/cases/data/datasources/slide_storage.dart';
 
 class _MockImagePicker extends Mock implements ImagePicker {}
 
@@ -159,6 +160,56 @@ void main() {
         ),
         throwsA(AppError.invalidLicense),
       );
+    });
+  });
+
+  group('slideFrom', () {
+    var reads = 0;
+    Future<Uint8List> read() async {
+      reads++;
+      return Uint8List(3);
+    }
+
+    setUp(() => reads = 0);
+
+    test('accepts JPEG or PNG, read once', () async {
+      for (final (name, type) in [
+        ('slide.jpg', 'image/jpeg'),
+        ('slide.JPEG', 'image/jpeg'),
+        ('slide.png', 'image/png'),
+      ]) {
+        final file = await FilePickerService.slideFrom(
+          name: name,
+          size: 3,
+          readBytes: read,
+        );
+        expect(file.contentType, type);
+        expect(file.name, name);
+      }
+      expect(reads, 3);
+    });
+
+    test('a slide at the 20 MB limit is refused before it is read', () async {
+      await expectLater(
+        FilePickerService.slideFrom(
+          name: 'big.jpg',
+          size: SlideStorage.maxSlideBytes,
+          readBytes: read,
+        ),
+        throwsA(AppError.fileTooLarge),
+      );
+      expect(reads, 0);
+    });
+
+    test('a PDF or anything else is refused as slides', () async {
+      for (final name in ['scan.pdf', 'scan.heic', 'notes.docx']) {
+        await expectLater(
+          FilePickerService.slideFrom(name: name, size: 3, readBytes: read),
+          throwsA(AppError.invalidSlides),
+          reason: name,
+        );
+      }
+      expect(reads, 0);
     });
   });
 
