@@ -140,6 +140,11 @@ void main() {
             path: '/patient/calendar',
             builder: (_, _) => const Text('stub calendar'),
           ),
+          GoRoute(
+            path: '/patient/appointment/:appointmentUid/chat',
+            builder: (_, state) =>
+                Text('stub chat ${state.pathParameters['appointmentUid']}'),
+          ),
         ],
       );
       addTearDown(routes.dispose);
@@ -170,7 +175,21 @@ void main() {
         findsOneWidget,
       );
       expect(find.text('You can bring someone with you'), findsOneWidget);
+      expect(find.text('Appointment chat'), findsOneWidget);
       expect(find.text('See your results'), findsNothing);
+    });
+
+    testWidgets('bundle 51: the chat row opens the appointment chat', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      await tester.pumpRouterApp(router());
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Appointment chat'));
+      await tester.pumpAndSettle();
+
+      expect(find.text('stub chat a-up'), findsOneWidget);
     });
 
     testWidgets('a past visit with a case links its results', (tester) async {

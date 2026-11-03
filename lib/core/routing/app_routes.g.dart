@@ -63,6 +63,8 @@ List<RouteBase> get $appRoutes => [
   $pathologistMdtNewRoute,
   $pathologistMdtConsultRoute,
   $pathologistMdtInviteRoute,
+  $patientAppointmentChatRoute,
+  $doctorAppointmentChatRoute,
 ];
 
 RouteBase get $decisionRoute => GoRouteData.$route(
@@ -2250,6 +2252,72 @@ mixin $PathologistMdtInviteRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/pathologist/mdt/${Uri.encodeComponent(_self.conversationUid)}/invite',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientAppointmentChatRoute => GoRouteData.$route(
+  path: '/patient/appointment/:appointmentUid/chat',
+  hasOverriddenOnExit: false,
+  factory: $PatientAppointmentChatRoute._fromState,
+);
+
+mixin $PatientAppointmentChatRoute on GoRouteData {
+  static PatientAppointmentChatRoute _fromState(GoRouterState state) =>
+      PatientAppointmentChatRoute(
+        appointmentUid: state.pathParameters['appointmentUid']!,
+      );
+
+  PatientAppointmentChatRoute get _self => this as PatientAppointmentChatRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/patient/appointment/${Uri.encodeComponent(_self.appointmentUid)}/chat',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorAppointmentChatRoute => GoRouteData.$route(
+  path: '/doctor/appointment/:appointmentUid/chat',
+  hasOverriddenOnExit: false,
+  factory: $DoctorAppointmentChatRoute._fromState,
+);
+
+mixin $DoctorAppointmentChatRoute on GoRouteData {
+  static DoctorAppointmentChatRoute _fromState(GoRouterState state) =>
+      DoctorAppointmentChatRoute(
+        appointmentUid: state.pathParameters['appointmentUid']!,
+      );
+
+  DoctorAppointmentChatRoute get _self => this as DoctorAppointmentChatRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/doctor/appointment/${Uri.encodeComponent(_self.appointmentUid)}/chat',
   );
 
   @override

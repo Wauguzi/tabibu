@@ -40,6 +40,7 @@ import 'package:tabibu/features/cases/presentation/share_done_screen.dart';
 import 'package:tabibu/features/cases/presentation/share_report_screen.dart';
 import 'package:tabibu/features/cases/presentation/shared_reports_screen.dart';
 import 'package:tabibu/features/cases/presentation/who_can_see_screen.dart';
+import 'package:tabibu/features/conversations/presentation/appointment_chat_screen.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_consult_screen.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_invite_screen.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_screen.dart';
@@ -1078,3 +1079,39 @@ class PathologistMdtInviteRoute extends GoRouteData
   Widget build(BuildContext context, GoRouterState state) =>
       MdtInviteScreen(role: .pathologist, conversationUid: conversationUid);
 }
+
+// ── Appointment chat (P-CHAT, D-CHAT) ──────────────────────────────────────
+// Id only (F-2). Nested under the appointment path so the share and MDT
+// detail routes stay flat siblings.
+
+/// P-CHAT · Direct thread for one appointment.
+@TypedGoRoute<PatientAppointmentChatRoute>(
+  path: '${RoutePaths.patient}/appointment/:appointmentUid/chat',
+)
+class PatientAppointmentChatRoute extends GoRouteData
+    with $PatientAppointmentChatRoute {
+  const PatientAppointmentChatRoute({required this.appointmentUid});
+
+  final String appointmentUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      AppointmentChatScreen(role: .patient, appointmentUid: appointmentUid);
+}
+
+/// D-CHAT · Direct thread for one appointment.
+@TypedGoRoute<DoctorAppointmentChatRoute>(
+  path: '${RoutePaths.doctor}/appointment/:appointmentUid/chat',
+)
+class DoctorAppointmentChatRoute extends GoRouteData
+    with $DoctorAppointmentChatRoute {
+  const DoctorAppointmentChatRoute({required this.appointmentUid});
+
+  final String appointmentUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      AppointmentChatScreen(role: .doctor, appointmentUid: appointmentUid);
+}
+
+// ── App lock (P-LOCK) ──────────────────────────────────────────────────────

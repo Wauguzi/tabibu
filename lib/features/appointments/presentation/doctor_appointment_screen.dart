@@ -178,6 +178,13 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
             label: l10n.rescheduleEntryMove,
             supporting: l10n.rescheduleEntryMoveBody,
           ),
+        // Chat buttons F-11 hid; S-3 / bundle 51 put them back.
+        OptionsAction(
+          value: 'Chat',
+          icon: Assets.icons.chatIcon,
+          label: l10n.chatMessagePatient,
+          supporting: l10n.chatMessagePatientBody,
+        ),
         if (upcoming)
           OptionsAction(
             value: 'Cancel',
@@ -201,6 +208,10 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
     switch (choice) {
       case 'Move':
         await _move(appointment);
+      case 'Chat':
+        await DoctorAppointmentChatRoute(
+          appointmentUid: appointment.uid,
+        ).push<void>(context);
       case 'Cancel':
         await _cancel(appointment);
       default:
@@ -375,7 +386,6 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
     final start = DateTime.tryParse(appointment.scheduledStart);
     final end = DateTime.tryParse(appointment.scheduledEnd);
     final started = start != null && !start.isAfter(now);
-    final slotOver = end != null && !end.isAfter(now);
     final status = appointment.statusValue;
     // Only an accepted visit still has something to do: every other state
     // (completed, no-show, declined, cancelled, requested, expired) is
@@ -383,7 +393,6 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
     final live = status == .accepted;
     final busy = _ending && appointmentsState is AppointmentWriteInProgress;
     final showActions = live && !_ended;
-    final canNoShow = showActions && slotOver;
     final nairobiStart = nairobiTimeOf(appointment.scheduledStart);
     final firstName = appointment.patientName.trim().split(' ').first;
 
@@ -461,7 +470,9 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
               tooltip: l10n.calendarTitle,
               onPressed: () => const DoctorCalendarRoute().push<void>(context),
             ),
-            if (canNoShow || (live && !started && !_ended))
+            // Options stay available for the whole live visit so Message
+            // the patient (bundle 51) is reachable mid-appointment too.
+            if (showActions)
               MoreButton(
                 semanticLabel: l10n.notificationsMoreLabel,
                 onTap: busy ? null : () => unawaited(_showOptions(appointment)),

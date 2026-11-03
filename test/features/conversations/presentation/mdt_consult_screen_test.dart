@@ -216,10 +216,7 @@ void main() {
         'confirm', (tester) async {
       // Owner can remove.
       final consult = _consult(createdByUid: 'me');
-      await pumpConsult(
-        tester,
-        state: MdtLoadSuccess(active: consult),
-      );
+      await pumpConsult(tester, state: MdtLoadSuccess(active: consult));
 
       Finder inSheet(String text) => find.descendant(
         of: find.byType(TabibuBottomSheet),

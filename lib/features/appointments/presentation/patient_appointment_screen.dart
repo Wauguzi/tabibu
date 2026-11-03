@@ -236,6 +236,16 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
               tone: .lavender,
               title: appointment.symptomText,
             ),
+          GroupedRow(
+            icon: Assets.icons.chatIcon,
+            tone: .mint,
+            title: l10n.chatRowTitle,
+            onTap: () => unawaited(
+              PatientAppointmentChatRoute(
+                appointmentUid: appointment.uid,
+              ).push<void>(context),
+            ),
+          ),
           if (!upcoming && caseUid != null)
             GroupedRow(
               icon: Assets.icons.testTubeIcon,

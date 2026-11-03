@@ -127,6 +127,13 @@ class AnalyticsService {
   Future<void> logMdtMessageSent() =>
       _guard(() => _analytics.logEvent(name: 'mdt_message_sent'));
 
+  /// Appointment chat events carry no ids, names or text.
+  Future<void> logChatMessageSent() =>
+      _guard(() => _analytics.logEvent(name: 'chat_message_sent'));
+
+  Future<void> logChatClosed() =>
+      _guard(() => _analytics.logEvent(name: 'chat_closed'));
+
   /// Slides registered by one upload request: a count, never a uid, name,
   /// path or anything read off the image.
   Future<void> logSlidesUploaded({required int count}) => _guard(

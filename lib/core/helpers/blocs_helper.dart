@@ -14,6 +14,8 @@ import 'package:tabibu/features/cases/blocs/share_bloc/share_bloc.dart';
 import 'package:tabibu/features/cases/blocs/share_bloc/share_event.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_bloc.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_event.dart';
+import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_bloc.dart';
+import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_event.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_bloc.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_event.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
@@ -50,6 +52,7 @@ abstract final class BlocsHelper {
     BlocProvider<ShareBloc>(create: (_) => ShareBloc()),
     BlocProvider<SlideUploadBloc>(create: (_) => SlideUploadBloc()),
     BlocProvider<MdtBloc>(create: (_) => MdtBloc()),
+    BlocProvider<ChatBloc>(create: (_) => ChatBloc()),
     BlocProvider<DeskBloc>(create: (_) => DeskBloc()),
     BlocProvider<AlertReviewBloc>(create: (_) => AlertReviewBloc()),
     BlocProvider<CaseWorkspaceBloc>(create: (_) => CaseWorkspaceBloc()),
@@ -68,6 +71,7 @@ abstract final class BlocsHelper {
     context.read<ShareBloc>().add(const ShareReset());
     context.read<SlideUploadBloc>().add(const SlideUploadReset());
     context.read<MdtBloc>().add(const MdtReset());
+    context.read<ChatBloc>().add(const ChatReset());
     context.read<DeskBloc>().add(const DeskReset());
     context.read<AlertReviewBloc>().add(const AlertReviewReset());
     context.read<CaseWorkspaceBloc>().add(const CaseWorkspaceReset());

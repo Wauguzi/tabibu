@@ -182,6 +182,10 @@ void main() {
                     path: 'order',
                     builder: (_, _) => const Scaffold(body: Text('order-stub')),
                   ),
+                  GoRoute(
+                    path: 'chat',
+                    builder: (_, _) => const Scaffold(body: Text('chat-stub')),
+                  ),
                 ],
               ),
             ],
@@ -559,14 +563,30 @@ void main() {
         expect(find.text('order-stub'), findsOneWidget);
       });
 
-      testWidgets('there is no options button before the slot ends', (
-        tester,
-      ) async {
-        _useTallSurface(tester);
-        await pumpScreen(tester);
+      testWidgets(
+        'bundle 51: mid-slot options offer Message the patient and open chat',
+        (tester) async {
+          _useTallSurface(tester);
+          await pumpScreen(tester);
 
-        expect(find.byType(MoreButton), findsNothing);
-      });
+          expect(find.byType(MoreButton), findsOneWidget);
+          await tester.tap(find.byType(MoreButton));
+          await settleSheet(tester);
+          expect(inSheet(find.text(en.chatMessagePatient)), findsOneWidget);
+          expect(inSheet(find.text(en.chatMessagePatientBody)), findsOneWidget);
+          // Call and records stay hidden (F-11); chat is back (S-3).
+          expect(
+            inSheet(find.text(en.doctorAppointmentDidntCome)),
+            findsNothing,
+          );
+
+          await tester.tap(inSheet(find.text(en.chatMessagePatient)));
+          await tester.pump(const Duration(milliseconds: 700));
+          await settleSheet(tester);
+
+          expect(find.text('chat-stub'), findsOneWidget);
+        },
+      );
 
       group('after the slot', () {
         setUp(() {
@@ -595,8 +615,9 @@ void main() {
             inSheet(find.text(en.doctorAppointmentDidntCome)),
             findsOneWidget,
           );
-          // The one row; call, chat and records are not offered.
-          expect(inSheet(find.byType(Tappable)), findsOneWidget);
+          // Message + Didn’t come; call and records stay hidden.
+          expect(inSheet(find.text(en.chatMessagePatient)), findsOneWidget);
+          expect(inSheet(find.byType(Tappable)), findsNWidgets(2));
 
           await tester.tap(inSheet(find.text(en.doctorAppointmentDidntCome)));
           await tester.pump();
@@ -647,7 +668,9 @@ void main() {
           );
         });
 
-        testWidgets('an upcoming visit offers Move and Cancel', (tester) async {
+        testWidgets('an upcoming visit offers Move, Message and Cancel', (
+          tester,
+        ) async {
           _useTallSurface(tester);
           await pumpScreen(tester);
 
@@ -655,6 +678,7 @@ void main() {
           await settleSheet(tester);
 
           expect(inSheet(find.text(en.rescheduleEntryMove)), findsOneWidget);
+          expect(inSheet(find.text(en.chatMessagePatient)), findsOneWidget);
           expect(
             inSheet(find.text(en.cancelAppointmentConfirm)),
             findsOneWidget,
@@ -819,26 +843,43 @@ void main() {
         expect(find.text('calendar-stub'), findsOneWidget);
       });
 
-      testWidgets('the options button appears when the slot ends', (
-        tester,
-      ) async {
-        // The end passes while the screen is open.
-        final soon = _appointment(endsIn: const Duration(milliseconds: 1500));
-        register(
-          appointments: AppointmentsLoadSuccess(appointments: [soon]),
-          cases: CasesLoadSuccess(cases: [_case()]),
-        );
-        _useTallSurface(tester);
-        await pumpScreen(tester);
-        expect(find.byType(MoreButton), findsNothing);
+      testWidgets(
+        'Didn’t come joins the sheet once the slot ends (Message was already '
+        'there)',
+        (tester) async {
+          // Message is available mid-slot; Didn’t come waits for the end.
+          final soon = _appointment(endsIn: const Duration(milliseconds: 1500));
+          register(
+            appointments: AppointmentsLoadSuccess(appointments: [soon]),
+            cases: CasesLoadSuccess(cases: [_case()]),
+          );
+          _useTallSurface(tester);
+          await pumpScreen(tester);
+          expect(find.byType(MoreButton), findsOneWidget);
 
-        await tester.runAsync(
-          () => Future<void>.delayed(const Duration(milliseconds: 1600)),
-        );
-        await tester.pump(const Duration(seconds: 2));
+          await tester.tap(find.byType(MoreButton));
+          await settleSheet(tester);
+          expect(inSheet(find.text(en.chatMessagePatient)), findsOneWidget);
+          expect(
+            inSheet(find.text(en.doctorAppointmentDidntCome)),
+            findsNothing,
+          );
+          Navigator.of(tester.element(find.byType(TabibuBottomSheet))).pop();
+          await settleSheet(tester);
 
-        expect(find.byType(MoreButton), findsOneWidget);
-      });
+          await tester.runAsync(
+            () => Future<void>.delayed(const Duration(milliseconds: 1600)),
+          );
+          await tester.pump(const Duration(seconds: 2));
+
+          await tester.tap(find.byType(MoreButton));
+          await settleSheet(tester);
+          expect(
+            inSheet(find.text(en.doctorAppointmentDidntCome)),
+            findsOneWidget,
+          );
+        },
+      );
     });
 
     group('notes', () {
