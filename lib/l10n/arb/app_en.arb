@@ -1949,10 +1949,6 @@
     "@profileLab": {
         "description": "Pathologist profile row"
     },
-    "profileClinicHours": "Clinic hours",
-    "@profileClinicHours": {
-        "description": "Doctor profile row"
-    },
     "profileAcceptCases": "Accept new cases",
     "@profileAcceptCases": {
         "description": "Pathologist profile toggle"
@@ -1960,10 +1956,6 @@
     "profileNotifications": "Notifications",
     "@profileNotifications": {
         "description": "Profile row; also the home header bell"
-    },
-    "profileBiometrics": "Biometrics",
-    "@profileBiometrics": {
-        "description": "Profile toggle: sign in with face or fingerprint"
     },
     "profileHealthNotices": "Health notices for my area",
     "@profileHealthNotices": {

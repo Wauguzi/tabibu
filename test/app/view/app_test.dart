@@ -8,6 +8,7 @@ import 'package:tabibu/app/app.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/auth_helper.dart';
 import 'package:tabibu/core/helpers/blocs_helper.dart';
+import 'package:tabibu/core/helpers/facilities_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/helpers/notifications_helper.dart';
@@ -17,6 +18,7 @@ import 'package:tabibu/core/services/app_update_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/core/services/rasp_service.dart';
+import 'package:tabibu/features/alerts/data/datasources/alert_topic_service.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
@@ -32,6 +34,10 @@ class _MockNotifications extends Mock implements NotificationService {}
 class _MockAnalytics extends Mock implements AnalyticsService {}
 
 class _MockThemeHelper extends Mock implements ThemeHelper {}
+
+class _MockAlertTopics extends Mock implements AlertTopicService {}
+
+class _MockFacilities extends Mock implements FacilitiesHelper {}
 
 void main() {
   late _MockAuthHelper auth;
@@ -75,7 +81,9 @@ void main() {
         ),
       )
       ..registerSingleton<RaspService>(RaspService())
-      ..registerSingleton<ThemeHelper>(theme);
+      ..registerSingleton<ThemeHelper>(theme)
+      ..registerSingleton<AlertTopicService>(_MockAlertTopics())
+      ..registerSingleton<FacilitiesHelper>(_MockFacilities());
   });
 
   tearDown(getIt.reset);

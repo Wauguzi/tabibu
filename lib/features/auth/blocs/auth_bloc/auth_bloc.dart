@@ -2,14 +2,17 @@ import 'dart:async';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
+import 'package:collection/collection.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/auth_helper.dart';
+import 'package:tabibu/core/helpers/facilities_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/notifications_helper.dart';
 import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/core/services/rasp_service.dart';
+import 'package:tabibu/features/alerts/data/datasources/alert_topic_service.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
@@ -24,11 +27,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     NotificationsHelper? notificationsHelper,
     NotificationService? notificationService,
     RaspService? raspService,
+    AlertTopicService? alertTopicService,
+    FacilitiesHelper? facilitiesHelper,
   }) : _auth = authHelper ?? getIt<AuthHelper>(),
        _internet = internetService ?? getIt<InternetService>(),
        _analytics = analyticsService ?? getIt<AnalyticsService>(),
        _notices = notificationsHelper ?? getIt<NotificationsHelper>(),
        _rasp = raspService ?? getIt<RaspService>(),
+       _topics = alertTopicService ?? getIt<AlertTopicService>(),
+       _facilities = facilitiesHelper ?? getIt<FacilitiesHelper>(),
        super(const AuthInitial()) {
     // A cold start and a "check again" tap must not resolve twice at once.
     on<SessionRequested>(_onSessionRequested, transformer: droppable());
@@ -70,6 +77,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _onLanguageChangeRequested,
       transformer: restartable(),
     );
+    // A double tap on a switch must not write twice.
+    on<ProfileSettingChanged>(
+      _onProfileSettingChanged,
+      transformer: droppable(),
+    );
 
     _tokenRefreshes = (notificationService ?? getIt<NotificationService>())
         .tokenRefreshes
@@ -81,6 +93,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AnalyticsService _analytics;
   final NotificationsHelper _notices;
   final RaspService _rasp;
+  final AlertTopicService _topics;
+  final FacilitiesHelper _facilities;
   late final StreamSubscription<String> _tokenRefreshes;
 
   // Each sign-out moves this on, so a session read that started before it
@@ -333,6 +347,106 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       emit(
         LanguageChangeFailure(session: state.session, error: _appErrorOf(e)),
       );
+    }
+  }
+
+  Future<void> _onProfileSettingChanged(
+    ProfileSettingChanged event,
+    Emitter<AuthState> emit,
+  ) async {
+    final session = state.session;
+    final updated = _withSetting(session, event.setting, event.value);
+    // Only a profile that owns the field answers: anything else (a
+    // half-finished sign-up, a patient flipping a practitioner's switch)
+    // has no document to write.
+    if (updated == null) return;
+    emit(ProfileSettingChangeInProgress(session: session));
+    try {
+      await _requireInternet();
+      await _auth.updateProfileSetting(
+        setting: event.setting,
+        value: event.value,
+        session: session,
+      );
+      if (event.setting == ProfileSetting.healthNotices) {
+        await _syncAlertTopic(updated, event.value);
+      }
+      unawaited(
+        _analytics.logProfileSettingChanged(event.setting, value: event.value),
+      );
+      emit(ProfileSettingChangeSuccess(session: updated));
+    } on Object catch (e) {
+      emit(
+        ProfileSettingChangeFailure(session: session, error: _appErrorOf(e)),
+      );
+    }
+  }
+
+  static AuthSession? _withSetting(
+    AuthSession session,
+    ProfileSetting setting,
+    bool value,
+  ) => switch ((session, setting)) {
+    (
+      PatientSession(:final patient, :final roles),
+      ProfileSetting.healthNotices,
+    ) =>
+      PatientSession(
+        patient: patient.copyWith(receiveNotifications: value),
+        roles: roles,
+      ),
+    (
+      PractitionerSession(:final doctor, :final roles),
+      ProfileSetting.healthNotices,
+    ) =>
+      PractitionerSession(
+        doctor: doctor.copyWith(receiveNotifications: value),
+        roles: roles,
+      ),
+    (
+      PractitionerSession(:final doctor, :final roles),
+      ProfileSetting.acceptCases,
+    ) =>
+      PractitionerSession(
+        doctor: doctor.copyWith(isAvailable: value),
+        roles: roles,
+      ),
+    _ => null,
+  };
+
+  /// The area topic follows the switch, the way the sign-in side effects do:
+  /// best-effort, never failing the write that already landed.
+  Future<void> _syncAlertTopic(AuthSession session, bool receive) async {
+    final target = switch (session) {
+      PatientSession(:final patient, :final roles) => (
+        county: patient.county,
+        language: patient.languageValue,
+        demo: roles.isDemo,
+      ),
+      PractitionerSession(:final doctor, :final roles) => (
+        county: doctor.county,
+        language: doctor.languageValue,
+        demo: roles.isDemo,
+      ),
+      _ => null,
+    };
+    if (target == null) return;
+    final countyId = (await _facilities.counties())
+        .firstWhereOrNull((county) => county.name == target.county)
+        ?.id;
+    // No known county, no area topic: nothing to join or leave.
+    if (countyId == null) return;
+    try {
+      await _topics.syncSubscription(
+        topic: AlertTopicService.topicName(
+          countyId: countyId,
+          language: target.language.value,
+          demo: target.demo,
+        ),
+        receiveNotifications: receive,
+      );
+    } on Object catch (_) {
+      // The next flip retries; the switch itself already says the truth.
     }
   }
 

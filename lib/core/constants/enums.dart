@@ -113,6 +113,10 @@ enum ThemePreference {
   };
 }
 
+/// A profile switch the owner flips themselves; both fields are
+/// owner-writable by the rules.
+enum ProfileSetting { acceptCases, healthNotices }
+
 /// A practitioner's title, stored as its display value.
 enum PractitionerTitle {
   dr,

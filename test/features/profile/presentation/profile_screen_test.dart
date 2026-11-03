@@ -40,7 +40,6 @@ void main() {
         'Embakasi, Nairobi',
         'Light, dark or device theme',
         'Alerts and security',
-        'Biometrics',
         'Health notices for my area',
         'Help and account',
         'Privacy and data',
@@ -72,8 +71,35 @@ void main() {
         find.text('You can approve area alerts for Nairobi.'),
         findsOneWidget,
       );
-      expect(find.text('Clinic hours'), findsOneWidget);
       expect(find.text('Theme'), findsOneWidget);
+    });
+
+    testWidgets('the Tier-2/3 rows are gone for every role', (tester) async {
+      tallView(tester);
+      const gone = ['Notifications', 'Biometrics', 'Clinic hours'];
+
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
+      await tester.pumpAndSettle();
+      for (final text in gone) {
+        expect(find.text(text), findsNothing, reason: 'patient: $text');
+      }
+
+      await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor/profile');
+      await tester.pumpAndSettle();
+      for (final text in gone) {
+        expect(find.text(text), findsNothing, reason: 'doctor: $text');
+      }
+
+      await tester.pumpRoleApp(
+        RoleSessions.pathologist,
+        '/pathologist/profile',
+      );
+      await tester.pumpAndSettle();
+      for (final text in gone) {
+        expect(find.text(text), findsNothing, reason: 'pathologist: $text');
+      }
+      // Nothing left for an Alerts section to hold.
+      expect(find.text('Alerts and security'), findsNothing);
     });
 
     testWidgets('a doctor who does not approve alerts sees no notice', (
@@ -123,28 +149,91 @@ void main() {
       expect(find.text('Saitolojia'), findsOneWidget);
     });
 
-    testWidgets('a switch row is not yet available', (tester) async {
+    testWidgets('Health notices dispatches its flips', (tester) async {
       tallView(tester);
-      await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
-      await tester.pumpAndSettle();
-      Switch biometrics() => tester.widget<Switch>(
-        find.descendant(
-          of: find
-              .ancestor(
-                of: find.text('Biometrics'),
-                matching: find.byType(GestureDetector),
-              )
-              .first,
-          matching: find.byType(Switch),
-        ),
+      final bloc = await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
       );
-      expect(biometrics().value, isFalse);
-      expect(biometrics().onChanged, isNull);
-
-      await tester.tap(find.text('Biometrics'));
       await tester.pumpAndSettle();
 
-      expect(biometrics().value, isFalse);
+      await tester.tap(find.text('Health notices for my area'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => bloc.add(
+          const ProfileSettingChanged(
+            setting: ProfileSetting.healthNotices,
+            value: false,
+          ),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('Accept cases dispatches its flips', (tester) async {
+      tallView(tester);
+      final bloc = await tester.pumpRoleApp(
+        RoleSessions.pathologist,
+        '/pathologist/profile',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Accept new cases'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => bloc.add(
+          const ProfileSettingChanged(
+            setting: ProfileSetting.acceptCases,
+            value: false,
+          ),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('the switches hold still while saving', (tester) async {
+      tallView(tester);
+      final bloc = await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
+        states: [ProfileSettingChangeInProgress(session: RoleSessions.patient)],
+      );
+      await tester.pumpAndSettle();
+
+      final row = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('Health notices for my area'),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
+        matching: find.byType(Switch),
+      );
+      expect(tester.widget<Switch>(row).onChanged, isNull);
+
+      await tester.tap(find.text('Health notices for my area'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(any()));
+    });
+
+    testWidgets('a failed save says why', (tester) async {
+      tallView(tester);
+      await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
+        states: [
+          ProfileSettingChangeFailure(
+            session: RoleSessions.patient,
+            error: AppError.noInternet,
+          ),
+        ],
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('No internet access.'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('Sign out asks first, then signs out', (tester) async {

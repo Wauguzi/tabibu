@@ -101,6 +101,27 @@ void main() {
     });
   });
 
+  group('updateProfileSetting', () {
+    test('writes the field and stamps the write', () async {
+      await firestore.collection('patients').doc('p1').set({
+        'receiveNotifications': false,
+      });
+      await remote.updateProfileSetting(
+        collection: 'patients',
+        docId: 'p1',
+        field: 'receiveNotifications',
+        value: true,
+      );
+      final data = (await firestore.collection('patients').doc('p1').get())
+          .data()!;
+      expect(data['receiveNotifications'], isTrue);
+      expect(
+        data['lastUpdatedAt'],
+        isA<String>().having((s) => s.isNotEmpty, 'non-empty', isTrue),
+      );
+    });
+  });
+
   group('callables', () {
     test('sends the request and reads a clinic-record match', () async {
       final result = _MockCallableResult();

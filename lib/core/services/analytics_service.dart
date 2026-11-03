@@ -53,6 +53,16 @@ class AnalyticsService {
     ),
   );
 
+  Future<void> logProfileSettingChanged(
+    ProfileSetting setting, {
+    required bool value,
+  }) => _guard(
+    () => _analytics.logEvent(
+      name: 'profile_setting_changed',
+      parameters: {'setting': setting.name, 'value': value ? 1 : 0},
+    ),
+  );
+
   Future<void> logSignOut() =>
       _guard(() => _analytics.logEvent(name: 'sign_out'));
 

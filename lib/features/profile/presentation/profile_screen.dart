@@ -9,6 +9,7 @@ import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/presentation/widgets/sign_out_sheet.dart';
@@ -21,8 +22,8 @@ import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// Every role's last tab: who is signed in, their settings, and sign-out.
-/// The rows open screens built later; until then only Sign out acts, and
-/// the switches are disabled until a bloc saves their values.
+/// Tier-2/3 settings stay hidden (S-1) until they lead somewhere; only the
+/// two switches the bloc saves are shown.
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.role, super.key});
 
@@ -86,17 +87,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: l10n.profileTheme,
       supporting: l10n.profileThemeSupporting,
     );
-    final notifications = SettingsRow(
-      icon: Assets.icons.notificationBellIcon,
-      title: l10n.profileNotifications,
-    );
-    // Not yet available: no bloc saves it, so the switch stays off.
-    final biometrics = SettingsSwitchRow(
-      icon: Assets.icons.fingerprintIcon,
-      title: l10n.profileBiometrics,
-      value: false,
-      onChanged: null,
-    );
+    final saving = authState is ProfileSettingChangeInProgress;
+    void flip({required ProfileSetting setting, required bool value}) => context
+        .read<AuthBloc>()
+        .add(ProfileSettingChanged(setting: setting, value: value));
 
     final body = switch (authState.session) {
       PatientSession(:final patient) => _patient(
@@ -104,8 +98,8 @@ class _ProfileScreenState extends State<ProfileScreen> {
         patient,
         language: language,
         theme: theme,
-        notifications: notifications,
-        biometrics: biometrics,
+        saving: saving,
+        onFlip: flip,
       ),
       PractitionerSession(:final doctor, :final roles) => _practitioner(
         l10n,
@@ -113,23 +107,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
         isAlertApprover: roles.isAlertApprover,
         language: language,
         theme: theme,
-        notifications: notifications,
-        biometrics: biometrics,
+        saving: saving,
+        onFlip: flip,
       ),
       // Signing out: the guard is about to leave this route.
       _ => const <Widget>[],
     };
 
     return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (_, state) => state is SignOutFailure,
-      listener: (context, state) => unawaited(
-        showTabibuNotification(
-          context,
-          message: (state as SignOutFailure).error.description(l10n),
-          isError: true,
-          dismissLabel: l10n.commonDismiss,
-        ),
-      ),
+      listenWhen: (_, state) =>
+          state is SignOutFailure || state is ProfileSettingChangeFailure,
+      listener: (context, state) {
+        final error = switch (state) {
+          SignOutFailure(:final error) => error,
+          ProfileSettingChangeFailure(:final error) => error,
+          _ => null,
+        };
+        if (error == null) return;
+        unawaited(
+          showTabibuNotification(
+            context,
+            message: error.description(l10n),
+            isError: true,
+            dismissLabel: l10n.commonDismiss,
+          ),
+        );
+      },
       child: ShellTabPage(
         role: widget.role,
         children: [
@@ -155,8 +158,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     PatientModel patient, {
     required Widget language,
     required Widget theme,
-    required Widget notifications,
-    required Widget biometrics,
+    required bool saving,
+    required void Function({
+      required ProfileSetting setting,
+      required bool value,
+    })
+    onFlip,
   }) {
     final area = [
       patient.subCounty,
@@ -185,9 +192,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
       SettingsGroup(
         title: l10n.profileSectionAlerts,
         children: [
-          notifications,
-          biometrics,
-          _healthNoticesRow(l10n, patient.receiveNotifications),
+          _healthNoticesRow(
+            l10n,
+            patient.receiveNotifications,
+            saving: saving,
+            onFlip: onFlip,
+          ),
         ],
       ),
     ];
@@ -199,8 +209,12 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required bool isAlertApprover,
     required Widget language,
     required Widget theme,
-    required Widget notifications,
-    required Widget biometrics,
+    required bool saving,
+    required void Function({
+      required ProfileSetting setting,
+      required bool value,
+    })
+    onFlip,
   }) {
     final specialties = [
       for (final value in doctor.specialties)
@@ -237,42 +251,54 @@ class _ProfileScreenState extends State<ProfileScreen> {
             supporting: doctor.facilityName,
           ),
           if (doctor.isPathologist)
-            // Not yet available: no bloc saves it, so the value is shown.
             SettingsSwitchRow(
               icon: Assets.icons.testTubeIcon,
               title: l10n.profileAcceptCases,
               value: doctor.isAvailable,
-              onChanged: null,
-            )
-          else
-            SettingsRow(
-              icon: Assets.icons.clinicHoursIcon,
-              title: l10n.profileClinicHours,
+              onChanged: saving
+                  ? null
+                  : (value) => onFlip(
+                      setting: ProfileSetting.acceptCases,
+                      value: value,
+                    ),
             ),
           language,
           if (!doctor.isPathologist) theme,
         ],
       ),
-      SettingsGroup(
-        title: l10n.profileSectionAlerts,
-        children: [
-          notifications,
-          if (!doctor.isPathologist)
-            _healthNoticesRow(l10n, doctor.receiveNotifications),
-          biometrics,
-        ],
-      ),
+      if (!doctor.isPathologist)
+        SettingsGroup(
+          title: l10n.profileSectionAlerts,
+          children: [
+            _healthNoticesRow(
+              l10n,
+              doctor.receiveNotifications,
+              saving: saving,
+              onFlip: onFlip,
+            ),
+          ],
+        ),
     ];
   }
 
-  // Not yet available: no bloc saves it, so the value is shown.
-  Widget _healthNoticesRow(AppLocalizations l10n, bool initial) =>
-      SettingsSwitchRow(
-        icon: Assets.icons.infoIcon,
-        title: l10n.profileHealthNotices,
-        value: initial,
-        onChanged: null,
-      );
+  Widget _healthNoticesRow(
+    AppLocalizations l10n,
+    bool initial, {
+    required bool saving,
+    required void Function({
+      required ProfileSetting setting,
+      required bool value,
+    })
+    onFlip,
+  }) => SettingsSwitchRow(
+    icon: Assets.icons.infoIcon,
+    title: l10n.profileHealthNotices,
+    value: initial,
+    onChanged: saving
+        ? null
+        : (value) =>
+              onFlip(setting: ProfileSetting.healthNotices, value: value),
+  );
 }
 
 /// The pathologist's report areas as mint pills.

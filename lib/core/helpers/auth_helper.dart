@@ -210,6 +210,29 @@ class AuthHelper {
     }
   }
 
+  /// Writes a profile switch to the owner's own document. Unlike the
+  /// language, a switch must land or say why: no best-effort swallow.
+  Future<void> updateProfileSetting({
+    required ProfileSetting setting,
+    required bool value,
+    required AuthSession session,
+  }) async {
+    final target = _tokenTarget(session);
+    // The bloc only sends this for a signed-in profile; anything else is a
+    // caller bug, and a silent no-op would confirm a write that never was.
+    if (target == null) throw StateError('No profile to update');
+    final field = switch (setting) {
+      ProfileSetting.acceptCases => 'isAvailable',
+      ProfileSetting.healthNotices => 'receiveNotifications',
+    };
+    await _remote.updateProfileSetting(
+      collection: target.collection,
+      docId: target.docId,
+      field: field,
+      value: value,
+    );
+  }
+
   /// Removes this install's token first, while the credentials can still
   /// write it, then signs out of Firebase before the cache is wiped, so
   /// nothing is fetched into it afterwards.

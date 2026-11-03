@@ -104,3 +104,15 @@ final class EmailVerificationCheckRequested extends AuthEvent {
 final class VerificationEmailResendRequested extends AuthEvent {
   const VerificationEmailResendRequested();
 }
+
+/// The profile tab's switches: no optimistic flip, the session carries the
+/// new value once the write lands.
+final class ProfileSettingChanged extends AuthEvent {
+  const ProfileSettingChanged({required this.setting, required this.value});
+
+  final ProfileSetting setting;
+  final bool value;
+
+  @override
+  List<Object?> get props => [setting, value];
+}

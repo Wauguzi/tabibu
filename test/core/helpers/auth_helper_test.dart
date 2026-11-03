@@ -569,6 +569,76 @@ void main() {
     });
   });
 
+  group('updateProfileSetting', () {
+    setUp(() {
+      when(
+        () => remote.updateProfileSetting(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          field: any(named: 'field'),
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    test("a patient's switch lands on the patient's document", () async {
+      await helper.updateProfileSetting(
+        setting: ProfileSetting.healthNotices,
+        value: true,
+        session: PatientSession(
+          patient: _patient.copyWith(patientId: 'p9'),
+          roles: _roles({'role': 'patient'}),
+        ),
+      );
+      verify(
+        () => remote.updateProfileSetting(
+          collection: 'patients',
+          docId: 'p9',
+          field: 'receiveNotifications',
+          value: true,
+        ),
+      ).called(1);
+    });
+
+    test("a pathologist's switch lands on the doctor's document", () async {
+      await helper.updateProfileSetting(
+        setting: ProfileSetting.acceptCases,
+        value: false,
+        session: PractitionerSession(
+          doctor: _doctor.copyWith(uid: 'd9'),
+          roles: _roles({'role': 'pathologist'}),
+        ),
+      );
+      verify(
+        () => remote.updateProfileSetting(
+          collection: 'doctors',
+          docId: 'd9',
+          field: 'isAvailable',
+          value: false,
+        ),
+      ).called(1);
+    });
+
+    test('with no profile, it throws instead of confirming nothing', () async {
+      await expectLater(
+        helper.updateProfileSetting(
+          setting: ProfileSetting.healthNotices,
+          value: true,
+          session: const SignedOutSession(),
+        ),
+        throwsStateError,
+      );
+      verifyNever(
+        () => remote.updateProfileSetting(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          field: any(named: 'field'),
+          value: any(named: 'value'),
+        ),
+      );
+    });
+  });
+
   group('addPatientPicture', () {
     final session = PatientSession(
       patient: _patient.copyWith(patientId: 'p9'),

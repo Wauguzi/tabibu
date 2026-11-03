@@ -249,6 +249,22 @@ class AuthFirebase {
         }),
       );
 
+  /// A profile switch the owner flips: one boolean field, stamped like
+  /// every owner write. The caller names a field the rules let the owner
+  /// touch (`isAvailable`, `receiveNotifications`).
+  Future<void> updateProfileSetting({
+    required String collection,
+    required String docId,
+    required String field,
+    required bool value,
+  }) => _guard(
+    'Updating profile setting',
+    () => _firestore.collection(collection).doc(docId).update({
+      field: value,
+      'lastUpdatedAt': syncTimestamp(),
+    }),
+  );
+
   Future<DoctorModel?> fetchDoctorProfile(String uid) =>
       _guard('Reading practitioner profile', () async {
         final snapshot = await _firestore.collection('doctors').doc(uid).get();
