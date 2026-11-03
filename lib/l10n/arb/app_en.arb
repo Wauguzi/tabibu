@@ -5797,5 +5797,2056 @@
     "healthNoticeFindDoctor": "Find a doctor near me",
     "@healthNoticeFindDoctor": {
         "description": "Notice primary button"
+    },
+    "shareTitle": "Share report",
+    "@shareTitle": {
+        "description": "Share screen title"
+    },
+    "shareWhoShouldSee": "Who should see it?",
+    "@shareWhoShouldSee": {
+        "description": "Share screen headline"
+    },
+    "shareWhoShouldSeeBody": "Pick a verified doctor or pathologist. They'll need a code to open it.",
+    "@shareWhoShouldSeeBody": {
+        "description": "Share screen body"
+    },
+    "shareSearchHint": "Search doctors or pathologists",
+    "@shareSearchHint": {
+        "description": "Share recipient search hint"
+    },
+    "shareRecipientSubtitle": "{specialty} · {facility}",
+    "@shareRecipientSubtitle": {
+        "description": "Share recipient row; specialty and facility",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            },
+            "specialty": {
+                "type": "String"
+            }
+        }
+    },
+    "shareWithFaceId": "Share with Face ID",
+    "@shareWithFaceId": {
+        "description": "Share with biometrics button"
+    },
+    "shareConfirmFaceId": "Confirm with Face ID",
+    "@shareConfirmFaceId": {
+        "description": "Biometric confirm sheet title"
+    },
+    "shareConfirmFaceIdBody": "Share your report with {name}",
+    "@shareConfirmFaceIdBody": {
+        "description": "Biometric confirm sheet body; name is the recipient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareUsePinInstead": "Use my PIN instead",
+    "@shareUsePinInstead": {
+        "description": "Biometric sheet PIN fallback"
+    },
+    "shareEnterPin": "Enter your PIN",
+    "@shareEnterPin": {
+        "description": "Share PIN gate title"
+    },
+    "shareEnterPinBody": "To share your report with {name}",
+    "@shareEnterPinBody": {
+        "description": "Share PIN gate body; name is the recipient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareSharedWith": "Shared with {name}",
+    "@shareSharedWith": {
+        "description": "Share success headline; name is the recipient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareSharedBody": "They need this code to open your report. We sent it with their notification.",
+    "@shareSharedBody": {
+        "description": "Share success body"
+    },
+    "shareAccessEnds": "Access ends {days, plural, =0{today} =1{tomorrow} other{in {days} days}}, {date}",
+    "@shareAccessEnds": {
+        "description": "Share expiry line; days left and the date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "days": {
+                "type": "int"
+            }
+        }
+    },
+    "shareOpenedReceipt": "You'll see when they open it",
+    "@shareOpenedReceipt": {
+        "description": "Share open receipt line"
+    },
+    "shareCodeWorksOnce": "Code works once, only for {name}",
+    "@shareCodeWorksOnce": {
+        "description": "Share single-use line; name is the recipient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareStopSharing": "Stop sharing",
+    "@shareStopSharing": {
+        "description": "Stop sharing button"
+    },
+    "shareListTitle": "Shared reports",
+    "@shareListTitle": {
+        "description": "Shared reports list title"
+    },
+    "shareListActive": "Active",
+    "@shareListActive": {
+        "description": "Shared reports active section"
+    },
+    "shareListEnded": "Ended",
+    "@shareListEnded": {
+        "description": "Shared reports ended section"
+    },
+    "shareListReport": "{test} · {caseNumber}",
+    "@shareListReport": {
+        "description": "Shared report row; test and case number",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            },
+            "test": {
+                "type": "String"
+            }
+        }
+    },
+    "shareListShared": "With {name} · shared {date}",
+    "@shareListShared": {
+        "description": "Active share row; recipient and share date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareListWasEnded": "With {name} · ended {date}",
+    "@shareListWasEnded": {
+        "description": "Ended share row; recipient and end date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareListOpened": "Opened {when}",
+    "@shareListOpened": {
+        "description": "Share opened line; when it was opened",
+        "placeholders": {
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "shareListEnds": "Ends {date}",
+    "@shareListEnds": {
+        "description": "Share expiry row; the end date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "shareListEmpty": "You haven't shared any reports yet.",
+    "@shareListEmpty": {
+        "description": "Shared reports empty state"
+    },
+    "shareWhoCanSeeTitle": "Who can see my results",
+    "@shareWhoCanSeeTitle": {
+        "description": "Who-can-see title"
+    },
+    "shareWhoCanSeeBody": "Only the people below can open your results. Tabibu staff can't read them.",
+    "@shareWhoCanSeeBody": {
+        "description": "Who-can-see body"
+    },
+    "shareCareTeam": "Your care team",
+    "@shareCareTeam": {
+        "description": "Who-can-see care team section"
+    },
+    "shareSharedPeople": "People you shared with",
+    "@shareSharedPeople": {
+        "description": "Who-can-see shared section"
+    },
+    "shareOrderedBy": "Your {specialty} · ordered the test",
+    "@shareOrderedBy": {
+        "description": "Care team doctor row; their specialty",
+        "placeholders": {
+            "specialty": {
+                "type": "String"
+            }
+        }
+    },
+    "shareReviewedBy": "Pathologist · reviewed your sample",
+    "@shareReviewedBy": {
+        "description": "Care team pathologist row"
+    },
+    "shareFullAccess": "Full access",
+    "@shareFullAccess": {
+        "description": "Full access chip"
+    },
+    "shareThisReportOnly": "This report only",
+    "@shareThisReportOnly": {
+        "description": "Single-report access chip"
+    },
+    "shareUntil": "Until {date}",
+    "@shareUntil": {
+        "description": "Access until line; the end date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "shareStopConfirmTitle": "Stop sharing with {name}?",
+    "@shareStopConfirmTitle": {
+        "description": "Stop sharing confirmation title; name loses access",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareStopConfirmBody": "{name} will lose access to this report.",
+    "@shareStopConfirmBody": {
+        "description": "Stop sharing confirmation body; name loses access",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareRemoveConfirmTitle": "Remove {name}?",
+    "@shareRemoveConfirmTitle": {
+        "description": "Remove viewer confirmation title; name loses access",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareRemoveConfirmBody": "They will lose access to this case.",
+    "@shareRemoveConfirmBody": {
+        "description": "Remove viewer confirmation body"
+    },
+    "shareReissue": "Get a new code",
+    "@shareReissue": {
+        "description": "Reissue share code button"
+    },
+    "shareEnterCodeTitle": "Enter the access code",
+    "@shareEnterCodeTitle": {
+        "description": "Enter-code title"
+    },
+    "shareEnterCodeBody": "{name} shared their pathology report ({caseNumber}) with you. The 4-digit code is in your notification.",
+    "@shareEnterCodeBody": {
+        "description": "Enter-code body; sharer, case",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "shareEnterCodeNote": "Codes work once, only for you. Access ends on {date}. {firstName} can stop sharing at any time.",
+    "@shareEnterCodeNote": {
+        "description": "Enter-code note; expiry, first name can revoke",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            },
+            "firstName": {
+                "type": "String"
+            }
+        }
+    },
+    "shareOpenReport": "Open report",
+    "@shareOpenReport": {
+        "description": "Enter-code primary button"
+    },
+    "shareCodeWrong": "That code doesn't match. Check the notification and try again.",
+    "@shareCodeWrong": {
+        "description": "Wrong share code error"
+    },
+    "shareCodeExpired": "That code has expired. Ask for a new one.",
+    "@shareCodeExpired": {
+        "description": "Expired share code error"
+    },
+    "shareCodeUsed": "That code was already used.",
+    "@shareCodeUsed": {
+        "description": "Used share code error"
+    },
+    "shareCodeLocked": "Too many wrong tries. That code is locked now.",
+    "@shareCodeLocked": {
+        "description": "Locked share code error"
+    },
+    "shareCodeInvalid": "Enter the 4-digit code from the notification.",
+    "@shareCodeInvalid": {
+        "description": "Malformed share code error"
+    },
+    "shareCodeNotYours": "That code was meant for someone else.",
+    "@shareCodeNotYours": {
+        "description": "Share code for someone else error"
+    },
+    "mdtSubtitleDoctor": "Group chats about open cases",
+    "@mdtSubtitleDoctor": {
+        "description": "MDT tab subtitle for doctors"
+    },
+    "mdtSubtitlePathologist": "Talk with doctors about open cases",
+    "@mdtSubtitlePathologist": {
+        "description": "MDT tab subtitle for pathologists"
+    },
+    "mdtInvitedBy": "{name} invited you",
+    "@mdtInvitedBy": {
+        "description": "MDT invite card; the inviter",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtInviteCase": "Case {caseNumber} · {test}",
+    "@mdtInviteCase": {
+        "description": "MDT invite card case line",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            },
+            "test": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtAccept": "Accept",
+    "@mdtAccept": {
+        "description": "Accept invite button"
+    },
+    "mdtDecline": "Decline",
+    "@mdtDecline": {
+        "description": "Decline invite button"
+    },
+    "mdtActive": "Active",
+    "@mdtActive": {
+        "description": "MDT active section"
+    },
+    "mdtClosed": "Closed",
+    "@mdtClosed": {
+        "description": "MDT closed section"
+    },
+    "mdtCasePatient": "{caseNumber} · {patient}",
+    "@mdtCasePatient": {
+        "description": "MDT row title; case and patient",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            },
+            "patient": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtYou": "You",
+    "@mdtYou": {
+        "description": "The signed-in member"
+    },
+    "mdtPreview": "{sender}: {preview}",
+    "@mdtPreview": {
+        "description": "MDT preview line; sender and text",
+        "placeholders": {
+            "preview": {
+                "type": "String"
+            },
+            "sender": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtClosedSubtitle": "Case completed, consult closed",
+    "@mdtClosedSubtitle": {
+        "description": "Closed consult line"
+    },
+    "mdtStartConsult": "Start a consult",
+    "@mdtStartConsult": {
+        "description": "Start a consult button"
+    },
+    "mdtEmptyDoctor": "Ask colleagues about a case. Pathologists and surgeons join by invite.",
+    "@mdtEmptyDoctor": {
+        "description": "MDT empty body for doctors"
+    },
+    "mdtEmptyPathologist": "Doctors can invite you to talk through a case. You can also start one from any case.",
+    "@mdtEmptyPathologist": {
+        "description": "MDT empty body for pathologists"
+    },
+    "mdtEmptyTitle": "No consults yet",
+    "@mdtEmptyTitle": {
+        "description": "MDT empty title"
+    },
+    "mdtGoToDesk": "Go to my desk",
+    "@mdtGoToDesk": {
+        "description": "MDT empty desk button"
+    },
+    "mdtClosedNote": "Consults close when the case is completed. You can still read them.",
+    "@mdtClosedNote": {
+        "description": "MDT closed note"
+    },
+    "mdtDeclineTitle": "Decline {name}'s invite?",
+    "@mdtDeclineTitle": {
+        "description": "Decline sheet title; the inviter",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtDeclineBody": "Case {caseNumber} · {test}. {name} will be told you declined.",
+    "@mdtDeclineBody": {
+        "description": "Decline sheet body; case, test, inviter",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            },
+            "name": {
+                "type": "String"
+            },
+            "test": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtDeclineInvite": "Decline invite",
+    "@mdtDeclineInvite": {
+        "description": "Decline sheet button"
+    },
+    "mdtInviteDeclinedToast": "Invite declined. {name} was told.",
+    "@mdtInviteDeclinedToast": {
+        "description": "Invite declined toast; the inviter was told",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtMemberCount": "{count, plural, =1{1 member} other{{count} members}} · consult opened {date}",
+    "@mdtMemberCount": {
+        "description": "Members sheet line; count and open date",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtMemberSubtitle": "{specialty} · {facility}",
+    "@mdtMemberSubtitle": {
+        "description": "Member row; specialty and facility",
+        "placeholders": {
+            "facility": {
+                "type": "String"
+            },
+            "specialty": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtInviteColleague": "Invite a colleague",
+    "@mdtInviteColleague": {
+        "description": "Invite a colleague button"
+    },
+    "mdtNewTitle": "New consult",
+    "@mdtNewTitle": {
+        "description": "New consult title"
+    },
+    "mdtPickCase": "1 · Pick a case",
+    "@mdtPickCase": {
+        "description": "New consult first step"
+    },
+    "mdtCaseSigned": "{test} · signed",
+    "@mdtCaseSigned": {
+        "description": "Case row with a signed report",
+        "placeholders": {
+            "test": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtCaseWithPathologist": "{test} · with pathologist",
+    "@mdtCaseWithPathologist": {
+        "description": "Case row waiting on pathology",
+        "placeholders": {
+            "test": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtInviteStep": "2 · Invite colleagues",
+    "@mdtInviteStep": {
+        "description": "New consult second step"
+    },
+    "mdtInviteSearch": "Search doctors by name or specialty",
+    "@mdtInviteSearch": {
+        "description": "Invite search hint"
+    },
+    "mdtStaysOpen": "The consult stays open while the case is open, then closes and becomes read-only.",
+    "@mdtStaysOpen": {
+        "description": "New consult lifetime note"
+    },
+    "mdtSendInvite": "Send invite",
+    "@mdtSendInvite": {
+        "description": "New consult primary button"
+    },
+    "mdtAboutLabel": "What is the consult about?",
+    "@mdtAboutLabel": {
+        "description": "Consult subject field label"
+    },
+    "mdtAboutHint": "One line for the team",
+    "@mdtAboutHint": {
+        "description": "Consult subject field hint"
+    },
+    "mdtAboutRequired": "Say what the consult is about.",
+    "@mdtAboutRequired": {
+        "description": "Consult subject required error"
+    },
+    "mdtPinned": "Pinned · {title}",
+    "@mdtPinned": {
+        "description": "Pinned card line; the pinned title",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtPinnedSigned": "{finding} · signed {time}",
+    "@mdtPinnedSigned": {
+        "description": "Pinned signed line; finding and sign time",
+        "placeholders": {
+            "finding": {
+                "type": "String"
+            },
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtPinnedDraftTitle": "{band} confidence draft",
+    "@mdtPinnedDraftTitle": {
+        "description": "Pinned draft title; the confidence band",
+        "placeholders": {
+            "band": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtPinnedDraftSubtitle": "{finding} · {tiles, plural, =1{1 tile} other{{tiles} tiles}} unread",
+    "@mdtPinnedDraftSubtitle": {
+        "description": "Pinned draft line; finding and unread tiles",
+        "placeholders": {
+            "finding": {
+                "type": "String"
+            },
+            "tiles": {
+                "type": "int"
+            }
+        }
+    },
+    "mdtOpenReport": "Report",
+    "@mdtOpenReport": {
+        "description": "Pinned card report link"
+    },
+    "mdtOpenCase": "Case",
+    "@mdtOpenCase": {
+        "description": "Pinned card case link"
+    },
+    "mdtReportInProgress": "Report in progress",
+    "@mdtReportInProgress": {
+        "description": "Draft case pinned line for doctors"
+    },
+    "mdtComposer": "Message the team",
+    "@mdtComposer": {
+        "description": "Consult composer hint"
+    },
+    "mdtYouJoined": "You joined · {time}",
+    "@mdtYouJoined": {
+        "description": "Joined event; when it happened",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtOnlyTeam": "Only the care team on this case can read them.",
+    "@mdtOnlyTeam": {
+        "description": "Consult privacy banner"
+    },
+    "mdtClosedBody": "You can still read this conversation.",
+    "@mdtClosedBody": {
+        "description": "Closed consult body"
+    },
+    "mdtClosedNoteShort": "Consult closed when the case was completed. You can still read it.",
+    "@mdtClosedNoteShort": {
+        "description": "Closed consult single line"
+    },
+    "mdtMembersClosed": "{members} · closed",
+    "@mdtMembersClosed": {
+        "description": "Closed chat header; the members",
+        "placeholders": {
+            "members": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtLeaveTitle": "Leave this consult?",
+    "@mdtLeaveTitle": {
+        "description": "Leave consult confirmation title"
+    },
+    "mdtLeaveBody": "You will stop seeing its messages. Only a new invite brings you back.",
+    "@mdtLeaveBody": {
+        "description": "Leave consult confirmation body"
+    },
+    "mdtLeaveAction": "Leave consult",
+    "@mdtLeaveAction": {
+        "description": "Leave consult button"
+    },
+    "mdtRemoveTitle": "Remove {name}?",
+    "@mdtRemoveTitle": {
+        "description": "Remove member confirmation title",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtRemoveBody": "{name} will lose these messages and the case summary.",
+    "@mdtRemoveBody": {
+        "description": "Remove member confirmation body",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "mdtRemoveAction": "Remove",
+    "@mdtRemoveAction": {
+        "description": "Remove member button"
+    },
+    "mdtEntryStart": "Start an MDT consult",
+    "@mdtEntryStart": {
+        "description": "Report options MDT row"
+    },
+    "mdtEntryStartBody": "Bring in other doctors",
+    "@mdtEntryStartBody": {
+        "description": "Report options MDT row body"
+    },
+    "chatOnlyYou": "Only you and {name} can read them.",
+    "@chatOnlyYou": {
+        "description": "Chat privacy banner; the other person",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "chatBelongsTo": "This chat belongs to your appointment on {date}.",
+    "@chatBelongsTo": {
+        "description": "Chat appointment line; the date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "chatClosesWhen": "Closes when the appointment ends.",
+    "@chatClosesWhen": {
+        "description": "Chat closing line"
+    },
+    "chatComposer": "Write a message",
+    "@chatComposer": {
+        "description": "Chat composer hint"
+    },
+    "chatBookFollowUp": "Book a follow-up",
+    "@chatBookFollowUp": {
+        "description": "Closed chat follow-up button"
+    },
+    "chatRowTitle": "Appointment chat",
+    "@chatRowTitle": {
+        "description": "Appointment screen chat row"
+    },
+    "chatRowBody": "Opens on {date} and closes when it ends.",
+    "@chatRowBody": {
+        "description": "Chat row body; the opening date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "chatOpen": "Open",
+    "@chatOpen": {
+        "description": "Chat row button"
+    },
+    "chatMessagePatient": "Message the patient",
+    "@chatMessagePatient": {
+        "description": "Appointment options message row"
+    },
+    "chatMessagePatientBody": "Opens the appointment chat",
+    "@chatMessagePatientBody": {
+        "description": "Message row body"
+    },
+    "chatMessagePathologist": "Message the pathologist",
+    "@chatMessagePathologist": {
+        "description": "Case options message row"
+    },
+    "chatMessagePathologistBody": "{name}",
+    "@chatMessagePathologistBody": {
+        "description": "Message pathologist row body; their name",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "calendarTitle": "Calendar",
+    "@calendarTitle": {
+        "description": "Calendar title"
+    },
+    "calendarToday": "Today",
+    "@calendarToday": {
+        "description": "Calendar today chip"
+    },
+    "calendarNow": "Now",
+    "@calendarNow": {
+        "description": "Calendar now chip"
+    },
+    "calendarYourDay": "Your day",
+    "@calendarYourDay": {
+        "description": "Calendar day section"
+    },
+    "calendarFreeSlot": "Free · {duration}",
+    "@calendarFreeSlot": {
+        "description": "Free slot line; the duration",
+        "placeholders": {
+            "duration": {
+                "type": "String"
+            }
+        }
+    },
+    "calendarFreeHint": "Good time to read reports.",
+    "@calendarFreeHint": {
+        "description": "Free slot hint"
+    },
+    "calendarNewAppointment": "New appointment",
+    "@calendarNewAppointment": {
+        "description": "First appointment subtitle"
+    },
+    "calendarSubtitleBooked": "{title} · booked {when}",
+    "@calendarSubtitleBooked": {
+        "description": "Appointment subtitle; title and booking time",
+        "placeholders": {
+            "title": {
+                "type": "String"
+            },
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "cancelAppointmentTitle": "Cancel your appointment?",
+    "@cancelAppointmentTitle": {
+        "description": "Patient cancel sheet title"
+    },
+    "cancelAppointmentTitleDoctor": "Cancel {name}'s appointment?",
+    "@cancelAppointmentTitleDoctor": {
+        "description": "Doctor cancel sheet title; the patient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "cancelAppointmentBodyResults": "{when} with {doctor}. This talk is about your results, so we suggest moving it instead.",
+    "@cancelAppointmentBodyResults": {
+        "description": "Cancel sheet body for a results talk",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "cancelAppointmentBody": "{when} with {doctor}.",
+    "@cancelAppointmentBody": {
+        "description": "Cancel sheet body; time and doctor",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "cancelAppointmentBodyDoctor": "{when}. {name} will be told your reason and can book again.",
+    "@cancelAppointmentBodyDoctor": {
+        "description": "Doctor cancel sheet body; time and patient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "cancelAppointmentWhy": "Why are you cancelling? (optional)",
+    "@cancelAppointmentWhy": {
+        "description": "Cancel reasons question"
+    },
+    "cancelAppointmentReasonDay": "I can't make it that day",
+    "@cancelAppointmentReasonDay": {
+        "description": "Patient cancel reason: clash"
+    },
+    "cancelAppointmentReasonBetter": "I feel better",
+    "@cancelAppointmentReasonBetter": {
+        "description": "Patient cancel reason: recovered"
+    },
+    "cancelAppointmentReasonElsewhere": "I'll see another doctor",
+    "@cancelAppointmentReasonElsewhere": {
+        "description": "Patient cancel reason: elsewhere"
+    },
+    "cancelAppointmentReasonEmergency": "Emergency surgery",
+    "@cancelAppointmentReasonEmergency": {
+        "description": "Doctor cancel reason: emergency"
+    },
+    "cancelAppointmentReasonSpecialist": "Not the right specialist",
+    "@cancelAppointmentReasonSpecialist": {
+        "description": "Doctor cancel reason: wrong specialty"
+    },
+    "cancelAppointmentReasonOther": "Other",
+    "@cancelAppointmentReasonOther": {
+        "description": "Cancel reason other"
+    },
+    "cancelAppointmentOtherHint": "Add a short note below",
+    "@cancelAppointmentOtherHint": {
+        "description": "Other reason hint"
+    },
+    "cancelAppointmentNote": "Note (optional)",
+    "@cancelAppointmentNote": {
+        "description": "Cancel note field label"
+    },
+    "cancelAppointmentNoteHint": "Add a reason in your own words",
+    "@cancelAppointmentNoteHint": {
+        "description": "Cancel note field hint"
+    },
+    "cancelAppointmentConfirm": "Cancel appointment",
+    "@cancelAppointmentConfirm": {
+        "description": "Cancel appointment button"
+    },
+    "cancelAppointmentEntryBodyDoctor": "The patient is notified.",
+    "@cancelAppointmentEntryBodyDoctor": {
+        "description": "Doctor cancel entry body"
+    },
+    "cancelAppointmentEntryBodyPatient": "Your doctor is notified.",
+    "@cancelAppointmentEntryBodyPatient": {
+        "description": "Patient cancel entry body"
+    },
+    "cancelAppointmentTooLate": "This appointment already started, so it can't be cancelled any more.",
+    "@cancelAppointmentTooLate": {
+        "description": "Cancel too late error"
+    },
+    "cancelAppointmentNeedReason": "Pick a reason or write a note.",
+    "@cancelAppointmentNeedReason": {
+        "description": "Cancel needs a reason error"
+    },
+    "rescheduleTitle": "Move your appointment",
+    "@rescheduleTitle": {
+        "description": "Reschedule sheet title"
+    },
+    "rescheduleNow": "Now: {when} with {doctor}",
+    "@rescheduleNow": {
+        "description": "Current time line; time and doctor",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            },
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleNowDoctor": "Now: {when}",
+    "@rescheduleNowDoctor": {
+        "description": "Doctor current time line",
+        "placeholders": {
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleNewDay": "New day",
+    "@rescheduleNewDay": {
+        "description": "Reschedule day step"
+    },
+    "rescheduleNewTime": "New time · {date}",
+    "@rescheduleNewTime": {
+        "description": "Reschedule time step; the date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleFreeTimes": "Your free times · {date}",
+    "@rescheduleFreeTimes": {
+        "description": "Doctor free times step; the date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleCancelsCurrent": "This cancels the current time.",
+    "@rescheduleCancelsCurrent": {
+        "description": "Reschedule cancels first warning"
+    },
+    "rescheduleNote": "Moving cancels this time and books a new one. The new time must be at least an hour away.",
+    "@rescheduleNote": {
+        "description": "Reschedule how it works note"
+    },
+    "rescheduleMoveTo": "Move to {when}",
+    "@rescheduleMoveTo": {
+        "description": "Reschedule primary button; the new time",
+        "placeholders": {
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleMoveInstead": "Move it instead",
+    "@rescheduleMoveInstead": {
+        "description": "Cancel sheet move link"
+    },
+    "rescheduleReasonTheatre": "I'm in theatre",
+    "@rescheduleReasonTheatre": {
+        "description": "Doctor move reason: theatre"
+    },
+    "rescheduleReasonAsked": "The patient asked",
+    "@rescheduleReasonAsked": {
+        "description": "Doctor move reason: asked"
+    },
+    "rescheduleReasonClosed": "The clinic is closed",
+    "@rescheduleReasonClosed": {
+        "description": "Doctor move reason: closed"
+    },
+    "rescheduleMoveAndTell": "Move and tell {name}",
+    "@rescheduleMoveAndTell": {
+        "description": "Doctor move button; the patient is told",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleMovedTo": "Moved to {when}",
+    "@rescheduleMovedTo": {
+        "description": "Rescheduled banner; the new time",
+        "placeholders": {
+            "when": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleDoctorTold": "{doctor} has been told.",
+    "@rescheduleDoctorTold": {
+        "description": "Rescheduled banner body; the doctor",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleButton": "Reschedule",
+    "@rescheduleButton": {
+        "description": "Appointment screen reschedule button"
+    },
+    "rescheduleFootnote": "You can change or cancel any time before it starts. {doctor} will be told.",
+    "@rescheduleFootnote": {
+        "description": "Reschedule footnote; the doctor is told",
+        "placeholders": {
+            "doctor": {
+                "type": "String"
+            }
+        }
+    },
+    "rescheduleEntryMove": "Move appointment",
+    "@rescheduleEntryMove": {
+        "description": "Appointment options move row"
+    },
+    "rescheduleEntryMoveBody": "Pick a new day or time",
+    "@rescheduleEntryMoveBody": {
+        "description": "Move row body"
+    },
+    "profileDetailsTitle": "Profile details",
+    "@profileDetailsTitle": {
+        "description": "Practitioner details title"
+    },
+    "profileDetailsChangePhoto": "Change photo",
+    "@profileDetailsChangePhoto": {
+        "description": "Change photo row"
+    },
+    "profileDetailsShownPatients": "Shown to patients",
+    "@profileDetailsShownPatients": {
+        "description": "Public section for doctors"
+    },
+    "profileDetailsShownDoctors": "Shown to doctors",
+    "@profileDetailsShownDoctors": {
+        "description": "Public section for pathologists"
+    },
+    "profileDetailsFullName": "Full name",
+    "@profileDetailsFullName": {
+        "description": "Full name field label"
+    },
+    "profileDetailsSpecialty": "Specialty",
+    "@profileDetailsSpecialty": {
+        "description": "Specialty field label"
+    },
+    "profileDetailsAbout": "About you",
+    "@profileDetailsAbout": {
+        "description": "Bio field label"
+    },
+    "profileDetailsOnlyTabibu": "Only for Tabibu",
+    "@profileDetailsOnlyTabibu": {
+        "description": "Private section"
+    },
+    "profileDetailsPhone": "Phone",
+    "@profileDetailsPhone": {
+        "description": "Phone field label"
+    },
+    "profileDetailsEmail": "Email",
+    "@profileDetailsEmail": {
+        "description": "Email field label"
+    },
+    "profileDetailsLicence": "KMPDC licence {number}",
+    "@profileDetailsLicence": {
+        "description": "Licence row; the number",
+        "placeholders": {
+            "number": {
+                "type": "String"
+            }
+        }
+    },
+    "profileDetailsLicenceDates": "Verified {verified} · renews {renews}",
+    "@profileDetailsLicenceDates": {
+        "description": "Licence dates row",
+        "placeholders": {
+            "renews": {
+                "type": "String"
+            },
+            "verified": {
+                "type": "String"
+            }
+        }
+    },
+    "profileDetailsLicenceLocked": "Licence details come from KMPDC and can't be changed here.",
+    "@profileDetailsLicenceLocked": {
+        "description": "Licence locked note"
+    },
+    "profileDetailsSave": "Save",
+    "@profileDetailsSave": {
+        "description": "Details save button"
+    },
+    "profileDetailsBioTooLong": "Keep it under 1,000 characters.",
+    "@profileDetailsBioTooLong": {
+        "description": "Bio too long error"
+    },
+    "profileDetailsBadPhone": "Enter a valid phone number.",
+    "@profileDetailsBadPhone": {
+        "description": "Bad phone error"
+    },
+    "editProfileTitle": "My profile",
+    "@editProfileTitle": {
+        "description": "Patient profile title"
+    },
+    "editProfileSubtitle": "{age} years · {area}",
+    "@editProfileSubtitle": {
+        "description": "Patient profile subtitle; age and area",
+        "placeholders": {
+            "age": {
+                "type": "int"
+            },
+            "area": {
+                "type": "String"
+            }
+        }
+    },
+    "editProfileEditTitle": "Edit profile",
+    "@editProfileEditTitle": {
+        "description": "Edit profile title"
+    },
+    "editProfileAboutMe": "About me",
+    "@editProfileAboutMe": {
+        "description": "About me section"
+    },
+    "editProfileDob": "Date of birth",
+    "@editProfileDob": {
+        "description": "Date of birth row"
+    },
+    "editProfileDobValue": "{date} · {age} years",
+    "@editProfileDobValue": {
+        "description": "Date of birth value; date and age",
+        "placeholders": {
+            "age": {
+                "type": "int"
+            },
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "editProfileSex": "Sex",
+    "@editProfileSex": {
+        "description": "Sex row"
+    },
+    "editProfilePhone": "Phone",
+    "@editProfilePhone": {
+        "description": "Phone row"
+    },
+    "editProfileEmail": "Email",
+    "@editProfileEmail": {
+        "description": "Email row"
+    },
+    "editProfileArea": "My area",
+    "@editProfileArea": {
+        "description": "My area row"
+    },
+    "editProfileFirstName": "First name",
+    "@editProfileFirstName": {
+        "description": "First name field label"
+    },
+    "editProfileMiddleName": "Middle name",
+    "@editProfileMiddleName": {
+        "description": "Middle name field label"
+    },
+    "editProfileLastName": "Last name",
+    "@editProfileLastName": {
+        "description": "Last name field label"
+    },
+    "editProfilePhoneNumber": "Phone number",
+    "@editProfilePhoneNumber": {
+        "description": "Phone number field label"
+    },
+    "editProfileSave": "Save changes",
+    "@editProfileSave": {
+        "description": "Edit profile save button"
+    },
+    "editProfileLockedNote": "To correct these, ask at the clinic.",
+    "@editProfileLockedNote": {
+        "description": "Read-only fields note"
+    },
+    "editProfileFirstRequired": "Enter your first name.",
+    "@editProfileFirstRequired": {
+        "description": "First name required error"
+    },
+    "editProfileLastRequired": "Enter your last name.",
+    "@editProfileLastRequired": {
+        "description": "Last name required error"
+    },
+    "editProfileBadPhone": "Enter a valid phone number.",
+    "@editProfileBadPhone": {
+        "description": "Bad phone error"
+    },
+    "areaTitle": "My area",
+    "@areaTitle": {
+        "description": "My area title"
+    },
+    "areaBody": "We use your area to show doctors nearby and health notices. We never track your location.",
+    "@areaBody": {
+        "description": "My area body"
+    },
+    "areaCounty": "County",
+    "@areaCounty": {
+        "description": "County field label"
+    },
+    "areaSubCounty": "Sub-county",
+    "@areaSubCounty": {
+        "description": "Sub-county field label"
+    },
+    "areaSave": "Save",
+    "@areaSave": {
+        "description": "My area save button"
+    },
+    "areaCountyRequired": "Pick your county.",
+    "@areaCountyRequired": {
+        "description": "County required error"
+    },
+    "areaSubCountyRequired": "Pick your sub-county.",
+    "@areaSubCountyRequired": {
+        "description": "Sub-county required error"
+    },
+    "languageSettingsTitle": "Language",
+    "@languageSettingsTitle": {
+        "description": "Language settings title"
+    },
+    "languageSettingsPatientBody": "Choose the language for the app, your results and health notices.",
+    "@languageSettingsPatientBody": {
+        "description": "Language body for patients"
+    },
+    "languageSettingsUseEnglish": "Use Tabibu in English",
+    "@languageSettingsUseEnglish": {
+        "description": "English row body"
+    },
+    "languageSettingsUseSwahili": "Tumia Tabibu kwa Kiswahili",
+    "@languageSettingsUseSwahili": {
+        "description": "Kiswahili row body"
+    },
+    "languageSettingsDoctorNote": "Summaries you share are translated for each patient, whatever you choose here.",
+    "@languageSettingsDoctorNote": {
+        "description": "Language note for doctors"
+    },
+    "languageSettingsPathologistNote": "Reports are always written in English for clinicians.",
+    "@languageSettingsPathologistNote": {
+        "description": "Language note for pathologists"
+    },
+    "languageSettingsSave": "Save",
+    "@languageSettingsSave": {
+        "description": "Language save button"
+    },
+    "themeSettingsTitle": "Theme",
+    "@themeSettingsTitle": {
+        "description": "Theme settings title"
+    },
+    "themeSettingsSystem": "Same as my phone",
+    "@themeSettingsSystem": {
+        "description": "System theme row"
+    },
+    "themeSettingsLightPatient": "Best in bright places",
+    "@themeSettingsLightPatient": {
+        "description": "Light row body for patients"
+    },
+    "themeSettingsDarkPatient": "Easier on the eyes at night, saves battery",
+    "@themeSettingsDarkPatient": {
+        "description": "Dark row body for patients"
+    },
+    "themeSettingsLightClinician": "Best in bright clinics and wards",
+    "@themeSettingsLightClinician": {
+        "description": "Light row body for clinicians"
+    },
+    "themeSettingsDarkClinician": "Easier on the eyes on night shifts",
+    "@themeSettingsDarkClinician": {
+        "description": "Dark row body for clinicians"
+    },
+    "themeSettingsSystemBody": "Follows your phone setting",
+    "@themeSettingsSystemBody": {
+        "description": "System row body"
+    },
+    "themeSettingsSave": "Save",
+    "@themeSettingsSave": {
+        "description": "Theme save button"
+    },
+    "notificationSettingsTitle": "Notification settings",
+    "@notificationSettingsTitle": {
+        "description": "Notification settings title"
+    },
+    "notificationSettingsAll": "All notifications",
+    "@notificationSettingsAll": {
+        "description": "Master switch row"
+    },
+    "notificationSettingsAllBody": "Turn everything on or off.",
+    "@notificationSettingsAllBody": {
+        "description": "Master switch body"
+    },
+    "notificationSettingsOffPatient": "Everything is off. You may miss reminders and results.",
+    "@notificationSettingsOffPatient": {
+        "description": "All off body for patients"
+    },
+    "notificationSettingsOffDoctor": "Everything is off. You may miss reports and bookings.",
+    "@notificationSettingsOffDoctor": {
+        "description": "All off body for doctors"
+    },
+    "notificationSettingsOffPathologist": "Everything is off. You may miss new cases and messages.",
+    "@notificationSettingsOffPathologist": {
+        "description": "All off body for pathologists"
+    },
+    "clinicHoursTitle": "Clinic hours",
+    "@clinicHoursTitle": {
+        "description": "Clinic hours title"
+    },
+    "clinicHoursWeekdays": "Monday to Friday",
+    "@clinicHoursWeekdays": {
+        "description": "Weekday group row"
+    },
+    "clinicHoursClosed": "Closed",
+    "@clinicHoursClosed": {
+        "description": "Closed day row"
+    },
+    "clinicHoursLength": "Appointment length",
+    "@clinicHoursLength": {
+        "description": "Appointment length row"
+    },
+    "clinicHoursThirtyMin": "30 min",
+    "@clinicHoursThirtyMin": {
+        "description": "Fixed length value"
+    },
+    "clinicHoursAccepting": "Accepting new patients",
+    "@clinicHoursAccepting": {
+        "description": "Accepting switch row"
+    },
+    "clinicHoursAcceptingOn": "Patients can book you",
+    "@clinicHoursAcceptingOn": {
+        "description": "Accepting on body"
+    },
+    "clinicHoursAcceptingOff": "Only your current patients can book",
+    "@clinicHoursAcceptingOff": {
+        "description": "Accepting off body"
+    },
+    "clinicHoursOpen": "Open",
+    "@clinicHoursOpen": {
+        "description": "Day open row"
+    },
+    "clinicHoursClosedDay": "Closed · patients can't book",
+    "@clinicHoursClosedDay": {
+        "description": "Day closed row"
+    },
+    "clinicHoursOpens": "Opens",
+    "@clinicHoursOpens": {
+        "description": "Opens time row"
+    },
+    "clinicHoursCloses": "Closes",
+    "@clinicHoursCloses": {
+        "description": "Closes time row"
+    },
+    "clinicHoursBookedStay": "Booked appointments stay as they are. New hours apply to new bookings.",
+    "@clinicHoursBookedStay": {
+        "description": "Hours change notice"
+    },
+    "clinicHoursSave": "Save",
+    "@clinicHoursSave": {
+        "description": "Clinic hours save button"
+    },
+    "clinicHoursNeedDay": "Pick at least one working day.",
+    "@clinicHoursNeedDay": {
+        "description": "No working day error"
+    },
+    "clinicHoursBadRange": "Closing must be at least 30 minutes after opening.",
+    "@clinicHoursBadRange": {
+        "description": "Bad range error"
+    },
+    "accessLogTitle": "Case history",
+    "@accessLogTitle": {
+        "description": "Case history title"
+    },
+    "accessLogBody": "Every step this case has been through.",
+    "@accessLogBody": {
+        "description": "Case history body"
+    },
+    "accessLogEmpty": "Nothing here yet.",
+    "@accessLogEmpty": {
+        "description": "Case history empty state"
+    },
+    "accessLogToday": "Today",
+    "@accessLogToday": {
+        "description": "Case history today header"
+    },
+    "accessLogYesterday": "Yesterday",
+    "@accessLogYesterday": {
+        "description": "Case history yesterday header"
+    },
+    "accessLogOrdered": "Ordered {test}",
+    "@accessLogOrdered": {
+        "description": "Order entry; the test",
+        "placeholders": {
+            "test": {
+                "type": "String"
+            }
+        }
+    },
+    "accessLogReceived": "The lab received the sample",
+    "@accessLogReceived": {
+        "description": "Sample received entry"
+    },
+    "accessLogSigned": "Signed report",
+    "@accessLogSigned": {
+        "description": "Signed entry"
+    },
+    "accessLogShared": "Shared report with {name}",
+    "@accessLogShared": {
+        "description": "Shared entry; the recipient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "accessLogViewerRemoved": "{name} can no longer see this case",
+    "@accessLogViewerRemoved": {
+        "description": "Viewer removed entry; who lost access",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "accessLogReassigned": "Sent to another pathologist",
+    "@accessLogReassigned": {
+        "description": "Reassigned entry"
+    },
+    "accessLogRevised": "Updated report",
+    "@accessLogRevised": {
+        "description": "Revised report entry"
+    },
+    "accessLogCancelled": "Cancelled",
+    "@accessLogCancelled": {
+        "description": "Cancelled entry"
+    },
+    "accessLogRejected": "The pathologist couldn't take this case",
+    "@accessLogRejected": {
+        "description": "Rejected entry"
+    },
+    "accessLogExpired": "Closed",
+    "@accessLogExpired": {
+        "description": "Expired entry"
+    },
+    "accessLogSlidesAdded": "New slide images added",
+    "@accessLogSlidesAdded": {
+        "description": "Slides added entry"
+    },
+    "datePickerTimesFree": "Times free",
+    "@datePickerTimesFree": {
+        "description": "Date picker legend"
+    },
+    "datePickerShowTimes": "Show times for {date}",
+    "@datePickerShowTimes": {
+        "description": "Date picker primary button; the date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "appLockTitle": "App lock",
+    "@appLockTitle": {
+        "description": "App lock title"
+    },
+    "appLockLockWith": "Lock with",
+    "@appLockLockWith": {
+        "description": "Lock method section"
+    },
+    "appLockBio": "Fingerprint or face",
+    "@appLockBio": {
+        "description": "Biometric row"
+    },
+    "appLockBioOn": "On · used first when you open Tabibu",
+    "@appLockBioOn": {
+        "description": "Biometric on body"
+    },
+    "appLockBioNotSet": "Not set up on this phone",
+    "@appLockBioNotSet": {
+        "description": "Biometric unavailable body"
+    },
+    "appLockPin": "4-digit PIN",
+    "@appLockPin": {
+        "description": "PIN row"
+    },
+    "appLockPinBackup": "Backup if your fingerprint doesn't work",
+    "@appLockPinBackup": {
+        "description": "PIN backup body"
+    },
+    "appLockPinSet": "On · set {date}",
+    "@appLockPinSet": {
+        "description": "PIN on body; the set date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "appLockWhen": "Lock Tabibu when",
+    "@appLockWhen": {
+        "description": "Lock moments section"
+    },
+    "appLockAskPinWhen": "Ask for my PIN when",
+    "@appLockAskPinWhen": {
+        "description": "PIN moments section"
+    },
+    "appLockOnOpen": "Opening Tabibu",
+    "@appLockOnOpen": {
+        "description": "Lock on open row"
+    },
+    "appLockOnResults": "Opening my results",
+    "@appLockOnResults": {
+        "description": "Patient lock results row"
+    },
+    "appLockOnReport": "Opening a report",
+    "@appLockOnReport": {
+        "description": "Doctor lock report row"
+    },
+    "appLockOnCase": "Opening a case",
+    "@appLockOnCase": {
+        "description": "Pathologist lock case row"
+    },
+    "appLockAfter": "Lock after",
+    "@appLockAfter": {
+        "description": "Lock delay row"
+    },
+    "appLockAway": "{delay} away",
+    "@appLockAway": {
+        "description": "Lock delay value; the delay",
+        "placeholders": {
+            "delay": {
+                "type": "String"
+            }
+        }
+    },
+    "appLockAfterBody": "How long Tabibu can sit unused before it asks for your PIN.",
+    "@appLockAfterBody": {
+        "description": "Lock delay sheet body"
+    },
+    "appLockDelayNow": "Straight away",
+    "@appLockDelayNow": {
+        "description": "Immediate delay option"
+    },
+    "appLockDelayOne": "1 minute",
+    "@appLockDelayOne": {
+        "description": "One minute delay option"
+    },
+    "appLockDelayFive": "5 minutes",
+    "@appLockDelayFive": {
+        "description": "Five minute delay option"
+    },
+    "appLockDelayFifteen": "15 minutes",
+    "@appLockDelayFifteen": {
+        "description": "Fifteen minute delay option"
+    },
+    "appLockChange": "Change PIN",
+    "@appLockChange": {
+        "description": "Change PIN row"
+    },
+    "appLockChangeBackup": "Change backup PIN",
+    "@appLockChangeBackup": {
+        "description": "Change backup PIN row"
+    },
+    "appLockStaysOnPhone": "Your PIN stays on this phone. Tabibu staff will never ask for it.",
+    "@appLockStaysOnPhone": {
+        "description": "PIN stays on phone note"
+    },
+    "appLockNoBio": "This phone has no fingerprint or face unlock, so Tabibu uses a 4-digit PIN. Good for shared phones too.",
+    "@appLockNoBio": {
+        "description": "No biometrics notice"
+    },
+    "appLockNoBioShort": "This phone has no fingerprint or face unlock, so Tabibu uses a 4-digit PIN.",
+    "@appLockNoBioShort": {
+        "description": "No biometrics notice, short"
+    },
+    "appLockCreate": "Create a 4-digit PIN",
+    "@appLockCreate": {
+        "description": "Create PIN title"
+    },
+    "appLockCreatePatient": "You'll use it to open Tabibu and your results on this phone.",
+    "@appLockCreatePatient": {
+        "description": "Create PIN body for patients"
+    },
+    "appLockCreateDoctor": "You'll use it to open Tabibu and patient reports on this phone.",
+    "@appLockCreateDoctor": {
+        "description": "Create PIN body for doctors"
+    },
+    "appLockCreatePathologist": "You'll use it to open Tabibu and cases on this phone.",
+    "@appLockCreatePathologist": {
+        "description": "Create PIN body for pathologists"
+    },
+    "appLockAvoid": "Avoid 1234 or your birth year.",
+    "@appLockAvoid": {
+        "description": "Weak PIN warning"
+    },
+    "appLockConfirm": "Enter it again",
+    "@appLockConfirm": {
+        "description": "Confirm PIN title"
+    },
+    "appLockConfirmBody": "Type the same 4 digits to confirm.",
+    "@appLockConfirmBody": {
+        "description": "Confirm PIN body"
+    },
+    "appLockMismatch": "Those don't match. Try again.",
+    "@appLockMismatch": {
+        "description": "PIN mismatch error"
+    },
+    "appLockPinSetToast": "PIN set. Tabibu will ask for it on this phone.",
+    "@appLockPinSetToast": {
+        "description": "PIN set toast"
+    },
+    "appLockUnlockFinger": "Unlock with your fingerprint",
+    "@appLockUnlockFinger": {
+        "description": "Fingerprint unlock title"
+    },
+    "appLockUnlockFace": "Unlock with your face",
+    "@appLockUnlockFace": {
+        "description": "Face unlock title"
+    },
+    "appLockTouchSensor": "Touch the sensor",
+    "@appLockTouchSensor": {
+        "description": "Biometric sensor hint"
+    },
+    "appLockUsePin": "Use PIN instead",
+    "@appLockUsePin": {
+        "description": "PIN fallback link"
+    },
+    "appLockForResults": "To see your results",
+    "@appLockForResults": {
+        "description": "Unlock context for patients"
+    },
+    "appLockForReport": "To open {name}'s report",
+    "@appLockForReport": {
+        "description": "Unlock context for doctors; the patient",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "appLockForCase": "To open {caseNumber} · {patient}",
+    "@appLockForCase": {
+        "description": "Unlock context for pathologists; case and patient",
+        "placeholders": {
+            "caseNumber": {
+                "type": "String"
+            },
+            "patient": {
+                "type": "String"
+            }
+        }
+    },
+    "appLockToOpen": "To open Tabibu",
+    "@appLockToOpen": {
+        "description": "Unlock context for cold start"
+    },
+    "appLockEnterPin": "Enter your PIN",
+    "@appLockEnterPin": {
+        "description": "PIN unlock title"
+    },
+    "appLockForgot": "Forgot PIN?",
+    "@appLockForgot": {
+        "description": "Forgot PIN link"
+    },
+    "appLockWrongPin": "Wrong PIN. {tries, plural, =1{Last try.} other{{tries} tries left.}}",
+    "@appLockWrongPin": {
+        "description": "Wrong PIN error; tries left",
+        "placeholders": {
+            "tries": {
+                "type": "int"
+            }
+        }
+    },
+    "appLockTooMany": "Too many tries",
+    "@appLockTooMany": {
+        "description": "Too many tries title"
+    },
+    "appLockWait": "Wait 5 minutes, or sign in again.",
+    "@appLockWait": {
+        "description": "Too many tries body"
+    },
+    "appLockTryAgainIn": "Try again in {time}",
+    "@appLockTryAgainIn": {
+        "description": "Back-off countdown; the time left",
+        "placeholders": {
+            "time": {
+                "type": "String"
+            }
+        }
+    },
+    "appLockFiveWrongPatient": "For safety, Tabibu locks after 5 wrong PINs. Your results stay private.",
+    "@appLockFiveWrongPatient": {
+        "description": "Lockout safety line for patients"
+    },
+    "appLockFiveWrongDoctor": "For safety, Tabibu locks after 5 wrong PINs. Your patients' records are safe.",
+    "@appLockFiveWrongDoctor": {
+        "description": "Lockout safety line for doctors"
+    },
+    "appLockFiveWrongPathologist": "For safety, Tabibu locks after 5 wrong PINs. Your cases and drafts are safe.",
+    "@appLockFiveWrongPathologist": {
+        "description": "Lockout safety line for pathologists"
+    },
+    "appLockSignInAgain": "Sign in again",
+    "@appLockSignInAgain": {
+        "description": "Sign in again button"
+    },
+    "appLockForgotTitle": "Forgot your PIN?",
+    "@appLockForgotTitle": {
+        "description": "Forgot PIN title"
+    },
+    "appLockForgotBody": "Sign in again with your email or Google. Your PIN is removed and you can set a new one.",
+    "@appLockForgotBody": {
+        "description": "Forgot PIN body"
+    },
+    "appLockOff": "Off",
+    "@appLockOff": {
+        "description": "Lock row off value"
+    },
+    "privacyTitle": "Data privacy",
+    "@privacyTitle": {
+        "description": "Data privacy title"
+    },
+    "privacyPatientBody": "You decide who sees your health information. Tabibu never sells it or tracks where you are.",
+    "@privacyPatientBody": {
+        "description": "Patient data privacy body"
+    },
+    "privacyLocation": "Location",
+    "@privacyLocation": {
+        "description": "Location row"
+    },
+    "privacyLocationBody": "Never tracked. You pick your area.",
+    "@privacyLocationBody": {
+        "description": "Location row body"
+    },
+    "privacyWhoCanSee": "Who can see my results",
+    "@privacyWhoCanSee": {
+        "description": "Who-can-see row"
+    },
+    "privacyWhoCanSeeBody": "Your doctors and anyone you share with",
+    "@privacyWhoCanSeeBody": {
+        "description": "Who-can-see row body"
+    },
+    "privacySharedReports": "Shared reports",
+    "@privacySharedReports": {
+        "description": "Shared reports row"
+    },
+    "privacyActiveShares": "{count, plural, =1{1 active share} other{{count} active shares}} · {name}",
+    "@privacyActiveShares": {
+        "description": "Active shares row; count and latest name",
+        "placeholders": {
+            "count": {
+                "type": "int"
+            },
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "privacyNoShares": "No active shares",
+    "@privacyNoShares": {
+        "description": "No active shares row"
+    },
+    "privacyPolicyRow": "Privacy policy",
+    "@privacyPolicyRow": {
+        "description": "Privacy policy row"
+    },
+    "privacyPolicyRowBody": "How Tabibu uses and protects your data",
+    "@privacyPolicyRowBody": {
+        "description": "Privacy policy row body for patients"
+    },
+    "privacyFooterPatient": "Tabibu follows Kenya's Data Protection Act, 2019.",
+    "@privacyFooterPatient": {
+        "description": "Patient privacy footer"
+    },
+    "privacyAskPinFace": "Ask for PIN or Face ID to open a report",
+    "@privacyAskPinFace": {
+        "description": "Doctor report lock row"
+    },
+    "privacyAskPinFaceBody": "Extra check on shared phones",
+    "@privacyAskPinFaceBody": {
+        "description": "Report lock row body"
+    },
+    "privacyPolicyRowBodyClinician": "Clinician data and record rules",
+    "@privacyPolicyRowBodyClinician": {
+        "description": "Privacy policy row body for clinicians"
+    },
+    "privacyFooterDoctor": "Tabibu follows Kenya's Data Protection Act, 2019, and KMPDC guidance on patient records.",
+    "@privacyFooterDoctor": {
+        "description": "Doctor privacy footer"
+    },
+    "privacyPaBody": "Only your cases open for you. Patient data never leaves Tabibu without consent or a legal duty.",
+    "@privacyPaBody": {
+        "description": "Pathologist data privacy body"
+    },
+    "privacyPinFaceCase": "PIN or Face ID to open a case",
+    "@privacyPinFaceCase": {
+        "description": "Pathologist case lock row"
+    },
+    "privacyPinFaceCaseBody": "Extra check on shared devices",
+    "@privacyPinFaceCaseBody": {
+        "description": "Case lock row body"
+    },
+    "privacyPolicyTitle": "Privacy policy",
+    "@privacyPolicyTitle": {
+        "description": "Privacy policy title"
+    },
+    "privacyDraftPatient": "Draft · last updated {date}",
+    "@privacyDraftPatient": {
+        "description": "Patient draft line; the date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "privacyDraftClinician": "Draft · clinician terms · last updated {date}",
+    "@privacyDraftClinician": {
+        "description": "Clinician draft line; the date",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "privacyP1Title": "1. Who we are",
+    "@privacyP1Title": {
+        "description": "Patient policy section 1 title"
+    },
+    "privacyP1Body": "Tabibu connects patients in Kenya with verified doctors and pathologists. We follow the Data Protection Act, 2019 and guidance from the Office of the Data Protection Commissioner.",
+    "@privacyP1Body": {
+        "description": "Patient policy section 1 body"
+    },
+    "privacyP2Title": "2. What we collect",
+    "@privacyP2Title": {
+        "description": "Patient policy section 2 title"
+    },
+    "privacyP2Body": "Your name, phone number, date of birth, sex, county and sub-county, language, appointments, and the results and summaries your doctor shares with you. We do not collect your location.",
+    "@privacyP2Body": {
+        "description": "Patient policy section 2 body"
+    },
+    "privacyP3Title": "3. How we use it",
+    "@privacyP3Title": {
+        "description": "Patient policy section 3 title"
+    },
+    "privacyP3Body": "To book appointments, share results from your care team, send reminders by app, and send health notices for your area. We never use your data for advertising.",
+    "@privacyP3Body": {
+        "description": "Patient policy section 3 body"
+    },
+    "privacyP4Title": "4. Who can see it",
+    "@privacyP4Title": {
+        "description": "Patient policy section 4 title"
+    },
+    "privacyP4Body": "Only the clinicians caring for you and people you choose to share a report with. Tabibu staff cannot read your results.",
+    "@privacyP4Body": {
+        "description": "Patient policy section 4 body"
+    },
+    "privacyP5Title": "5. Your rights",
+    "@privacyP5Title": {
+        "description": "Patient policy section 5 title"
+    },
+    "privacyP5Body": "You can see and correct your data in the app. To download or delete your data, contact us below and we will help. Deleted accounts are removed after 30 days, except records the law requires your doctor to keep.",
+    "@privacyP5Body": {
+        "description": "Patient policy section 5 body"
+    },
+    "privacyP6Title": "6. Contact",
+    "@privacyP6Title": {
+        "description": "Patient policy section 6 title"
+    },
+    "privacyP6Body": "Questions? Email privacy@tabibu.co.ke or call 0800 000 000.",
+    "@privacyP6Body": {
+        "description": "Patient policy section 6 body"
+    },
+    "privacyD1Title": "1. Your responsibilities",
+    "@privacyD1Title": {
+        "description": "Doctor policy section 1 title"
+    },
+    "privacyD1Body": "You only open records of patients in your care or who shared a report with you. Tabibu checks every read against your cases.",
+    "@privacyD1Body": {
+        "description": "Doctor policy section 1 body"
+    },
+    "privacyD2Title": "2. What we keep",
+    "@privacyD2Title": {
+        "description": "Doctor policy section 2 title"
+    },
+    "privacyD2Body": "Your KMPDC details, facility, schedule, orders, notes and the summaries you share. Signed reports stay in patient records as the law requires.",
+    "@privacyD2Body": {
+        "description": "Doctor policy section 2 body"
+    },
+    "privacyD3Title": "3. AI drafts",
+    "@privacyD3Title": {
+        "description": "Doctor policy section 3 title"
+    },
+    "privacyD3Body": "AI only prepares drafts for pathologists and points you to MoH protocols. It never makes a diagnosis. You are responsible for what you share.",
+    "@privacyD3Body": {
+        "description": "Doctor policy section 3 body"
+    },
+    "privacyD4Title": "4. Sharing",
+    "@privacyD4Title": {
+        "description": "Doctor policy section 4 title"
+    },
+    "privacyD4Body": "Patient data never leaves Tabibu without the patient's consent or a legal duty, such as notifiable disease reporting.",
+    "@privacyD4Body": {
+        "description": "Doctor policy section 4 body"
+    },
+    "privacyD5Title": "5. Contact",
+    "@privacyD5Title": {
+        "description": "Doctor policy section 5 title"
+    },
+    "privacyD5Body": "Data protection officer: dpo@tabibu.co.ke",
+    "@privacyD5Body": {
+        "description": "Doctor policy section 5 body"
+    },
+    "privacyA1Body": "You only open cases attached to you. Every read is checked against your cases.",
+    "@privacyA1Body": {
+        "description": "Pathologist policy section 1 body"
+    },
+    "privacyA2Title": "2. AI drafts",
+    "@privacyA2Title": {
+        "description": "Pathologist policy section 2 title"
+    },
+    "privacyA2Body": "AI prepares a draft only. You check, edit and sign every report, and the original draft is kept on record.",
+    "@privacyA2Body": {
+        "description": "Pathologist policy section 2 body"
+    },
+    "privacyA3Title": "3. What we keep",
+    "@privacyA3Title": {
+        "description": "Pathologist policy section 3 title"
+    },
+    "privacyA3Body": "Your KMPDC details, labs, areas, signed reports and edit history, as the law requires.",
+    "@privacyA3Body": {
+        "description": "Pathologist policy section 3 body"
+    },
+    "privacyA4Body": "Reports go only to the ordering doctor, the patient after their doctor shares, and anyone the patient chooses.",
+    "@privacyA4Body": {
+        "description": "Pathologist policy section 4 body"
+    },
+    "helpTitle": "Help and support",
+    "@helpTitle": {
+        "description": "Help title"
+    },
+    "helpTalkToUs": "Talk to us",
+    "@helpTalkToUs": {
+        "description": "Talk to us section"
+    },
+    "helpCallUs": "Call us",
+    "@helpCallUs": {
+        "description": "Call us row"
+    },
+    "helpCallUsBody": "0800 000 000 · free, 7 AM to 9 PM",
+    "@helpCallUsBody": {
+        "description": "Call us row body"
+    },
+    "helpWhatsApp": "WhatsApp",
+    "@helpWhatsApp": {
+        "description": "WhatsApp row"
+    },
+    "helpWhatsAppBody": "Usually replies in an hour",
+    "@helpWhatsAppBody": {
+        "description": "WhatsApp row body for patients"
+    },
+    "helpSms": "SMS",
+    "@helpSms": {
+        "description": "SMS row"
+    },
+    "helpSmsBody": "Text HELP to 40400",
+    "@helpSmsBody": {
+        "description": "SMS row body"
+    },
+    "helpQuestions": "Common questions",
+    "@helpQuestions": {
+        "description": "Common questions section"
+    },
+    "helpChangeAppointment": "How do I change my appointment?",
+    "@helpChangeAppointment": {
+        "description": "Change appointment question"
+    },
+    "helpChangeAppointmentBody": "You can change it any time before it starts. Open Appointments, tap your appointment and choose Reschedule. Your doctor will be told.",
+    "@helpChangeAppointmentBody": {
+        "description": "Change appointment answer"
+    },
+    "helpWhenResults": "When will I see my results?",
+    "@helpWhenResults": {
+        "description": "Results timing question"
+    },
+    "helpWhenResultsBody": "Once your doctor has talked you through them. We'll tell you when they're ready.",
+    "@helpWhenResultsBody": {
+        "description": "Results timing answer"
+    },
+    "helpKiswahili": "Can I use Tabibu in Kiswahili?",
+    "@helpKiswahili": {
+        "description": "Kiswahili question"
+    },
+    "helpKiswahiliBody": "Yes. Open Profile, tap Language and choose Kiswahili.",
+    "@helpKiswahiliBody": {
+        "description": "Kiswahili answer"
+    },
+    "helpSafe": "Is my information safe?",
+    "@helpSafe": {
+        "description": "Safety question"
+    },
+    "helpSafeBody": "Only the clinicians caring for you can open your results. Tabibu staff cannot read them.",
+    "@helpSafeBody": {
+        "description": "Safety answer"
+    },
+    "helpClinicianSupport": "Clinician support",
+    "@helpClinicianSupport": {
+        "description": "Clinician support section"
+    },
+    "helpCallClinician": "Call clinician support",
+    "@helpCallClinician": {
+        "description": "Call clinician support row"
+    },
+    "helpCallClinicianBody": "0800 000 001 · 24 hours",
+    "@helpCallClinicianBody": {
+        "description": "Clinician line body"
+    },
+    "helpWhatsAppQuick": "Usually replies in 30 min",
+    "@helpWhatsAppQuick": {
+        "description": "WhatsApp row body for clinicians"
+    },
+    "helpGuides": "Guides",
+    "@helpGuides": {
+        "description": "Guides section"
+    },
+    "helpOrderingTest": "Ordering a test",
+    "@helpOrderingTest": {
+        "description": "Ordering guide question"
+    },
+    "helpOrderingTestBody": "Open a test from the catalogue, add the specimen details and attach a pathologist. The risk check only points you to MoH protocol when it's needed.",
+    "@helpOrderingTestBody": {
+        "description": "Ordering guide answer"
+    },
+    "helpApprovingAlerts": "Approving area alerts",
+    "@helpApprovingAlerts": {
+        "description": "Alerts guide question"
+    },
+    "helpApprovingAlertsBody": "If you approve alerts, open one from your home tab, check both language drafts against the evidence, then approve, edit or reject.",
+    "@helpApprovingAlertsBody": {
+        "description": "Alerts guide answer"
+    },
+    "helpMdtConsult": "Running an MDT consult",
+    "@helpMdtConsult": {
+        "description": "MDT guide question"
+    },
+    "helpMdtConsultBody": "Open the MDT tab, start a consult from a case, and invite colleagues. Only members see the messages.",
+    "@helpMdtConsultBody": {
+        "description": "MDT guide answer"
+    },
+    "helpPreread": "How the AI pre-read works",
+    "@helpPreread": {
+        "description": "Pre-read guide question"
+    },
+    "helpPrereadBody": "AI marks tiles it thinks show tumour and suggests measurements. It never signs. You check its work and sign the final report.",
+    "@helpPrereadBody": {
+        "description": "Pre-read guide answer"
+    },
+    "helpSigning": "Signing and changes",
+    "@helpSigning": {
+        "description": "Signing guide question"
+    },
+    "helpSigningBody": "Score the AI draft, write your report, then tick the review box, sign your name and tap Sign. The signed report goes to the doctor.",
+    "@helpSigningBody": {
+        "description": "Signing guide answer"
     }
 }
