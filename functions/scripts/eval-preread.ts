@@ -1,11 +1,13 @@
 #!/usr/bin/env npx ts-node
 // cspell:ignore muse Camelyon pcam fewshot
 /**
- * Pre-read tile classifier evaluation and prompt tuning (bundles 57–60, 64).
+ * Pre-read tile classifier evaluation and prompt tuning (bundles 57–60, 64, 69).
  *
  * - Held-out set (`data/eval_pcam/`): never tune a prompt against these tiles.
  * - Tuning set (`data/tune_pcam/`): staged by `stage-pcam.ts --fetch`.
- * - `--variants`: score up to 8 named variants (upscale, effort, few-shot) on the tune set.
+ * - `--variants` / `--variants a,b,c`: score named variants on the tune set.
+ * - `--resume`: skip tiles already present in the results file.
+ * - `--demo-mosaics`: false-positive rate on seeded Normal tiles (not accuracy, not tuning).
  *
  * The API key is read only from `META_API_KEY` and is never printed.
  *
@@ -13,9 +15,11 @@
  *   npx ts-node scripts/eval-preread.ts
  *   npx ts-node scripts/eval-preread.ts --live --tune
  *   npx ts-node scripts/eval-preread.ts --live --tune --variants
+ *   npx ts-node scripts/eval-preread.ts --live --tune --variants v3_minimal,v3_upscale3_minimal --yes-spend
+ *   npx ts-node scripts/eval-preread.ts --live --demo-mosaics
  *   npx ts-node scripts/eval-preread.ts --live
  */
-import { existsSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import {
@@ -24,6 +28,7 @@ import {
   type FetchLike,
   type ReasoningEffort,
 } from '../src/ai-meta';
+import { falsePositiveRate, loadDemoMosaicTiles } from '../src/pcam-demo-mosaics';
 import {
   PREREAD_IMAGE_TEXT_RULE,
   PREREAD_PCAM_LABEL_RULE,
@@ -40,14 +45,39 @@ import {
 
 const LIVE = process.argv.includes('--live');
 const TUNE = process.argv.includes('--tune');
-const VARIANTS = process.argv.includes('--variants');
+const DEMO_MOSAICS = process.argv.includes('--demo-mosaics');
+const RESUME = process.argv.includes('--resume');
 const YES_SPEND = process.argv.includes('--yes-spend');
 const ROOT = join(__dirname, '..');
 const OUT = join(ROOT, 'scripts', 'eval-preread-results.json');
+const DEMO_OUT = join(ROOT, 'scripts', 'eval-demo-mosaics-results.json');
 const CHOSEN = join(ROOT, 'scripts', 'chosen-version.txt');
 const HELD_OUT_MANIFEST = join(ROOT, 'data', 'eval_pcam', 'manifest.json');
 const TUNE_MANIFEST = join(ROOT, 'data', 'tune_pcam', 'manifest.json');
 const MAX_TILE_CALLS = 300;
+/** Rough USD per tile call for the spend guard printout (order-of-magnitude only). */
+const ROUGH_USD_PER_TILE = 0.002;
+
+function parseVariantsFilter(argv: string[]): string[] | null {
+  const eq = argv.find((a) => a.startsWith('--variants='));
+  if (eq) {
+    const list = eq.slice('--variants='.length).split(',').map((s) => s.trim()).filter(Boolean);
+    return list.length > 0 ? list : null;
+  }
+  const idx = argv.indexOf('--variants');
+  if (idx < 0) return null;
+  const next = argv[idx + 1];
+  if (next && !next.startsWith('--') && next.includes(',')) {
+    return next.split(',').map((s) => s.trim()).filter(Boolean);
+  }
+  if (next && !next.startsWith('--') && /^[a-z0-9_]+$/i.test(next)) {
+    return [next];
+  }
+  return [];
+}
+
+const VARIANT_FILTER = parseVariantsFilter(process.argv);
+const VARIANTS = VARIANT_FILTER !== null;
 
 interface Sample {
   id: string;
@@ -98,7 +128,40 @@ interface VariantSpec {
 
 function loadManifest(path: string): Sample[] {
   if (!existsSync(path)) return [];
-  return JSON.parse(readFileSync(path, 'utf8')) as Sample[];
+  const raw = JSON.parse(readFileSync(path, 'utf8')) as unknown;
+  const rows = Array.isArray(raw)
+    ? raw
+    : raw && typeof raw === 'object' && Array.isArray((raw as { rows?: unknown }).rows)
+      ? (raw as { rows: unknown[] }).rows
+      : [];
+  return rows.map((row) => {
+    const r = row as Sample;
+    return {
+      id: String(r.id),
+      label: r.label === 'Tumour' ? 'Tumour' : 'Normal',
+      path: String(r.path),
+      split: r.split,
+      row: r.row,
+    };
+  });
+}
+
+interface ResumeStore {
+  byKey: Record<string, { truth: string; pred: string; ms: number; tokens: number; probability: number }>;
+}
+
+function resumeKey(variantId: string, sampleId: string): string {
+  return `${variantId}::${sampleId}`;
+}
+
+function loadResumeStore(path: string): ResumeStore {
+  if (!existsSync(path)) return { byKey: {} };
+  try {
+    const raw = JSON.parse(readFileSync(path, 'utf8')) as { resume?: ResumeStore['byKey'] };
+    return { byKey: raw.resume && typeof raw.resume === 'object' ? raw.resume : {} };
+  } catch {
+    return { byKey: {} };
+  }
 }
 
 export function wilson95(successes: number, n: number): Interval {
@@ -191,7 +254,7 @@ function instructionsV3(): string {
 /** At most 8 variants for one --tune --variants run (bundle 64). */
 function variantGrid(): VariantSpec[] {
   const v3 = instructionsV3();
-  return [
+  const all: VariantSpec[] = [
     {
       id: 'v3_minimal',
       promptVersion: PREREAD_PROMPT_VERSION_V3,
@@ -257,6 +320,14 @@ function variantGrid(): VariantSpec[] {
       fewShot: false,
     },
   ];
+  if (!VARIANT_FILTER || VARIANT_FILTER.length === 0) return all;
+  const wanted = new Set(VARIANT_FILTER);
+  const picked = all.filter((v) => wanted.has(v.id));
+  const missing = VARIANT_FILTER.filter((id) => !picked.some((v) => v.id === id));
+  if (missing.length > 0) {
+    throw new Error(`unknown variant id(s): ${missing.join(', ')}`);
+  }
+  return picked;
 }
 
 async function classifyOne(
@@ -367,21 +438,45 @@ async function scoreVariant(
   spec: VariantSpec,
   apiKey: string,
   fewShot: { id: string; label: string; png: Buffer }[],
+  resume?: ResumeStore,
 ): Promise<Metrics> {
   const rows: { truth: string; pred: string; ms: number; tokens: number; probability: number }[] =
     [];
   for (const sample of samples) {
+    const key = resumeKey(spec.id, sample.id);
+    const cached = resume?.byKey[key];
+    if (RESUME && cached) {
+      rows.push(cached);
+      continue;
+    }
     const hit = await classifyOne(sample, spec, apiKey, globalThis.fetch, fewShot);
-    rows.push({ truth: sample.label, pred: hit.pred, ms: hit.ms, tokens: hit.tokens, probability: hit.probability });
+    const row = {
+      truth: sample.label,
+      pred: hit.pred,
+      ms: hit.ms,
+      tokens: hit.tokens,
+      probability: hit.probability,
+    };
+    rows.push(row);
+    if (resume) resume.byKey[key] = row;
   }
   return metricsOf(spec, rows);
 }
 
 function assertSpend(tileCalls: number): void {
+  const roughUsd = Number((tileCalls * ROUGH_USD_PER_TILE).toFixed(2));
+  console.log(
+    JSON.stringify({
+      tileCalls,
+      cap: MAX_TILE_CALLS,
+      roughCostUsd: roughUsd,
+      note: 'Rough cost only; pass --yes-spend when over the cap, or --variants a,b to run a subset, or --resume to skip scored tiles.',
+    }),
+  );
   if (tileCalls <= MAX_TILE_CALLS) return;
   if (!YES_SPEND) {
     throw new Error(
-      `Refusing ${tileCalls} tile calls (cap ${MAX_TILE_CALLS}). Pass --yes-spend to proceed.`,
+      `Refusing ${tileCalls} tile calls (cap ${MAX_TILE_CALLS}, rough ~$${roughUsd}). Pass --yes-spend to proceed.`,
     );
   }
 }
@@ -392,6 +487,101 @@ function pickFewShotFromTune(tune: Sample[]): { examples: Sample[]; scored: Samp
   const examples = [...tumour.slice(0, 2), ...normal.slice(0, 2)];
   const exIds = new Set(examples.map((e) => e.id));
   return { examples, scored: tune.filter((t) => !exIds.has(t.id)) };
+}
+
+async function runDemoMosaics(apiKey: string): Promise<void> {
+  const tiles = loadDemoMosaicTiles();
+  const normals = tiles.filter((t) => t.label === 'Normal');
+  const tumours = tiles.filter((t) => t.label === 'Tumour');
+  console.log(
+    JSON.stringify({
+      check: 'demo-mosaics-false-positive',
+      note: 'Not accuracy. Not for tuning. Ground truth is slides.json only.',
+      slides: [...new Set(tiles.map((t) => t.slide))],
+      n: tiles.length,
+      nNormal: normals.length,
+      nTumour: tumours.length,
+      liveSettings: {
+        promptVersion: PREREAD_PROMPT_VERSION,
+        upscale: TILE_UPSCALE_FACTOR,
+        effort: TILE_REASONING_EFFORT,
+      },
+    }),
+  );
+  assertSpend(tiles.length);
+  const spec: VariantSpec = {
+    id: 'demo_mosaics_live',
+    promptVersion: PREREAD_PROMPT_VERSION,
+    instructions: instructionsV3(),
+    effort: TILE_REASONING_EFFORT,
+    upscale: TILE_UPSCALE_FACTOR,
+    fewShot: false,
+  };
+  const rows: {
+    id: string;
+    slide: string;
+    truth: 'Tumour' | 'Normal';
+    pred: 'Tumour' | 'Normal';
+    source: string;
+    ms: number;
+    tokens: number;
+    probability: number;
+  }[] = [];
+  for (const tile of tiles) {
+    const tmpDir = join(ROOT, 'data', 'tmp_demo_mosaic');
+    mkdirSync(tmpDir, { recursive: true });
+    const path = join(tmpDir, `${tile.id}.png`);
+    writeFileSync(path, tile.png);
+    const hit = await classifyOne(
+      { id: tile.id, label: tile.label, path },
+      spec,
+      apiKey,
+      globalThis.fetch,
+      [],
+    );
+    rows.push({
+      id: tile.id,
+      slide: tile.slide,
+      truth: tile.label,
+      pred: hit.pred === 'Tumour' ? 'Tumour' : 'Normal',
+      source: tile.source,
+      ms: hit.ms,
+      tokens: hit.tokens,
+      probability: hit.probability,
+    });
+  }
+  const fp = falsePositiveRate(rows);
+  const report = {
+    check: 'demo-mosaics-false-positive',
+    note: 'False-positive rate on seed-labelled Normal tiles only. Never quote as accuracy.',
+    model: MUSE_SPARK_MODEL,
+    promptVersion: PREREAD_PROMPT_VERSION,
+    tileUpscale: TILE_UPSCALE_FACTOR,
+    effort: TILE_REASONING_EFFORT,
+    n: rows.length,
+    nNormal: fp.normalN,
+    nTumour: tumours.length,
+    falsePositives: fp.falsePositives,
+    falsePositiveRate: fp.rate,
+    falsePositiveWilson95: wilson95(fp.falsePositives, fp.normalN),
+    bySlide: [...new Set(rows.map((r) => r.slide))].map((slide) => {
+      const subset = rows.filter((r) => r.slide === slide);
+      const sfp = falsePositiveRate(subset);
+      return {
+        slide,
+        n: subset.length,
+        nNormal: sfp.normalN,
+        falsePositives: sfp.falsePositives,
+        falsePositiveRate: sfp.rate,
+        falsePositiveWilson95: wilson95(sfp.falsePositives, sfp.normalN),
+        seedTumour: subset.filter((r) => r.truth === 'Tumour').length,
+        predictedTumour: subset.filter((r) => r.pred === 'Tumour').length,
+      };
+    }),
+    rows,
+  };
+  writeFileSync(DEMO_OUT, JSON.stringify(report, null, 2));
+  console.log(JSON.stringify(report, null, 2));
 }
 
 async function main(): Promise<void> {
@@ -410,11 +600,13 @@ async function main(): Promise<void> {
   console.log(
     JSON.stringify(
       {
-        plan: TUNE
-          ? VARIANTS
-            ? 'Tuning-set variants (upscale / effort / few-shot); never held-out'
-            : 'Tuning set: compare prompt versions (never held-out)'
-          : 'Held-out classify via Muse Spark 1.3 vision',
+        plan: DEMO_MOSAICS
+          ? 'Demo-mosaic false-positive check (seed labels only; not accuracy; not tuning)'
+          : TUNE
+            ? VARIANTS
+              ? 'Tuning-set variants (upscale / effort / few-shot); never held-out'
+              : 'Tuning set: compare prompt versions (never held-out)'
+            : 'Held-out classify via Muse Spark 1.3 vision',
         smallSampleNote:
           'With fewer than 100 tiles per set these are small-sample estimates (Wilson 95% intervals).',
         promptVersionLive: PREREAD_PROMPT_VERSION,
@@ -426,9 +618,12 @@ async function main(): Promise<void> {
         tuneManifestCount: tune.length,
         fewShotFixtures: fixtures.length,
         variantIds: VARIANTS ? variantGrid().map((v) => v.id) : null,
+        variantFilter: VARIANT_FILTER,
+        resume: RESUME,
+        demoMosaics: DEMO_MOSAICS,
         chosenVersionFile: chosen || null,
         stageHint:
-          tune.length === 0 || heldOut.length === 0
+          !DEMO_MOSAICS && (tune.length === 0 || heldOut.length === 0)
             ? 'Run: npx ts-node scripts/stage-pcam.ts --fetch'
             : null,
         live: LIVE,
@@ -450,6 +645,11 @@ async function main(): Promise<void> {
   const apiKey = process.env.META_API_KEY;
   if (!apiKey) {
     console.log('META_API_KEY is not set; refusing to invent metrics.');
+    return;
+  }
+
+  if (DEMO_MOSAICS) {
+    await runDemoMosaics(apiKey);
     return;
   }
 
@@ -476,7 +676,15 @@ async function main(): Promise<void> {
           ? fixtures.map((f) => ({ id: f.id, label: f.label, png: f.png }))
           : fewShotBuffers;
       const scoredTiles = fixtures.length >= 4 ? tune : scored;
-      assertSpend(grid.length * scoredTiles.length);
+      const resume = loadResumeStore(OUT);
+      const pending = grid.reduce((n, spec) => {
+        if (!RESUME) return n + scoredTiles.length;
+        return (
+          n +
+          scoredTiles.filter((s) => !resume.byKey[resumeKey(spec.id, s.id)]).length
+        );
+      }, 0);
+      assertSpend(pending);
       const results: Metrics[] = [];
       for (const spec of grid) {
         const m = await scoreVariant(
@@ -484,6 +692,7 @@ async function main(): Promise<void> {
           spec,
           apiKey,
           spec.fewShot ? fewShot : [],
+          resume,
         );
         printMetrics(m);
         results.push(m);
@@ -497,6 +706,7 @@ async function main(): Promise<void> {
         model: MUSE_SPARK_MODEL,
         chosenVariant: winner.variant,
         byVariant: results,
+        resume: resume.byKey,
       };
       writeFileSync(OUT, JSON.stringify(report, null, 2));
       console.log(JSON.stringify(report, null, 2));
