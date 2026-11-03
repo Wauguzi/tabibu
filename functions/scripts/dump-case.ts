@@ -35,7 +35,15 @@ const named = process.argv
   .slice(2)
   .filter((a, i, all) => !a.startsWith('--') && !['--doctor', '--limit'].includes(all[i - 1]))[0];
 
-const SUBCOLLECTIONS = ['preread', 'log', 'reportDrafts', 'reportTexts', 'reports'];
+const SUBCOLLECTIONS = [
+  'preread',
+  'prereadScores',
+  'log',
+  'reportDrafts',
+  'reportProvenance',
+  'reportTexts',
+  'reports',
+];
 
 function summarise(value: unknown): unknown {
   if (FULL) return value;
