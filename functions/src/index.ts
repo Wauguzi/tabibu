@@ -236,7 +236,12 @@ export const onCaseWritten = onDocumentWritten(
 );
 
 export const onPrereadWritten = onDocumentWritten(
-  { document: 'cases/{caseUid}/preread/{runUid}', retry: true },
+  {
+    document: 'cases/{caseUid}/preread/{runUid}',
+    retry: true,
+    timeoutSeconds: 300,
+    secrets: [metaApiKey],
+  },
   async (event) => {
     await onPrereadWrittenHandler(await domainDeps(), event.params.caseUid, event.params.runUid);
   },

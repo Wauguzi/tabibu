@@ -55,6 +55,7 @@ import { diseaseById } from './disease-data';
 import { prereadProfileOf } from './lab-tests';
 import { NotificationTx, type NotifyLanguage } from './notifications';
 import { CaseState, commitCase, transition, type CaseStage } from './orchestrator';
+import { processQueuedPreread } from './preread-worker';
 import { sanitize } from './sanitize';
 import { closeShare, loadShareClose, mintShareCode } from './shares';
 import { bumpModelSignal } from './signals';
@@ -1260,6 +1261,14 @@ export async function requestReportTextHandler(
 export async function onPrereadWrittenHandler(deps: Deps, caseUid: string, runUid: string): Promise<void> {
   const { db } = deps;
   const now = nowOf(deps);
+
+  // Live worker (bundle 57): process a Queued run to Ready/Failed, then the stage move below.
+  const before = (
+    await db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+  ).data();
+  if (before && str(before.status) === 'Queued') {
+    await processQueuedPreread(deps, caseUid, runUid);
+  }
 
   await db.runTransaction(async (tx) => {
     const caseSnap = await tx.get(db.collection('cases').doc(caseUid));
