@@ -123,6 +123,13 @@ void main() {
       ).thenAnswer((_) async => const NotificationAppLaunchDetails(false));
       expect(await service.launchPayload(), isNull);
     });
+
+    test('null when the plugin has no implementation (the web)', () async {
+      when(
+        plugin.getNotificationAppLaunchDetails,
+      ).thenThrow(MissingPluginException('no web implementation'));
+      expect(await service.launchPayload(), isNull);
+    });
   });
 
   group('payloadFromData', () {

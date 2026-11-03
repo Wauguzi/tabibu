@@ -54,7 +54,7 @@ void main() {
 
     final shown = inbox.arrivals([
       row('a'),
-      const NotificationModel(uid: 'nodate', creationDate: 'not a date'),
+      const NotificationModel(uid: 'no-date', creationDate: 'not a date'),
     ]);
 
     expect(shown, isEmpty);

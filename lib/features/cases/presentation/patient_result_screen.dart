@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:collection/collection.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
@@ -401,6 +402,12 @@ class _SharedBodyState extends State<_SharedBody> {
   Future<void> _onDownload() async {
     final report = widget.report;
     if (report == null || _downloading) return;
+    // The browser has no temp files or share sheet: say so at once instead
+    // of failing the attempt.
+    if (kIsWeb) {
+      setState(() => _failed = true);
+      return;
+    }
     setState(() {
       _downloading = true;
       _failed = false;
@@ -598,7 +605,7 @@ class _SharedBodyState extends State<_SharedBody> {
         if (_failed) ...[
           const SizedBox(height: AppSpacing.sm),
           Text(
-            l10n.errorUnknown,
+            kIsWeb ? l10n.resultDetailWebDownload : l10n.errorUnknown,
             style: textTheme.bodyMedium?.copyWith(color: scheme.error),
           ),
         ],

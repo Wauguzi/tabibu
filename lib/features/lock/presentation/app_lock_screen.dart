@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart' hide LockState;
@@ -141,15 +142,26 @@ class _AppLockScreenState extends State<AppLockScreen> {
                               ? null
                               : (_) => unawaited(_togglePin(state)),
                         ),
-                        SettingsSwitchRow(
-                          icon: Assets.icons.fingerprintIcon,
-                          title: l10n.appLockBio,
-                          value: state.biometricsEnabled,
-                          onChanged: !state.enabled || state.locked
-                              ? null
-                              : (value) =>
-                                    unawaited(_toggleBio(state, enable: value)),
-                        ),
+                        // The browser has no biometric prompt: a line, not
+                        // a switch that can never turn on.
+                        if (kIsWeb)
+                          SettingsRow(
+                            icon: Assets.icons.fingerprintIcon,
+                            title: l10n.appLockBio,
+                            supporting: l10n.appLockWebBiometrics,
+                            chevron: false,
+                          )
+                        else
+                          SettingsSwitchRow(
+                            icon: Assets.icons.fingerprintIcon,
+                            title: l10n.appLockBio,
+                            value: state.biometricsEnabled,
+                            onChanged: !state.enabled || state.locked
+                                ? null
+                                : (value) => unawaited(
+                                    _toggleBio(state, enable: value),
+                                  ),
+                          ),
                       ],
                     ),
                     if (state.enabled) ...[

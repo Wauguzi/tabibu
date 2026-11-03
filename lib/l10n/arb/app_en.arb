@@ -8130,6 +8130,18 @@
     "@workspaceRequiredBeforeSign": {
         "description": "Pathologist workspace: why Sign is closed while a required template question is unanswered"
     },
+    "notificationSettingsWebLine": "Push notifications don't reach this browser. New alerts still appear in Notifications.",
+    "@notificationSettingsWebLine": {
+        "description": "Web only: notification settings replace the push switch with this line"
+    },
+    "appLockWebBiometrics": "Biometric unlock isn't available in the browser. Your PIN still locks the app.",
+    "@appLockWebBiometrics": {
+        "description": "Web only: the app-lock biometric row reads this instead of a switch"
+    },
+    "resultDetailWebDownload": "Report download isn't available in the browser. Download it from the mobile app.",
+    "@resultDetailWebDownload": {
+        "description": "Web only: tapping Download on a shared result shows this line"
+    },
     "notificationAccessCode": "Code {code}",
     "@notificationAccessCode": {
         "description": "Inbox row: the 4-digit access code a signed or shared report is opened with, shown to the person it was sent to",

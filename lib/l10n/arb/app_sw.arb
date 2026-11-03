@@ -1701,5 +1701,17 @@
     "workspaceZoomIn": "Kuza",
     "workspaceZoomOut": "Punguza",
     "workspaceRequiredBeforeSign": "Jaza sehemu zenye nyota ili kusaini.",
+    "notificationSettingsWebLine": "Arifa za kusukuma hazifiki kwenye kivinjari hiki. Arifa mpya bado zinaonekana kwenye Arifa.",
+    "@notificationSettingsWebLine": {
+        "description": "Web only: notification settings replace the push switch with this line"
+    },
+    "appLockWebBiometrics": "Kufungua kwa alama ya kidole au uso hakupatikani kwenye kivinjari. PIN yako bado inafunga programu.",
+    "@appLockWebBiometrics": {
+        "description": "Web only: the app-lock biometric row reads this instead of a switch"
+    },
+    "resultDetailWebDownload": "Upakuaji wa ripoti haupatikani kwenye kivinjari. Ipakue kutoka programu ya simu.",
+    "@resultDetailWebDownload": {
+        "description": "Web only: tapping Download on a shared result shows this line"
+    },
     "notificationAccessCode": "Msimbo {code}"
 }

@@ -237,13 +237,15 @@ class NotificationService {
 
   /// The payload of the local or push notification that launched the app,
   /// read once after the decision route resolves (notifications engine §7).
+  /// Never throws: the plugin has no web implementation, and the caller
+  /// awaits this without a guard.
   Future<String?> launchPayload() async {
-    final details = await _plugin.getNotificationAppLaunchDetails();
-    if (details != null && details.didNotificationLaunchApp) {
-      final payload = details.notificationResponse?.payload;
-      if (payload != null && payload.isNotEmpty) return payload;
-    }
     try {
+      final details = await _plugin.getNotificationAppLaunchDetails();
+      if (details != null && details.didNotificationLaunchApp) {
+        final payload = details.notificationResponse?.payload;
+        if (payload != null && payload.isNotEmpty) return payload;
+      }
       final push = await _messaging().getInitialMessage();
       return push == null ? null : _payloadOf(push);
     } on Object catch (_) {
