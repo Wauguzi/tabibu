@@ -1,4 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/helpers/reference_data_helper.dart';
 import 'package:tabibu/features/alerts/presentation/alert_review_screen.dart';
 import 'package:tabibu/features/alerts/presentation/alert_sent_screen.dart';
 import 'package:tabibu/features/alerts/presentation/health_notice_screen.dart';
@@ -16,6 +19,7 @@ import 'package:tabibu/features/orders/presentation/order_screen.dart';
 import 'package:tabibu/features/orders/presentation/order_sent_screen.dart';
 import 'package:tabibu/features/practitioners/presentation/doctor_profile_screen.dart';
 import 'package:tabibu/features/practitioners/presentation/find_doctor_screen.dart';
+import 'package:tabibu/features/preread/data/datasources/preread_storage.dart';
 import 'package:tabibu/features/reports/presentation/case_workspace_screen.dart';
 import 'package:tabibu/features/reports/presentation/compare_screen.dart';
 import 'package:tabibu/features/reports/presentation/doctor_report_screen.dart';
@@ -27,6 +31,10 @@ import 'package:tabibu/features/worklist/presentation/desk_list_screen.dart';
 import 'package:tabibu/features/worklist/presentation/desk_search_screen.dart';
 
 import '../../helpers/helpers.dart';
+
+class _MockReferenceData extends Mock implements ReferenceDataHelper {}
+
+class _MockPrereadStorage extends Mock implements PrereadStorage {}
 
 void main() {
   final patient = RoleSessions.patient;
@@ -66,6 +74,24 @@ void main() {
   // The approver guard (F-6) is a redirect, tested in landing_test.dart;
   // pumpRoleApp's router has no redirect.
   group('Tier 1 routes', () {
+    // Screens that read reference data or slide images straight from DI.
+    setUp(() {
+      final reference = _MockReferenceData();
+      when(reference.publicHealthGuidance).thenAnswer((_) async => []);
+      when(reference.notifiableDiseases).thenAnswer((_) async => []);
+      when(reference.activeLabTests).thenAnswer((_) async => []);
+      when(reference.labTestTypes).thenAnswer((_) async => []);
+      when(reference.insurers).thenAnswer((_) async => []);
+      getIt
+        ..registerSingleton<ReferenceDataHelper>(reference)
+        ..registerSingleton<PrereadStorage>(_MockPrereadStorage());
+    });
+
+    tearDown(() async {
+      await getIt.unregister<ReferenceDataHelper>();
+      await getIt.unregister<PrereadStorage>();
+    });
+
     for (final (location, session, screen) in routes) {
       testWidgets('$location opens $screen', (tester) async {
         await tester.pumpRoleApp(session, location);
@@ -83,14 +109,16 @@ void main() {
         pathologist,
         '/pathologist/cases?filter=notifiable',
       );
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       final screen = tester.widget<DeskListScreen>(find.byType(DeskListScreen));
       expect(screen.filter, DeskFilter.notifiable);
     });
 
     testWidgets('an unknown desk filter reads as all', (tester) async {
       await tester.pumpRoleApp(pathologist, '/pathologist/cases?filter=nope');
-      await tester.pumpAndSettle();
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
       final screen = tester.widget<DeskListScreen>(find.byType(DeskListScreen));
       expect(screen.filter, DeskFilter.all);
     });

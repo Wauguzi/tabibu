@@ -82,6 +82,21 @@ class FeatureBlocs {
     when(() => caseWorkspace.state).thenReturn(const CaseWorkspaceInitial());
     when(() => reportReader.state).thenReturn(const ReportReaderInitial());
     when(() => order.state).thenReturn(const OrderInitial());
+    // Screens that dispatch from dispose check isClosed first.
+    for (final bloc in <BlocBase<Object?>>[
+      notifications,
+      directory,
+      appointments,
+      publicAlerts,
+      cases,
+      desk,
+      alertReview,
+      caseWorkspace,
+      reportReader,
+      order,
+    ]) {
+      when(() => bloc.isClosed).thenReturn(false);
+    }
   }
 
   final notifications = MockNotificationsBloc();
