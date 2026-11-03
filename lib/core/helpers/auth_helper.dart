@@ -233,6 +233,110 @@ class AuthHelper {
     );
   }
 
+  /// The edit-profile save: a picked photo uploads first so its URL lands
+  /// in the same write. Answers the new URL, or null when no photo was
+  /// picked. Must land or say why.
+  Future<String?> updatePatientProfile({
+    required String firstName,
+    required String middleName,
+    required String lastName,
+    required String phoneNumber,
+    required AuthSession session,
+    UploadFile? picture,
+  }) async {
+    final patient = switch (session) {
+      PatientSession(:final patient) => patient,
+      _ => null,
+    };
+    if (patient == null) throw StateError('No patient profile to update');
+    final photoUrl = await _uploadPhoto(
+      owner: patient.patientId,
+      picture: picture,
+    );
+    await _remote.updatePatientProfile(
+      docId: patient.patientId,
+      firstName: firstName,
+      middleName: middleName,
+      lastName: lastName,
+      phoneNumber: phoneNumber,
+      profilePictureUrl: photoUrl,
+    );
+    return photoUrl;
+  }
+
+  /// The practitioner details save: specialties, bio, phone, and a picked
+  /// photo uploaded first. Answers the new URL, or null without a pick.
+  Future<String?> updatePractitionerProfile({
+    required List<String> specialties,
+    required String bio,
+    required String phoneNumber,
+    required AuthSession session,
+    UploadFile? picture,
+  }) async {
+    final doctor = switch (session) {
+      PractitionerSession(:final doctor) => doctor,
+      _ => null,
+    };
+    if (doctor == null) throw StateError('No practitioner profile to update');
+    final photoUrl = await _uploadPhoto(owner: doctor.uid, picture: picture);
+    await _remote.updatePractitionerProfile(
+      docId: doctor.uid,
+      specialties: specialties,
+      bio: bio,
+      phoneNumber: phoneNumber,
+      profilePictureUrl: photoUrl,
+    );
+    return photoUrl;
+  }
+
+  /// The clinic-hours save: working days plus the one shared range.
+  Future<void> updateClinicHours({
+    required List<int> workingDays,
+    required int dayStartMinute,
+    required int dayEndMinute,
+    required AuthSession session,
+  }) async {
+    final doctor = switch (session) {
+      PractitionerSession(:final doctor) => doctor,
+      _ => null,
+    };
+    if (doctor == null) throw StateError('No practitioner profile to update');
+    await _remote.updateClinicHours(
+      docId: doctor.uid,
+      workingDays: workingDays,
+      dayStartMinute: dayStartMinute,
+      dayEndMinute: dayEndMinute,
+    );
+  }
+
+  /// The area save over the callable. Answers the names the server stored.
+  Future<({String county, String subCounty})> updatePatientArea({
+    required int countyId,
+    required AuthSession session,
+    int? subCountyId,
+  }) async {
+    if (session is! PatientSession) {
+      throw StateError('No patient profile to update');
+    }
+    return await _remote.updatePatientArea(
+      countyId: countyId,
+      subCountyId: subCountyId,
+    );
+  }
+
+  /// A picked photo goes up bounded, like sign-up's: without the bound an
+  /// upload retrying for minutes would hold the save that long.
+  Future<String?> _uploadPhoto({
+    required String owner,
+    required UploadFile? picture,
+  }) {
+    final file = picture;
+    if (file == null) return Future.value();
+    return _storage
+        .uploadProfilePicture(owner: owner, file: file)
+        .timeout(_photoTimeout);
+  }
+
   /// Removes this install's token first, while the credentials can still
   /// write it, then signs out of Firebase before the cache is wiped, so
   /// nothing is fetched into it afterwards.

@@ -36,6 +36,10 @@ Future<void> _settleSheet(WidgetTester tester) async {
   await tester.pump(const Duration(milliseconds: 600));
 }
 
+/// The pinned clock: a Tuesday mid-morning in Nairobi, so the planner's
+/// lead lands mid-day whatever hour runs this.
+final _fixedNow = DateTime.utc(2026, 10, 27, 7);
+
 void main() {
   final en = lookupAppLocalizations(const Locale('en'));
   final sw = lookupAppLocalizations(const Locale('sw'));
@@ -85,7 +89,11 @@ void main() {
             builder: (context) => TabibuButton.primary(
               label: 'open',
               onTap: () async => onChoice(
-                await MoveSheet.show(context, appointment: appointment),
+                await MoveSheet.show(
+                  context,
+                  appointment: appointment,
+                  now: _fixedNow,
+                ),
               ),
             ),
           ),
@@ -100,7 +108,7 @@ void main() {
           dayStartMinute: base.doctor.dayStartMinute,
           dayEndMinute: base.doctor.dayEndMinute,
         ),
-        DateTime.now(),
+        _fixedNow,
       );
       final day = planned.firstWhere((d) => d.available);
       return day.slots.firstWhere((s) => !s.taken);

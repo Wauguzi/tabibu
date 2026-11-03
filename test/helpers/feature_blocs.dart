@@ -1,6 +1,7 @@
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_bloc.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_event.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_state.dart';
@@ -25,6 +26,9 @@ import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_state.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_bloc.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_event.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_state.dart';
+import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
+import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_event.dart';
+import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_state.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_event.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_state.dart';
@@ -43,6 +47,9 @@ import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_state.dart';
+import 'package:tabibu/features/themes/blocs/theme_bloc/theme_bloc.dart';
+import 'package:tabibu/features/themes/blocs/theme_bloc/theme_event.dart';
+import 'package:tabibu/features/themes/blocs/theme_bloc/theme_state.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_bloc.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_event.dart';
 import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_state.dart';
@@ -93,6 +100,12 @@ class MockOrderBloc extends MockBloc<OrderEvent, OrderState>
 
 class MockDeskBloc extends MockBloc<DeskEvent, DeskState> implements DeskBloc {}
 
+class MockFacilitiesBloc extends MockBloc<FacilitiesEvent, FacilitiesState>
+    implements FacilitiesBloc {}
+
+class MockThemeBloc extends MockBloc<ThemeEvent, ThemeState>
+    implements ThemeBloc {}
+
 /// The app-wide feature blocs as mocks, each starting in its initial state.
 /// A screen test sets the states it needs (`whenListen` or `when(() =>
 /// blocs.desk.state)`) and passes the set to `pumpRoleApp` or wraps a screen
@@ -114,6 +127,10 @@ class FeatureBlocs {
     when(() => caseWorkspace.state).thenReturn(const CaseWorkspaceInitial());
     when(() => reportReader.state).thenReturn(const ReportReaderInitial());
     when(() => order.state).thenReturn(const OrderInitial());
+    when(() => facilities.state).thenReturn(const FacilitiesInitial());
+    when(
+      () => theme.state,
+    ).thenReturn(const ThemeState(preference: ThemePreference.light));
     // Screens that dispatch from dispose check isClosed first.
     for (final bloc in <BlocBase<Object?>>[
       notifications,
@@ -131,6 +148,8 @@ class FeatureBlocs {
       caseWorkspace,
       reportReader,
       order,
+      facilities,
+      theme,
     ]) {
       when(() => bloc.isClosed).thenReturn(false);
     }
@@ -151,6 +170,8 @@ class FeatureBlocs {
   final caseWorkspace = MockCaseWorkspaceBloc();
   final reportReader = MockReportReaderBloc();
   final order = MockOrderBloc();
+  final facilities = MockFacilitiesBloc();
+  final theme = MockThemeBloc();
 
   List<BlocProvider> get providers => [
     BlocProvider<NotificationsBloc>.value(value: notifications),
@@ -168,5 +189,7 @@ class FeatureBlocs {
     BlocProvider<CaseWorkspaceBloc>.value(value: caseWorkspace),
     BlocProvider<ReportReaderBloc>.value(value: reportReader),
     BlocProvider<OrderBloc>.value(value: order),
+    BlocProvider<FacilitiesBloc>.value(value: facilities),
+    BlocProvider<ThemeBloc>.value(value: theme),
   ];
 }

@@ -15,7 +15,6 @@ class SettingsGroup extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
-    final isDark = scheme.brightness == .dark;
     return Column(
       crossAxisAlignment: .stretch,
       children: [
@@ -29,30 +28,45 @@ class SettingsGroup extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xs),
-        DecoratedBox(
-          decoration: BoxDecoration(
-            // Raised in dark by a lighter tone, not a light shadow.
-            color: isDark
-                ? scheme.surfaceContainerHigh
-                : scheme.surfaceContainerLowest,
-            borderRadius: BorderRadius.circular(AppRadii.card),
-            boxShadow: AppShadows.card(),
-          ),
-          child: Column(
-            children: [
-              for (var i = 0; i < children.length; i++) ...[
-                if (i > 0)
-                  const Divider(
-                    height: 1,
-                    indent: AppSpacing.md,
-                    endIndent: AppSpacing.md,
-                  ),
-                children[i],
-              ],
-            ],
-          ),
-        ),
+        SettingsCard(children: children),
       ],
+    );
+  }
+}
+
+/// The group's card without the title: rows split by hairlines. Screens
+/// whose card carries no heading (clinic hours) use it directly.
+class SettingsCard extends StatelessWidget {
+  const SettingsCard({required this.children, super.key});
+
+  final List<Widget> children;
+
+  @override
+  Widget build(BuildContext context) {
+    final scheme = Theme.of(context).colorScheme;
+    final isDark = scheme.brightness == .dark;
+    return DecoratedBox(
+      decoration: BoxDecoration(
+        // Raised in dark by a lighter tone, not a light shadow.
+        color: isDark
+            ? scheme.surfaceContainerHigh
+            : scheme.surfaceContainerLowest,
+        borderRadius: BorderRadius.circular(AppRadii.card),
+        boxShadow: AppShadows.card(),
+      ),
+      child: Column(
+        children: [
+          for (var i = 0; i < children.length; i++) ...[
+            if (i > 0)
+              const Divider(
+                height: 1,
+                indent: AppSpacing.md,
+                endIndent: AppSpacing.md,
+              ),
+            children[i],
+          ],
+        ],
+      ),
     );
   }
 }
@@ -66,6 +80,7 @@ class SettingsRow extends StatelessWidget {
     this.supporting,
     this.onTap,
     this.destructive = false,
+    this.chevron = true,
     super.key,
   });
 
@@ -74,6 +89,10 @@ class SettingsRow extends StatelessWidget {
   final String? supporting;
   final VoidCallback? onTap;
   final bool destructive;
+
+  /// False for an info row that opens nothing (the fixed appointment
+  /// length): the chevron is dropped.
+  final bool chevron;
 
   @override
   Widget build(BuildContext context) {
@@ -90,12 +109,14 @@ class SettingsRow extends StatelessWidget {
           title: title,
           titleColor: destructive ? scheme.error : null,
           supporting: supporting,
-          trailing: AssetIcon(
-            Assets.icons.forwardIcon,
-            size: 18,
-            scaleUp: false,
-            color: scheme.onSurfaceVariant,
-          ),
+          trailing: chevron
+              ? AssetIcon(
+                  Assets.icons.forwardIcon,
+                  size: 18,
+                  scaleUp: false,
+                  color: scheme.onSurfaceVariant,
+                )
+              : const SizedBox.shrink(),
         ),
       ),
     );
@@ -109,11 +130,13 @@ class SettingsSwitchRow extends StatelessWidget {
     required this.title,
     required this.value,
     required this.onChanged,
+    this.supporting,
     super.key,
   });
 
   final SvgGenImage icon;
   final String title;
+  final String? supporting;
   final bool value;
   final ValueChanged<bool>? onChanged;
 
@@ -132,6 +155,7 @@ class SettingsSwitchRow extends StatelessWidget {
             icon: icon,
             tone: .neutral,
             title: title,
+            supporting: supporting,
             trailing: ExcludeSemantics(
               // The row is the target, so the switch keeps its drawn size.
               child: Switch(

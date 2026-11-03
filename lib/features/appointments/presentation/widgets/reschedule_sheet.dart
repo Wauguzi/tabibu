@@ -22,27 +22,32 @@ typedef RescheduleChoice = ({DateTime start});
 /// only after the new time is held — but the sheet says plainly that moving
 /// cancels the current time.
 abstract final class RescheduleSheet {
+  /// [now] pins the planner's clock; tests pass a fixed morning, the app
+  /// leaves it to the open instant, captured once so rebuilds agree.
   static Future<RescheduleChoice?> show(
     BuildContext context, {
     required AppointmentModel appointment,
+    DateTime? now,
   }) {
     // The sheet lives on the root navigator, below the screen's providers.
     final directory = context.read<DirectoryBloc>();
+    final pinned = now ?? DateTime.now();
     return TabibuBottomSheet.show<RescheduleChoice>(
       context,
       title: context.l10n.rescheduleTitle,
       builder: (_) => BlocProvider<DirectoryBloc>.value(
         value: directory,
-        child: _RescheduleForm(appointment: appointment),
+        child: _RescheduleForm(appointment: appointment, now: pinned),
       ),
     );
   }
 }
 
 class _RescheduleForm extends StatefulWidget {
-  const _RescheduleForm({required this.appointment});
+  const _RescheduleForm({required this.appointment, required this.now});
 
   final AppointmentModel appointment;
+  final DateTime now;
 
   @override
   State<_RescheduleForm> createState() => _RescheduleFormState();
@@ -70,7 +75,7 @@ class _RescheduleFormState extends State<_RescheduleForm> {
     );
     final days = doctor == null
         ? const <PlannedDay>[]
-        : const SlotPlanner().days(doctor, DateTime.now());
+        : const SlotPlanner().days(doctor, widget.now);
     final slot = _slot;
     return Column(
       crossAxisAlignment: .stretch,

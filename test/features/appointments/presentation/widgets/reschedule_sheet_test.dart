@@ -56,6 +56,10 @@ PractitionerModel _doctor() => const PractitionerModel(
   workingDays: [1, 2, 3, 4, 5, 6, 7],
 );
 
+/// The pinned clock: a Tuesday mid-morning in Nairobi, so the planner's
+/// lead lands mid-day whatever hour runs this.
+final _fixedNow = DateTime.utc(2026, 10, 27, 7);
+
 void main() {
   final en = lookupAppLocalizations(const Locale('en'));
   final sw = lookupAppLocalizations(const Locale('sw'));
@@ -89,7 +93,11 @@ void main() {
             builder: (context) => TabibuButton.primary(
               label: 'open',
               onTap: () async => onChoice(
-                await RescheduleSheet.show(context, appointment: appointment),
+                await RescheduleSheet.show(
+                  context,
+                  appointment: appointment,
+                  now: _fixedNow,
+                ),
               ),
             ),
           ),
@@ -130,7 +138,7 @@ void main() {
       await tester.tap(find.text('open'));
       await _settleSheet(tester);
 
-      final days = const SlotPlanner().days(_doctor(), DateTime.now());
+      final days = const SlotPlanner().days(_doctor(), _fixedNow);
       final day = days.firstWhere((d) => d.available);
       final dayCell = find.text(DateFormat('d').format(day.date));
       await tester.scrollUntilVisible(

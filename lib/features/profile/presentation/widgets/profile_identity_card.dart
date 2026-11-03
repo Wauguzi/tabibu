@@ -18,6 +18,7 @@ class PatientIdentityCard extends StatelessWidget {
     required this.lastName,
     required this.phoneNumber,
     required this.editLabel,
+    this.onEdit,
     this.photoUrl = '',
     super.key,
   });
@@ -28,6 +29,9 @@ class PatientIdentityCard extends StatelessWidget {
   /// E.164, as stored: `+254712345678`.
   final String phoneNumber;
   final String editLabel;
+
+  /// The pencil into the profile details; null while it leads nowhere.
+  final VoidCallback? onEdit;
   final String photoUrl;
 
   /// "+254 712 *** ***": enough to recognise the number on a shared screen.
@@ -36,13 +40,16 @@ class PatientIdentityCard extends StatelessWidget {
     return '+254 ${phone.substring(4, 7)} *** ***';
   }
 
+  /// "Amina W.": the first name with the last initial, shared with the
+  /// profile details hero.
+  static String shortName(String firstName, String lastName) =>
+      lastName.isEmpty ? firstName : '$firstName ${lastName.characters.first}.';
+
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
-    final shortName = lastName.isEmpty
-        ? firstName
-        : '$firstName ${lastName.characters.first}.';
+    final shortName = PatientIdentityCard.shortName(firstName, lastName);
     final isDark = scheme.brightness == .dark;
     return DecoratedBox(
       decoration: BoxDecoration(
@@ -73,10 +80,9 @@ class PatientIdentityCard extends StatelessWidget {
               ),
             ),
             const SizedBox(width: AppSpacing.sm),
-            // Edit profile is a later screen; the button is in place for it.
             CircleIconButton(
               icon: Assets.icons.editIcon,
-              onTap: null,
+              onTap: onEdit,
               semanticLabel: editLabel,
               onCard: true,
             ),
@@ -94,6 +100,8 @@ class PractitionerIdentityCard extends StatelessWidget {
     required this.name,
     required this.subtitle,
     required this.verifiedLabel,
+    this.onEdit,
+    this.editLabel,
     this.photoUrl = '',
     super.key,
   });
@@ -101,6 +109,11 @@ class PractitionerIdentityCard extends StatelessWidget {
   final String name;
   final String subtitle;
   final String verifiedLabel;
+
+  /// The pencil into the profile details, shown only when set: the details
+  /// hero reuses this card, and must not link to itself.
+  final VoidCallback? onEdit;
+  final String? editLabel;
   final String photoUrl;
 
   @override
@@ -163,6 +176,14 @@ class PractitionerIdentityCard extends StatelessWidget {
               ],
             ),
           ),
+          if (onEdit != null) ...[
+            const SizedBox(width: AppSpacing.sm),
+            CircleIconButton(
+              icon: Assets.icons.editIcon,
+              onTap: onEdit,
+              semanticLabel: editLabel ?? '',
+            ),
+          ],
         ],
       ),
     );

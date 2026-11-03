@@ -55,7 +55,9 @@ class TabibuTextField extends StatefulWidget {
 
   /// Whether the label and field merge into one semantics node. Stays true
   /// unless the trailing carries its own button, which cannot live under a
-  /// merge: the password toggle needs a separate node.
+  /// merge: the password toggle needs a separate node. Pushed screens also
+  /// leave it false: a merged text field trips the framework's semantics
+  /// assertion on a route push.
   final bool mergeSemantics;
 
   @override

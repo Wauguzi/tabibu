@@ -26,13 +26,17 @@ typedef MoveChoice = ({DateTime start, String reason, String note});
 /// from the signed-in doctor's own hours; busy times from their live
 /// appointments.
 abstract final class MoveSheet {
+  /// [now] pins the planner's clock; tests pass a fixed morning, the app
+  /// leaves it to the open instant, captured once so rebuilds agree.
   static Future<MoveChoice?> show(
     BuildContext context, {
     required AppointmentModel appointment,
+    DateTime? now,
   }) {
     // The sheet lives on the root navigator, below the screen's providers.
     final auth = context.read<AuthBloc>();
     final appointments = context.read<AppointmentsBloc>();
+    final pinned = now ?? DateTime.now();
     return TabibuBottomSheet.show<MoveChoice>(
       context,
       title: context.l10n.rescheduleTitle,
@@ -41,16 +45,17 @@ abstract final class MoveSheet {
           BlocProvider<AuthBloc>.value(value: auth),
           BlocProvider<AppointmentsBloc>.value(value: appointments),
         ],
-        child: _MoveForm(appointment: appointment),
+        child: _MoveForm(appointment: appointment, now: pinned),
       ),
     );
   }
 }
 
 class _MoveForm extends StatefulWidget {
-  const _MoveForm({required this.appointment});
+  const _MoveForm({required this.appointment, required this.now});
 
   final AppointmentModel appointment;
+  final DateTime now;
 
   @override
   State<_MoveForm> createState() => _MoveFormState();
@@ -114,7 +119,7 @@ class _MoveFormState extends State<_MoveForm> {
               dayEndMinute: doctor.dayEndMinute,
               busySlots: appointments,
             ),
-            DateTime.now(),
+            widget.now,
           );
     final reasons = [
       l10n.rescheduleReasonTheatre,

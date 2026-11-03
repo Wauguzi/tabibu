@@ -28,6 +28,12 @@ List<RouteBase> get $appRoutes => [
   $practitionerProfileRoute,
   $patientAppointmentRoute,
   $patientCalendarRoute,
+  $patientProfileDetailsRoute,
+  $patientEditProfileRoute,
+  $patientProfileAreaRoute,
+  $patientProfileLanguageRoute,
+  $patientProfileThemeRoute,
+  $patientProfileNotificationsRoute,
   $bookedRoute,
   $patientResultRoute,
   $explainedResultRoute,
@@ -41,6 +47,11 @@ List<RouteBase> get $appRoutes => [
   $bookingRequestsRoute,
   $doctorAppointmentRoute,
   $doctorCalendarRoute,
+  $doctorProfileDetailsRoute,
+  $doctorClinicHoursRoute,
+  $doctorProfileLanguageRoute,
+  $doctorProfileThemeRoute,
+  $doctorProfileNotificationsRoute,
   $orderRoute,
   $orderSentRoute,
   $mohProtocolRoute,
@@ -51,6 +62,10 @@ List<RouteBase> get $appRoutes => [
   $alertReviewRoute,
   $alertSentRoute,
   $pathologistNotificationsRoute,
+  $pathologistProfileDetailsRoute,
+  $pathologistProfileLanguageRoute,
+  $pathologistProfileThemeRoute,
+  $pathologistProfileNotificationsRoute,
   $deskListRoute,
   $deskSearchRoute,
   $caseWorkspaceRoute,
@@ -1204,6 +1219,169 @@ mixin $PatientCalendarRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $patientProfileDetailsRoute => GoRouteData.$route(
+  path: '/patient/profile/details',
+  hasOverriddenOnExit: false,
+  factory: $PatientProfileDetailsRoute._fromState,
+);
+
+mixin $PatientProfileDetailsRoute on GoRouteData {
+  static PatientProfileDetailsRoute _fromState(GoRouterState state) =>
+      const PatientProfileDetailsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/profile/details');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientEditProfileRoute => GoRouteData.$route(
+  path: '/patient/profile/edit',
+  hasOverriddenOnExit: false,
+  factory: $PatientEditProfileRoute._fromState,
+);
+
+mixin $PatientEditProfileRoute on GoRouteData {
+  static PatientEditProfileRoute _fromState(GoRouterState state) =>
+      const PatientEditProfileRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/profile/edit');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientProfileAreaRoute => GoRouteData.$route(
+  path: '/patient/profile/area',
+  hasOverriddenOnExit: false,
+  factory: $PatientProfileAreaRoute._fromState,
+);
+
+mixin $PatientProfileAreaRoute on GoRouteData {
+  static PatientProfileAreaRoute _fromState(GoRouterState state) =>
+      const PatientProfileAreaRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/profile/area');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientProfileLanguageRoute => GoRouteData.$route(
+  path: '/patient/profile/language',
+  hasOverriddenOnExit: false,
+  factory: $PatientProfileLanguageRoute._fromState,
+);
+
+mixin $PatientProfileLanguageRoute on GoRouteData {
+  static PatientProfileLanguageRoute _fromState(GoRouterState state) =>
+      const PatientProfileLanguageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/profile/language');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientProfileThemeRoute => GoRouteData.$route(
+  path: '/patient/profile/theme',
+  hasOverriddenOnExit: false,
+  factory: $PatientProfileThemeRoute._fromState,
+);
+
+mixin $PatientProfileThemeRoute on GoRouteData {
+  static PatientProfileThemeRoute _fromState(GoRouterState state) =>
+      const PatientProfileThemeRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/profile/theme');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientProfileNotificationsRoute => GoRouteData.$route(
+  path: '/patient/profile/notifications',
+  hasOverriddenOnExit: false,
+  factory: $PatientProfileNotificationsRoute._fromState,
+);
+
+mixin $PatientProfileNotificationsRoute on GoRouteData {
+  static PatientProfileNotificationsRoute _fromState(GoRouterState state) =>
+      const PatientProfileNotificationsRoute();
+
+  @override
+  String get location =>
+      GoRouteData.$location('/patient/profile/notifications');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $bookedRoute => GoRouteData.$route(
   path: '/patient/appointment/:appointmentUid/booked',
   hasOverriddenOnExit: false,
@@ -1589,6 +1767,141 @@ mixin $DoctorCalendarRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $doctorProfileDetailsRoute => GoRouteData.$route(
+  path: '/doctor/profile/details',
+  hasOverriddenOnExit: false,
+  factory: $DoctorProfileDetailsRoute._fromState,
+);
+
+mixin $DoctorProfileDetailsRoute on GoRouteData {
+  static DoctorProfileDetailsRoute _fromState(GoRouterState state) =>
+      const DoctorProfileDetailsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/profile/details');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorClinicHoursRoute => GoRouteData.$route(
+  path: '/doctor/profile/hours',
+  hasOverriddenOnExit: false,
+  factory: $DoctorClinicHoursRoute._fromState,
+);
+
+mixin $DoctorClinicHoursRoute on GoRouteData {
+  static DoctorClinicHoursRoute _fromState(GoRouterState state) =>
+      const DoctorClinicHoursRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/profile/hours');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorProfileLanguageRoute => GoRouteData.$route(
+  path: '/doctor/profile/language',
+  hasOverriddenOnExit: false,
+  factory: $DoctorProfileLanguageRoute._fromState,
+);
+
+mixin $DoctorProfileLanguageRoute on GoRouteData {
+  static DoctorProfileLanguageRoute _fromState(GoRouterState state) =>
+      const DoctorProfileLanguageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/profile/language');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorProfileThemeRoute => GoRouteData.$route(
+  path: '/doctor/profile/theme',
+  hasOverriddenOnExit: false,
+  factory: $DoctorProfileThemeRoute._fromState,
+);
+
+mixin $DoctorProfileThemeRoute on GoRouteData {
+  static DoctorProfileThemeRoute _fromState(GoRouterState state) =>
+      const DoctorProfileThemeRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/profile/theme');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorProfileNotificationsRoute => GoRouteData.$route(
+  path: '/doctor/profile/notifications',
+  hasOverriddenOnExit: false,
+  factory: $DoctorProfileNotificationsRoute._fromState,
+);
+
+mixin $DoctorProfileNotificationsRoute on GoRouteData {
+  static DoctorProfileNotificationsRoute _fromState(GoRouterState state) =>
+      const DoctorProfileNotificationsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/profile/notifications');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $orderRoute => GoRouteData.$route(
   path: '/doctor/appointment/:appointmentUid/order',
   hasOverriddenOnExit: false,
@@ -1880,6 +2193,115 @@ mixin $PathologistNotificationsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/pathologist/notifications');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistProfileDetailsRoute => GoRouteData.$route(
+  path: '/pathologist/profile/details',
+  hasOverriddenOnExit: false,
+  factory: $PathologistProfileDetailsRoute._fromState,
+);
+
+mixin $PathologistProfileDetailsRoute on GoRouteData {
+  static PathologistProfileDetailsRoute _fromState(GoRouterState state) =>
+      const PathologistProfileDetailsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/profile/details');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistProfileLanguageRoute => GoRouteData.$route(
+  path: '/pathologist/profile/language',
+  hasOverriddenOnExit: false,
+  factory: $PathologistProfileLanguageRoute._fromState,
+);
+
+mixin $PathologistProfileLanguageRoute on GoRouteData {
+  static PathologistProfileLanguageRoute _fromState(GoRouterState state) =>
+      const PathologistProfileLanguageRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/profile/language');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistProfileThemeRoute => GoRouteData.$route(
+  path: '/pathologist/profile/theme',
+  hasOverriddenOnExit: false,
+  factory: $PathologistProfileThemeRoute._fromState,
+);
+
+mixin $PathologistProfileThemeRoute on GoRouteData {
+  static PathologistProfileThemeRoute _fromState(GoRouterState state) =>
+      const PathologistProfileThemeRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/profile/theme');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistProfileNotificationsRoute => GoRouteData.$route(
+  path: '/pathologist/profile/notifications',
+  hasOverriddenOnExit: false,
+  factory: $PathologistProfileNotificationsRoute._fromState,
+);
+
+mixin $PathologistProfileNotificationsRoute on GoRouteData {
+  static PathologistProfileNotificationsRoute _fromState(GoRouterState state) =>
+      const PathologistProfileNotificationsRoute();
+
+  @override
+  String get location =>
+      GoRouteData.$location('/pathologist/profile/notifications');
 
   @override
   void go(BuildContext context) => context.go(location);

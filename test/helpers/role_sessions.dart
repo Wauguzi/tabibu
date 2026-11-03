@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -28,6 +30,8 @@ abstract final class RoleSessions {
     patient: PatientModel.empty().copyWith(
       firstName: 'Amina',
       lastName: 'Wambui',
+      sex: 'Female',
+      dateOfBirth: '1980-03-14',
       phoneNumber: '+254712345678',
       county: 'Nairobi',
       subCounty: 'Embakasi',
@@ -81,13 +85,15 @@ abstract final class RoleSessions {
 extension PumpRoleApp on WidgetTester {
   /// The app's routes at [location], signed in as [session]. Returns the
   /// [AuthBloc] so a test can verify what the screen asked of it; [states]
-  /// replays the bloc's states after the first frame.
+  /// replays the bloc's states after the first frame, while [answers] lets
+  /// the test answer a Save after tapping it.
   Future<MockAuthBloc> pumpRoleApp(
     AuthSession session,
     String location, {
     ThemeMode themeMode = ThemeMode.light,
     List<AuthState>? states,
     FeatureBlocs? blocs,
+    StreamController<AuthState>? answers,
   }) async {
     PackageInfo.setMockInitialValues(
       appName: 'Tabibu',
@@ -98,7 +104,10 @@ extension PumpRoleApp on WidgetTester {
     );
     final bloc = MockAuthBloc();
     final initial = SignInSuccess(session: session);
-    if (states == null) {
+    final controller = answers;
+    if (controller != null) {
+      whenListen(bloc, controller.stream, initialState: initial);
+    } else if (states == null) {
       when(() => bloc.state).thenReturn(initial);
     } else {
       whenListen(bloc, Stream.fromIterable(states), initialState: initial);

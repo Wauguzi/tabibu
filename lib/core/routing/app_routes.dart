@@ -60,7 +60,15 @@ import 'package:tabibu/features/orders/presentation/order_screen.dart';
 import 'package:tabibu/features/orders/presentation/order_sent_screen.dart';
 import 'package:tabibu/features/practitioners/presentation/doctor_profile_screen.dart';
 import 'package:tabibu/features/practitioners/presentation/find_doctor_screen.dart';
+import 'package:tabibu/features/profile/presentation/area_screen.dart';
+import 'package:tabibu/features/profile/presentation/clinic_hours_screen.dart';
+import 'package:tabibu/features/profile/presentation/edit_profile_screen.dart';
+import 'package:tabibu/features/profile/presentation/notification_settings_screen.dart';
+import 'package:tabibu/features/profile/presentation/patient_profile_screen.dart';
+import 'package:tabibu/features/profile/presentation/practitioner_profile_screen.dart';
+import 'package:tabibu/features/profile/presentation/profile_language_screen.dart';
 import 'package:tabibu/features/profile/presentation/profile_screen.dart';
+import 'package:tabibu/features/profile/presentation/theme_screen.dart';
 import 'package:tabibu/features/reports/presentation/case_workspace_screen.dart';
 import 'package:tabibu/features/reports/presentation/compare_screen.dart';
 import 'package:tabibu/features/reports/presentation/doctor_report_screen.dart';
@@ -621,6 +629,83 @@ class PatientCalendarRoute extends GoRouteData with $PatientCalendarRoute {
       const CalendarScreen(role: .patient);
 }
 
+/// P-PROFILE-EDIT details.
+@TypedGoRoute<PatientProfileDetailsRoute>(
+  path: '${RoutePaths.patient}/profile/details',
+)
+class PatientProfileDetailsRoute extends GoRouteData
+    with $PatientProfileDetailsRoute {
+  const PatientProfileDetailsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PatientProfileScreen();
+}
+
+/// P-PROFILE-EDIT edit.
+@TypedGoRoute<PatientEditProfileRoute>(
+  path: '${RoutePaths.patient}/profile/edit',
+)
+class PatientEditProfileRoute extends GoRouteData
+    with $PatientEditProfileRoute {
+  const PatientEditProfileRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const EditProfileScreen();
+}
+
+/// P-AREA.
+@TypedGoRoute<PatientProfileAreaRoute>(
+  path: '${RoutePaths.patient}/profile/area',
+)
+class PatientProfileAreaRoute extends GoRouteData
+    with $PatientProfileAreaRoute {
+  const PatientProfileAreaRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) => const AreaScreen();
+}
+
+/// P-LANG.
+@TypedGoRoute<PatientProfileLanguageRoute>(
+  path: '${RoutePaths.patient}/profile/language',
+)
+class PatientProfileLanguageRoute extends GoRouteData
+    with $PatientProfileLanguageRoute {
+  const PatientProfileLanguageRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ProfileLanguageScreen(role: .patient);
+}
+
+/// P-THEME.
+@TypedGoRoute<PatientProfileThemeRoute>(
+  path: '${RoutePaths.patient}/profile/theme',
+)
+class PatientProfileThemeRoute extends GoRouteData
+    with $PatientProfileThemeRoute {
+  const PatientProfileThemeRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ThemeScreen(role: .patient);
+}
+
+/// P-NOTIF-SET.
+@TypedGoRoute<PatientProfileNotificationsRoute>(
+  path: '${RoutePaths.patient}/profile/notifications',
+)
+class PatientProfileNotificationsRoute extends GoRouteData
+    with $PatientProfileNotificationsRoute {
+  const PatientProfileNotificationsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationSettingsScreen(role: .patient);
+}
+
 /// P-07; reached with pushReplacement (F-1).
 @TypedGoRoute<BookedRoute>(
   path: '${RoutePaths.patient}/appointment/:appointmentUid/booked',
@@ -785,6 +870,70 @@ class DoctorCalendarRoute extends GoRouteData with $DoctorCalendarRoute {
       const CalendarScreen(role: .doctor);
 }
 
+/// D-PROFILE details.
+@TypedGoRoute<DoctorProfileDetailsRoute>(
+  path: '${RoutePaths.doctor}/profile/details',
+)
+class DoctorProfileDetailsRoute extends GoRouteData
+    with $DoctorProfileDetailsRoute {
+  const DoctorProfileDetailsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PractitionerProfileScreen(role: .doctor);
+}
+
+/// D-HOURS.
+@TypedGoRoute<DoctorClinicHoursRoute>(
+  path: '${RoutePaths.doctor}/profile/hours',
+)
+class DoctorClinicHoursRoute extends GoRouteData with $DoctorClinicHoursRoute {
+  const DoctorClinicHoursRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ClinicHoursScreen();
+}
+
+/// D-LANG.
+@TypedGoRoute<DoctorProfileLanguageRoute>(
+  path: '${RoutePaths.doctor}/profile/language',
+)
+class DoctorProfileLanguageRoute extends GoRouteData
+    with $DoctorProfileLanguageRoute {
+  const DoctorProfileLanguageRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ProfileLanguageScreen(role: .doctor);
+}
+
+/// D-THEME.
+@TypedGoRoute<DoctorProfileThemeRoute>(
+  path: '${RoutePaths.doctor}/profile/theme',
+)
+class DoctorProfileThemeRoute extends GoRouteData
+    with $DoctorProfileThemeRoute {
+  const DoctorProfileThemeRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ThemeScreen(role: .doctor);
+}
+
+/// D-NOTIF-SET.
+@TypedGoRoute<DoctorProfileNotificationsRoute>(
+  path: '${RoutePaths.doctor}/profile/notifications',
+)
+class DoctorProfileNotificationsRoute extends GoRouteData
+    with $DoctorProfileNotificationsRoute {
+  const DoctorProfileNotificationsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationSettingsScreen(role: .doctor);
+}
+
 /// D-ORDER-CATALOGUE to D-ORDER-PATHOLOGIST.
 @TypedGoRoute<OrderRoute>(
   path: '${RoutePaths.doctor}/appointment/:appointmentUid/order',
@@ -916,6 +1065,58 @@ class PathologistNotificationsRoute extends GoRouteData
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const NotificationsScreen(role: .pathologist);
+}
+
+/// PA-PROFILE details.
+@TypedGoRoute<PathologistProfileDetailsRoute>(
+  path: '${RoutePaths.pathologist}/profile/details',
+)
+class PathologistProfileDetailsRoute extends GoRouteData
+    with $PathologistProfileDetailsRoute {
+  const PathologistProfileDetailsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PractitionerProfileScreen(role: .pathologist);
+}
+
+/// PA-LANG.
+@TypedGoRoute<PathologistProfileLanguageRoute>(
+  path: '${RoutePaths.pathologist}/profile/language',
+)
+class PathologistProfileLanguageRoute extends GoRouteData
+    with $PathologistProfileLanguageRoute {
+  const PathologistProfileLanguageRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ProfileLanguageScreen(role: .pathologist);
+}
+
+/// PA-THEME.
+@TypedGoRoute<PathologistProfileThemeRoute>(
+  path: '${RoutePaths.pathologist}/profile/theme',
+)
+class PathologistProfileThemeRoute extends GoRouteData
+    with $PathologistProfileThemeRoute {
+  const PathologistProfileThemeRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ThemeScreen(role: .pathologist);
+}
+
+/// PA-NOTIF-SET.
+@TypedGoRoute<PathologistProfileNotificationsRoute>(
+  path: '${RoutePaths.pathologist}/profile/notifications',
+)
+class PathologistProfileNotificationsRoute extends GoRouteData
+    with $PathologistProfileNotificationsRoute {
+  const PathologistProfileNotificationsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NotificationSettingsScreen(role: .pathologist);
 }
 
 /// PA-02.

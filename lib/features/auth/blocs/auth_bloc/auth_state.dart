@@ -178,3 +178,18 @@ final class ProfileSettingChangeFailure extends AuthOperationFailure {
     required super.error,
   });
 }
+
+/// A profile save (details, area, hours) is running; the screen holds its
+/// Save still.
+final class ProfileSaveInProgress extends AuthState {
+  const ProfileSaveInProgress({required super.session});
+}
+
+/// [session] carries the saved values; every other field is untouched.
+final class ProfileSaveSuccess extends AuthState {
+  const ProfileSaveSuccess({required super.session});
+}
+
+final class ProfileSaveFailure extends AuthOperationFailure {
+  const ProfileSaveFailure({required super.session, required super.error});
+}

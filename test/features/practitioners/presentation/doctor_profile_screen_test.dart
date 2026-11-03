@@ -37,10 +37,14 @@ void _useTallSurface(WidgetTester tester) {
   });
 }
 
+/// The pinned clock: a Tuesday mid-morning in Nairobi, so the planner's
+/// lead and the busy cover below land the same whatever hour runs this.
+final _fixedNow = DateTime.utc(2026, 10, 27, 7);
+
 /// 09:00 Nairobi for the coming days, as the server would store them.
-List<String> _busySlots() {
-  final now = nairobiNow();
-  final today = DateTime.utc(now.year, now.month, now.day);
+List<String> _busySlots(DateTime now) {
+  final nairobi = nairobiNow(now);
+  final today = DateTime.utc(nairobi.year, nairobi.month, nairobi.day);
   return [
     for (var i = 0; i < 10; i++)
       DateTime.utc(
@@ -86,7 +90,7 @@ void main() {
         ordersCreated: 0,
         reportsSigned: 0,
         lastUpdatedAt: '',
-        busySlots: _busySlots(),
+        busySlots: _busySlots(_fixedNow),
       );
       directory = MockDirectoryBloc();
       when(
@@ -113,7 +117,7 @@ void main() {
         BlocProvider<DirectoryBloc>.value(value: directory),
         BlocProvider<AppointmentsBloc>.value(value: appointments),
       ],
-      child: const DoctorProfileScreen(doctorUid: 'd1'),
+      child: DoctorProfileScreen(doctorUid: 'd1', now: _fixedNow),
     );
 
     GoRouter router() {
@@ -141,7 +145,7 @@ void main() {
     /// The first day with both a taken and a free slot; the busy cover above
     /// guarantees one whatever time it is.
     int mixedDay() {
-      final days = const SlotPlanner().days(doctor, DateTime.now());
+      final days = const SlotPlanner().days(doctor, _fixedNow);
       return days.indexWhere((d) => d.available && d.slots.any((s) => s.taken));
     }
 
@@ -229,7 +233,7 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      final days = const SlotPlanner().days(doctor, DateTime.now());
+      final days = const SlotPlanner().days(doctor, _fixedNow);
       final dayIndex = mixedDay();
       await selectDay(tester, dayIndex);
       final taken = days[dayIndex].slots.firstWhere((s) => s.taken);
@@ -260,7 +264,7 @@ void main() {
         isNull,
       );
 
-      final days = const SlotPlanner().days(doctor, DateTime.now());
+      final days = const SlotPlanner().days(doctor, _fixedNow);
       final dayIndex = mixedDay();
       await selectDay(tester, dayIndex);
       final free = days[dayIndex].slots.firstWhere((s) => !s.taken);
@@ -282,7 +286,7 @@ void main() {
       await tester.pumpApp(screen());
       await tester.pumpAndSettle();
 
-      final days = const SlotPlanner().days(doctor, DateTime.now());
+      final days = const SlotPlanner().days(doctor, _fixedNow);
       final dayIndex = mixedDay();
       await selectDay(tester, dayIndex);
       final free = days[dayIndex].slots.firstWhere((s) => !s.taken);
@@ -361,7 +365,7 @@ void main() {
       expect(find.text('Booking needs internet'), findsOneWidget);
       expect(find.text('Reconnect to book this appointment.'), findsOneWidget);
 
-      final days = const SlotPlanner().days(doctor, DateTime.now());
+      final days = const SlotPlanner().days(doctor, _fixedNow);
       final dayIndex = mixedDay();
       await selectDay(tester, dayIndex);
       final free = days[dayIndex].slots.firstWhere((s) => !s.taken);

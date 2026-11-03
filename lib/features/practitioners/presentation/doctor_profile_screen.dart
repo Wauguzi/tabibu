@@ -34,9 +34,11 @@ import 'package:tabibu/l10n/l10n.dart';
 /// strip carries the planner's whole horizon, so there is no pick-a-date
 /// sheet.
 class DoctorProfileScreen extends StatefulWidget {
-  const DoctorProfileScreen({required this.doctorUid, super.key});
+  /// [now] pins the planner's clock; tests pass a fixed morning.
+  const DoctorProfileScreen({required this.doctorUid, this.now, super.key});
 
   final String doctorUid;
+  final DateTime? now;
 
   @override
   State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
@@ -192,7 +194,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       0,
     );
     final language = Localizations.localeOf(context).languageCode;
-    final days = const SlotPlanner().days(doctor, DateTime.now());
+    final days = const SlotPlanner().days(doctor, widget.now ?? DateTime.now());
     final dayIndex = _dayIndex.clamp(0, days.length - 1);
     final slots = days[dayIndex].slots;
     final free = slots.where((s) => !s.taken).length;

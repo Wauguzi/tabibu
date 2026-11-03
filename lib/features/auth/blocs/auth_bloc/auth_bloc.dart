@@ -82,6 +82,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       _onProfileSettingChanged,
       transformer: droppable(),
     );
+    // A double tap on Save must not write twice either.
+    on<PatientProfileChanged>(
+      _onPatientProfileChanged,
+      transformer: droppable(),
+    );
+    on<PractitionerProfileChanged>(
+      _onPractitionerProfileChanged,
+      transformer: droppable(),
+    );
+    on<PatientAreaChanged>(_onPatientAreaChanged, transformer: droppable());
+    on<ClinicHoursChanged>(_onClinicHoursChanged, transformer: droppable());
 
     _tokenRefreshes = (notificationService ?? getIt<NotificationService>())
         .tokenRefreshes
@@ -413,6 +424,160 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       ),
     _ => null,
   };
+
+  Future<void> _onPatientProfileChanged(
+    PatientProfileChanged event,
+    Emitter<AuthState> emit,
+  ) async {
+    final session = state.session;
+    final patientAndRoles = switch (session) {
+      PatientSession(:final patient, :final roles) => (patient, roles),
+      _ => null,
+    };
+    if (patientAndRoles == null) return;
+    final (patient, roles) = patientAndRoles;
+    emit(ProfileSaveInProgress(session: session));
+    try {
+      await _requireInternet();
+      final photoUrl = await _auth.updatePatientProfile(
+        firstName: event.firstName,
+        middleName: event.middleName,
+        lastName: event.lastName,
+        phoneNumber: event.phoneNumber,
+        session: session,
+        picture: event.picture,
+      );
+      emit(
+        ProfileSaveSuccess(
+          session: PatientSession(
+            patient: patient.copyWith(
+              firstName: event.firstName,
+              middleName: event.middleName,
+              lastName: event.lastName,
+              phoneNumber: event.phoneNumber,
+              profilePictureUrl: photoUrl ?? patient.profilePictureUrl,
+            ),
+            roles: roles,
+          ),
+        ),
+      );
+    } on Object catch (e) {
+      emit(ProfileSaveFailure(session: session, error: _appErrorOf(e)));
+    }
+  }
+
+  Future<void> _onPractitionerProfileChanged(
+    PractitionerProfileChanged event,
+    Emitter<AuthState> emit,
+  ) async {
+    final session = state.session;
+    final practitioner = switch (session) {
+      PractitionerSession(:final doctor, :final roles) => (doctor, roles),
+      _ => null,
+    };
+    if (practitioner == null) return;
+    final (doctor, roles) = practitioner;
+    emit(ProfileSaveInProgress(session: session));
+    try {
+      await _requireInternet();
+      final photoUrl = await _auth.updatePractitionerProfile(
+        specialties: event.specialties,
+        bio: event.bio,
+        phoneNumber: event.phoneNumber,
+        session: session,
+        picture: event.picture,
+      );
+      emit(
+        ProfileSaveSuccess(
+          session: PractitionerSession(
+            doctor: doctor.copyWith(
+              specialties: event.specialties,
+              bio: event.bio,
+              phoneNumber: event.phoneNumber,
+              profilePictureUrl: photoUrl ?? doctor.profilePictureUrl,
+            ),
+            roles: roles,
+          ),
+        ),
+      );
+    } on Object catch (e) {
+      emit(ProfileSaveFailure(session: session, error: _appErrorOf(e)));
+    }
+  }
+
+  Future<void> _onPatientAreaChanged(
+    PatientAreaChanged event,
+    Emitter<AuthState> emit,
+  ) async {
+    final session = state.session;
+    final patientAndRoles = switch (session) {
+      PatientSession(:final patient, :final roles) => (patient, roles),
+      _ => null,
+    };
+    if (patientAndRoles == null) return;
+    final (patient, roles) = patientAndRoles;
+    emit(ProfileSaveInProgress(session: session));
+    try {
+      await _requireInternet();
+      final area = await _auth.updatePatientArea(
+        countyId: event.countyId,
+        session: session,
+        subCountyId: event.subCountyId,
+      );
+      final updated = PatientSession(
+        patient: patient.copyWith(
+          county: area.county,
+          subCounty: area.subCounty,
+        ),
+        roles: roles,
+      );
+      // The area topic names the county: a moved patient rejoins under the
+      // new one, leaving the stored topic, when notices are on.
+      if (updated.patient.receiveNotifications) {
+        await _syncAlertTopic(updated, true);
+      }
+      emit(ProfileSaveSuccess(session: updated));
+    } on Object catch (e) {
+      emit(ProfileSaveFailure(session: session, error: _appErrorOf(e)));
+    }
+  }
+
+  Future<void> _onClinicHoursChanged(
+    ClinicHoursChanged event,
+    Emitter<AuthState> emit,
+  ) async {
+    final session = state.session;
+    final practitioner = switch (session) {
+      PractitionerSession(:final doctor, :final roles) => (doctor, roles),
+      _ => null,
+    };
+    if (practitioner == null) return;
+    final (doctor, roles) = practitioner;
+    emit(ProfileSaveInProgress(session: session));
+    try {
+      await _requireInternet();
+      await _auth.updateClinicHours(
+        workingDays: event.workingDays,
+        dayStartMinute: event.dayStartMinute,
+        dayEndMinute: event.dayEndMinute,
+        session: session,
+      );
+      emit(
+        ProfileSaveSuccess(
+          session: PractitionerSession(
+            doctor: doctor.copyWith(
+              workingDays: event.workingDays,
+              dayStartMinute: event.dayStartMinute,
+              dayEndMinute: event.dayEndMinute,
+            ),
+            roles: roles,
+          ),
+        ),
+      );
+    } on Object catch (e) {
+      emit(ProfileSaveFailure(session: session, error: _appErrorOf(e)));
+    }
+  }
 
   /// The area topic follows the switch, the way the sign-in side effects do:
   /// best-effort, never failing the write that already landed.

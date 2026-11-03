@@ -122,6 +122,126 @@ void main() {
     });
   });
 
+  group('updatePatientProfile', () {
+    test('writes names, phone and photo, stamped', () async {
+      await firestore.collection('patients').doc('p1').set({
+        'firstName': 'Amina',
+      });
+      await remote.updatePatientProfile(
+        docId: 'p1',
+        firstName: 'Amina',
+        middleName: 'Wanjiru',
+        lastName: 'Kamau',
+        phoneNumber: '+254712345678',
+        profilePictureUrl: 'https://x/p1.jpg',
+      );
+      final data = (await firestore.collection('patients').doc('p1').get())
+          .data()!;
+      expect(data['firstName'], 'Amina');
+      expect(data['middleName'], 'Wanjiru');
+      expect(data['lastName'], 'Kamau');
+      expect(data['phoneNumber'], '+254712345678');
+      expect(data['profilePictureUrl'], 'https://x/p1.jpg');
+      expect(data['lastUpdatedAt'], isA<String>());
+    });
+
+    test('without a new photo the URL stays untouched', () async {
+      await firestore.collection('patients').doc('p1').set({
+        'firstName': 'Amina',
+        'profilePictureUrl': 'https://x/old.jpg',
+      });
+      await remote.updatePatientProfile(
+        docId: 'p1',
+        firstName: 'Amina',
+        middleName: '',
+        lastName: 'Kamau',
+        phoneNumber: '+254712345678',
+      );
+      final data = (await firestore.collection('patients').doc('p1').get())
+          .data()!;
+      expect(data['profilePictureUrl'], 'https://x/old.jpg');
+    });
+  });
+
+  group('updatePractitionerProfile', () {
+    test('writes specialties, bio and phone, stamped', () async {
+      await firestore.collection('doctors').doc('d1').set({'bio': ''});
+      await remote.updatePractitionerProfile(
+        docId: 'd1',
+        specialties: const ['Breast surgery'],
+        bio: 'Kind surgeon.',
+        phoneNumber: '+254712345678',
+      );
+      final data = (await firestore.collection('doctors').doc('d1').get())
+          .data()!;
+      expect(data['specialties'], ['Breast surgery']);
+      expect(data['bio'], 'Kind surgeon.');
+      expect(data['phoneNumber'], '+254712345678');
+      expect(data['lastUpdatedAt'], isA<String>());
+    });
+  });
+
+  group('updateClinicHours', () {
+    test('writes days and the shared range, stamped', () async {
+      await firestore.collection('doctors').doc('d1').set({'bio': ''});
+      await remote.updateClinicHours(
+        docId: 'd1',
+        workingDays: const [1, 2, 3, 4, 5],
+        dayStartMinute: 540,
+        dayEndMinute: 960,
+      );
+      final data = (await firestore.collection('doctors').doc('d1').get())
+          .data()!;
+      expect(data['workingDays'], [1, 2, 3, 4, 5]);
+      expect(data['dayStartMinute'], 540);
+      expect(data['dayEndMinute'], 960);
+      expect(data['lastUpdatedAt'], isA<String>());
+    });
+  });
+
+  group('updatePatientArea', () {
+    test('calls with the ids and answers the stored names', () async {
+      final result = _MockCallableResult();
+      when(
+        () => result.data,
+      ).thenReturn({'county': 'Mombasa', 'subCounty': ''});
+      when(
+        () => callable.call<Map<String, dynamic>>(any<dynamic>()),
+      ).thenAnswer((_) async => result);
+
+      final area = await remote.updatePatientArea(countyId: 1);
+
+      expect(area, (county: 'Mombasa', subCounty: ''));
+      verify(() => functions.httpsCallable('updatePatientArea')).called(1);
+      verify(
+        () => callable.call<Map<String, dynamic>>({'countyId': 1}),
+      ).called(1);
+    });
+
+    test('Nairobi sends its sub-county too', () async {
+      final result = _MockCallableResult();
+      when(
+        () => result.data,
+      ).thenReturn({'county': 'Nairobi', 'subCounty': 'Embakasi'});
+      when(
+        () => callable.call<Map<String, dynamic>>(any<dynamic>()),
+      ).thenAnswer((_) async => result);
+
+      final area = await remote.updatePatientArea(
+        countyId: 47,
+        subCountyId: 30,
+      );
+
+      expect(area, (county: 'Nairobi', subCounty: 'Embakasi'));
+      verify(
+        () => callable.call<Map<String, dynamic>>({
+          'countyId': 47,
+          'subCountyId': 30,
+        }),
+      ).called(1);
+    });
+  });
+
   group('callables', () {
     test('sends the request and reads a clinic-record match', () async {
       final result = _MockCallableResult();
