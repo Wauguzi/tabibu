@@ -73,8 +73,10 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   AppError _toAppError(Object e) => e is AppError ? e : .unknown;
 
   Future<void> _onStarted(OrderStarted event, Emitter<OrderState> emit) async {
+    final reopen = event.caseUid.isNotEmpty;
     final resume =
         state.draft.appointmentUid == event.appointmentUid &&
+        (!reopen || state.draft.caseUid == event.caseUid) &&
         state is! OrderSendSuccess &&
         state is! OrderInitial;
     final draft = resume
@@ -84,9 +86,10 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
             patientId: event.patientId,
             patientName: event.patientName,
             doctorUid: event.doctorUid,
-            caseUid: _uuid.v4(),
+            caseUid: reopen ? event.caseUid : _uuid.v4(),
             testIds: event.testIds.take(OrderDraft.maxTests).toList(),
             collectedAt: _clock(),
+            created: reopen,
           );
     if (!resume) _watch++;
     emit(
@@ -135,7 +138,9 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
       );
     } on Object catch (e) {
       emit(_failure(e, load: true));
+      return;
     }
+    if (reopen && !state.riskCheckSettled) await _watchRiskCheck(emit);
   }
 
   /// Who the doctor may ask: listed pathologists taking cases, never the

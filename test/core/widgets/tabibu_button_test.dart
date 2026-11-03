@@ -26,6 +26,27 @@ void main() {
       expect(find.text('Ghost'), findsOneWidget);
     });
 
+    testWidgets('a long label stays on one line with an ellipsis', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        SizedBox(
+          width: 120,
+          child: TabibuButton.secondary(
+            label: 'A label far too long for this button',
+            onTap: () {},
+          ),
+        ),
+      );
+
+      final text = tester.widget<Text>(
+        find.text('A label far too long for this button'),
+      );
+      expect(text.maxLines, 1);
+      expect(text.overflow, TextOverflow.ellipsis);
+      expect(tester.takeException(), isNull);
+    });
+
     testWidgets('fires onTap and stays silent when disabled', (tester) async {
       var taps = 0;
       await tester.pumpApp(

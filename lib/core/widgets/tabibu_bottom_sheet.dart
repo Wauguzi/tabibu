@@ -11,16 +11,18 @@ import 'package:tabibu/core/widgets/tabibu_button.dart';
 /// as on a confirmation, centres the header under it.
 class TabibuBottomSheet extends StatelessWidget {
   const TabibuBottomSheet({
-    required this.title,
     required this.child,
     required this.scrollController,
+    this.title,
     this.subtitle,
     this.cancelLabel,
     this.leading,
     super.key,
   });
 
-  final String title;
+  /// Null for sheets whose content opens with its own heading (the month
+  /// date picker).
+  final String? title;
   final String? subtitle;
   final Widget? leading;
   final Widget child;
@@ -31,8 +33,8 @@ class TabibuBottomSheet extends StatelessWidget {
 
   static Future<T?> show<T>(
     BuildContext context, {
-    required String title,
     required Widget Function(BuildContext context) builder,
+    String? title,
     String? subtitle,
     String? cancelLabel,
     Widget? leading,
@@ -56,6 +58,7 @@ class TabibuBottomSheet extends StatelessWidget {
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final title = this.title;
     final subtitle = this.subtitle;
     final cancelLabel = this.cancelLabel;
     final leading = this.leading;
@@ -86,12 +89,14 @@ class TabibuBottomSheet extends StatelessWidget {
                   Center(child: leading),
                   const SizedBox(height: AppSpacing.md),
                 ],
-                Text(title, style: textTheme.titleLarge, textAlign: align),
+                if (title != null)
+                  Text(title, style: textTheme.titleLarge, textAlign: align),
                 if (subtitle != null) ...[
                   const SizedBox(height: AppSpacing.xxs),
                   Text(subtitle, style: textTheme.bodyMedium, textAlign: align),
                 ],
-                const SizedBox(height: AppSpacing.md),
+                if (title != null || subtitle != null)
+                  const SizedBox(height: AppSpacing.md),
                 child,
                 if (cancelLabel != null) ...[
                   const SizedBox(height: AppSpacing.sm),

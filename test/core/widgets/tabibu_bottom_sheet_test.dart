@@ -145,6 +145,29 @@ void main() {
       );
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('without a title the content opens the sheet', (tester) async {
+      await tester.pumpApp(
+        Scaffold(
+          body: Center(
+            child: Builder(
+              builder: (context) => TextButton(
+                onPressed: () => TabibuBottomSheet.show<String>(
+                  context,
+                  builder: (_) => const Text('Sheet body'),
+                ),
+                child: const Text('Open'),
+              ),
+            ),
+          ),
+        ),
+      );
+      await tester.tap(find.text('Open'));
+      await settleSheet(tester);
+
+      expect(find.text('Sheet body'), findsOneWidget);
+      expect(find.byType(TabibuButton), findsNothing);
+    });
   });
 }
 

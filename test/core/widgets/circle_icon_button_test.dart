@@ -2,6 +2,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
+import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/core/widgets/circle_icon_button.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 
@@ -9,6 +10,20 @@ import '../../helpers/helpers.dart';
 
 void main() {
   group('CircleIconButton', () {
+    testWidgets('the icon grows without the circle', (tester) async {
+      await tester.pumpApp(
+        CircleIconButton(
+          icon: Assets.icons.editIcon,
+          onTap: () {},
+          iconSize: 32,
+          semanticLabel: 'Edit',
+        ),
+      );
+
+      expect(tester.getSize(find.byType(AssetIcon)).width, 32);
+      expect(tester.getSize(find.byType(CircleIconButton)).width, 48);
+    });
+
     testWidgets('fires onTap', (tester) async {
       var taps = 0;
       await tester.pumpApp(

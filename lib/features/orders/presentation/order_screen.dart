@@ -25,9 +25,14 @@ import 'package:tabibu/l10n/l10n.dart';
 /// steps are closed: back from the last step leaves the wizard, and the
 /// draft waits in [OrderBloc] for the doctor to come back to it.
 class OrderScreen extends StatefulWidget {
-  const OrderScreen({required this.appointmentUid, super.key});
+  const OrderScreen({
+    required this.appointmentUid,
+    this.caseUid = '',
+    super.key,
+  });
 
   final String appointmentUid;
+  final String caseUid;
 
   @override
   State<OrderScreen> createState() => _OrderScreenState();
@@ -60,8 +65,9 @@ class _OrderScreenState extends State<OrderScreen> {
     if (appointment == null || doctorUid.isEmpty) return;
     _started = true;
     final order = context.read<OrderBloc>();
-    if (order.state.draft.appointmentUid == widget.appointmentUid &&
-        order.state.draft.created) {
+    if (widget.caseUid.isNotEmpty ||
+        (order.state.draft.appointmentUid == widget.appointmentUid &&
+            order.state.draft.created)) {
       _step = _total - 1;
     }
     order.add(
@@ -70,6 +76,7 @@ class _OrderScreenState extends State<OrderScreen> {
         patientId: appointment.patientId,
         patientName: appointment.patientName,
         doctorUid: doctorUid,
+        caseUid: widget.caseUid,
       ),
     );
   }

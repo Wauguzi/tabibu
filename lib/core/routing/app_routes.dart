@@ -30,6 +30,7 @@ import 'package:tabibu/features/auth/presentation/role_screen.dart';
 import 'package:tabibu/features/auth/presentation/sign_in_screen.dart';
 import 'package:tabibu/features/auth/presentation/verified_screen.dart';
 import 'package:tabibu/features/auth/presentation/verify_email_screen.dart';
+import 'package:tabibu/features/cases/presentation/case_history_screen.dart';
 import 'package:tabibu/features/cases/presentation/cases_screen.dart';
 import 'package:tabibu/features/cases/presentation/doctor_case_screen.dart';
 import 'package:tabibu/features/cases/presentation/enter_share_code_screen.dart';
@@ -63,9 +64,12 @@ import 'package:tabibu/features/practitioners/presentation/find_doctor_screen.da
 import 'package:tabibu/features/profile/presentation/area_screen.dart';
 import 'package:tabibu/features/profile/presentation/clinic_hours_screen.dart';
 import 'package:tabibu/features/profile/presentation/edit_profile_screen.dart';
+import 'package:tabibu/features/profile/presentation/help_screen.dart';
 import 'package:tabibu/features/profile/presentation/notification_settings_screen.dart';
 import 'package:tabibu/features/profile/presentation/patient_profile_screen.dart';
 import 'package:tabibu/features/profile/presentation/practitioner_profile_screen.dart';
+import 'package:tabibu/features/profile/presentation/privacy_policy_screen.dart';
+import 'package:tabibu/features/profile/presentation/privacy_screen.dart';
 import 'package:tabibu/features/profile/presentation/profile_language_screen.dart';
 import 'package:tabibu/features/profile/presentation/profile_screen.dart';
 import 'package:tabibu/features/profile/presentation/theme_screen.dart';
@@ -706,6 +710,41 @@ class PatientProfileNotificationsRoute extends GoRouteData
       const NotificationSettingsScreen(role: .patient);
 }
 
+/// P-PRIVACY.
+@TypedGoRoute<PatientPrivacyRoute>(
+  path: '${RoutePaths.patient}/profile/privacy',
+)
+class PatientPrivacyRoute extends GoRouteData with $PatientPrivacyRoute {
+  const PatientPrivacyRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PrivacyScreen(role: .patient);
+}
+
+/// P-PRIVACY.
+@TypedGoRoute<PatientPrivacyPolicyRoute>(
+  path: '${RoutePaths.patient}/profile/privacy/policy',
+)
+class PatientPrivacyPolicyRoute extends GoRouteData
+    with $PatientPrivacyPolicyRoute {
+  const PatientPrivacyPolicyRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PrivacyPolicyScreen(role: .patient);
+}
+
+/// P-PRIVACY.
+@TypedGoRoute<PatientHelpRoute>(path: '${RoutePaths.patient}/profile/help')
+class PatientHelpRoute extends GoRouteData with $PatientHelpRoute {
+  const PatientHelpRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const HelpScreen(role: .patient);
+}
+
 /// P-07; reached with pushReplacement (F-1).
 @TypedGoRoute<BookedRoute>(
   path: '${RoutePaths.patient}/appointment/:appointmentUid/booked',
@@ -744,6 +783,21 @@ class ExplainedResultRoute extends GoRouteData with $ExplainedResultRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       ExplainedResultScreen(caseUid: caseUid);
+}
+
+/// P-PRIVACY · the case's stage log as history.
+@TypedGoRoute<PatientCaseHistoryRoute>(
+  path: '${RoutePaths.patient}/result/:caseUid/history',
+)
+class PatientCaseHistoryRoute extends GoRouteData
+    with $PatientCaseHistoryRoute {
+  const PatientCaseHistoryRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      CaseHistoryScreen(caseUid: caseUid, role: .patient);
 }
 
 /// P-SHARE · Share report.
@@ -934,18 +988,54 @@ class DoctorProfileNotificationsRoute extends GoRouteData
       const NotificationSettingsScreen(role: .doctor);
 }
 
+/// D-PRIVACY.
+@TypedGoRoute<DoctorPrivacyRoute>(path: '${RoutePaths.doctor}/profile/privacy')
+class DoctorPrivacyRoute extends GoRouteData with $DoctorPrivacyRoute {
+  const DoctorPrivacyRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PrivacyScreen(role: .doctor);
+}
+
+/// D-PRIVACY.
+@TypedGoRoute<DoctorPrivacyPolicyRoute>(
+  path: '${RoutePaths.doctor}/profile/privacy/policy',
+)
+class DoctorPrivacyPolicyRoute extends GoRouteData
+    with $DoctorPrivacyPolicyRoute {
+  const DoctorPrivacyPolicyRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PrivacyPolicyScreen(role: .doctor);
+}
+
+/// D-PRIVACY.
+@TypedGoRoute<DoctorHelpRoute>(path: '${RoutePaths.doctor}/profile/help')
+class DoctorHelpRoute extends GoRouteData with $DoctorHelpRoute {
+  const DoctorHelpRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const HelpScreen(role: .doctor);
+}
+
 /// D-ORDER-CATALOGUE to D-ORDER-PATHOLOGIST.
 @TypedGoRoute<OrderRoute>(
   path: '${RoutePaths.doctor}/appointment/:appointmentUid/order',
 )
 class OrderRoute extends GoRouteData with $OrderRoute {
-  const OrderRoute({required this.appointmentUid});
+  const OrderRoute({required this.appointmentUid, this.caseUid = ''});
 
   final String appointmentUid;
 
+  /// Reopens an order already created, on its pathologist step.
+  final String caseUid;
+
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      OrderScreen(appointmentUid: appointmentUid);
+      OrderScreen(appointmentUid: appointmentUid, caseUid: caseUid);
 }
 
 /// D-ORDER-SENT; reached with pushReplacement (F-1).
@@ -985,6 +1075,20 @@ class DoctorCaseRoute extends GoRouteData with $DoctorCaseRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       DoctorCaseScreen(caseUid: caseUid);
+}
+
+/// D-ACCESS-LOG · the case's stage log as history.
+@TypedGoRoute<DoctorCaseHistoryRoute>(
+  path: '${RoutePaths.doctor}/case/:caseUid/history',
+)
+class DoctorCaseHistoryRoute extends GoRouteData with $DoctorCaseHistoryRoute {
+  const DoctorCaseHistoryRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      CaseHistoryScreen(caseUid: caseUid, role: .doctor);
 }
 
 /// D-SHARE-CODE. Carries the share id only, never the code (T-18).
@@ -1119,6 +1223,44 @@ class PathologistProfileNotificationsRoute extends GoRouteData
       const NotificationSettingsScreen(role: .pathologist);
 }
 
+/// PA-PRIVACY.
+@TypedGoRoute<PathologistPrivacyRoute>(
+  path: '${RoutePaths.pathologist}/profile/privacy',
+)
+class PathologistPrivacyRoute extends GoRouteData
+    with $PathologistPrivacyRoute {
+  const PathologistPrivacyRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PrivacyScreen(role: .pathologist);
+}
+
+/// PA-PRIVACY.
+@TypedGoRoute<PathologistPrivacyPolicyRoute>(
+  path: '${RoutePaths.pathologist}/profile/privacy/policy',
+)
+class PathologistPrivacyPolicyRoute extends GoRouteData
+    with $PathologistPrivacyPolicyRoute {
+  const PathologistPrivacyPolicyRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const PrivacyPolicyScreen(role: .pathologist);
+}
+
+/// PA-PRIVACY.
+@TypedGoRoute<PathologistHelpRoute>(
+  path: '${RoutePaths.pathologist}/profile/help',
+)
+class PathologistHelpRoute extends GoRouteData with $PathologistHelpRoute {
+  const PathologistHelpRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const HelpScreen(role: .pathologist);
+}
+
 /// PA-02.
 @TypedGoRoute<DeskListRoute>(path: '${RoutePaths.pathologist}/cases')
 class DeskListRoute extends GoRouteData with $DeskListRoute {
@@ -1155,6 +1297,21 @@ class CaseWorkspaceRoute extends GoRouteData with $CaseWorkspaceRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       CaseWorkspaceScreen(caseUid: caseUid);
+}
+
+/// PA-ACCESS-LOG · the case's stage log as history.
+@TypedGoRoute<PathologistCaseHistoryRoute>(
+  path: '${RoutePaths.pathologist}/case/:caseUid/history',
+)
+class PathologistCaseHistoryRoute extends GoRouteData
+    with $PathologistCaseHistoryRoute {
+  const PathologistCaseHistoryRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      CaseHistoryScreen(caseUid: caseUid, role: .pathologist);
 }
 
 /// D-SHARE-CODE for a pathologist. Carries the share id only (T-18).

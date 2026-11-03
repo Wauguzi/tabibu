@@ -10,7 +10,8 @@ sealed class OrderEvent extends Equatable {
 
 /// The wizard opens for an appointment. The same appointment resumes its
 /// draft (a failed or offline create keeps it); another one starts afresh.
-/// [testIds] preselects tests.
+/// [testIds] preselects tests. A [caseUid] reopens an order already created:
+/// the wizard goes to the risk check and the pathologist.
 final class OrderStarted extends OrderEvent {
   const OrderStarted({
     required this.appointmentUid,
@@ -18,6 +19,7 @@ final class OrderStarted extends OrderEvent {
     required this.patientName,
     required this.doctorUid,
     this.testIds = const [],
+    this.caseUid = '',
   });
 
   final String appointmentUid;
@@ -25,6 +27,7 @@ final class OrderStarted extends OrderEvent {
   final String patientName;
   final String doctorUid;
   final List<String> testIds;
+  final String caseUid;
 
   @override
   List<Object?> get props => [
@@ -33,6 +36,7 @@ final class OrderStarted extends OrderEvent {
     patientName,
     doctorUid,
     testIds,
+    caseUid,
   ];
 }
 

@@ -459,5 +459,37 @@ void main() {
       expect(find.text('Pick a day'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
+
+    testWidgets('the month opens the pick-a-date sheet onto the same days', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final planned = const SlotPlanner().days(doctor, _fixedNow);
+      final target = planned
+          .firstWhere((d) => d.available && d.date != planned.first.date)
+          .date;
+      final index = planned.indexWhere((d) => d.date == target);
+      final l10n = AppLocalizations.of(
+        tester.element(find.byType(DoctorProfileScreen)),
+      );
+
+      await tester.tap(find.text('October'));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+      expect(find.text('October 2026'), findsOneWidget);
+
+      final day = DateFormat('EEE d MMM').format(target);
+      await tester.tap(find.bySemanticsLabel(day));
+      await tester.pump();
+      await tester.tap(find.text(l10n.datePickerShowTimes(day)));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 600));
+
+      final strip = tester.widget<DayStrip>(find.byType(DayStrip));
+      expect(strip.selected, index);
+    });
   });
 }

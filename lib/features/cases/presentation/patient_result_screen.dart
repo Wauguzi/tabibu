@@ -23,6 +23,7 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/cases/presentation/widgets/case_history_row.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
@@ -274,6 +275,8 @@ class _WaitingBody extends StatelessWidget {
             ).push<void>(context),
           ),
         ],
+        const SizedBox(height: AppSpacing.md),
+        CaseHistoryRow(caseUid: caseModel.uid, role: .patient),
       ],
     );
   }
@@ -608,6 +611,8 @@ class _SharedBodyState extends State<_SharedBody> {
                   doctorUid: caseModel.doctorUid,
                 ).push<void>(context),
         ),
+        const SizedBox(height: AppSpacing.md),
+        CaseHistoryRow(caseUid: caseModel.uid, role: .patient),
       ],
     );
   }

@@ -182,6 +182,63 @@ void main() {
       expect(find.text(l10n.chipDone), findsNWidgets(2));
       expect(find.text(l10n.doctorCaseNow), findsOneWidget);
       expect(find.text(l10n.doctorCaseNext), findsNWidgets(2));
+      expect(find.text(l10n.doctorCaseAttachPathologist), findsNothing);
+    });
+
+    testWidgets('an unsent order has its sample and links to attach', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      when(() => blocs.cases.state).thenReturn(
+        CasesLoadSuccess(
+          cases: [
+            _case(
+              currentStage: 'OrderCreated',
+              pathologistName: '',
+              sampleReceivedAt: '',
+            ),
+          ],
+        ),
+      );
+      when(
+        () => blocs.appointments.state,
+      ).thenReturn(AppointmentsLoadSuccess(appointments: [_appointment()]));
+      when(
+        () => authBloc.state,
+      ).thenReturn(SignInSuccess(session: RoleSessions.doctor()));
+      final routes = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) => MultiBlocProvider(
+              providers: [
+                BlocProvider<AuthBloc>.value(value: authBloc),
+                ...blocs.providers,
+              ],
+              child: const DoctorCaseScreen(caseUid: 'case-1'),
+            ),
+          ),
+          GoRoute(
+            path: '/doctor/appointment/:appointmentUid/order',
+            builder: (_, state) => Text(
+              'stub order ${state.pathParameters['appointmentUid']} '
+              '${state.uri.queryParameters['case-uid']}',
+            ),
+          ),
+        ],
+      );
+      addTearDown(routes.dispose);
+      await tester.pumpRouterApp(routes);
+      await tester.pump();
+
+      // Ordered and sample received are checked; the reading step is now.
+      expect(find.text(l10n.chipDone), findsNWidgets(2));
+      expect(find.text(l10n.doctorCaseNow), findsOneWidget);
+      await tester.tap(find.text(l10n.doctorCaseAttachPathologist));
+      await tester.pumpAndSettle();
+      expect(find.text('stub order appt-1 case-1'), findsOneWidget);
     });
 
     testWidgets('falls back to the facility without an appointment', (
@@ -299,6 +356,49 @@ void main() {
       await tester.tap(find.text(l10n.doctorReportOpenFull));
       await tester.pumpAndSettle();
       expect(find.text('stub report case-1'), findsOneWidget);
+    });
+
+    testWidgets('the history row opens the case history', (tester) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      when(
+        () => blocs.cases.state,
+      ).thenReturn(CasesLoadSuccess(cases: [_case()]));
+      when(
+        () => blocs.appointments.state,
+      ).thenReturn(AppointmentsLoadSuccess(appointments: [_appointment()]));
+      when(
+        () => authBloc.state,
+      ).thenReturn(SignInSuccess(session: RoleSessions.doctor()));
+      Widget withBlocs(Widget child) => MultiBlocProvider(
+        providers: [
+          BlocProvider<AuthBloc>.value(value: authBloc),
+          ...blocs.providers,
+        ],
+        child: child,
+      );
+      final routes = GoRouter(
+        initialLocation: '/',
+        routes: [
+          GoRoute(
+            path: '/',
+            builder: (_, _) =>
+                withBlocs(const DoctorCaseScreen(caseUid: 'case-1')),
+          ),
+          GoRoute(
+            path: '/doctor/case/:caseUid/history',
+            builder: (_, state) =>
+                Text('stub history ${state.pathParameters['caseUid']}'),
+          ),
+        ],
+      );
+      addTearDown(routes.dispose);
+      await tester.pumpRouterApp(routes);
+      await tester.pump();
+
+      await tester.tap(find.text(l10n.accessLogTitle));
+      await tester.pumpAndSettle();
+      expect(find.text('stub history case-1'), findsOneWidget);
     });
 
     testWidgets('a case with no tests shows the stage alone', (tester) async {

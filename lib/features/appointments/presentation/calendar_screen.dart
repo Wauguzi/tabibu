@@ -196,31 +196,37 @@ class _CalendarScreenState extends State<CalendarScreen> {
       cells.add(
         GestureDetector(
           onTap: () => setState(() => _selected = date),
-          child: Container(
-            decoration: selected
-                ? BoxDecoration(color: scheme.primary, shape: BoxShape.circle)
-                : null,
-            child: Column(
-              mainAxisSize: .min,
-              children: [
-                Text(
-                  '$day',
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: selected ? scheme.onPrimary : null,
-                  ),
-                ),
-                if (count > 0)
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: BoxDecoration(
-                      color: selected ? scheme.onPrimary : scheme.primary,
-                      shape: BoxShape.circle,
+          behavior: HitTestBehavior.opaque,
+          child: Center(
+            child: Container(
+              width: 40,
+              height: 40,
+              decoration: selected
+                  ? BoxDecoration(color: scheme.primary, shape: BoxShape.circle)
+                  : null,
+              child: Column(
+                mainAxisSize: .min,
+                mainAxisAlignment: .center,
+                children: [
+                  Text(
+                    '$day',
+                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: selected ? scheme.onPrimary : null,
                     ),
-                  )
-                else
-                  const SizedBox(height: 6),
-              ],
+                  ),
+                  if (count > 0)
+                    Container(
+                      width: 6,
+                      height: 6,
+                      decoration: BoxDecoration(
+                        color: selected ? scheme.onPrimary : scheme.primary,
+                        shape: BoxShape.circle,
+                      ),
+                    )
+                  else
+                    const SizedBox(height: 6),
+                ],
+              ),
             ),
           ),
         ),

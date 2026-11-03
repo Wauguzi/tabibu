@@ -10,6 +10,7 @@ import 'package:tabibu/features/appointments/data/models/appointment_model.dart'
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
@@ -101,7 +102,10 @@ OrderEditing _editing(
 );
 
 void main() {
-  setUpAll(() => registerFallbackValue(const OrderReset()));
+  setUpAll(() {
+    registerFallbackValue(const OrderReset());
+    registerFallbackValue(const CasesRefreshed(uid: '', role: .doctor));
+  });
 
   group('OrderScreen', () {
     late FeatureBlocs blocs;
@@ -285,6 +289,19 @@ void main() {
         await pumpScreen(tester);
 
         expect(find.text(_en.orderSendTitle), findsOneWidget);
+      });
+
+      testWidgets('the last step refreshes the cases so the new one is known', (
+        tester,
+      ) async {
+        order(_editing(created()));
+        await pumpScreen(tester);
+
+        verify(
+          () => blocs.cases.add(
+            const CasesRefreshed(uid: 'doc-1', role: .doctor),
+          ),
+        ).called(1);
       });
 
       testWidgets('the slides card shows when the case needs slides', (

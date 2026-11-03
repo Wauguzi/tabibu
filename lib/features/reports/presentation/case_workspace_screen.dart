@@ -11,6 +11,7 @@ import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/alerts/data/models/notifiable_disease_model.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/cases/presentation/widgets/case_history_row.dart';
 import 'package:tabibu/features/preread/data/datasources/preread_storage.dart';
 import 'package:tabibu/features/preread/data/models/preread_model.dart';
 import 'package:tabibu/features/preread/presentation/widgets/slide_viewer.dart';
@@ -471,6 +472,11 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                     _toggleNotifiable(draft, id, on: on),
                               ),
                             ],
+                            const SizedBox(height: AppSpacing.md),
+                            CaseHistoryRow(
+                              caseUid: widget.caseUid,
+                              role: .pathologist,
+                            ),
                           ],
                         ),
                 ),

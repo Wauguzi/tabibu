@@ -20,6 +20,7 @@ import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointment
 import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
 import 'package:tabibu/features/appointments/data/slot_planner.dart';
 import 'package:tabibu/features/appointments/presentation/widgets/day_strip.dart';
+import 'package:tabibu/features/appointments/presentation/widgets/month_date_sheet.dart';
 import 'package:tabibu/features/appointments/presentation/widgets/slot_chip_row.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
@@ -31,8 +32,8 @@ import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// P-04. A doctor's profile with the day and slot pickers and booking. The
-/// strip carries the planner's whole horizon, so there is no pick-a-date
-/// sheet.
+/// month over the strip opens the pick-a-date sheet (P-06) onto the same
+/// planner days.
 class DoctorProfileScreen extends StatefulWidget {
   /// [now] pins the planner's clock; tests pass a fixed morning.
   const DoctorProfileScreen({required this.doctorUid, this.now, super.key});
@@ -69,6 +70,23 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   void dispose() {
     _symptoms.dispose();
     super.dispose();
+  }
+
+  /// The month sheet picks onto the same planner days; a picked day moves
+  /// the strip and clears the slot.
+  Future<void> _pickMonth(List<PlannedDay> days, DateTime selected) async {
+    final picked = await MonthDateSheet.show(
+      context,
+      days: days,
+      selected: selected,
+    );
+    if (picked == null || !mounted) return;
+    final index = days.indexWhere((day) => day.date == picked);
+    if (index < 0) return;
+    setState(() {
+      _dayIndex = index;
+      _slotIndex = null;
+    });
   }
 
   /// The patient's earliest accepted future appointment with this doctor.
@@ -257,7 +275,14 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       SliverPadding(
         padding: sides,
         sliver: SliverToBoxAdapter(
-          child: SectionHeader(title: l10n.doctorProfilePickDay),
+          child: SectionHeader(
+            title: l10n.doctorProfilePickDay,
+            actionLabel: DateFormat(
+              'MMMM',
+              language,
+            ).format(days[dayIndex].date),
+            onAction: () => unawaited(_pickMonth(days, days[dayIndex].date)),
+          ),
         ),
       ),
       SliverPadding(

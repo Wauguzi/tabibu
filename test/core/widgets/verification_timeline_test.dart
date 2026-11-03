@@ -32,6 +32,34 @@ const _steps = [
 
 void main() {
   group('VerificationTimeline', () {
+    testWidgets('a supporting line with a tap is a link', (tester) async {
+      var taps = 0;
+      await tester.pumpApp(
+        VerificationTimeline(
+          title: 'Your verification',
+          progressLabel: '',
+          steps: [
+            VerificationStep(
+              title: 'Pathologist reading',
+              supporting: 'Attach pathologist',
+              state: VerificationStepState.inProgress,
+              chipLabel: 'Now',
+              stateLabel: 'In progress',
+              icon: Assets.icons.verificationBadge,
+              onSupportingTap: () => taps++,
+            ),
+          ],
+        ),
+      );
+
+      await tester.tap(find.text('Attach pathologist'));
+      expect(taps, 1);
+      expect(
+        tester.getSize(find.byType(ConstrainedBox).last).height,
+        greaterThanOrEqualTo(48),
+      );
+    });
+
     testWidgets('renders every step with its chip', (tester) async {
       await tester.pumpApp(
         VerificationTimeline(

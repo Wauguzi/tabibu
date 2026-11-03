@@ -292,6 +292,11 @@ void main() {
               path: '/patient/shares',
               builder: (_, _) => const Text('stub shares'),
             ),
+            GoRoute(
+              path: '/patient/result/:caseUid/history',
+              builder: (_, state) =>
+                  Text('stub history ${state.pathParameters['caseUid']}'),
+            ),
           ],
         );
         addTearDown(router.dispose);
@@ -349,6 +354,36 @@ void main() {
 
         expect(find.text('stub shares'), findsOneWidget);
       });
+
+      testWidgets('the history row opens the case history', (tester) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpRouted(tester);
+
+        await tester.tap(find.text(l10n.accessLogTitle));
+        await tester.pumpAndSettle();
+
+        expect(find.text('stub history c1'), findsOneWidget);
+      });
+    });
+
+    testWidgets('waiting also ends in the history row', (tester) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpScreen(
+        tester,
+        cases: const CasesLoadSuccess(
+          cases: [
+            CaseModel(
+              uid: 'c1',
+              resultState: 'WithDoctor',
+              doctorName: 'Dr. Kamau',
+              tests: [OrderedTestModel(name: 'Lymph node')],
+            ),
+          ],
+        ),
+      );
+
+      expect(find.text(l10n.accessLogTitle), findsOneWidget);
     });
 
     testWidgets('renders waiting in light and dark', (tester) async {

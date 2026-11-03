@@ -34,9 +34,13 @@ List<RouteBase> get $appRoutes => [
   $patientProfileLanguageRoute,
   $patientProfileThemeRoute,
   $patientProfileNotificationsRoute,
+  $patientPrivacyRoute,
+  $patientPrivacyPolicyRoute,
+  $patientHelpRoute,
   $bookedRoute,
   $patientResultRoute,
   $explainedResultRoute,
+  $patientCaseHistoryRoute,
   $shareReportRoute,
   $shareDoneRoute,
   $whoCanSeeRoute,
@@ -52,10 +56,14 @@ List<RouteBase> get $appRoutes => [
   $doctorProfileLanguageRoute,
   $doctorProfileThemeRoute,
   $doctorProfileNotificationsRoute,
+  $doctorPrivacyRoute,
+  $doctorPrivacyPolicyRoute,
+  $doctorHelpRoute,
   $orderRoute,
   $orderSentRoute,
   $mohProtocolRoute,
   $doctorCaseRoute,
+  $doctorCaseHistoryRoute,
   $doctorEnterShareCodeRoute,
   $doctorReportRoute,
   $fullReportRoute,
@@ -66,9 +74,13 @@ List<RouteBase> get $appRoutes => [
   $pathologistProfileLanguageRoute,
   $pathologistProfileThemeRoute,
   $pathologistProfileNotificationsRoute,
+  $pathologistPrivacyRoute,
+  $pathologistPrivacyPolicyRoute,
+  $pathologistHelpRoute,
   $deskListRoute,
   $deskSearchRoute,
   $caseWorkspaceRoute,
+  $pathologistCaseHistoryRoute,
   $pathologistEnterShareCodeRoute,
   $tilesRoute,
   $compareRoute,
@@ -1382,6 +1394,88 @@ mixin $PatientProfileNotificationsRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $patientPrivacyRoute => GoRouteData.$route(
+  path: '/patient/profile/privacy',
+  hasOverriddenOnExit: false,
+  factory: $PatientPrivacyRoute._fromState,
+);
+
+mixin $PatientPrivacyRoute on GoRouteData {
+  static PatientPrivacyRoute _fromState(GoRouterState state) =>
+      const PatientPrivacyRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/profile/privacy');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientPrivacyPolicyRoute => GoRouteData.$route(
+  path: '/patient/profile/privacy/policy',
+  hasOverriddenOnExit: false,
+  factory: $PatientPrivacyPolicyRoute._fromState,
+);
+
+mixin $PatientPrivacyPolicyRoute on GoRouteData {
+  static PatientPrivacyPolicyRoute _fromState(GoRouterState state) =>
+      const PatientPrivacyPolicyRoute();
+
+  @override
+  String get location =>
+      GoRouteData.$location('/patient/profile/privacy/policy');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientHelpRoute => GoRouteData.$route(
+  path: '/patient/profile/help',
+  hasOverriddenOnExit: false,
+  factory: $PatientHelpRoute._fromState,
+);
+
+mixin $PatientHelpRoute on GoRouteData {
+  static PatientHelpRoute _fromState(GoRouterState state) =>
+      const PatientHelpRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/profile/help');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $bookedRoute => GoRouteData.$route(
   path: '/patient/appointment/:appointmentUid/booked',
   hasOverriddenOnExit: false,
@@ -1459,6 +1553,37 @@ mixin $ExplainedResultRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/patient/result/${Uri.encodeComponent(_self.caseUid)}/explained',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientCaseHistoryRoute => GoRouteData.$route(
+  path: '/patient/result/:caseUid/history',
+  hasOverriddenOnExit: false,
+  factory: $PatientCaseHistoryRoute._fromState,
+);
+
+mixin $PatientCaseHistoryRoute on GoRouteData {
+  static PatientCaseHistoryRoute _fromState(GoRouterState state) =>
+      PatientCaseHistoryRoute(caseUid: state.pathParameters['caseUid']!);
+
+  PatientCaseHistoryRoute get _self => this as PatientCaseHistoryRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/patient/result/${Uri.encodeComponent(_self.caseUid)}/history',
   );
 
   @override
@@ -1902,6 +2027,88 @@ mixin $DoctorProfileNotificationsRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $doctorPrivacyRoute => GoRouteData.$route(
+  path: '/doctor/profile/privacy',
+  hasOverriddenOnExit: false,
+  factory: $DoctorPrivacyRoute._fromState,
+);
+
+mixin $DoctorPrivacyRoute on GoRouteData {
+  static DoctorPrivacyRoute _fromState(GoRouterState state) =>
+      const DoctorPrivacyRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/profile/privacy');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorPrivacyPolicyRoute => GoRouteData.$route(
+  path: '/doctor/profile/privacy/policy',
+  hasOverriddenOnExit: false,
+  factory: $DoctorPrivacyPolicyRoute._fromState,
+);
+
+mixin $DoctorPrivacyPolicyRoute on GoRouteData {
+  static DoctorPrivacyPolicyRoute _fromState(GoRouterState state) =>
+      const DoctorPrivacyPolicyRoute();
+
+  @override
+  String get location =>
+      GoRouteData.$location('/doctor/profile/privacy/policy');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorHelpRoute => GoRouteData.$route(
+  path: '/doctor/profile/help',
+  hasOverriddenOnExit: false,
+  factory: $DoctorHelpRoute._fromState,
+);
+
+mixin $DoctorHelpRoute on GoRouteData {
+  static DoctorHelpRoute _fromState(GoRouterState state) =>
+      const DoctorHelpRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/profile/help');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $orderRoute => GoRouteData.$route(
   path: '/doctor/appointment/:appointmentUid/order',
   hasOverriddenOnExit: false,
@@ -1909,14 +2116,17 @@ RouteBase get $orderRoute => GoRouteData.$route(
 );
 
 mixin $OrderRoute on GoRouteData {
-  static OrderRoute _fromState(GoRouterState state) =>
-      OrderRoute(appointmentUid: state.pathParameters['appointmentUid']!);
+  static OrderRoute _fromState(GoRouterState state) => OrderRoute(
+    appointmentUid: state.pathParameters['appointmentUid']!,
+    caseUid: state.uri.queryParameters['case-uid'] ?? '',
+  );
 
   OrderRoute get _self => this as OrderRoute;
 
   @override
   String get location => GoRouteData.$location(
     '/doctor/appointment/${Uri.encodeComponent(_self.appointmentUid)}/order',
+    queryParams: {if (_self.caseUid != '') 'case-uid': _self.caseUid},
   );
 
   @override
@@ -2010,6 +2220,37 @@ mixin $DoctorCaseRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/doctor/case/${Uri.encodeComponent(_self.caseUid)}',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorCaseHistoryRoute => GoRouteData.$route(
+  path: '/doctor/case/:caseUid/history',
+  hasOverriddenOnExit: false,
+  factory: $DoctorCaseHistoryRoute._fromState,
+);
+
+mixin $DoctorCaseHistoryRoute on GoRouteData {
+  static DoctorCaseHistoryRoute _fromState(GoRouterState state) =>
+      DoctorCaseHistoryRoute(caseUid: state.pathParameters['caseUid']!);
+
+  DoctorCaseHistoryRoute get _self => this as DoctorCaseHistoryRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/doctor/case/${Uri.encodeComponent(_self.caseUid)}/history',
   );
 
   @override
@@ -2317,6 +2558,88 @@ mixin $PathologistProfileNotificationsRoute on GoRouteData {
   void replace(BuildContext context) => context.replace(location);
 }
 
+RouteBase get $pathologistPrivacyRoute => GoRouteData.$route(
+  path: '/pathologist/profile/privacy',
+  hasOverriddenOnExit: false,
+  factory: $PathologistPrivacyRoute._fromState,
+);
+
+mixin $PathologistPrivacyRoute on GoRouteData {
+  static PathologistPrivacyRoute _fromState(GoRouterState state) =>
+      const PathologistPrivacyRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/profile/privacy');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistPrivacyPolicyRoute => GoRouteData.$route(
+  path: '/pathologist/profile/privacy/policy',
+  hasOverriddenOnExit: false,
+  factory: $PathologistPrivacyPolicyRoute._fromState,
+);
+
+mixin $PathologistPrivacyPolicyRoute on GoRouteData {
+  static PathologistPrivacyPolicyRoute _fromState(GoRouterState state) =>
+      const PathologistPrivacyPolicyRoute();
+
+  @override
+  String get location =>
+      GoRouteData.$location('/pathologist/profile/privacy/policy');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistHelpRoute => GoRouteData.$route(
+  path: '/pathologist/profile/help',
+  hasOverriddenOnExit: false,
+  factory: $PathologistHelpRoute._fromState,
+);
+
+mixin $PathologistHelpRoute on GoRouteData {
+  static PathologistHelpRoute _fromState(GoRouterState state) =>
+      const PathologistHelpRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/profile/help');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
 RouteBase get $deskListRoute => GoRouteData.$route(
   path: '/pathologist/cases',
   hasOverriddenOnExit: false,
@@ -2391,6 +2714,37 @@ mixin $CaseWorkspaceRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/pathologist/case/${Uri.encodeComponent(_self.caseUid)}',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistCaseHistoryRoute => GoRouteData.$route(
+  path: '/pathologist/case/:caseUid/history',
+  hasOverriddenOnExit: false,
+  factory: $PathologistCaseHistoryRoute._fromState,
+);
+
+mixin $PathologistCaseHistoryRoute on GoRouteData {
+  static PathologistCaseHistoryRoute _fromState(GoRouterState state) =>
+      PathologistCaseHistoryRoute(caseUid: state.pathParameters['caseUid']!);
+
+  PathologistCaseHistoryRoute get _self => this as PathologistCaseHistoryRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/pathologist/case/${Uri.encodeComponent(_self.caseUid)}/history',
   );
 
   @override

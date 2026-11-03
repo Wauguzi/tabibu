@@ -329,6 +329,50 @@ void main() {
       }
     });
 
+    testWidgets('privacy and help rows open their screens', (tester) async {
+      tallView(tester);
+      final sessions = {
+        '/patient/profile': RoleSessions.patient,
+        '/doctor/profile': RoleSessions.doctor(),
+        '/pathologist/profile': RoleSessions.pathologist,
+      };
+      final privacyMarkers = {
+        '/patient/profile':
+            'You decide who sees your health information. '
+            'Tabibu never sells it or tracks where you are.',
+        '/doctor/profile': 'Lock Tabibu with a PIN or Face ID',
+        '/pathologist/profile':
+            'Only your cases open for you. Patient data never leaves '
+            'Tabibu without consent or a legal duty.',
+      };
+      final helpMarkers = {
+        '/patient/profile': 'Talk to us',
+        '/doctor/profile': 'Clinician support',
+        '/pathologist/profile': 'Clinician support',
+      };
+      for (final entry in sessions.entries) {
+        await tester.pumpRoleApp(entry.value, entry.key);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Privacy and data'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(privacyMarkers[entry.key]!),
+          findsOneWidget,
+          reason: entry.key,
+        );
+
+        await tester.pumpRoleApp(entry.value, entry.key);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Help and support'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(helpMarkers[entry.key]!),
+          findsOneWidget,
+          reason: entry.key,
+        );
+      }
+    });
+
     testWidgets('the patient pencil opens the profile details', (tester) async {
       tallView(tester);
       await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');

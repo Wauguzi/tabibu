@@ -20,6 +20,7 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_log_entry_model.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/cases/presentation/widgets/case_history_row.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_patient_card.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_timeline_card.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -158,7 +159,11 @@ class _Body extends StatelessWidget {
     .urgent => l10n.doctorCaseUrgent,
   };
 
-  List<VerificationStep> _steps(AppLocalizations l10n, String language) {
+  List<VerificationStep> _steps(
+    BuildContext context,
+    AppLocalizations l10n,
+    String language,
+  ) {
     final test = caseModel.tests
         .map((t) => t.name)
         .where((name) => name.isNotEmpty)
@@ -179,9 +184,16 @@ class _Body extends StatelessWidget {
         : pathologist;
     final firstName = caseModel.patientName.trim().split(' ').firstOrNull ?? '';
 
-    // Done / Now / Next from the doctor step alone.
+    // Ordered but never sent: the reading step links to the wizard's
+    // pathologist step.
+    final unsent =
+        caseModel.currentStageValue == .orderCreated &&
+        caseModel.appointmentUid.isNotEmpty;
+
+    // Done / Now / Next from the doctor step alone. The doctor collects the
+    // sample at the visit, so an order with a test has its sample.
     final doneCount = switch (caseModel.doctorStep) {
-      1 => 0,
+      1 => caseModel.tests.isEmpty ? 0 : 2,
       2 => 2,
       3 => 4,
       _ => 5,
@@ -191,6 +203,7 @@ class _Body extends StatelessWidget {
       required String supporting,
       required int index,
       SvgGenImage? icon,
+      VoidCallback? onSupportingTap,
     }) {
       final state = index < doneCount
           ? VerificationStepState.done
@@ -212,6 +225,7 @@ class _Body extends StatelessWidget {
           .upNext => l10n.chipUpNext,
         },
         icon: icon,
+        onSupportingTap: onSupportingTap,
       );
     }
 
@@ -233,7 +247,15 @@ class _Body extends StatelessWidget {
       ),
       step(
         title: l10n.doctorCaseReading,
-        supporting: readingDetail,
+        supporting: unsent ? l10n.doctorCaseAttachPathologist : readingDetail,
+        onSupportingTap: unsent
+            ? () => unawaited(
+                OrderRoute(
+                  appointmentUid: caseModel.appointmentUid,
+                  caseUid: caseModel.uid,
+                ).push<void>(context),
+              )
+            : null,
         index: 2,
         icon: Assets.icons.verificationBadge,
       ),
@@ -284,7 +306,7 @@ class _Body extends StatelessWidget {
         const SizedBox(height: AppSpacing.md),
         CaseTimelineCard(
           title: l10n.doctorCaseTimelineTitle,
-          steps: _steps(l10n, language),
+          steps: _steps(context, l10n, language),
         ),
         const SizedBox(height: AppSpacing.md),
         KeyValueCard(title: l10n.doctorCaseOrder, rows: orderRows),
@@ -297,6 +319,8 @@ class _Body extends StatelessWidget {
             ),
           ),
         ],
+        const SizedBox(height: AppSpacing.md),
+        CaseHistoryRow(caseUid: caseModel.uid, role: .doctor),
       ],
     );
   }

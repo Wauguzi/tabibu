@@ -1190,6 +1190,12 @@ void main() {
         expect(find.text(AppError.unknown.description(l10n)), findsOneWidget);
         await tester.pump(const Duration(seconds: 5));
       });
+
+      testWidgets('the list ends in the history row', (tester) async {
+        await pumpScreen(tester, _loaded());
+
+        expect(find.text(l10n.accessLogTitle), findsOneWidget);
+      });
     });
   });
 }

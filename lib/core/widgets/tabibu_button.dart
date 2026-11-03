@@ -177,6 +177,8 @@ class _TabibuButtonState extends State<TabibuButton> {
                                       color: foreground,
                                     ),
                                     textAlign: .center,
+                                    maxLines: 1,
+                                    overflow: .ellipsis,
                                   ),
                                 ),
                               ],

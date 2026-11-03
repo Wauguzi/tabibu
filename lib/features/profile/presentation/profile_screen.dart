@@ -27,8 +27,7 @@ import 'package:tabibu/l10n/l10n.dart';
 
 /// Every role's last tab: who is signed in, their settings, and sign-out.
 /// The rows lead to the profile screens (S-3); biometrics, delete account
-/// and the facility change stay hidden (Tier 3 and group D), and privacy
-/// and help lead in bundle 52.
+/// and the facility change stay hidden (Tier 3 and group D).
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.role, super.key});
 
@@ -72,6 +71,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
     .pathologist => const PathologistProfileNotificationsRoute(),
   });
 
+  void _openPrivacy() => _push(switch (widget.role) {
+    .patient => const PatientPrivacyRoute(),
+    .doctor => const DoctorPrivacyRoute(),
+    .pathologist => const PathologistPrivacyRoute(),
+  });
+
+  void _openHelp() => _push(switch (widget.role) {
+    .patient => const PatientHelpRoute(),
+    .doctor => const DoctorHelpRoute(),
+    .pathologist => const PathologistHelpRoute(),
+  });
+
   /// "Mon–Fri · 9:00 AM–4:00 PM" under the clinic-hours row, from the
   /// stored days and range.
   String _hoursSummary(AppLocalizations l10n, DoctorModel doctor) {
@@ -103,8 +114,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final help = SettingsGroup(
       title: l10n.profileSectionHelp,
       children: [
-        SettingsRow(icon: Assets.icons.shieldIcon, title: l10n.profilePrivacy),
-        SettingsRow(icon: Assets.icons.heartIcon, title: l10n.profileHelp),
+        SettingsRow(
+          icon: Assets.icons.shieldIcon,
+          title: l10n.profilePrivacy,
+          onTap: _openPrivacy,
+        ),
+        SettingsRow(
+          icon: Assets.icons.heartIcon,
+          title: l10n.profileHelp,
+          onTap: _openHelp,
+        ),
         SettingsRow(
           icon: Assets.icons.signOutIcon,
           title: l10n.profileSignOut,

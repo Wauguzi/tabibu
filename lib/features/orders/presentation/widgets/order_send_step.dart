@@ -6,7 +6,10 @@ import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/utils/text_fold.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
+import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
+import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_bloc.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_state.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
@@ -33,6 +36,19 @@ class OrderSendStep extends StatefulWidget {
 
 class _OrderSendStepState extends State<OrderSendStep> {
   String _query = '';
+
+  // The case is created on the way here; the list must learn of it for the
+  // slides card to know the order needs slides.
+  @override
+  void initState() {
+    super.initState();
+    final session = context.read<AuthBloc>().state.session;
+    if (session is PractitionerSession) {
+      context.read<CasesBloc>().add(
+        CasesRefreshed(uid: session.doctor.uid, role: .doctor),
+      );
+    }
+  }
 
   void _add(OrderEvent event) => context.read<OrderBloc>().add(event);
 

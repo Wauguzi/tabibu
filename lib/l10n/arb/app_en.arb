@@ -4078,6 +4078,10 @@
     "@doctorCaseReading": {
         "description": "Doctor case: timeline step"
     },
+    "doctorCaseAttachPathologist": "Attach pathologist",
+    "@doctorCaseAttachPathologist": {
+        "description": "Doctor case: link under the reading step of an order not yet sent"
+    },
     "doctorCaseReportSigned": "Report signed",
     "@doctorCaseReportSigned": {
         "description": "Doctor case: timeline step"
@@ -7534,11 +7538,11 @@
     "@privacyFooterPatient": {
         "description": "Patient privacy footer"
     },
-    "privacyAskPinFace": "Ask for PIN or Face ID to open a report",
+    "privacyAskPinFace": "Lock Tabibu with a PIN or Face ID",
     "@privacyAskPinFace": {
         "description": "Doctor report lock row"
     },
-    "privacyAskPinFaceBody": "Extra check on shared phones",
+    "privacyAskPinFaceBody": "Asked when the app has sat unused. Good on shared phones",
     "@privacyAskPinFaceBody": {
         "description": "Report lock row body"
     },
@@ -7554,11 +7558,11 @@
     "@privacyPaBody": {
         "description": "Pathologist data privacy body"
     },
-    "privacyPinFaceCase": "PIN or Face ID to open a case",
+    "privacyPinFaceCase": "Lock Tabibu with a PIN or Face ID",
     "@privacyPinFaceCase": {
         "description": "Pathologist case lock row"
     },
-    "privacyPinFaceCaseBody": "Extra check on shared devices",
+    "privacyPinFaceCaseBody": "Asked when the app has sat unused. Good on shared devices",
     "@privacyPinFaceCaseBody": {
         "description": "Case lock row body"
     },
