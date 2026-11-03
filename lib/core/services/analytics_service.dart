@@ -13,8 +13,8 @@ enum SignInMethod {
 }
 
 /// One method per user-visible action (architecture §5 rule 7). Parameters
-/// are roles and methods only: never a name, email, phone, uid or anything
-/// about a patient's health.
+/// are roles, methods and purposes only: never a name, email, phone, uid,
+/// share code or anything about a patient's health.
 ///
 /// Every call swallows its own failure: analytics never breaks the action
 /// it describes.
@@ -69,6 +69,38 @@ class AnalyticsService {
   /// Ties later events to a role, never to a person.
   Future<void> setRole(Role? role) =>
       _guard(() => _analytics.setUserProperty(name: 'role', value: role?.name));
+
+  /// Share events carry the purpose only (T-18: never a code, name or id).
+  Future<void> logShareCreated({required String purpose}) => _guard(
+    () => _analytics.logEvent(
+      name: 'share_created',
+      parameters: {'purpose': purpose},
+    ),
+  );
+
+  Future<void> logShareReissued({required String purpose}) => _guard(
+    () => _analytics.logEvent(
+      name: 'share_reissued',
+      parameters: {'purpose': purpose},
+    ),
+  );
+
+  Future<void> logShareRevoked({required String purpose}) => _guard(
+    () => _analytics.logEvent(
+      name: 'share_revoked',
+      parameters: {'purpose': purpose},
+    ),
+  );
+
+  Future<void> logShareViewerRemoved() =>
+      _guard(() => _analytics.logEvent(name: 'share_viewer_removed'));
+
+  Future<void> logShareRedeemed({required String purpose}) => _guard(
+    () => _analytics.logEvent(
+      name: 'share_redeemed',
+      parameters: {'purpose': purpose},
+    ),
+  );
 
   Future<void> _guard(Future<void> Function() body) async {
     try {

@@ -288,6 +288,11 @@ enum AppError implements Exception {
   invalidOrder,
   invalidPathologist,
   dailyOrderLimit,
+  // Share-code redeem refusals (bundle 47). Descriptions wait on Muse keys.
+  wrongShareCode,
+  shareExpired,
+  shareLocked,
+  shareClosed,
   // Thrown directly by the auth flow, not from a Firebase code.
   practitionerPendingVerification,
   noRoleAssigned,
@@ -341,6 +346,10 @@ enum AppError implements Exception {
       'invalidPathologist' ||
       'pathologistDeclined' => AppError.invalidPathologist,
       'dailyOrderLimit' => AppError.dailyOrderLimit,
+      'wrongCode' => AppError.wrongShareCode,
+      'shareExpired' => AppError.shareExpired,
+      'shareLocked' => AppError.shareLocked,
+      'shareClosed' => AppError.shareClosed,
       _ => null,
     };
     return reason ?? fromFirebaseCode(e.code);
@@ -436,6 +445,12 @@ enum AppError implements Exception {
     .invalidOrder => l10n.errorInvalidOrder,
     .invalidPathologist => l10n.errorInvalidPathologist,
     .dailyOrderLimit => l10n.errorDailyOrderLimit,
+    // Bundle 46 keys (errorWrongShareCode / Expired / Locked / Closed) once
+    // Muse lands them; until then the generic failure keeps the build green.
+    .wrongShareCode => l10n.errorUnknown,
+    .shareExpired => l10n.errorUnknown,
+    .shareLocked => l10n.errorUnknown,
+    .shareClosed => l10n.errorUnknown,
     .practitionerPendingVerification =>
       l10n.errorPractitionerPendingVerification,
     .noRoleAssigned => l10n.errorNoRoleAssigned,
