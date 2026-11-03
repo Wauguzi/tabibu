@@ -154,6 +154,19 @@ class _Body extends StatelessWidget {
   String _fmt(DateTime? at, String language) =>
       at == null ? '' : DateFormat('EEE d MMM, h:mm a', language).format(at);
 
+  /// Why the case needs a new pathologist: the latest decline, or the
+  /// lapse when the log holds no decline. Empty unless refused.
+  String _declinedLine(AppLocalizations l10n) {
+    if (caseModel.currentStageValue != .pathologistRejected) return '';
+    final decline = log.lastWhereOrNull((e) => e.actionTypeValue == .reject);
+    if (decline == null) return l10n.doctorCaseRequestLapsed;
+    // The server clears the name on a decline, so a real case has none.
+    final name = caseModel.pathologistName;
+    return name.isEmpty
+        ? l10n.doctorCaseDeclined(decline.actionReason)
+        : l10n.doctorCaseDeclinedBy(name, decline.actionReason);
+  }
+
   String _priority(AppLocalizations l10n) => switch (caseModel.priorityValue) {
     .routine => l10n.doctorCaseRoutine,
     .priority => l10n.urgencyPriority,
@@ -185,10 +198,11 @@ class _Body extends StatelessWidget {
         : pathologist;
     final firstName = caseModel.patientName.trim().split(' ').firstOrNull ?? '';
 
-    // Ordered but never sent: the reading step links to the wizard's
-    // pathologist step.
+    // Ordered but never sent, or refused and needing another
+    // pathologist: the reading step links to the wizard's pathologist step.
+    final rejected = caseModel.currentStageValue == .pathologistRejected;
     final unsent =
-        caseModel.currentStageValue == .orderCreated &&
+        (caseModel.currentStageValue == .orderCreated || rejected) &&
         caseModel.appointmentUid.isNotEmpty;
 
     // Done / Now / Next from the doctor step alone. The doctor collects the
@@ -284,8 +298,10 @@ class _Body extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final language = Localizations.localeOf(context).languageCode;
+    final textTheme = Theme.of(context).textTheme;
     final test = caseModel.tests.firstOrNull?.name ?? '';
     final stage = _stageWords(l10n);
+    final declinedLine = _declinedLine(l10n);
     final specimen = caseModel.sampleNotes;
     // The model carries no risk-check field, so the row is omitted.
     final orderRows = [
@@ -314,6 +330,12 @@ class _Body extends StatelessWidget {
           title: l10n.doctorCaseTimelineTitle,
           steps: _steps(context, l10n, language),
         ),
+        // Directly under the timeline: a long second line inside a step
+        // overflows the title row at large text.
+        if (declinedLine.isNotEmpty) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(declinedLine, style: textTheme.bodyMedium),
+        ],
         const SizedBox(height: AppSpacing.md),
         KeyValueCard(title: l10n.doctorCaseOrder, rows: orderRows),
         if (caseModel.slideImages.isNotEmpty) ...[

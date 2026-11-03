@@ -30,6 +30,14 @@ void _useTallSurface(WidgetTester tester) {
   });
 }
 
+void _useTextScale(WidgetTester tester, double scale) {
+  tester.platformDispatcher.textScaleFactorTestValue = scale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+}
+
+const _scales = [1.0, 2.0];
+const _locales = [Locale('en'), Locale('sw')];
+
 CaseModel _case({
   String uid = 'case-1',
   String orderNumber = 'ODR-JK-MN-02112026-002',
@@ -265,6 +273,159 @@ void main() {
       await tester.tap(find.text(l10n.doctorCaseAttachPathologist));
       await tester.pumpAndSettle();
       expect(find.text('stub order appt-1 case-1'), findsOneWidget);
+    });
+
+    testWidgets('a refused case links the reading step back to the order', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      when(() => blocs.cases.state).thenReturn(
+        CasesLoadSuccess(
+          cases: [
+            _case(currentStage: 'PathologistRejected', sampleReceivedAt: ''),
+          ],
+        ),
+      );
+      when(
+        () => blocs.appointments.state,
+      ).thenReturn(AppointmentsLoadSuccess(appointments: [_appointment()]));
+      when(
+        () => authBloc.state,
+      ).thenReturn(SignInSuccess(session: RoleSessions.doctor()));
+
+      // A fresh router per pass, with the old tree unmounted first: a
+      // reused router keeps its pushed stack across pumps.
+      for (final scale in _scales) {
+        for (final locale in _locales) {
+          _useTextScale(tester, scale);
+          final l10n = lookupAppLocalizations(locale);
+          final routes = GoRouter(
+            initialLocation: '/',
+            routes: [
+              GoRoute(
+                path: '/',
+                builder: (_, _) => MultiBlocProvider(
+                  providers: [
+                    BlocProvider<AuthBloc>.value(value: authBloc),
+                    ...blocs.providers,
+                  ],
+                  child: const DoctorCaseScreen(caseUid: 'case-1'),
+                ),
+              ),
+              GoRoute(
+                path: '/doctor/appointment/:appointmentUid/order',
+                builder: (_, state) => Text(
+                  'stub order ${state.pathParameters['appointmentUid']} '
+                  '${state.uri.queryParameters['case-uid']}',
+                ),
+              ),
+            ],
+          );
+          addTearDown(routes.dispose);
+          await tester.pumpWidget(const SizedBox());
+          await tester.pumpRouterApp(routes, locale: locale);
+          await tester.pump();
+
+          final link = find.text(l10n.doctorCaseAttachPathologist);
+          await tester.scrollUntilVisible(link, 500);
+          expect(link, findsOneWidget);
+          await tester.tap(link);
+          await tester.pumpAndSettle();
+          expect(find.text('stub order appt-1 case-1'), findsOneWidget);
+        }
+      }
+    });
+
+    testWidgets('a decline reads who refused and why', (tester) async {
+      _useTallSurface(tester);
+      const reason = 'Fully booked this week';
+      final cases = CasesLoadSuccess(
+        cases: [_case(currentStage: 'PathologistRejected')],
+        logs: const {
+          'case-1': [
+            CaseLogEntryModel(
+              toStage: 'PathologistRejected',
+              actionType: 'Reject',
+              actionReason: reason,
+            ),
+          ],
+        },
+      );
+
+      for (final scale in _scales) {
+        for (final locale in _locales) {
+          _useTextScale(tester, scale);
+          final l10n = lookupAppLocalizations(locale);
+          await pumpScreen(tester, cases: cases, locale: locale);
+
+          expect(find.text(l10n.doctorCaseAttachPathologist), findsOneWidget);
+          final line = find.text(
+            l10n.doctorCaseDeclinedBy('Dr. Achieng Odhiambo', reason),
+          );
+          await tester.scrollUntilVisible(line, 500);
+          expect(line, findsOneWidget);
+        }
+      }
+    });
+
+    testWidgets('a decline with no name on the case still reads the reason', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      const reason = 'Fully booked this week';
+      final cases = CasesLoadSuccess(
+        cases: [
+          _case(currentStage: 'PathologistRejected', pathologistName: ''),
+        ],
+        logs: const {
+          'case-1': [
+            CaseLogEntryModel(
+              toStage: 'PathologistRejected',
+              actionType: 'Reject',
+              actionReason: reason,
+            ),
+          ],
+        },
+      );
+
+      for (final locale in _locales) {
+        final l10n = lookupAppLocalizations(locale);
+        await pumpScreen(tester, cases: cases, locale: locale);
+
+        final line = find.text(l10n.doctorCaseDeclined(reason));
+        await tester.scrollUntilVisible(line, 500);
+        expect(line, findsOneWidget);
+      }
+    });
+
+    testWidgets('a lapse with no decline says the request lapsed', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final cases = CasesLoadSuccess(
+        cases: [_case(currentStage: 'PathologistRejected')],
+        logs: const {
+          'case-1': [
+            CaseLogEntryModel(
+              toStage: 'PathologistRejected',
+              actionType: 'Expire',
+            ),
+          ],
+        },
+      );
+
+      for (final scale in _scales) {
+        for (final locale in _locales) {
+          _useTextScale(tester, scale);
+          final l10n = lookupAppLocalizations(locale);
+          await pumpScreen(tester, cases: cases, locale: locale);
+
+          expect(find.text(l10n.doctorCaseAttachPathologist), findsOneWidget);
+          final line = find.text(l10n.doctorCaseRequestLapsed);
+          await tester.scrollUntilVisible(line, 500);
+          expect(line, findsOneWidget);
+        }
+      }
     });
 
     testWidgets('falls back to the facility without an appointment', (

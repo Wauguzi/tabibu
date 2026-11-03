@@ -7,6 +7,7 @@ import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/reference_data_helper.dart';
+import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/alerts/data/models/notifiable_disease_model.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
@@ -425,10 +426,23 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
           final error = state is CaseWorkspaceWriteFailure
               ? state.error
               : (state as CaseWorkspaceLoadFailure).error;
+          // An answer to a request that has lapsed reads as the lapse,
+          // whatever the transport said: the request is dead either way.
+          final asked = state.caseModel;
+          final expires = asked == null
+              ? null
+              : nairobiTimeOf(asked.pathologistRequestExpiresAt);
+          final message =
+              state is CaseWorkspaceWriteFailure &&
+                  asked?.currentStageValue == .pathologistRequested &&
+                  expires != null &&
+                  expires.isBefore(nairobiNow())
+              ? l10n.workspaceRequestLapsed
+              : error.description(l10n);
           unawaited(
             showTabibuNotification(
               context,
-              message: error.description(l10n),
+              message: message,
               isError: true,
               dismissLabel: l10n.commonDismiss,
             ),

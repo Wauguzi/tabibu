@@ -13,6 +13,10 @@ class CaseStatusChip extends StatelessWidget {
   static (String, StatusTone) partsOf(CaseModel c, AppLocalizations l10n) {
     if (c.needsDoctor) return (l10n.doctorCasesDiscuss, .attention);
     if (c.isDone) return (l10n.doctorCasesClosed, .closed);
+    // Refused or lapsed: still step 1, but it needs the doctor.
+    if (c.currentStageValue == .pathologistRejected) {
+      return (l10n.doctorCasesOrdered, .attention);
+    }
     if (c.currentStageValue == .reportInProgress) {
       return (l10n.doctorCaseReportInProgress, .info);
     }

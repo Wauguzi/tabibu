@@ -130,7 +130,11 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
           tests: tests,
           testTypes: types,
           insurers: insurers,
-          pathologists: _pathologists(directory, event.doctorUid),
+          pathologists: _pathologists(
+            directory,
+            event.doctorUid,
+            event.declinedPathologistUids,
+          ),
           riskCheck: state.riskCheck,
           riskCheckSettled: state.riskCheckSettled,
           offline: offline,
@@ -144,13 +148,19 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   }
 
   /// Who the doctor may ask: listed pathologists taking cases, never the
-  /// doctor, as the server checks before a request.
+  /// doctor and never one who already refused this case, as the server
+  /// checks before a request.
   List<PractitionerModel> _pathologists(
     List<PractitionerModel> directory,
     String doctorUid,
+    List<String> declined,
   ) => [
     for (final p in directory)
-      if (p.isPathologist && p.isAvailable && p.uid != doctorUid) p,
+      if (p.isPathologist &&
+          p.isAvailable &&
+          p.uid != doctorUid &&
+          !declined.contains(p.uid))
+        p,
   ]..sort((a, b) => a.fullName.compareTo(b.fullName));
 
   void _onTestToggled(OrderTestToggled event, Emitter<OrderState> emit) {

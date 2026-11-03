@@ -30,6 +30,11 @@ void _useTallSurface(WidgetTester tester) {
   });
 }
 
+void _useTextScale(WidgetTester tester, double scale) {
+  tester.platformDispatcher.textScaleFactorTestValue = scale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+}
+
 CaseModel _case({
   required String uid,
   String orderNumber = 'ODR-JK-AW-02112026-001',
@@ -233,6 +238,78 @@ void main() {
         find.text('ODR-JK-ZZ-01012020-000 · Slide review'),
         findsOneWidget,
       );
+    });
+
+    testWidgets('a refused case reads Ordered with the attention tone', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final cases = CasesLoadSuccess(
+        cases: [_case(uid: 'refused', currentStage: 'PathologistRejected')],
+      );
+
+      for (final scale in [1.0, 2.0]) {
+        for (final locale in [const Locale('en'), const Locale('sw')]) {
+          _useTextScale(tester, scale);
+          final l10n = lookupAppLocalizations(locale);
+          await pumpScreen(tester, cases: cases, locale: locale);
+
+          final chip = find.descendant(
+            of: find.byType(CaseRow),
+            matching: find.text(l10n.doctorCasesOrdered),
+          );
+          expect(chip, findsOneWidget);
+          expect(
+            tester
+                .widget<StatusChip>(
+                  find.descendant(
+                    of: find.byType(CaseRow),
+                    matching: find.byType(StatusChip),
+                  ),
+                )
+                .tone,
+            StatusTone.attention,
+          );
+        }
+      }
+    });
+
+    testWidgets('a refused case sits under Ordered, with no new filter', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final cases = CasesLoadSuccess(
+        cases: [
+          _case(uid: 'refused', currentStage: 'PathologistRejected'),
+          _case(
+            uid: 'asked',
+            orderNumber: 'ODR-JK-MN-02112026-002',
+            patientName: 'Mary Njeri',
+            currentStage: 'PathologistRequested',
+          ),
+        ],
+      );
+
+      for (final scale in [1.0, 2.0]) {
+        for (final locale in [const Locale('en'), const Locale('sw')]) {
+          _useTextScale(tester, scale);
+          final l10n = lookupAppLocalizations(locale);
+          await pumpScreen(tester, cases: cases, locale: locale);
+
+          expect(find.byType(TabibuFilterChip), findsNWidgets(5));
+          final ordered = find.text(l10n.doctorCasesOrdered).first;
+          await tester.ensureVisible(ordered);
+          await tester.pump();
+          await tester.tap(ordered);
+          await tester.pump();
+
+          expect(find.byType(CaseRow), findsOneWidget);
+          expect(
+            find.text('ODR-JK-AW-02112026-001 · Breast excision'),
+            findsOneWidget,
+          );
+        }
+      }
     });
 
     testWidgets('the filters sit in one horizontal scroll row', (tester) async {

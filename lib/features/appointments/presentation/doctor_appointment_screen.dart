@@ -393,11 +393,12 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
     final live = status == .accepted;
     final busy = _ending && appointmentsState is AppointmentWriteInProgress;
     final showActions = live && !_ended;
-    // Ordered at this visit but never sent: the button picks up where the
-    // order stopped.
+    // Ordered at this visit but never sent, or refused and needing
+    // another pathologist: the button picks up where the order stopped.
     final unsent =
         linkedCase != null &&
-        linkedCase.currentStageValue == .orderCreated &&
+        (linkedCase.currentStageValue == .orderCreated ||
+            linkedCase.currentStageValue == .pathologistRejected) &&
         linkedCase.appointmentUid == appointment.uid;
     final nairobiStart = nairobiTimeOf(appointment.scheduledStart);
     final firstName = appointment.patientName.trim().split(' ').first;

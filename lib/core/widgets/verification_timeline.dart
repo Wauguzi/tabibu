@@ -153,13 +153,15 @@ class _StepRow extends StatelessWidget {
                 crossAxisAlignment: .start,
                 mainAxisSize: .min,
                 children: [
-                  Row(
-                    crossAxisAlignment: .start,
+                  // A wrap, not a row: at large text a long title and
+                  // chip share the line when they fit, else the chip drops
+                  // below instead of overflowing.
+                  Wrap(
+                    alignment: .spaceBetween,
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
                     children: [
-                      Expanded(
-                        child: Text(step.title, style: textTheme.titleSmall),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
+                      Text(step.title, style: textTheme.titleSmall),
                       StatusChip(label: step.chipLabel, tone: tone),
                     ],
                   ),

@@ -45,6 +45,9 @@ class CaseRequestView extends StatelessWidget {
         .where((name) => name.isNotEmpty)
         .join(', ');
     final expires = nairobiTimeOf(caseModel.pathologistRequestExpiresAt);
+    // Past its reply-by time: the server has moved or will move the case
+    // on. Accept still sends — the server decides, not the clock.
+    final lapsed = expires != null && expires.isBefore(nairobiNow());
     final priority = switch (caseModel.priorityValue) {
       .routine => l10n.doctorCaseRoutine,
       .priority => l10n.urgencyPriority,
@@ -84,9 +87,14 @@ class CaseRequestView extends StatelessWidget {
               if (expires != null) ...[
                 const SizedBox(height: AppSpacing.sm),
                 Text(
-                  l10n.workspaceRequestReplyBy(
-                    DateFormat('EEE d MMM, h:mm a', language).format(expires),
-                  ),
+                  lapsed
+                      ? l10n.workspaceRequestLapsed
+                      : l10n.workspaceRequestReplyBy(
+                          DateFormat(
+                            'EEE d MMM, h:mm a',
+                            language,
+                          ).format(expires),
+                        ),
                   style: textTheme.bodySmall,
                 ),
               ],

@@ -443,6 +443,43 @@ void main() {
         ).called(1);
       });
 
+      testWidgets('a failed answer to a lapsed request reads as the lapse', (
+        tester,
+      ) async {
+        CaseWorkspaceLoadSuccess lapsed() => CaseWorkspaceLoadSuccess(
+          caseUid: _caseUid,
+          caseModel: CaseModel(
+            uid: _caseUid,
+            orderNumber: 'TB-0231',
+            currentStage: 'PathologistRequested',
+            requestedPathologistUid: RoleSessions.pathologist.doctor.uid,
+            pathologistRequestExpiresAt: '2020-06-01T09:00:00Z',
+          ),
+        );
+
+        for (final scale in [1.0, 2.0]) {
+          for (final entry in [
+            (const Locale('en'), l10n),
+            (const Locale('sw'), swL10n),
+          ]) {
+            final start = lapsed();
+            await pumpScreen(tester, start, locale: entry.$1, textScale: scale);
+
+            await tester.tap(find.text(entry.$2.workspaceRequestAccept));
+            await tester.pump();
+            await emit(tester, _failed(start));
+            await tester.pump(const Duration(milliseconds: 400));
+
+            // The request line and the failure banner share the copy.
+            expect(
+              find.text(entry.$2.workspaceRequestLapsed),
+              findsNWidgets(2),
+            );
+            await tester.pump(const Duration(seconds: 5));
+          }
+        }
+      });
+
       testWidgets('Decline needs a reason, then sends it trimmed', (
         tester,
       ) async {

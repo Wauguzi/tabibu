@@ -4082,6 +4082,31 @@
     "@doctorCaseAttachPathologist": {
         "description": "Doctor case: link under the reading step of an order not yet sent"
     },
+    "doctorCaseDeclinedBy": "{name} declined: {reason}",
+    "@doctorCaseDeclinedBy": {
+        "description": "Doctor case: why the reading step needs a new pathologist, under the attach link",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            },
+            "reason": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorCaseDeclined": "Declined: {reason}",
+    "@doctorCaseDeclined": {
+        "description": "Doctor case: why the reading step needs a new pathologist when the decline carries no name",
+        "placeholders": {
+            "reason": {
+                "type": "String"
+            }
+        }
+    },
+    "doctorCaseRequestLapsed": "The request lapsed.",
+    "@doctorCaseRequestLapsed": {
+        "description": "Doctor case: the pathologist request timed out with no decline, under the attach link"
+    },
     "doctorCaseReportSigned": "Report signed",
     "@doctorCaseReportSigned": {
         "description": "Doctor case: timeline step"
@@ -8060,6 +8085,10 @@
                 "type": "int"
             }
         }
+    },
+    "workspaceRequestLapsed": "This request has lapsed.",
+    "@workspaceRequestLapsed": {
+        "description": "Pathologist case request: the reply-by time has passed"
     },
     "workspaceRequestReplyBy": "Reply by {time}",
     "@workspaceRequestReplyBy": {

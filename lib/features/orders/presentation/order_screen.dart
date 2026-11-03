@@ -11,6 +11,7 @@ import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointment
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_bloc.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_event.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_state.dart';
@@ -70,6 +71,16 @@ class _OrderScreenState extends State<OrderScreen> {
             order.state.draft.created)) {
       _step = _total - 1;
     }
+    // A reopened order never offers a pathologist who already refused.
+    final declined = widget.caseUid.isEmpty
+        ? const <String>[]
+        : context
+                  .read<CasesBloc>()
+                  .state
+                  .cases
+                  .firstWhereOrNull((c) => c.uid == widget.caseUid)
+                  ?.declinedPathologistUids ??
+              const <String>[];
     order.add(
       OrderStarted(
         appointmentUid: appointment.uid,
@@ -77,6 +88,7 @@ class _OrderScreenState extends State<OrderScreen> {
         patientName: appointment.patientName,
         doctorUid: doctorUid,
         caseUid: widget.caseUid,
+        declinedPathologistUids: declined,
       ),
     );
   }

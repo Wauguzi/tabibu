@@ -27,6 +27,7 @@ import 'package:tabibu/features/orders/blocs/order_bloc/order_state.dart';
 import 'package:tabibu/features/orders/data/models/lab_test_model.dart';
 import 'package:tabibu/features/orders/data/models/lab_test_type_model.dart';
 import 'package:tabibu/features/orders/presentation/order_screen.dart';
+import 'package:tabibu/features/orders/presentation/widgets/order_send_step.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -104,6 +105,7 @@ OrderEditing _editing(
   OrderDraft draft, {
   RiskCheckModel? riskCheck,
   bool settled = false,
+  List<PractitionerModel>? pathologists,
 }) => OrderEditing(
   draft: draft,
   tests: _tests,
@@ -114,10 +116,15 @@ OrderEditing _editing(
       'testCount': 2,
     }),
   ],
-  pathologists: [_pathologist],
+  pathologists: pathologists ?? [_pathologist],
   riskCheck: riskCheck,
   riskCheckSettled: settled,
 );
+
+void _useTextScale(WidgetTester tester, double scale) {
+  tester.platformDispatcher.textScaleFactorTestValue = scale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+}
 
 void main() {
   setUpAll(() {
@@ -160,12 +167,17 @@ void main() {
       child: child,
     );
 
-    Future<void> pumpScreen(WidgetTester tester) async {
+    Future<void> pumpScreen(
+      WidgetTester tester, {
+      String caseUid = '',
+      Locale? locale,
+    }) async {
       tester.view.physicalSize = const Size(1170, 6000);
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       await tester.pumpApp(
-        providers(const OrderScreen(appointmentUid: 'appt-1')),
+        providers(OrderScreen(appointmentUid: 'appt-1', caseUid: caseUid)),
+        locale: locale,
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -184,6 +196,34 @@ void main() {
             patientId: 'pat-1',
             patientName: 'Amina Wambui',
             doctorUid: 'doc-1',
+          ),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('a reopened order tells the bloc who refused', (tester) async {
+      order(const OrderInitial());
+      when(() => blocs.cases.state).thenReturn(
+        CasesLoadSuccess(
+          cases: [
+            const CaseModel().copyWith(
+              uid: 'case-1',
+              declinedPathologistUids: ['path-a'],
+            ),
+          ],
+        ),
+      );
+      await pumpScreen(tester, caseUid: 'case-1');
+
+      verify(
+        () => blocs.order.add(
+          const OrderStarted(
+            appointmentUid: 'appt-1',
+            patientId: 'pat-1',
+            patientName: 'Amina Wambui',
+            doctorUid: 'doc-1',
+            caseUid: 'case-1',
+            declinedPathologistUids: ['path-a'],
           ),
         ),
       ).called(1);
@@ -308,6 +348,31 @@ void main() {
         await pumpScreen(tester);
 
         expect(find.text(_en.orderSendTitle), findsOneWidget);
+      });
+
+      testWidgets('no pathologist to offer says so', (tester) async {
+        order(_editing(created(), pathologists: []));
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            await pumpScreen(tester, caseUid: 'case-1', locale: locale);
+
+            final line = find.text(l10n.orderNoPathologists);
+            await tester.scrollUntilVisible(
+              line,
+              500,
+              scrollable: find
+                  .descendant(
+                    of: find.byType(OrderSendStep),
+                    matching: find.byType(Scrollable),
+                  )
+                  .first,
+            );
+            expect(line, findsOneWidget);
+          }
+        }
       });
 
       testWidgets('the last step refreshes the cases so the new one is known', (

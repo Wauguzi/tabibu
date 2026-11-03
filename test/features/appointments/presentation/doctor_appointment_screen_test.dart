@@ -36,6 +36,11 @@ void _useTallSurface(WidgetTester tester, {double width = 1170}) {
   });
 }
 
+void _useTextScale(WidgetTester tester, double scale) {
+  tester.platformDispatcher.textScaleFactorTestValue = scale;
+  addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+}
+
 /// A sheet opens and closes on animations that never settle under a spinner.
 Future<void> settleSheet(WidgetTester tester) async {
   await tester.pump();
@@ -577,6 +582,40 @@ void main() {
 
         expect(find.text('order-stub'), findsOneWidget);
         expect(find.text('case case-1'), findsOneWidget);
+      });
+
+      testWidgets('a refused case at this visit reopens the order', (
+        tester,
+      ) async {
+        register(
+          appointments: AppointmentsLoadSuccess(appointments: [_appointment()]),
+          cases: CasesLoadSuccess(
+            cases: [_case(stage: 'PathologistRejected', appointmentUid: 'a1')],
+          ),
+        );
+        _useTallSurface(tester);
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            // Unmount first: pumpScreen builds a fresh router per pass.
+            await tester.pumpWidget(const SizedBox());
+            await pumpScreen(tester, locale: locale);
+
+            expect(
+              buttonLabelled(l10n.doctorAppointmentOrderTest),
+              findsNothing,
+            );
+            final attach = buttonLabelled(l10n.doctorCaseAttachPathologist);
+            expect(attach, findsOneWidget);
+            await tester.tap(attach);
+            await tester.pumpAndSettle();
+
+            expect(find.text('order-stub'), findsOneWidget);
+            expect(find.text('case case-1'), findsOneWidget);
+          }
+        }
       });
 
       testWidgets('the end hint sits in the body under the notes', (

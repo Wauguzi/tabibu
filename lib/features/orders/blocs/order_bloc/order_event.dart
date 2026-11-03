@@ -20,6 +20,7 @@ final class OrderStarted extends OrderEvent {
     required this.doctorUid,
     this.testIds = const [],
     this.caseUid = '',
+    this.declinedPathologistUids = const [],
   });
 
   final String appointmentUid;
@@ -29,6 +30,9 @@ final class OrderStarted extends OrderEvent {
   final List<String> testIds;
   final String caseUid;
 
+  /// Pathologists who already refused this case, never offered again.
+  final List<String> declinedPathologistUids;
+
   @override
   List<Object?> get props => [
     appointmentUid,
@@ -37,6 +41,7 @@ final class OrderStarted extends OrderEvent {
     doctorUid,
     testIds,
     caseUid,
+    declinedPathologistUids,
   ];
 }
 

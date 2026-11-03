@@ -213,6 +213,27 @@ void main() {
       await bloc.close();
     });
 
+    test('a reopened order never offers a pathologist who refused', () async {
+      when(
+        () => cases.fetchRiskCheck('case-9'),
+      ).thenAnswer((_) async => _check('Ready'));
+      final bloc = build()
+        ..add(
+          const OrderStarted(
+            appointmentUid: 'appt-1',
+            patientId: 'pat-1',
+            patientName: 'Amina Wambui',
+            doctorUid: 'doc-1',
+            caseUid: 'case-9',
+            declinedPathologistUids: ['path-a'],
+          ),
+        );
+      final state = await bloc.stream.firstWhere((s) => s is OrderEditing);
+
+      expect(state.pathologists.map((p) => p.uid), ['path-b']);
+      await bloc.close();
+    });
+
     test('reopening another case replaces the draft for the visit', () async {
       final bloc = await ready();
       when(
