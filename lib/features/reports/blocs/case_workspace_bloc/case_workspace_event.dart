@@ -119,6 +119,21 @@ final class CaseSampleReceived extends CaseWorkspaceEvent {
   List<Object?> get props => [labAccessionNo];
 }
 
+/// Start an amendment or addendum on a signed report. [kind] is `Amendment`
+/// or `Addendum`; [text] is the reason or the addendum body (H-3, H-4).
+final class CaseRevisionStarted extends CaseWorkspaceEvent {
+  const CaseRevisionStarted({required this.kind, required this.text});
+
+  /// `Amendment` or `Addendum`.
+  final String kind;
+
+  /// Amendment reason (≤ 500) or addendum text (≤ 2,000).
+  final String text;
+
+  @override
+  List<Object?> get props => [kind, text];
+}
+
 /// Back to the initial state on sign-out.
 final class CaseWorkspaceReset extends CaseWorkspaceEvent {
   const CaseWorkspaceReset();

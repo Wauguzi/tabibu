@@ -35,6 +35,7 @@ import 'package:tabibu/features/reports/presentation/widgets/workspace_facts.dar
 import 'package:tabibu/features/reports/presentation/widgets/workspace_score_card.dart';
 import 'package:tabibu/features/reports/presentation/widgets/workspace_sign_sheet.dart';
 import 'package:tabibu/features/worklist/presentation/widgets/ai_mark.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// CS-01 + CS-07. The pathologist turns a pre-read into a signed report.
@@ -64,6 +65,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
 
   final _diagnosis = TextEditingController();
   final _comments = TextEditingController();
+  final _addendum = TextEditingController();
   final _scoreComment = TextEditingController();
 
   /// The template's own questions: one field each, keyed `Section/question`.
@@ -110,6 +112,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     // Rebuild so AI-frame vs "Your edit" switches on the first keystroke (H-2).
     _diagnosis.addListener(_onFieldEdited);
     _comments.addListener(_onFieldEdited);
+    _addendum.addListener(_onFieldEdited);
     unawaited(_loadRegister(bloc.state));
     unawaited(_loadImages(bloc.state.preread));
   }
@@ -126,6 +129,9 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     _comments
       ..removeListener(_onFieldEdited)
       ..dispose();
+    _addendum
+      ..removeListener(_onFieldEdited)
+      ..dispose();
     _scoreComment.dispose();
     for (final controller in _answers.values) {
       controller.dispose();
@@ -140,6 +146,9 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     }
     if (_comments.text != draft.comments) {
       _comments.text = draft.comments;
+    }
+    if (_addendum.text != draft.addendumText) {
+      _addendum.text = draft.addendumText;
     }
     for (final entry in _answers.entries) {
       final saved = _answerIn(draft, entry.key);
@@ -216,6 +225,21 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     return false;
   }
 
+  /// Sign opens once the kind's required fields are filled. Addenda carry the
+  /// signed diagnosis and need only their text; amendments need a reason,
+  /// diagnosis and every required template answer.
+  bool _canSign(ReportDraftModel draft, {required bool locked}) {
+    if (locked) return false;
+    return switch (draft.kindValue) {
+      .addendum => _addendum.text.trim().isNotEmpty,
+      .amendment =>
+        draft.amendmentReason.trim().isNotEmpty &&
+            _diagnosis.text.trim().isNotEmpty &&
+            !_missingRequired(),
+      .initial => _diagnosis.text.trim().isNotEmpty && !_missingRequired(),
+    };
+  }
+
   /// Sign opens once the diagnosis and every required answer are typed. What
   /// is typed is saved first, so nothing waits on a separate Save draft.
   void _signFrom(CaseWorkspaceState state, ReportDraftModel draft) {
@@ -280,12 +304,19 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     final fields = <String, dynamic>{};
     final diagnosis = _diagnosis.text.trim();
     final comments = _comments.text.trim();
-    if (diagnosis != draft.diagnosis) fields['diagnosis'] = diagnosis;
-    if (comments != draft.comments) fields['comments'] = comments;
+    final addendum = _addendum.text.trim();
+    // The rules let an Addendum draft change its text and nothing else.
+    if (draft.kindValue == .addendum) {
+      if (addendum != draft.addendumText) fields['addendumText'] = addendum;
+    } else {
+      if (diagnosis != draft.diagnosis) fields['diagnosis'] = diagnosis;
+      if (comments != draft.comments) fields['comments'] = comments;
+    }
     final responses = _responsesNow();
     String signature(List<ReportResponseModel> rows) =>
         rows.map((r) => '${r.section}/${r.question}=${r.answer}').join('\n');
     if (_template != null &&
+        draft.kindValue != .addendum &&
         signature(responses) != signature(draft.responses)) {
       fields['responses'] = [for (final r in responses) r.toJson()];
     }
@@ -450,7 +481,14 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         }
       },
       builder: (context, state) {
-        if (state.signed != null && state.caseModel != null) {
+        // An open Amendment / Addendum draft takes the editor; an Initial
+        // draft left beside a signed report still shows the signed view.
+        final openRevision = switch (state.draft?.kindValue) {
+          .amendment ||
+          .addendum when state.draft?.statusValue == .editing => true,
+          _ => false,
+        };
+        if (state.signed != null && state.caseModel != null && !openRevision) {
           return _DismissKeyboard(
             child: Scaffold(
               body: SafeArea(
@@ -477,6 +515,10 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                           SignedCaseView(
                             report: state.signed!,
                             caseModel: state.caseModel!,
+                            busy: state is CaseWorkspaceWriteInProgress,
+                            onRevisionStarted: (kind, text) => _add(
+                              CaseRevisionStarted(kind: kind, text: text),
+                            ),
                           ),
                         ],
                       ),
@@ -577,7 +619,12 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         final preread = state.preread;
         final ready = preread?.isReady == true;
         final locked = state.needsScore;
+        final isRevision =
+            draft?.kindValue == .amendment || draft?.kindValue == .addendum;
+        // No AI pre-read or "use AI draft" on Amendment / Addendum (H-4).
+        final showAi = ready && !isRevision;
         final loading = state is CaseWorkspaceLoadInProgress && draft == null;
+        final canSign = draft != null && _canSign(draft, locked: locked);
 
         return _DismissKeyboard(
           child: Scaffold(
@@ -630,10 +677,10 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                               ],
                               _Chips(
                                 priority: state.caseModel?.priorityValue,
-                                ready: ready,
+                                ready: showAi,
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              if (_slideUrl != null)
+                              if (_slideUrl != null && showAi)
                                 SlideViewer(
                                   image: NetworkImage(_slideUrl!),
                                   heatmap: _heatmapUrl == null
@@ -654,7 +701,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                   zoomInLabel: l10n.workspaceZoomIn,
                                   zoomOutLabel: l10n.workspaceZoomOut,
                                 ),
-                              if (ready && preread != null) ...[
+                              if (showAi && preread != null) ...[
                                 const SizedBox(height: AppSpacing.md),
                                 _PrereadCard(preread: preread),
                               ],
@@ -667,7 +714,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                   slides: state.caseModel!.slideImages,
                                 ),
                               ],
-                              if (locked) ...[
+                              if (locked && !isRevision) ...[
                                 const SizedBox(height: AppSpacing.md),
                                 WorkspaceScoreCard(
                                   findings: _findingsVerdict,
@@ -702,7 +749,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                 const SizedBox(height: AppSpacing.md),
                                 _ReportSection(
                                   draft: draft,
-                                  preread: preread,
+                                  preread: isRevision ? null : preread,
                                   locked: locked,
                                   writeOwn: _writeOwn,
                                   diagnosis: _diagnosis,
@@ -710,7 +757,9 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                   confirmable: _confirmable,
                                   sections: _sections,
                                   answers: _answers,
-                                  missingRequired: _missingRequired(),
+                                  missingRequired:
+                                      !(draft.kindValue == .addendum) &&
+                                      _missingRequired(),
                                   onWriteOwn: () =>
                                       setState(() => _writeOwn = true),
                                   onStartFromAi: () =>
@@ -720,6 +769,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                   onCritical: (v) => _setCritical(draft, v),
                                   onNotifiable: (id, {required on}) =>
                                       _toggleNotifiable(draft, id, on: on),
+                                  addendum: _addendum,
                                 ),
                               ],
                               const SizedBox(height: AppSpacing.md),
@@ -738,12 +788,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                       ),
                       primary: TabibuButton.primary(
                         label: l10n.workspaceSignReport,
-                        onTap:
-                            _diagnosis.text.trim().isEmpty ||
-                                locked ||
-                                _missingRequired()
-                            ? null
-                            : () => _signFrom(state, draft),
+                        onTap: canSign ? () => _signFrom(state, draft) : null,
                       ),
                     ),
                 ],
@@ -873,6 +918,7 @@ class _ReportSection extends StatelessWidget {
     required this.onDiagnosisType,
     required this.onCritical,
     required this.onNotifiable,
+    required this.addendum,
   });
 
   final ReportDraftModel draft;
@@ -881,6 +927,7 @@ class _ReportSection extends StatelessWidget {
   final bool writeOwn;
   final TextEditingController diagnosis;
   final TextEditingController comments;
+  final TextEditingController addendum;
   final List<NotifiableDiseaseModel> confirmable;
   final List<(ReportTemplateSectionModel, List<ReportTemplateQuestionModel>)>
   sections;
@@ -896,9 +943,15 @@ class _ReportSection extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final language = Localizations.localeOf(context).languageCode;
+    final isAddendum = draft.kindValue == .addendum;
+    final isAmendment = draft.kindValue == .amendment;
+    final fieldsLocked = locked || isAddendum;
     final ready = preread?.isReady == true;
+    // Never offer AI on Amendment / Addendum; preread is null for those.
     final showChooser =
         !locked &&
+        !isAddendum &&
+        !isAmendment &&
         draft.diagnosis.isEmpty &&
         ready &&
         !writeOwn &&
@@ -967,6 +1020,26 @@ class _ReportSection extends StatelessWidget {
     return Column(
       crossAxisAlignment: .stretch,
       children: [
+        if (isAmendment && draft.amendmentReason.isNotEmpty) ...[
+          NoticeCard(
+            variant: .neutral,
+            icon: Assets.icons.infoIcon,
+            title: l10n.workspaceAmendmentReason,
+            body: draft.amendmentReason,
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
+        if (isAddendum) ...[
+          TabibuTextField(
+            label: l10n.workspaceAddendumText,
+            controller: addendum,
+            maxLines: 6,
+            maxLength: CaseWorkspaceBloc.maxAddendumText,
+            required: true,
+            readOnly: locked,
+          ),
+          const SizedBox(height: AppSpacing.md),
+        ],
         ?chooser,
         Wrap(
           spacing: AppSpacing.xs,
@@ -979,7 +1052,7 @@ class _ReportSection extends StatelessWidget {
                   .inconclusive => l10n.reportPdfDiagnosisTypeInconclusive,
                 },
                 selected: draft.diagnosisType == type.value,
-                onTap: locked ? null : () => onDiagnosisType(type),
+                onTap: fieldsLocked ? null : () => onDiagnosisType(type),
               ),
           ],
         ),
@@ -992,7 +1065,7 @@ class _ReportSection extends StatelessWidget {
             controller: diagnosis,
             maxLines: 4,
             maxLength: CaseWorkspaceScreen.fieldMax,
-            readOnly: locked,
+            readOnly: fieldsLocked,
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -1004,7 +1077,7 @@ class _ReportSection extends StatelessWidget {
             controller: comments,
             maxLines: 6,
             maxLength: CaseWorkspaceScreen.fieldMax,
-            readOnly: locked,
+            readOnly: fieldsLocked,
           ),
         ),
         for (final (section, questions) in sections) ...[
@@ -1018,10 +1091,10 @@ class _ReportSection extends StatelessWidget {
             TabibuTextField(
               label: reportQuestionLabel(l10n, q.questionKey),
               controller: answers['${section.sectionKey}/${q.questionKey}'],
-              required: q.required,
+              required: q.required && !isAddendum,
               maxLines: 3,
               maxLength: 4000,
-              readOnly: locked,
+              readOnly: fieldsLocked,
             ),
           ],
         ],
@@ -1037,7 +1110,7 @@ class _ReportSection extends StatelessWidget {
           circle: true,
           label: l10n.workspaceCriticalFinding,
           value: draft.isCritical,
-          onChanged: locked ? null : onCritical,
+          onChanged: fieldsLocked ? null : onCritical,
         ),
         if (confirmable.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.md),
@@ -1055,7 +1128,7 @@ class _ReportSection extends StatelessWidget {
               value: draft.notifiableFindings.any(
                 (f) => f.diseaseId == disease.diseaseId,
               ),
-              onChanged: locked
+              onChanged: fieldsLocked
                   ? null
                   : (on) => onNotifiable(disease.diseaseId, on: on),
             ),

@@ -1417,6 +1417,7 @@ void main() {
           'lib/features/reports/presentation/widgets/workspace_score_card.dart',
           'lib/features/reports/presentation/widgets/workspace_sign_sheet.dart',
           'lib/features/reports/presentation/widgets/signed_case_view.dart',
+          'lib/features/reports/presentation/widgets/revision_sheet.dart',
           'lib/features/reports/presentation/widgets/verdict_selector.dart',
         ]) {
           expect(
@@ -1595,6 +1596,68 @@ void main() {
         await pumpScreen(tester, _loaded());
 
         expect(find.text(l10n.accessLogTitle), findsOneWidget);
+      });
+
+      testWidgets('an amendment draft shows the reason and no AI controls', (
+        tester,
+      ) async {
+        await pumpScreen(
+          tester,
+          CaseWorkspaceLoadSuccess(
+            caseUid: _caseUid,
+            caseModel: _case().copyWith(
+              currentStage: 'ReportSigned',
+              currentReportUid: 'report-1',
+            ),
+            draft: const ReportDraftModel(
+              uid: 'draft-1',
+              caseUid: _caseUid,
+              kind: 'Amendment',
+              diagnosis: _ownDiagnosis,
+              comments: _ownComments,
+              amendmentReason: 'Typo in site',
+            ),
+            preread: _preread(),
+            signed: _signedReport,
+          ),
+        );
+
+        expect(find.text(l10n.workspaceAmendmentReason), findsOneWidget);
+        expect(find.text('Typo in site'), findsOneWidget);
+        expect(find.text(_ownDiagnosis), findsOneWidget);
+        expect(find.text(l10n.workspaceStartFromAiDraft), findsNothing);
+        expect(find.text(l10n.workspaceAiDraft), findsNothing);
+        expect(find.byType(AiMark), findsNothing);
+        expect(find.text(l10n.scoreTitle), findsNothing);
+      });
+
+      testWidgets('an addendum draft locks diagnosis and shows the text', (
+        tester,
+      ) async {
+        await pumpScreen(
+          tester,
+          CaseWorkspaceLoadSuccess(
+            caseUid: _caseUid,
+            caseModel: _case().copyWith(
+              currentStage: 'ReportSigned',
+              currentReportUid: 'report-1',
+            ),
+            draft: const ReportDraftModel(
+              uid: 'draft-1',
+              caseUid: _caseUid,
+              kind: 'Addendum',
+              diagnosis: _ownDiagnosis,
+              comments: _ownComments,
+              addendumText: 'Additional IHC pending.',
+            ),
+            signed: _signedReport,
+          ),
+        );
+
+        expect(find.textContaining(l10n.workspaceAddendumText), findsOneWidget);
+        expect(find.text('Additional IHC pending.'), findsOneWidget);
+        expect(find.text(l10n.workspaceStartFromAiDraft), findsNothing);
+        expect(find.text(_ownDiagnosis), findsOneWidget);
       });
     });
   });

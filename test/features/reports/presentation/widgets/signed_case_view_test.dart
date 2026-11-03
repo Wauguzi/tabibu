@@ -29,32 +29,40 @@ PractitionerSession _session() => PractitionerSession(
   roles: RoleSessions.pathologist.roles,
 );
 
-PathologyReportModel _report({String pathologistUid = 'path-1'}) =>
-    PathologyReportModel(
-      uid: 'rep-1',
-      caseUid: 'case-1',
-      orderNumber: 'ODR-AO-AW-02112026-001',
-      pathologistUid: pathologistUid,
-      diagnosis: 'Metastatic carcinoma in 1 of 1 sentinel lymph node.',
-      comments:
-          'Sentinel lymph node with metastatic breast carcinoma. '
-          'Largest focus 2.1 mm.',
-      signedAt: '2026-10-27T07:42:00Z',
-      measurements: const [
-        ReportMeasurementModel(
-          key: 'Largest focus',
-          unit: 'mm',
-          value: 2.1,
-          precision: 1,
-        ),
-      ],
-    );
+PathologyReportModel _report({
+  String pathologistUid = 'path-1',
+  int version = 1,
+  String stage = 'Initial',
+  String amendmentReason = '',
+}) => PathologyReportModel(
+  uid: 'rep-1',
+  caseUid: 'case-1',
+  version: version,
+  stage: stage,
+  orderNumber: 'ODR-AO-AW-02112026-001',
+  pathologistUid: pathologistUid,
+  diagnosis: 'Metastatic carcinoma in 1 of 1 sentinel lymph node.',
+  comments:
+      'Sentinel lymph node with metastatic breast carcinoma. '
+      'Largest focus 2.1 mm.',
+  signedAt: '2026-10-27T07:42:00Z',
+  amendmentReason: amendmentReason,
+  measurements: const [
+    ReportMeasurementModel(
+      key: 'Largest focus',
+      unit: 'mm',
+      value: 2.1,
+      precision: 1,
+    ),
+  ],
+);
 
-CaseModel _case() => const CaseModel(
+CaseModel _case({String stage = 'ReportSigned'}) => CaseModel(
   uid: 'case-1',
   orderNumber: 'ODR-AO-AW-02112026-001',
   doctorName: 'Dr. Wanjiru Kamau',
   patientName: 'Amina Wambui',
+  currentStage: stage,
 );
 
 void main() {
@@ -65,6 +73,8 @@ void main() {
     Future<void> pumpView(
       WidgetTester tester, {
       PathologyReportModel? report,
+      CaseModel? caseModel,
+      void Function(String kind, String text)? onRevisionStarted,
       ThemeMode themeMode = ThemeMode.light,
       Locale? locale,
     }) async {
@@ -78,7 +88,8 @@ void main() {
           child: SingleChildScrollView(
             child: SignedCaseView(
               report: report ?? _report(),
-              caseModel: _case(),
+              caseModel: caseModel ?? _case(),
+              onRevisionStarted: onRevisionStarted,
             ),
           ),
         ),
@@ -206,6 +217,112 @@ void main() {
       expect(find.text(l10n.signedCaseDraftKept), findsOneWidget);
       expect(find.text(l10n.signedCaseCompare), findsOneWidget);
       await tester.pump(const Duration(milliseconds: 300));
+    });
+
+    testWidgets('the signer sees amend and addendum in a revision stage', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpView(tester, onRevisionStarted: (_, _) {});
+
+      expect(find.text(l10n.signedCaseAmend), findsOneWidget);
+      expect(find.text(l10n.signedCaseAddendum), findsOneWidget);
+      expect(find.text(l10n.signedCaseVersion(1)), findsOneWidget);
+    });
+
+    testWidgets('another pathologist sees no revise buttons', (tester) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpView(
+        tester,
+        report: _report(pathologistUid: 'path-9'),
+        onRevisionStarted: (_, _) {},
+      );
+
+      expect(find.text(l10n.signedCaseAmend), findsNothing);
+      expect(find.text(l10n.signedCaseAddendum), findsNothing);
+    });
+
+    testWidgets('revise buttons are absent outside revision stages', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpView(
+        tester,
+        caseModel: _case(stage: 'ReportInProgress'),
+        onRevisionStarted: (_, _) {},
+      );
+
+      expect(find.text(l10n.signedCaseAmend), findsNothing);
+      expect(find.text(l10n.signedCaseAddendum), findsNothing);
+    });
+
+    testWidgets('an amended report shows version, date and reason', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpView(
+        tester,
+        report: _report(
+          version: 2,
+          stage: 'Amended',
+          amendmentReason: 'Typo in site',
+        ),
+      );
+
+      expect(
+        find.text(
+          l10n.signedCaseVersionAmended(2, '27 Oct, 10:42 AM', 'Typo in site'),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('an addended report shows the addendum version line', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpView(tester, report: _report(version: 2, stage: 'Addended'));
+
+      expect(
+        find.text(l10n.signedCaseVersionAddendum('27 Oct, 10:42 AM')),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('amend sheet requires a reason before continuing', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      String? kind;
+      String? text;
+      await pumpView(
+        tester,
+        onRevisionStarted: (k, t) {
+          kind = k;
+          text = t;
+        },
+      );
+
+      await tester.tap(find.text(l10n.signedCaseAmend));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.signedCaseAmendTitle), findsOneWidget);
+
+      await tester.tap(find.text(l10n.signedCaseAmendContinue));
+      await tester.pumpAndSettle();
+      expect(find.text(l10n.signedCaseAmendReasonRequired), findsOneWidget);
+      expect(kind, isNull);
+
+      await tester.enterText(find.byType(TextField).last, 'Typo in site');
+      await tester.tap(find.text(l10n.signedCaseAmendContinue));
+      await tester.pumpAndSettle();
+      expect(kind, 'Amendment');
+      expect(text, 'Typo in site');
     });
   });
 }

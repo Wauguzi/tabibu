@@ -52,6 +52,8 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     on<CaseRequestAccepted>(_onAccepted, transformer: droppable());
     on<CaseRequestDeclined>(_onDeclined, transformer: droppable());
     on<CaseSampleReceived>(_onSampleReceived, transformer: droppable());
+    // One revision at a time; a double tap must not open two drafts.
+    on<CaseRevisionStarted>(_onRevision, transformer: droppable());
     on<CaseWorkspaceReset>((_, emit) => emit(const CaseWorkspaceInitial()));
   }
 
@@ -64,6 +66,21 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
 
   /// The server's limit on a decline reason.
   static const _maxDeclineReason = 500;
+
+  /// App cap on an amendment reason (server allows 1,000).
+  static const maxAmendmentReason = 500;
+
+  /// App cap on addendum text (server allows 4,000).
+  static const maxAddendumText = 2000;
+
+  /// Stages where the signer may start an amendment or addendum.
+  static const revisionStages = <CaseStage>{
+    .reportSigned,
+    .discussionRequested,
+    .discussionBooked,
+    .resultReleased,
+    .completed,
+  };
 
   /// The server's shape for a lab accession number.
   static final _accession = RegExp(r'^[A-Za-z0-9/-]{1,30}$');
@@ -430,6 +447,59 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     } on Object catch (e) {
       emit(_failure(e));
     }
+  }
+
+  Future<void> _onRevision(
+    CaseRevisionStarted event,
+    Emitter<CaseWorkspaceState> emit,
+  ) async {
+    final kind = DraftKind.fromValue(event.kind);
+    if (kind != .amendment && kind != .addendum) {
+      emit(_failure(AppError.invalidDecision));
+      return;
+    }
+    final text = event.text.trim();
+    final max = kind == .amendment ? maxAmendmentReason : maxAddendumText;
+    if (text.isEmpty || text.length > max) {
+      emit(_failure(AppError.invalidDecision));
+      return;
+    }
+    final caseModel = state.caseModel;
+    final signed = state.signed;
+    if (caseModel == null || signed == null || state.caseUid.isEmpty) {
+      emit(_failure(AppError.dataNotFound));
+      return;
+    }
+    // Only the signer, and only while the case is in a revision stage.
+    if (signed.pathologistUid != state.pathologistUid) {
+      emit(_failure(AppError.permissionDenied));
+      return;
+    }
+    if (!revisionStages.contains(caseModel.currentStageValue)) {
+      emit(_failure(AppError.invalidDecision));
+      return;
+    }
+    if (!await _internet.check()) {
+      emit(_failure(AppError.noInternet));
+      return;
+    }
+    final caseUid = state.caseUid;
+    final pathologistUid = state.pathologistUid;
+    emit(_with(CaseWorkspaceWriteInProgress.new));
+    try {
+      await _remote.startReport(caseUid: caseUid, kind: kind.value);
+      final field = kind == .amendment ? 'amendmentReason' : 'addendumText';
+      await _reports.saveDraftFields(
+        caseUid: caseUid,
+        pathologistUid: pathologistUid,
+        fields: {field: text},
+      );
+    } on Object catch (e) {
+      // The signed version stays on screen; nothing was overwritten.
+      emit(_failure(e));
+      return;
+    }
+    add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
   }
 
   Future<void> _onSign(

@@ -8179,5 +8179,103 @@
                 "type": "String"
             }
         }
+    },
+    "signedCaseAmend": "Amend report",
+    "@signedCaseAmend": {
+        "description": "Pathologist signed case: start an Amendment draft"
+    },
+    "signedCaseAddendum": "Add an addendum",
+    "@signedCaseAddendum": {
+        "description": "Pathologist signed case: start an Addendum draft"
+    },
+    "signedCaseAmendTitle": "Amend this report",
+    "@signedCaseAmendTitle": {
+        "description": "Amendment sheet title"
+    },
+    "signedCaseAmendBody": "The signed version stays. Say why you are changing it, then edit and sign a new version.",
+    "@signedCaseAmendBody": {
+        "description": "Amendment sheet explainer"
+    },
+    "signedCaseAmendReasonLabel": "Reason for amendment",
+    "@signedCaseAmendReasonLabel": {
+        "description": "Amendment sheet reason field label"
+    },
+    "signedCaseAmendReasonRequired": "A reason is required.",
+    "@signedCaseAmendReasonRequired": {
+        "description": "Amendment sheet: empty reason"
+    },
+    "signedCaseAmendContinue": "Continue",
+    "@signedCaseAmendContinue": {
+        "description": "Amendment sheet confirm"
+    },
+    "signedCaseAddendumTitle": "Add an addendum",
+    "@signedCaseAddendumTitle": {
+        "description": "Addendum sheet title"
+    },
+    "signedCaseAddendumBody": "The signed diagnosis stays. Write the addendum below, then sign it as a new version.",
+    "@signedCaseAddendumBody": {
+        "description": "Addendum sheet explainer"
+    },
+    "signedCaseAddendumTextLabel": "Addendum",
+    "@signedCaseAddendumTextLabel": {
+        "description": "Addendum sheet text field label"
+    },
+    "signedCaseAddendumTextRequired": "An addendum is required.",
+    "@signedCaseAddendumTextRequired": {
+        "description": "Addendum sheet: empty text"
+    },
+    "signedCaseAddendumContinue": "Continue",
+    "@signedCaseAddendumContinue": {
+        "description": "Addendum sheet confirm"
+    },
+    "signedCaseVersion": "Version {version}",
+    "@signedCaseVersion": {
+        "description": "Signed case: version number for an Initial report",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            }
+        }
+    },
+    "signedCaseVersionAmended": "Version {version} · amended {date}: {reason}",
+    "@signedCaseVersionAmended": {
+        "description": "Signed case: amended version line with reason",
+        "placeholders": {
+            "version": {
+                "type": "int"
+            },
+            "date": {
+                "type": "String"
+            },
+            "reason": {
+                "type": "String"
+            }
+        }
+    },
+    "signedCaseVersionAddendum": "Addendum · {date}",
+    "@signedCaseVersionAddendum": {
+        "description": "Signed case: addendum version line",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "signedCaseAddendumEntry": "Addendum · {date}",
+    "@signedCaseAddendumEntry": {
+        "description": "Signed case: one addendum row title in the report card",
+        "placeholders": {
+            "date": {
+                "type": "String"
+            }
+        }
+    },
+    "workspaceAmendmentReason": "Reason for amendment",
+    "@workspaceAmendmentReason": {
+        "description": "Pathologist workspace: amendment reason shown above the editable fields"
+    },
+    "workspaceAddendumText": "Addendum",
+    "@workspaceAddendumText": {
+        "description": "Pathologist workspace: addendum text field on an Addendum draft"
     }
 }

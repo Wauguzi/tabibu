@@ -1038,6 +1038,258 @@ void main() {
     );
   });
 
+  group('revision (amendment / addendum)', () {
+    final signedCase = CaseModel.empty().copyWith(
+      uid: _case,
+      pathologistUid: _me,
+      currentStage: 'ReportSigned',
+      currentReportUid: 'r1',
+    );
+    final signedReport = _signed.copyWith(pathologistUid: _me, version: 1);
+    final amendmentDraft = _draft.copyWith(
+      kind: 'Amendment',
+      status: 'Editing',
+      prereadRunUid: '',
+      diagnosis: 'Metastatic carcinoma',
+      amendmentReason: 'Typo in site',
+      baseReportUid: 'r1',
+      targetReportUid: 'r1',
+    );
+
+    CaseWorkspaceLoadSuccess signedSeed({
+      CaseModel? caseModel,
+      PathologyReportModel? signed,
+      ReportDraftModel? draft,
+    }) => CaseWorkspaceLoadSuccess(
+      caseUid: _case,
+      pathologistUid: _me,
+      caseModel: caseModel ?? signedCase,
+      draft: draft,
+      signed: signed ?? signedReport,
+      prereadShownAt: _shown.toIso8601String(),
+    );
+
+    void stubRevisionOpen(ReportDraftModel draft) {
+      when(() => cases.getCases(_me)).thenAnswer((_) async => [signedCase]);
+      when(
+        () => reports.syncDraft(caseUid: _case, pathologistUid: _me),
+      ).thenAnswer((_) async => draft);
+      when(
+        () => reports.syncReports(_me, role: Role.pathologist),
+      ).thenAnswer((_) async => [signedReport]);
+    }
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'amendment: starts the draft, saves the reason, reopens the workspace',
+      setUp: () {
+        when(
+          () => remote.startReport(caseUid: _case, kind: 'Amendment'),
+        ).thenAnswer((_) async => {'status': 'started'});
+        when(
+          () => reports.saveDraftFields(
+            caseUid: _case,
+            pathologistUid: _me,
+            fields: {'amendmentReason': 'Typo in site'},
+          ),
+        ).thenAnswer((_) async => amendmentDraft);
+        stubRevisionOpen(amendmentDraft);
+      },
+      build: build,
+      seed: signedSeed,
+      act: (bloc) => bloc.add(
+        const CaseRevisionStarted(kind: 'Amendment', text: 'Typo in site'),
+      ),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceLoadSuccess>());
+        expect(bloc.state.draft?.kind, 'Amendment');
+        expect(bloc.state.draft?.amendmentReason, 'Typo in site');
+        expect(bloc.state.signed, signedReport);
+        verify(
+          () => remote.startReport(caseUid: _case, kind: 'Amendment'),
+        ).called(1);
+        verify(
+          () => reports.saveDraftFields(
+            caseUid: _case,
+            pathologistUid: _me,
+            fields: {'amendmentReason': 'Typo in site'},
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'addendum: starts the draft and saves the text',
+      setUp: () {
+        final addendumDraft = amendmentDraft.copyWith(
+          kind: 'Addendum',
+          amendmentReason: '',
+          addendumText: 'Additional IHC pending.',
+        );
+        when(
+          () => remote.startReport(caseUid: _case, kind: 'Addendum'),
+        ).thenAnswer((_) async => {'status': 'started'});
+        when(
+          () => reports.saveDraftFields(
+            caseUid: _case,
+            pathologistUid: _me,
+            fields: {'addendumText': 'Additional IHC pending.'},
+          ),
+        ).thenAnswer((_) async => addendumDraft);
+        stubRevisionOpen(addendumDraft);
+      },
+      build: build,
+      seed: signedSeed,
+      act: (bloc) => bloc.add(
+        const CaseRevisionStarted(
+          kind: 'Addendum',
+          text: 'Additional IHC pending.',
+        ),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.draft?.kind, 'Addendum');
+        expect(bloc.state.draft?.addendumText, 'Additional IHC pending.');
+        verify(
+          () => remote.startReport(caseUid: _case, kind: 'Addendum'),
+        ).called(1);
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'empty reason is refused and never starts a report',
+      build: build,
+      seed: signedSeed,
+      act: (bloc) =>
+          bloc.add(const CaseRevisionStarted(kind: 'Amendment', text: '  ')),
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) {
+        verifyNever(
+          () => remote.startReport(
+            caseUid: any(named: 'caseUid'),
+            kind: any(named: 'kind'),
+          ),
+        );
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'reason over 500 characters is refused',
+      build: build,
+      seed: signedSeed,
+      act: (bloc) =>
+          bloc.add(CaseRevisionStarted(kind: 'Amendment', text: 'x' * 501)),
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) {
+        verifyNever(
+          () => remote.startReport(
+            caseUid: any(named: 'caseUid'),
+            kind: any(named: 'kind'),
+          ),
+        );
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'only the signer may revise',
+      build: build,
+      seed: () =>
+          signedSeed(signed: signedReport.copyWith(pathologistUid: 'other')),
+      act: (bloc) => bloc.add(
+        const CaseRevisionStarted(kind: 'Amendment', text: 'Typo in site'),
+      ),
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) {
+        verifyNever(
+          () => remote.startReport(
+            caseUid: any(named: 'caseUid'),
+            kind: any(named: 'kind'),
+          ),
+        );
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a stage outside REVISION_STAGES is refused',
+      build: build,
+      seed: () => signedSeed(
+        caseModel: signedCase.copyWith(currentStage: 'ReportInProgress'),
+      ),
+      act: (bloc) => bloc.add(
+        const CaseRevisionStarted(kind: 'Amendment', text: 'Typo in site'),
+      ),
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) {
+        verifyNever(
+          () => remote.startReport(
+            caseUid: any(named: 'caseUid'),
+            kind: any(named: 'kind'),
+          ),
+        );
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a failed startReport leaves the signed report untouched',
+      setUp: () {
+        when(
+          () => remote.startReport(caseUid: _case, kind: 'Amendment'),
+        ).thenThrow(AppError.serviceUnavailable);
+      },
+      build: build,
+      seed: signedSeed,
+      act: (bloc) => bloc.add(
+        const CaseRevisionStarted(kind: 'Amendment', text: 'Typo in site'),
+      ),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceWriteFailure>());
+        expect(bloc.state.signed, signedReport);
+        expect(bloc.state.draft, isNull);
+        verifyNever(
+          () => reports.saveDraftFields(
+            caseUid: any(named: 'caseUid'),
+            pathologistUid: any(named: 'pathologistUid'),
+            fields: any(named: 'fields'),
+          ),
+        );
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a double tap starts one draft, not two',
+      setUp: () {
+        when(
+          () => remote.startReport(caseUid: _case, kind: 'Amendment'),
+        ).thenAnswer((_) async {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          return {'status': 'started'};
+        });
+        when(
+          () => reports.saveDraftFields(
+            caseUid: _case,
+            pathologistUid: _me,
+            fields: {'amendmentReason': 'Typo in site'},
+          ),
+        ).thenAnswer((_) async => amendmentDraft);
+        stubRevisionOpen(amendmentDraft);
+      },
+      build: build,
+      seed: signedSeed,
+      act: (bloc) async {
+        bloc
+          ..add(
+            const CaseRevisionStarted(kind: 'Amendment', text: 'Typo in site'),
+          )
+          ..add(
+            const CaseRevisionStarted(kind: 'Amendment', text: 'Typo in site'),
+          );
+      },
+      verify: (_) {
+        verify(
+          () => remote.startReport(caseUid: _case, kind: 'Amendment'),
+        ).called(1);
+      },
+    );
+  });
+
   blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
     'drops everything on reset',
     build: build,

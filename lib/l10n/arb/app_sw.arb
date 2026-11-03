@@ -1717,5 +1717,23 @@
     "@resultDetailWebDownload": {
         "description": "Web only: tapping Download on a shared result shows this line"
     },
-    "notificationAccessCode": "Msimbo {code}"
+    "notificationAccessCode": "Msimbo {code}",
+    "signedCaseAmend": "Rekebisha ripoti",
+    "signedCaseAddendum": "Ongeza kiambatisho",
+    "signedCaseAmendTitle": "Rekebisha ripoti hii",
+    "signedCaseAmendBody": "Toleo lililosainiwa linabaki. Eleza sababu ya kubadilisha, kisha hariri na usaini toleo jipya.",
+    "signedCaseAmendReasonLabel": "Sababu ya urekebishaji",
+    "signedCaseAmendReasonRequired": "Sababu inahitajika.",
+    "signedCaseAmendContinue": "Endelea",
+    "signedCaseAddendumTitle": "Ongeza kiambatisho",
+    "signedCaseAddendumBody": "Utambuzi uliosainiwa unabaki. Andika kiambatisho chini, kisha usaini kama toleo jipya.",
+    "signedCaseAddendumTextLabel": "Kiambatisho",
+    "signedCaseAddendumTextRequired": "Kiambatisho kinahitajika.",
+    "signedCaseAddendumContinue": "Endelea",
+    "signedCaseVersion": "Toleo {version}",
+    "signedCaseVersionAmended": "Toleo {version} · limerekebishwa {date}: {reason}",
+    "signedCaseVersionAddendum": "Kiambatisho · {date}",
+    "signedCaseAddendumEntry": "Kiambatisho · {date}",
+    "workspaceAmendmentReason": "Sababu ya urekebishaji",
+    "workspaceAddendumText": "Kiambatisho"
 }
