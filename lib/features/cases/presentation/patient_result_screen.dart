@@ -8,6 +8,7 @@ import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_styles.dart';
+import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -24,6 +25,7 @@ import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
+import 'package:tabibu/features/reports/presentation/report_download.dart';
 import 'package:tabibu/features/reports/presentation/widgets/report_file_card.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -31,9 +33,12 @@ import 'package:tabibu/l10n/l10n.dart';
 /// P-11b / P-13. Waiting with the doctor, or a shared result (no report text
 /// until released — S-3).
 class PatientResultScreen extends StatefulWidget {
-  const PatientResultScreen({required this.caseUid, super.key});
+  const PatientResultScreen({required this.caseUid, this.download, super.key});
 
   final String caseUid;
+
+  /// Test seam; production builds a [ReportDownload] on first download.
+  final ReportDownload? download;
 
   @override
   State<PatientResultScreen> createState() => _PatientResultScreenState();
@@ -134,7 +139,9 @@ class _PatientResultScreenState extends State<PatientResultScreen> {
     return _SharedBody(
       caseModel: caseModel,
       report: _reportFor(caseModel, casesState.reports),
+      patient: _patient,
       language: language,
+      download: widget.download,
     );
   }
 
@@ -357,19 +364,72 @@ class _WaitingBody extends StatelessWidget {
   }
 }
 
-class _SharedBody extends StatelessWidget {
+class _SharedBody extends StatefulWidget {
   const _SharedBody({
     required this.caseModel,
     required this.report,
+    required this.patient,
     required this.language,
+    this.download,
   });
 
   final CaseModel caseModel;
   final PathologyReportModel? report;
+  final PatientModel patient;
   final String language;
+  final ReportDownload? download;
+
+  @override
+  State<_SharedBody> createState() => _SharedBodyState();
+}
+
+class _SharedBodyState extends State<_SharedBody> {
+  bool _downloading = false;
+  bool _failed = false;
+  ReportDownload? _download;
+
+  ReportDownload get _reportDownload =>
+      _download ??= widget.download ?? ReportDownload();
+
+  Future<void> _onDownload() async {
+    final report = widget.report;
+    if (report == null || _downloading) return;
+    setState(() {
+      _downloading = true;
+      _failed = false;
+    });
+    final l10n = context.l10n;
+    try {
+      await _reportDownload.sharePatientReport(
+        report: report,
+        caseModel: widget.caseModel,
+        patient: widget.patient,
+        language: widget.language,
+        l10n: l10n,
+        now: DateTime.now().toUtc(),
+      );
+      if (!mounted) return;
+      setState(() => _downloading = false);
+    } on AppError {
+      if (!mounted) return;
+      setState(() {
+        _downloading = false;
+        _failed = true;
+      });
+    } on Object {
+      if (!mounted) return;
+      setState(() {
+        _downloading = false;
+        _failed = true;
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
+    final caseModel = widget.caseModel;
+    final report = widget.report;
+    final language = widget.language;
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
@@ -407,6 +467,8 @@ class _SharedBody extends StatelessWidget {
     final explainedDoctor = caseModel.doctorName.isNotEmpty
         ? caseModel.doctorName
         : (reader.approved.values.firstOrNull?.approverName ?? '');
+
+    final canDownload = report != null && !_downloading;
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -481,9 +543,25 @@ class _SharedBody extends StatelessWidget {
           title: l10n.resultDetailFullReport,
           fileName: fileName,
           meta: l10n.resultDetailFileMeta('PDF', facility),
-          downloadLabel: l10n.resultDetailDownload,
-          onDownload: null,
+          downloadLabel: _downloading
+              ? l10n.resultsLoadingLabel
+              : l10n.resultDetailDownload,
+          onDownload: canDownload ? _onDownload : null,
         ),
+        if (_downloading) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Semantics(
+            label: l10n.resultsLoadingLabel,
+            child: const LinearProgressIndicator(),
+          ),
+        ],
+        if (_failed) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.errorUnknown,
+            style: textTheme.bodyMedium?.copyWith(color: scheme.error),
+          ),
+        ],
         const SizedBox(height: AppSpacing.lg),
         TabibuButton.primary(
           label: l10n.resultDetailBookFollowUp,

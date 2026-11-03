@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -18,16 +20,20 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/data/models/ordered_test_model.dart';
 import 'package:tabibu/features/cases/presentation/patient_result_screen.dart';
+import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_state.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_model.dart';
+import 'package:tabibu/features/reports/presentation/report_download.dart';
 import 'package:tabibu/features/reports/presentation/widgets/listen_card.dart';
 import 'package:tabibu/features/reports/presentation/widgets/report_file_card.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 import '../../../helpers/helpers.dart';
+
+class _MockDownload extends Mock implements ReportDownload {}
 
 PatientSession _session() => PatientSession(
   patient: RoleSessions.patient.patient.copyWith(uid: 'patient-1'),
@@ -65,11 +71,17 @@ void main() {
     registerFallbackValue(const CaseLogRequested(caseUid: '', role: .patient));
     registerFallbackValue(const AppointmentsRequested(uid: '', role: .patient));
     registerFallbackValue(const ReportReaderReset());
+    registerFallbackValue(const PathologyReportModel());
+    registerFallbackValue(const CaseModel());
+    registerFallbackValue(PatientModel.empty());
+    registerFallbackValue(lookupAppLocalizations(const Locale('en')));
+    registerFallbackValue(DateTime.utc(2026));
   });
 
   group('PatientResultScreen', () {
     late FeatureBlocs blocs;
     late MockAuthBloc authBloc;
+    late _MockDownload download;
 
     Future<void> pumpScreen(
       WidgetTester tester, {
@@ -78,6 +90,7 @@ void main() {
       ThemeMode themeMode = ThemeMode.light,
       Locale? locale,
       String caseUid = 'c1',
+      ReportDownload? reportDownload,
     }) async {
       when(() => blocs.cases.state).thenReturn(cases);
       when(
@@ -90,7 +103,10 @@ void main() {
             BlocProvider<AuthBloc>.value(value: authBloc),
             ...blocs.providers,
           ],
-          child: PatientResultScreen(caseUid: caseUid),
+          child: PatientResultScreen(
+            caseUid: caseUid,
+            download: reportDownload ?? download,
+          ),
         ),
         themeMode: themeMode,
         locale: locale,
@@ -102,8 +118,19 @@ void main() {
     setUp(() {
       blocs = FeatureBlocs();
       authBloc = MockAuthBloc();
+      download = _MockDownload();
       when(() => blocs.cases.add(any())).thenReturn(null);
       when(() => blocs.appointments.add(any())).thenReturn(null);
+      when(
+        () => download.sharePatientReport(
+          report: any(named: 'report'),
+          caseModel: any(named: 'caseModel'),
+          patient: any(named: 'patient'),
+          language: any(named: 'language'),
+          l10n: any(named: 'l10n'),
+          now: any(named: 'now'),
+        ),
+      ).thenAnswer((_) async {});
     });
 
     testWidgets('waiting shows timeline and no report content', (tester) async {
@@ -164,7 +191,7 @@ void main() {
       ).called(1);
     });
 
-    testWidgets('shared shows doctor note and disabled download', (
+    testWidgets('shared shows doctor note and a Download action', (
       tester,
     ) async {
       _useTallSurface(tester);
@@ -209,6 +236,10 @@ void main() {
       expect(find.byType(ListenCard), findsNothing);
       expect(find.byType(VerificationTimeline), findsNothing);
       expect(find.text(l10n.resultDetailDownload), findsOneWidget);
+      expect(
+        tester.widget<ReportFileCard>(find.byType(ReportFileCard)).onDownload,
+        isNotNull,
+      );
     });
 
     testWidgets('renders waiting in light and dark', (tester) async {
@@ -427,7 +458,7 @@ void main() {
                   BlocProvider<AuthBloc>.value(value: authBloc),
                   ...blocs.providers,
                 ],
-                child: const PatientResultScreen(caseUid: 'c1'),
+                child: PatientResultScreen(caseUid: 'c1', download: download),
               ),
             ),
             GoRoute(
@@ -466,6 +497,96 @@ void main() {
           expect(tester.takeException(), isNull);
         });
       }
+    });
+
+    group('PDF download', () {
+      const shared = CasesLoadSuccess(
+        cases: [
+          CaseModel(
+            uid: 'c1',
+            resultState: 'Released',
+            doctorName: 'Dr. Otieno',
+            doctorUid: 'doc-1',
+            currentReportUid: 'r1',
+            doctorFacilityName: 'Aga Khan',
+            tests: [OrderedTestModel(name: 'Full blood count')],
+          ),
+        ],
+        reports: [
+          PathologyReportModel(
+            uid: 'r1',
+            caseUid: 'c1',
+            releasedToPatient: true,
+            comments: 'Your blood count is in the healthy range.',
+            testName: 'Full blood count',
+          ),
+        ],
+      );
+
+      testWidgets('disables Download while the PDF is building', (
+        tester,
+      ) async {
+        _useTallSurface(tester);
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        final gate = Completer<void>();
+        when(
+          () => download.sharePatientReport(
+            report: any(named: 'report'),
+            caseModel: any(named: 'caseModel'),
+            patient: any(named: 'patient'),
+            language: any(named: 'language'),
+            l10n: any(named: 'l10n'),
+            now: any(named: 'now'),
+          ),
+        ).thenAnswer((_) => gate.future);
+
+        await pumpScreen(tester, cases: shared);
+        await tester.tap(find.text(l10n.resultDetailDownload));
+        await tester.pump();
+
+        expect(find.text(l10n.resultsLoadingLabel), findsWidgets);
+        expect(find.byType(LinearProgressIndicator), findsOneWidget);
+        final card = tester.widget<ReportFileCard>(find.byType(ReportFileCard));
+        expect(card.onDownload, isNull);
+
+        gate.complete();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+        expect(
+          tester.widget<ReportFileCard>(find.byType(ReportFileCard)).onDownload,
+          isNotNull,
+        );
+      });
+
+      testWidgets('a failure shows a generic message and keeps the screen '
+          'usable', (tester) async {
+        _useTallSurface(tester);
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        when(
+          () => download.sharePatientReport(
+            report: any(named: 'report'),
+            caseModel: any(named: 'caseModel'),
+            patient: any(named: 'patient'),
+            language: any(named: 'language'),
+            l10n: any(named: 'l10n'),
+            now: any(named: 'now'),
+          ),
+        ).thenThrow(AppError.permissionDenied);
+
+        await pumpScreen(tester, cases: shared);
+        await tester.tap(find.text(l10n.resultDetailDownload));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(find.text(l10n.errorUnknown), findsOneWidget);
+        expect(find.text(l10n.errorPermissionDenied), findsNothing);
+        expect(find.byType(ReportFileCard), findsOneWidget);
+        expect(find.text(l10n.resultDetailBookFollowUp), findsOneWidget);
+        expect(
+          tester.widget<ReportFileCard>(find.byType(ReportFileCard)).onDownload,
+          isNotNull,
+        );
+      });
     });
 
     testWidgets('grows at 1.3x without overflow', (tester) async {
