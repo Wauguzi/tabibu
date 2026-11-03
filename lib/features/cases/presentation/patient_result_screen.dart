@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
@@ -364,6 +366,8 @@ class _WaitingBody extends StatelessWidget {
   }
 }
 
+enum _ShareMenu { whoCanSee, sharedReports }
+
 class _SharedBody extends StatefulWidget {
   const _SharedBody({
     required this.caseModel,
@@ -425,6 +429,32 @@ class _SharedBodyState extends State<_SharedBody> {
     }
   }
 
+  Future<void> _onMore() async {
+    final l10n = context.l10n;
+    final chosen = await showOptionsSheet<_ShareMenu>(
+      context,
+      title: l10n.shareTitle,
+      actions: [
+        OptionsAction(
+          value: _ShareMenu.whoCanSee,
+          icon: Assets.icons.personIcon,
+          label: l10n.shareWhoCanSeeTitle,
+        ),
+        OptionsAction(
+          value: _ShareMenu.sharedReports,
+          icon: Assets.icons.shareIcon,
+          label: l10n.shareListTitle,
+        ),
+      ],
+    );
+    if (chosen == null || !mounted) return;
+    final route = switch (chosen) {
+      .whoCanSee => WhoCanSeeRoute(caseUid: widget.caseModel.uid),
+      .sharedReports => const SharedReportsRoute(),
+    };
+    unawaited(route.push<void>(context));
+  }
+
   @override
   Widget build(BuildContext context) {
     final caseModel = widget.caseModel;
@@ -477,6 +507,10 @@ class _SharedBodyState extends State<_SharedBody> {
           backLabel: l10n.commonBack,
           onBack: context.pop,
           title: testName,
+          trailing: MoreButton(
+            semanticLabel: l10n.notificationsMoreLabel,
+            onTap: _onMore,
+          ),
         ),
         const SizedBox(height: AppSpacing.md),
         Align(
@@ -547,6 +581,9 @@ class _SharedBodyState extends State<_SharedBody> {
               ? l10n.resultsLoadingLabel
               : l10n.resultDetailDownload,
           onDownload: canDownload ? _onDownload : null,
+          shareLabel: l10n.resultDetailShare,
+          onShare: () =>
+              ShareReportRoute(caseUid: caseModel.uid).push<void>(context),
         ),
         if (_downloading) ...[
           const SizedBox(height: AppSpacing.sm),

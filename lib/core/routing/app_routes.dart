@@ -31,9 +31,14 @@ import 'package:tabibu/features/auth/presentation/verified_screen.dart';
 import 'package:tabibu/features/auth/presentation/verify_email_screen.dart';
 import 'package:tabibu/features/cases/presentation/cases_screen.dart';
 import 'package:tabibu/features/cases/presentation/doctor_case_screen.dart';
+import 'package:tabibu/features/cases/presentation/enter_share_code_screen.dart';
 import 'package:tabibu/features/cases/presentation/patient_result_screen.dart';
 import 'package:tabibu/features/cases/presentation/reports_ready_screen.dart';
 import 'package:tabibu/features/cases/presentation/results_screen.dart';
+import 'package:tabibu/features/cases/presentation/share_done_screen.dart';
+import 'package:tabibu/features/cases/presentation/share_report_screen.dart';
+import 'package:tabibu/features/cases/presentation/shared_reports_screen.dart';
+import 'package:tabibu/features/cases/presentation/who_can_see_screen.dart';
 import 'package:tabibu/features/home/presentation/doctor_home_screen.dart';
 import 'package:tabibu/features/home/presentation/home_shell.dart';
 import 'package:tabibu/features/home/presentation/patient_home_screen.dart';
@@ -636,6 +641,59 @@ class ExplainedResultRoute extends GoRouteData with $ExplainedResultRoute {
       ExplainedResultScreen(caseUid: caseUid);
 }
 
+/// P-SHARE · Share report.
+@TypedGoRoute<ShareReportRoute>(
+  path: '${RoutePaths.patient}/result/:caseUid/share',
+)
+class ShareReportRoute extends GoRouteData with $ShareReportRoute {
+  const ShareReportRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      ShareReportScreen(caseUid: caseUid);
+}
+
+/// P-SHARE · Report shared; reached with pushReplacement (F-1). Carries the
+/// case id only; the share and any code live in the ShareBloc (T-18).
+@TypedGoRoute<ShareDoneRoute>(
+  path: '${RoutePaths.patient}/result/:caseUid/share/done',
+)
+class ShareDoneRoute extends GoRouteData with $ShareDoneRoute {
+  const ShareDoneRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      ShareDoneScreen(caseUid: caseUid);
+}
+
+/// P-SHARE · Who can see my results.
+@TypedGoRoute<WhoCanSeeRoute>(
+  path: '${RoutePaths.patient}/result/:caseUid/who-can-see',
+)
+class WhoCanSeeRoute extends GoRouteData with $WhoCanSeeRoute {
+  const WhoCanSeeRoute({required this.caseUid});
+
+  final String caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      WhoCanSeeScreen(caseUid: caseUid);
+}
+
+/// P-SHARE · Shared reports.
+@TypedGoRoute<SharedReportsRoute>(path: '${RoutePaths.patient}/shares')
+class SharedReportsRoute extends GoRouteData with $SharedReportsRoute {
+  const SharedReportsRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const SharedReportsScreen();
+}
+
 /// P-12.
 @TypedGoRoute<HealthNoticeRoute>(path: '${RoutePaths.patient}/notice/:alertUid')
 class HealthNoticeRoute extends GoRouteData with $HealthNoticeRoute {
@@ -750,6 +808,21 @@ class DoctorCaseRoute extends GoRouteData with $DoctorCaseRoute {
       DoctorCaseScreen(caseUid: caseUid);
 }
 
+/// D-SHARE-CODE. Carries the share id only, never the code (T-18).
+@TypedGoRoute<DoctorEnterShareCodeRoute>(
+  path: '${RoutePaths.doctor}/share/:shareUid',
+)
+class DoctorEnterShareCodeRoute extends GoRouteData
+    with $DoctorEnterShareCodeRoute {
+  const DoctorEnterShareCodeRoute({required this.shareUid});
+
+  final String shareUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      EnterShareCodeScreen(role: .doctor, shareUid: shareUid);
+}
+
 /// D-REPORT-SUMMARY.
 @TypedGoRoute<DoctorReportRoute>(
   path: '${RoutePaths.doctor}/case/:caseUid/report',
@@ -851,6 +924,21 @@ class CaseWorkspaceRoute extends GoRouteData with $CaseWorkspaceRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       CaseWorkspaceScreen(caseUid: caseUid);
+}
+
+/// D-SHARE-CODE for a pathologist. Carries the share id only (T-18).
+@TypedGoRoute<PathologistEnterShareCodeRoute>(
+  path: '${RoutePaths.pathologist}/share/:shareUid',
+)
+class PathologistEnterShareCodeRoute extends GoRouteData
+    with $PathologistEnterShareCodeRoute {
+  const PathologistEnterShareCodeRoute({required this.shareUid});
+
+  final String shareUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      EnterShareCodeScreen(role: .pathologist, shareUid: shareUid);
 }
 
 /// CS-03.

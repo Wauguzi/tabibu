@@ -1,6 +1,7 @@
 import 'package:go_router/go_router.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
+import 'package:tabibu/features/notifications/data/models/notification_model.dart';
 
 /// Topic pushes and some local banners carry the path itself; inbox taps
 /// carry the row uid (notifications engine §7 / `functions/src/push.ts`).
@@ -38,6 +39,39 @@ GoRouteData? notificationTarget(String deepLink, RoleHelper roles) {
         when segments[2] == 'review' && roles.canApproveAlerts =>
       AlertReviewRoute(alertUid: id),
     _ => null,
+  };
+}
+
+/// The enter-code screen for a row that carries a share code, or null when
+/// the row has none, the reader is not a doctor or pathologist, or the share
+/// id cannot be read from the row id.
+///
+/// Row ids are `template:resourceKey:recipientUid` (server `NotificationTx`).
+/// The route gets the share id only; the code in `metadata.shareCode` is never
+/// read here, so it cannot reach a route or a field (T-18).
+GoRouteData? shareCodeTarget(NotificationModel row, RoleHelper roles) {
+  if (!row.hasShareCode) return null;
+  final shareUid = _shareUidOf(row.uid);
+  if (shareUid.isEmpty) return null;
+  return switch (roles.role) {
+    .doctor => DoctorEnterShareCodeRoute(shareUid: shareUid),
+    .pathologist => PathologistEnterShareCodeRoute(shareUid: shareUid),
+    _ => null,
+  };
+}
+
+/// `caseShared` keys on the share; a reissue on `{share}-r{n}`; a signed or
+/// updated report on its case and report, whose unlock share is
+/// `unlock_{case}_{report}` (functions/src).
+String _shareUidOf(String rowUid) {
+  final parts = rowUid.split(':');
+  if (parts.length != 3 || parts[1].isEmpty) return '';
+  final key = parts[1];
+  return switch (parts[0]) {
+    'caseShared' => key,
+    'shareCodeReissued' => key.replaceFirst(RegExp(r'-r\d+$'), ''),
+    'reportSigned' || 'reportUpdated' => 'unlock_$key',
+    _ => '',
   };
 }
 

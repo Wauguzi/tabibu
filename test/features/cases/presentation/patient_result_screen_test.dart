@@ -242,6 +242,116 @@ void main() {
       );
     });
 
+    group('share entry points (S-3)', () {
+      const released = CasesLoadSuccess(
+        cases: [
+          CaseModel(
+            uid: 'c1',
+            resultState: 'Released',
+            doctorName: 'Dr. James Otieno',
+            releasedAt: '2024-09-12T00:00:00Z',
+            currentReportUid: 'r1',
+            tests: [OrderedTestModel(name: 'Full blood count')],
+          ),
+        ],
+        reports: [PathologyReportModel(uid: 'r1', caseUid: 'c1')],
+      );
+
+      Future<void> pumpRouted(WidgetTester tester) async {
+        _useTallSurface(tester);
+        when(() => blocs.cases.state).thenReturn(released);
+        when(
+          () => blocs.appointments.state,
+        ).thenReturn(const AppointmentsLoadSuccess());
+        when(
+          () => authBloc.state,
+        ).thenReturn(SignInSuccess(session: _session()));
+        final router = GoRouter(
+          initialLocation: '/result',
+          routes: [
+            GoRoute(
+              path: '/result',
+              builder: (_, _) => MultiBlocProvider(
+                providers: [
+                  BlocProvider<AuthBloc>.value(value: authBloc),
+                  ...blocs.providers,
+                ],
+                child: PatientResultScreen(caseUid: 'c1', download: download),
+              ),
+            ),
+            GoRoute(
+              path: '/patient/result/:caseUid/share',
+              builder: (_, state) =>
+                  Text('stub share ${state.pathParameters['caseUid']}'),
+            ),
+            GoRoute(
+              path: '/patient/result/:caseUid/who-can-see',
+              builder: (_, state) =>
+                  Text('stub who ${state.pathParameters['caseUid']}'),
+            ),
+            GoRoute(
+              path: '/patient/shares',
+              builder: (_, _) => const Text('stub shares'),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpRouterApp(router);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+      }
+
+      testWidgets('rule 6: the report card offers Share', (tester) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpRouted(tester);
+
+        final card = tester.widget<ReportFileCard>(find.byType(ReportFileCard));
+        expect(card.shareLabel, l10n.resultDetailShare);
+        expect(card.onShare, isNotNull);
+        expect(find.text(l10n.resultDetailShare), findsOneWidget);
+      });
+
+      testWidgets('rule 6: Share opens the share screen for the case', (
+        tester,
+      ) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpRouted(tester);
+
+        await tester.tap(find.text(l10n.resultDetailShare));
+        await tester.pumpAndSettle();
+
+        expect(find.text('stub share c1'), findsOneWidget);
+      });
+
+      testWidgets('rule 6: More opens who can see for the case', (
+        tester,
+      ) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpRouted(tester);
+
+        await tester.tap(find.byType(MoreButton));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.tap(find.text(l10n.shareWhoCanSeeTitle));
+        await tester.pumpAndSettle();
+
+        expect(find.text('stub who c1'), findsOneWidget);
+      });
+
+      testWidgets('rule 6: More opens the shared reports list', (tester) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpRouted(tester);
+
+        await tester.tap(find.byType(MoreButton));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.tap(find.text(l10n.shareListTitle));
+        await tester.pumpAndSettle();
+
+        expect(find.text('stub shares'), findsOneWidget);
+      });
+    });
+
     testWidgets('renders waiting in light and dark', (tester) async {
       _useTallSurface(tester);
       for (final mode in [ThemeMode.light, ThemeMode.dark]) {

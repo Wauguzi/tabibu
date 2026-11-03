@@ -1,6 +1,8 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
+import 'package:tabibu/features/notifications/data/models/notification_metadata_model.dart';
+import 'package:tabibu/features/notifications/data/models/notification_model.dart';
 import 'package:tabibu/features/notifications/presentation/notification_target.dart';
 
 void main() {
@@ -96,6 +98,62 @@ void main() {
     test('a path payload is a deep link; a uid is not', () {
       expect(isNotificationDeepLinkPayload('/cases/c1'), isTrue);
       expect(isNotificationDeepLinkPayload('resultReleased:c1:p1'), isFalse);
+    });
+  });
+
+  group('shareCodeTarget', () {
+    NotificationModel shareRow(String uid, {String code = '4821'}) =>
+        NotificationModel(
+          uid: uid,
+          metadata: NotificationMetadataModel(
+            deepLink: '/cases/c1',
+            shareCode: code,
+          ),
+        );
+
+    String? share(NotificationModel row, RoleHelper roles) =>
+        shareCodeTarget(row, roles)?.location;
+
+    test('a caseShared row opens the enter-code screen for its share', () {
+      final row = shareRow('caseShared:s1:doc-1');
+      expect(share(row, doctor), '/doctor/share/s1');
+      expect(share(row, pathologist), '/pathologist/share/s1');
+    });
+
+    test('a reissue strips its -r suffix back to the share id', () {
+      expect(
+        share(shareRow('shareCodeReissued:s1-r2:doc-1'), doctor),
+        '/doctor/share/s1',
+      );
+    });
+
+    test('a signed or updated report opens its unlock share', () {
+      expect(
+        share(shareRow('reportSigned:c1_r1:doc-1'), doctor),
+        '/doctor/share/unlock_c1_r1',
+      );
+      expect(
+        share(shareRow('reportUpdated:c1_r2:doc-1'), doctor),
+        '/doctor/share/unlock_c1_r2',
+      );
+    });
+
+    test('T-18: the route never carries the code', () {
+      final location = share(shareRow('caseShared:s1:doc-1'), doctor)!;
+      expect(location, isNot(contains('4821')));
+    });
+
+    test('a row without a code, or a patient, gets no share screen', () {
+      expect(share(shareRow('caseShared:s1:doc-1', code: ''), doctor), isNull);
+      expect(share(shareRow('caseShared:s1:pat-1'), patient), isNull);
+      expect(share(shareRow('caseShared:s1:pat-1'), none), isNull);
+    });
+
+    test('an unknown template or a malformed id opens nothing', () {
+      expect(share(shareRow('resultReleased:c1:doc-1'), doctor), isNull);
+      expect(share(shareRow('caseShared:s1'), doctor), isNull);
+      expect(share(shareRow('caseShared::doc-1'), doctor), isNull);
+      expect(share(shareRow(''), doctor), isNull);
     });
   });
 }

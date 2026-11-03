@@ -281,6 +281,70 @@ void main() {
       expect(find.text('stub appointment'), findsOneWidget);
     });
 
+    testWidgets(
+      'T-18: a share row opens the enter-code screen by share id, never with '
+      'the code in the route',
+      (tester) async {
+        final doctor = RoleSessions.doctor();
+        when(() => authBloc.state).thenReturn(
+          SignInSuccess(
+            session: PractitionerSession(
+              doctor: doctor.doctor.copyWith(uid: 'doc-1'),
+              roles: doctor.roles,
+            ),
+          ),
+        );
+        when(() => blocs.notifications.state).thenReturn(
+          NotificationsLoadSuccess(
+            items: [
+              NotificationModel(
+                uid: 'caseShared:s1:doc-1',
+                creationDate: DateTime.now().toUtc().toIso8601String(),
+                category: 'PatientCase',
+                title: 'A case was shared',
+                metadata: const NotificationMetadataModel(
+                  deepLink: '/cases/c1',
+                  shareCode: '4821',
+                ),
+              ),
+            ],
+          ),
+        );
+        final router = GoRouter(
+          initialLocation: '/notifications',
+          routes: [
+            GoRoute(path: '/notifications', builder: (_, _) => screen(.doctor)),
+            GoRoute(
+              path: '/doctor/share/:shareUid',
+              builder: (_, state) => Text('stub share ${state.uri}'),
+            ),
+            GoRoute(
+              path: '/doctor/case/:caseUid',
+              builder: (_, _) => const Text('stub case'),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpRouterApp(router);
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text('A case was shared'));
+        await tester.pumpAndSettle();
+
+        verify(
+          () => blocs.notifications.add(
+            const NotificationReadRequested(
+              uid: 'doc-1',
+              notificationUid: 'caseShared:s1:doc-1',
+            ),
+          ),
+        ).called(1);
+        expect(find.text('stub share /doctor/share/s1'), findsOneWidget);
+        expect(find.text('stub case'), findsNothing);
+        expect(find.textContaining('4821'), findsNothing);
+      },
+    );
+
     testWidgets('a Tier 2 link only marks the row read', (tester) async {
       when(
         () => blocs.notifications.state,
