@@ -139,6 +139,11 @@ real Nairobi facilities, each with a `DEMO-` licence number. Their photos are st
 [Pexels](https://www.pexels.com/license/), free to use, with each photographer recorded in the
 file; they are not pictures of the named people.
 
+`make seed-cases` then gives the three accounts ten backdated cases at different stages, with two
+alerts. The slides are real public data (PatchCamelyon tiles, CC0, and cells from the U.S. National
+Library of Medicine's thin-smear set, fetched at seed time). The pre-reads are stored examples, each
+marked as one in the app, not live model output.
+
 ## Checking it
 
 ```sh

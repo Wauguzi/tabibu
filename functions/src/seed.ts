@@ -31,7 +31,8 @@ const EMULATOR_HOSTS = ['FIRESTORE_EMULATOR_HOST', 'FIREBASE_AUTH_EMULATOR_HOST'
 const KENYATTA_NATIONAL_HOSPITAL = '779bc5ec-701d-408f-84d5-b846b2edc45e';
 const MBAGATHI_DISTRICT_HOSPITAL = '88a63b52-4cc1-4db2-a73d-a88c2a9bb816';
 
-export function config() {
+/** Where a seed writes: the live project (confirmed) or the emulators (all three hosts set). */
+export function target() {
   const live = process.argv.includes('--live');
   if (live && process.env.SEED_CONFIRM !== PROJECT) {
     throw new Error(`Seeding the live project needs SEED_CONFIRM=${PROJECT}.`);
@@ -43,8 +44,6 @@ export function config() {
   if (live && missing.length < EMULATOR_HOSTS.length) {
     throw new Error('--live with emulator hosts set is ambiguous; unset them.');
   }
-  const password = process.env.SEED_PASSWORD ?? '';
-  if (password.length < 12) throw new Error('SEED_PASSWORD must be at least 12 characters.');
   // `{role}` is replaced per account, e.g. `tabibu.demo+{role}@gmail.com`: plus addressing sends
   // every account's mail to one inbox, so password reset works.
   const template = process.env.SEED_EMAIL_TEMPLATE || '{role}@tabibu.test';
@@ -52,6 +51,13 @@ export function config() {
     throw new Error('SEED_EMAIL_TEMPLATE must be an email address containing {role}.');
   }
   const email = (role: string) => template.replace('{role}', role).toLowerCase();
+  return { live, email };
+}
+
+export function config() {
+  const { live, email } = target();
+  const password = process.env.SEED_PASSWORD ?? '';
+  if (password.length < 12) throw new Error('SEED_PASSWORD must be at least 12 characters.');
   return { live, password, email };
 }
 
@@ -173,15 +179,12 @@ export async function practitioner(
   return uid;
 }
 
-async function main(): Promise<void> {
-  const { live, password, email } = config();
-  initializeApp({ projectId: PROJECT, storageBucket: `${PROJECT}.firebasestorage.app` });
-  const deps: Deps = {
-    db: getFirestore(),
-    auth: getAuth(),
-    bucket: getStorage().bucket().name,
-  };
-
+/** The four demo accounts and the doctor's clinic patients; each step reuses what already exists. */
+export async function seedAccounts(
+  deps: Deps,
+  password: string,
+  email: (role: string) => string,
+): Promise<{ adminUid: string; doctorUid: string; pathologistUid: string; patientUid: string }> {
   const adminEmail = email('admin');
   const adminUid = await user(adminEmail, password, 'Tabibu admin');
   const existing = (await getAuth().getUser(adminUid)).customClaims ?? {};
@@ -293,6 +296,18 @@ async function main(): Promise<void> {
       language: 'sw',
     });
   }
+  return { adminUid, doctorUid, pathologistUid, patientUid };
+}
+
+async function main(): Promise<void> {
+  const { live, password, email } = config();
+  initializeApp({ projectId: PROJECT, storageBucket: `${PROJECT}.firebasestorage.app` });
+  const deps: Deps = {
+    db: getFirestore(),
+    auth: getAuth(),
+    bucket: getStorage().bucket().name,
+  };
+  await seedAccounts(deps, password, email);
 
   console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin, doctor (approver), pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
 }

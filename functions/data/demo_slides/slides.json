@@ -1,0 +1,1395 @@
+{
+ "histology": {
+  "source": {
+   "dataset": "PatchCamelyon (PCam), CC0 1.0, derived from CAMELYON16",
+   "licence": "https://creativecommons.org/publicdomain/zero/1.0/",
+   "paper": "https://doi.org/10.1007/978-3-030-00934-2_24",
+   "tilePx": 96,
+   "micronsPerPixel": 0.972,
+   "scale": "CAMELYON16 slides are scanned at 0.243 micrometres per pixel and PCam undersamples them to 10x, four times coarser",
+   "note": "Each slide is a grid of independent 96 by 96 patches. A tile is Tumour when the dataset's own annotation says its centre holds tumour, otherwise Normal. No model labelled them."
+  },
+  "slides": {
+   "hero": {
+    "file": "histology_hero.jpg",
+    "rows": 6,
+    "cols": 6,
+    "tilePx": 96,
+    "tiles": [
+     {
+      "row": 0,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/99"
+     },
+     {
+      "row": 0,
+      "col": 1,
+      "label": "Normal",
+      "source": "valid/58"
+     },
+     {
+      "row": 0,
+      "col": 2,
+      "label": "Normal",
+      "source": "valid/19"
+     },
+     {
+      "row": 0,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/38"
+     },
+     {
+      "row": 0,
+      "col": 4,
+      "label": "Normal",
+      "source": "train/32"
+     },
+     {
+      "row": 0,
+      "col": 5,
+      "label": "Normal",
+      "source": "test/94"
+     },
+     {
+      "row": 1,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/48"
+     },
+     {
+      "row": 1,
+      "col": 1,
+      "label": "Tumour",
+      "source": "valid/26"
+     },
+     {
+      "row": 1,
+      "col": 2,
+      "label": "Tumour",
+      "source": "valid/47"
+     },
+     {
+      "row": 1,
+      "col": 3,
+      "label": "Tumour",
+      "source": "valid/53"
+     },
+     {
+      "row": 1,
+      "col": 4,
+      "label": "Normal",
+      "source": "valid/81"
+     },
+     {
+      "row": 1,
+      "col": 5,
+      "label": "Normal",
+      "source": "train/85"
+     },
+     {
+      "row": 2,
+      "col": 0,
+      "label": "Normal",
+      "source": "valid/57"
+     },
+     {
+      "row": 2,
+      "col": 1,
+      "label": "Tumour",
+      "source": "train/91"
+     },
+     {
+      "row": 2,
+      "col": 2,
+      "label": "Tumour",
+      "source": "valid/65"
+     },
+     {
+      "row": 2,
+      "col": 3,
+      "label": "Tumour",
+      "source": "train/25"
+     },
+     {
+      "row": 2,
+      "col": 4,
+      "label": "Tumour",
+      "source": "train/24"
+     },
+     {
+      "row": 2,
+      "col": 5,
+      "label": "Normal",
+      "source": "train/62"
+     },
+     {
+      "row": 3,
+      "col": 0,
+      "label": "Normal",
+      "source": "test/21"
+     },
+     {
+      "row": 3,
+      "col": 1,
+      "label": "Tumour",
+      "source": "valid/43"
+     },
+     {
+      "row": 3,
+      "col": 2,
+      "label": "Tumour",
+      "source": "valid/15"
+     },
+     {
+      "row": 3,
+      "col": 3,
+      "label": "Tumour",
+      "source": "test/95"
+     },
+     {
+      "row": 3,
+      "col": 4,
+      "label": "Normal",
+      "source": "valid/72"
+     },
+     {
+      "row": 3,
+      "col": 5,
+      "label": "Normal",
+      "source": "test/42"
+     },
+     {
+      "row": 4,
+      "col": 0,
+      "label": "Normal",
+      "source": "test/37"
+     },
+     {
+      "row": 4,
+      "col": 1,
+      "label": "Normal",
+      "source": "train/88"
+     },
+     {
+      "row": 4,
+      "col": 2,
+      "label": "Normal",
+      "source": "test/24"
+     },
+     {
+      "row": 4,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/44"
+     },
+     {
+      "row": 4,
+      "col": 4,
+      "label": "Normal",
+      "source": "valid/49"
+     },
+     {
+      "row": 4,
+      "col": 5,
+      "label": "Tumour",
+      "source": "valid/96"
+     },
+     {
+      "row": 5,
+      "col": 0,
+      "label": "Normal",
+      "source": "valid/45"
+     },
+     {
+      "row": 5,
+      "col": 1,
+      "label": "Normal",
+      "source": "valid/94"
+     },
+     {
+      "row": 5,
+      "col": 2,
+      "label": "Normal",
+      "source": "test/72"
+     },
+     {
+      "row": 5,
+      "col": 3,
+      "label": "Normal",
+      "source": "test/73"
+     },
+     {
+      "row": 5,
+      "col": 4,
+      "label": "Normal",
+      "source": "valid/56"
+     },
+     {
+      "row": 5,
+      "col": 5,
+      "label": "Normal",
+      "source": "train/23"
+     }
+    ]
+   },
+   "uncertain": {
+    "file": "histology_uncertain.jpg",
+    "rows": 6,
+    "cols": 6,
+    "tilePx": 96,
+    "tiles": [
+     {
+      "row": 0,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/95"
+     },
+     {
+      "row": 0,
+      "col": 1,
+      "label": "Normal",
+      "source": "test/81"
+     },
+     {
+      "row": 0,
+      "col": 2,
+      "label": "Tumour",
+      "source": "train/77"
+     },
+     {
+      "row": 0,
+      "col": 3,
+      "label": "Normal",
+      "source": "train/71"
+     },
+     {
+      "row": 0,
+      "col": 4,
+      "label": "Normal",
+      "source": "test/22"
+     },
+     {
+      "row": 0,
+      "col": 5,
+      "label": "Normal",
+      "source": "train/65"
+     },
+     {
+      "row": 1,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/87"
+     },
+     {
+      "row": 1,
+      "col": 1,
+      "label": "Normal",
+      "source": "train/5"
+     },
+     {
+      "row": 1,
+      "col": 2,
+      "label": "Normal",
+      "source": "test/54"
+     },
+     {
+      "row": 1,
+      "col": 3,
+      "label": "Normal",
+      "source": "test/45"
+     },
+     {
+      "row": 1,
+      "col": 4,
+      "label": "Normal",
+      "source": "test/23"
+     },
+     {
+      "row": 1,
+      "col": 5,
+      "label": "Normal",
+      "source": "train/84"
+     },
+     {
+      "row": 2,
+      "col": 0,
+      "label": "Tumour",
+      "source": "train/68"
+     },
+     {
+      "row": 2,
+      "col": 1,
+      "label": "Normal",
+      "source": "valid/97"
+     },
+     {
+      "row": 2,
+      "col": 2,
+      "label": "Normal",
+      "source": "test/14"
+     },
+     {
+      "row": 2,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/80"
+     },
+     {
+      "row": 2,
+      "col": 4,
+      "label": "Tumour",
+      "source": "train/46"
+     },
+     {
+      "row": 2,
+      "col": 5,
+      "label": "Normal",
+      "source": "test/0"
+     },
+     {
+      "row": 3,
+      "col": 0,
+      "label": "Normal",
+      "source": "test/99"
+     },
+     {
+      "row": 3,
+      "col": 1,
+      "label": "Normal",
+      "source": "valid/32"
+     },
+     {
+      "row": 3,
+      "col": 2,
+      "label": "Normal",
+      "source": "train/27"
+     },
+     {
+      "row": 3,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/78"
+     },
+     {
+      "row": 3,
+      "col": 4,
+      "label": "Normal",
+      "source": "train/50"
+     },
+     {
+      "row": 3,
+      "col": 5,
+      "label": "Normal",
+      "source": "valid/69"
+     },
+     {
+      "row": 4,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/75"
+     },
+     {
+      "row": 4,
+      "col": 1,
+      "label": "Normal",
+      "source": "valid/91"
+     },
+     {
+      "row": 4,
+      "col": 2,
+      "label": "Tumour",
+      "source": "train/54"
+     },
+     {
+      "row": 4,
+      "col": 3,
+      "label": "Normal",
+      "source": "test/62"
+     },
+     {
+      "row": 4,
+      "col": 4,
+      "label": "Normal",
+      "source": "test/11"
+     },
+     {
+      "row": 4,
+      "col": 5,
+      "label": "Normal",
+      "source": "test/87"
+     },
+     {
+      "row": 5,
+      "col": 0,
+      "label": "Normal",
+      "source": "valid/88"
+     },
+     {
+      "row": 5,
+      "col": 1,
+      "label": "Normal",
+      "source": "train/82"
+     },
+     {
+      "row": 5,
+      "col": 2,
+      "label": "Normal",
+      "source": "train/41"
+     },
+     {
+      "row": 5,
+      "col": 3,
+      "label": "Normal",
+      "source": "test/5"
+     },
+     {
+      "row": 5,
+      "col": 4,
+      "label": "Normal",
+      "source": "valid/6"
+     },
+     {
+      "row": 5,
+      "col": 5,
+      "label": "Tumour",
+      "source": "test/89"
+     }
+    ]
+   },
+   "queued": {
+    "file": "histology_queued.jpg",
+    "rows": 6,
+    "cols": 6,
+    "tilePx": 96,
+    "tiles": [
+     {
+      "row": 0,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/81"
+     },
+     {
+      "row": 0,
+      "col": 1,
+      "label": "Normal",
+      "source": "train/6"
+     },
+     {
+      "row": 0,
+      "col": 2,
+      "label": "Normal",
+      "source": "valid/70"
+     },
+     {
+      "row": 0,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/92"
+     },
+     {
+      "row": 0,
+      "col": 4,
+      "label": "Normal",
+      "source": "valid/55"
+     },
+     {
+      "row": 0,
+      "col": 5,
+      "label": "Normal",
+      "source": "test/58"
+     },
+     {
+      "row": 1,
+      "col": 0,
+      "label": "Normal",
+      "source": "test/64"
+     },
+     {
+      "row": 1,
+      "col": 1,
+      "label": "Normal",
+      "source": "test/59"
+     },
+     {
+      "row": 1,
+      "col": 2,
+      "label": "Normal",
+      "source": "valid/82"
+     },
+     {
+      "row": 1,
+      "col": 3,
+      "label": "Tumour",
+      "source": "valid/35"
+     },
+     {
+      "row": 1,
+      "col": 4,
+      "label": "Normal",
+      "source": "test/9"
+     },
+     {
+      "row": 1,
+      "col": 5,
+      "label": "Normal",
+      "source": "train/34"
+     },
+     {
+      "row": 2,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/92"
+     },
+     {
+      "row": 2,
+      "col": 1,
+      "label": "Normal",
+      "source": "train/0"
+     },
+     {
+      "row": 2,
+      "col": 2,
+      "label": "Normal",
+      "source": "train/93"
+     },
+     {
+      "row": 2,
+      "col": 3,
+      "label": "Normal",
+      "source": "test/71"
+     },
+     {
+      "row": 2,
+      "col": 4,
+      "label": "Normal",
+      "source": "test/16"
+     },
+     {
+      "row": 2,
+      "col": 5,
+      "label": "Normal",
+      "source": "valid/85"
+     },
+     {
+      "row": 3,
+      "col": 0,
+      "label": "Normal",
+      "source": "train/39"
+     },
+     {
+      "row": 3,
+      "col": 1,
+      "label": "Normal",
+      "source": "test/43"
+     },
+     {
+      "row": 3,
+      "col": 2,
+      "label": "Normal",
+      "source": "train/79"
+     },
+     {
+      "row": 3,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/42"
+     },
+     {
+      "row": 3,
+      "col": 4,
+      "label": "Normal",
+      "source": "train/57"
+     },
+     {
+      "row": 3,
+      "col": 5,
+      "label": "Normal",
+      "source": "valid/20"
+     },
+     {
+      "row": 4,
+      "col": 0,
+      "label": "Normal",
+      "source": "test/67"
+     },
+     {
+      "row": 4,
+      "col": 1,
+      "label": "Tumour",
+      "source": "valid/61"
+     },
+     {
+      "row": 4,
+      "col": 2,
+      "label": "Normal",
+      "source": "valid/36"
+     },
+     {
+      "row": 4,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/79"
+     },
+     {
+      "row": 4,
+      "col": 4,
+      "label": "Normal",
+      "source": "train/4"
+     },
+     {
+      "row": 4,
+      "col": 5,
+      "label": "Normal",
+      "source": "valid/83"
+     },
+     {
+      "row": 5,
+      "col": 0,
+      "label": "Normal",
+      "source": "valid/74"
+     },
+     {
+      "row": 5,
+      "col": 1,
+      "label": "Normal",
+      "source": "train/13"
+     },
+     {
+      "row": 5,
+      "col": 2,
+      "label": "Normal",
+      "source": "train/49"
+     },
+     {
+      "row": 5,
+      "col": 3,
+      "label": "Normal",
+      "source": "valid/10"
+     },
+     {
+      "row": 5,
+      "col": 4,
+      "label": "Normal",
+      "source": "train/97"
+     },
+     {
+      "row": 5,
+      "col": 5,
+      "label": "Normal",
+      "source": "test/27"
+     }
+    ]
+   }
+  }
+ },
+ "malaria": {
+  "source": {
+   "dataset": "NLM thin blood smear single-cell images (Plasmodium falciparum)",
+   "datasheet": "https://lhncbc.nlm.nih.gov/LHC-research/LHC-projects/image-processing/malaria-datasheet.html",
+   "archive": "https://data.lhncbc.nlm.nih.gov/public/Malaria/cell_images.zip",
+   "paper": "https://doi.org/10.7717/peerj.4568",
+   "note": "The data set page states no licence for the single-cell archive, so the cells are fetched when the seed runs and never committed. Courtesy of the U.S. National Library of Medicine."
+  },
+  "rows": 7,
+  "cols": 9,
+  "cellPx": 96,
+  "micronsPerPixel": 0.1,
+  "cells": [
+   {
+    "row": 0,
+    "col": 0,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C39P4thinF_original_IMG_20150622_112119_cell_3.png",
+    "offset": 109161309,
+    "compressedSize": 10397,
+    "size": 10397,
+    "method": 0,
+    "crc32": 3974126829
+   },
+   {
+    "row": 0,
+    "col": 1,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C171P132ThinF_IMG_20151119_153347_cell_175.png",
+    "offset": 244563600,
+    "compressedSize": 14873,
+    "size": 14873,
+    "method": 0,
+    "crc32": 2771452196
+   },
+   {
+    "row": 0,
+    "col": 2,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C182P143NThinF_IMG_20151201_172524_cell_10.png",
+    "offset": 252981506,
+    "compressedSize": 9913,
+    "size": 9913,
+    "method": 0,
+    "crc32": 1192228639
+   },
+   {
+    "row": 0,
+    "col": 3,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C179P140ThinF_IMG_20151127_153521_cell_69.png",
+    "offset": 250981010,
+    "compressedSize": 11772,
+    "size": 11772,
+    "method": 0,
+    "crc32": 3597772992
+   },
+   {
+    "row": 0,
+    "col": 4,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C59P20thinF_IMG_20150803_113051_cell_130.png",
+    "offset": 310517608,
+    "compressedSize": 16361,
+    "size": 16361,
+    "method": 0,
+    "crc32": 454780404
+   },
+   {
+    "row": 0,
+    "col": 5,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C133P94ThinF_IMG_20151004_153930_cell_71.png",
+    "offset": 212773002,
+    "compressedSize": 9103,
+    "size": 9103,
+    "method": 0,
+    "crc32": 2155689709
+   },
+   {
+    "row": 0,
+    "col": 6,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C132P93ThinF_IMG_20151004_152353_cell_135.png",
+    "offset": 37886895,
+    "compressedSize": 14157,
+    "size": 14157,
+    "method": 0,
+    "crc32": 264215615
+   },
+   {
+    "row": 0,
+    "col": 7,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C80P41ThinF_IMG_20150817_110957_cell_122.png",
+    "offset": 150402479,
+    "compressedSize": 14254,
+    "size": 14254,
+    "method": 0,
+    "crc32": 3113918853
+   },
+   {
+    "row": 0,
+    "col": 8,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C68P29N_ThinF_IMG_20150819_134830_cell_21.png",
+    "offset": 143714821,
+    "compressedSize": 14494,
+    "size": 14494,
+    "method": 0,
+    "crc32": 90290674
+   },
+   {
+    "row": 1,
+    "col": 0,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C52P13thinF_IMG_20150725_124606_cell_6.png",
+    "offset": 304694581,
+    "compressedSize": 7204,
+    "size": 7204,
+    "method": 0,
+    "crc32": 4142210170
+   },
+   {
+    "row": 1,
+    "col": 1,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C126P87ThinF_IMG_20151004_104441_cell_55.png",
+    "offset": 206753351,
+    "compressedSize": 10299,
+    "size": 10299,
+    "method": 0,
+    "crc32": 51695701
+   },
+   {
+    "row": 1,
+    "col": 2,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C229ThinF_IMG_20151112_144652_cell_141.png",
+    "offset": 283132322,
+    "compressedSize": 12377,
+    "size": 12377,
+    "method": 0,
+    "crc32": 1957651346
+   },
+   {
+    "row": 1,
+    "col": 3,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C109P70ThinF_IMG_20150930_102944_cell_121.png",
+    "offset": 194531102,
+    "compressedSize": 11326,
+    "size": 11326,
+    "method": 0,
+    "crc32": 948215158
+   },
+   {
+    "row": 1,
+    "col": 4,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C129P90ThinF_IMG_20151004_133921_cell_81.png",
+    "offset": 209146736,
+    "compressedSize": 8562,
+    "size": 8562,
+    "method": 0,
+    "crc32": 3377088093
+   },
+   {
+    "row": 1,
+    "col": 5,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C56P17thinF_IMG_20150728_153328_cell_33.png",
+    "offset": 307570305,
+    "compressedSize": 8268,
+    "size": 8268,
+    "method": 0,
+    "crc32": 1377295015
+   },
+   {
+    "row": 1,
+    "col": 6,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C103P64ThinF_IMG_20150918_165510_cell_14.png",
+    "offset": 190439419,
+    "compressedSize": 11660,
+    "size": 11660,
+    "method": 0,
+    "crc32": 565255106
+   },
+   {
+    "row": 1,
+    "col": 7,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C56P17thinF_IMG_20150728_151330_cell_7.png",
+    "offset": 307524083,
+    "compressedSize": 10397,
+    "size": 10397,
+    "method": 0,
+    "crc32": 2684759640
+   },
+   {
+    "row": 1,
+    "col": 8,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C206ThinF_IMG_20151029_140538_cell_176.png",
+    "offset": 263588714,
+    "compressedSize": 12657,
+    "size": 12657,
+    "method": 0,
+    "crc32": 935552385
+   },
+   {
+    "row": 2,
+    "col": 0,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C123P84ThinF_IMG_20151002_151143_cell_153.png",
+    "offset": 204525721,
+    "compressedSize": 9234,
+    "size": 9234,
+    "method": 0,
+    "crc32": 3840997213
+   },
+   {
+    "row": 2,
+    "col": 1,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C95P56ThinF_IMG_20150821_171603_cell_13.png",
+    "offset": 338583756,
+    "compressedSize": 11627,
+    "size": 11627,
+    "method": 0,
+    "crc32": 608858378
+   },
+   {
+    "row": 2,
+    "col": 2,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C89P50ThinF_IMG_20150820_162300_cell_58.png",
+    "offset": 333966939,
+    "compressedSize": 13155,
+    "size": 13155,
+    "method": 0,
+    "crc32": 2133300681
+   },
+   {
+    "row": 2,
+    "col": 3,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C228ThinF_IMG_20151112_142216_cell_66.png",
+    "offset": 281989461,
+    "compressedSize": 13282,
+    "size": 13282,
+    "method": 0,
+    "crc32": 2526233242
+   },
+   {
+    "row": 2,
+    "col": 4,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C105P66ThinF_IMG_20150924_094800_cell_62.png",
+    "offset": 191418219,
+    "compressedSize": 10608,
+    "size": 10608,
+    "method": 0,
+    "crc32": 2171218946
+   },
+   {
+    "row": 2,
+    "col": 5,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C130P91ThinF_IMG_20151004_142709_cell_119.png",
+    "offset": 211076113,
+    "compressedSize": 11071,
+    "size": 11071,
+    "method": 0,
+    "crc32": 569356625
+   },
+   {
+    "row": 2,
+    "col": 6,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C96P57ThinF_IMG_20150824_105213_cell_164.png",
+    "offset": 339263308,
+    "compressedSize": 5976,
+    "size": 5976,
+    "method": 0,
+    "crc32": 2596055003
+   },
+   {
+    "row": 2,
+    "col": 7,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C127P88ThinF_IMG_20151004_112418_cell_3.png",
+    "offset": 207930109,
+    "compressedSize": 8325,
+    "size": 8325,
+    "method": 0,
+    "crc32": 2580955323
+   },
+   {
+    "row": 2,
+    "col": 8,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C47P8thinOriginalOlympusCX21_IMG_20150717_174844_cell_72.png",
+    "offset": 300481078,
+    "compressedSize": 6959,
+    "size": 6959,
+    "method": 0,
+    "crc32": 3521575714
+   },
+   {
+    "row": 3,
+    "col": 0,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C186P147NThinF_IMG_20151203_150859_cell_82.png",
+    "offset": 256448486,
+    "compressedSize": 11486,
+    "size": 11486,
+    "method": 0,
+    "crc32": 954820762
+   },
+   {
+    "row": 3,
+    "col": 1,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C140P101ThinF_IMG_20151005_210309_cell_103.png",
+    "offset": 218631779,
+    "compressedSize": 9260,
+    "size": 9260,
+    "method": 0,
+    "crc32": 2292195245
+   },
+   {
+    "row": 3,
+    "col": 2,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C223ThinF_IMG_20151112_104240_cell_232.png",
+    "offset": 278197089,
+    "compressedSize": 13473,
+    "size": 13473,
+    "method": 0,
+    "crc32": 1590055700
+   },
+   {
+    "row": 3,
+    "col": 3,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C201ThinF_IMG_20150930_143544_cell_34.png",
+    "offset": 259900212,
+    "compressedSize": 9977,
+    "size": 9977,
+    "method": 0,
+    "crc32": 1417655178
+   },
+   {
+    "row": 3,
+    "col": 4,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C118P79ThinF_IMG_20151002_104831_cell_63.png",
+    "offset": 200807211,
+    "compressedSize": 9879,
+    "size": 9879,
+    "method": 0,
+    "crc32": 3294331701
+   },
+   {
+    "row": 3,
+    "col": 5,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C80P41ThinF_IMG_20150817_111246_cell_9.png",
+    "offset": 328202850,
+    "compressedSize": 10875,
+    "size": 10875,
+    "method": 0,
+    "crc32": 3371847005
+   },
+   {
+    "row": 3,
+    "col": 6,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C232ThinF_IMG_20151112_154211_cell_145.png",
+    "offset": 284855600,
+    "compressedSize": 10894,
+    "size": 10894,
+    "method": 0,
+    "crc32": 197069270
+   },
+   {
+    "row": 3,
+    "col": 7,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C239ThinF_IMG_20151127_113008_cell_215.png",
+    "offset": 290179519,
+    "compressedSize": 10971,
+    "size": 10971,
+    "method": 0,
+    "crc32": 70803059
+   },
+   {
+    "row": 3,
+    "col": 8,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C80P41ThinF_IMG_20150817_111121_cell_125.png",
+    "offset": 328032098,
+    "compressedSize": 9837,
+    "size": 9837,
+    "method": 0,
+    "crc32": 2930757111
+   },
+   {
+    "row": 4,
+    "col": 0,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C160P121ThinF_IMG_20151116_093629_cell_79.png",
+    "offset": 235683275,
+    "compressedSize": 10843,
+    "size": 10843,
+    "method": 0,
+    "crc32": 1761330207
+   },
+   {
+    "row": 4,
+    "col": 1,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C69P30N_ThinF_IMG_20150819_140652_cell_34.png",
+    "offset": 318645924,
+    "compressedSize": 10313,
+    "size": 10313,
+    "method": 0,
+    "crc32": 3192658112
+   },
+   {
+    "row": 4,
+    "col": 2,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C84P45ThinF_IMG_20150818_101226_cell_10.png",
+    "offset": 330466235,
+    "compressedSize": 9743,
+    "size": 9743,
+    "method": 0,
+    "crc32": 171570275
+   },
+   {
+    "row": 4,
+    "col": 3,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C132P93ThinF_IMG_20151004_151701_cell_165.png",
+    "offset": 34080552,
+    "compressedSize": 11681,
+    "size": 11681,
+    "method": 0,
+    "crc32": 986846495
+   },
+   {
+    "row": 4,
+    "col": 4,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C77P38ThinF_IMG_20150602_143524_cell_126.png",
+    "offset": 325189068,
+    "compressedSize": 15748,
+    "size": 15748,
+    "method": 0,
+    "crc32": 2170746565
+   },
+   {
+    "row": 4,
+    "col": 5,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C82P43ThinF_IMG_20150817_124418_cell_138.png",
+    "offset": 329444671,
+    "compressedSize": 9501,
+    "size": 9501,
+    "method": 0,
+    "crc32": 2747794292
+   },
+   {
+    "row": 4,
+    "col": 6,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C181P142ThinF_IMG_20151127_155914_cell_30.png",
+    "offset": 252081942,
+    "compressedSize": 7749,
+    "size": 7749,
+    "method": 0,
+    "crc32": 256381272
+   },
+   {
+    "row": 4,
+    "col": 7,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C109P70ThinF_IMG_20150930_103811_cell_114.png",
+    "offset": 194905474,
+    "compressedSize": 7996,
+    "size": 7996,
+    "method": 0,
+    "crc32": 3878838130
+   },
+   {
+    "row": 4,
+    "col": 8,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C235ThinF_IMG_20151112_164625_cell_3.png",
+    "offset": 287160284,
+    "compressedSize": 8702,
+    "size": 8702,
+    "method": 0,
+    "crc32": 2633704672
+   },
+   {
+    "row": 5,
+    "col": 0,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C46P7ThinF_IMG_20151130_210743_cell_3.png",
+    "offset": 299701525,
+    "compressedSize": 10775,
+    "size": 10775,
+    "method": 0,
+    "crc32": 2614993402
+   },
+   {
+    "row": 5,
+    "col": 1,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C236ThinF_IMG_20151127_102428_cell_168.png",
+    "offset": 288015445,
+    "compressedSize": 11492,
+    "size": 11492,
+    "method": 0,
+    "crc32": 3385727133
+   },
+   {
+    "row": 5,
+    "col": 2,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C154P115ThinF_IMG_20151115_141621_cell_138.png",
+    "offset": 230963148,
+    "compressedSize": 11588,
+    "size": 11588,
+    "method": 0,
+    "crc32": 3724932371
+   },
+   {
+    "row": 5,
+    "col": 3,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C152P113ThinF_IMG_20151115_124323_cell_157.png",
+    "offset": 228997676,
+    "compressedSize": 13635,
+    "size": 13635,
+    "method": 0,
+    "crc32": 3083378769
+   },
+   {
+    "row": 5,
+    "col": 4,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C48P9thinF_IMG_20150721_161412_cell_21.png",
+    "offset": 301916898,
+    "compressedSize": 10080,
+    "size": 10080,
+    "method": 0,
+    "crc32": 363911687
+   },
+   {
+    "row": 5,
+    "col": 5,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C210ThinF_IMG_20151029_162357_cell_80.png",
+    "offset": 266738384,
+    "compressedSize": 11989,
+    "size": 11989,
+    "method": 0,
+    "crc32": 3414068705
+   },
+   {
+    "row": 5,
+    "col": 6,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C241NThinF_IMG_20151207_124115_cell_161.png",
+    "offset": 291767069,
+    "compressedSize": 11202,
+    "size": 11202,
+    "method": 0,
+    "crc32": 3404453115
+   },
+   {
+    "row": 5,
+    "col": 7,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C160P121ThinF_IMG_20151116_093704_cell_47.png",
+    "offset": 235754148,
+    "compressedSize": 7969,
+    "size": 7969,
+    "method": 0,
+    "crc32": 4116129555
+   },
+   {
+    "row": 5,
+    "col": 8,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C64P25N_ThinF_IMG_20150818_153401_cell_103.png",
+    "offset": 314809599,
+    "compressedSize": 10093,
+    "size": 10093,
+    "method": 0,
+    "crc32": 3171913636
+   },
+   {
+    "row": 6,
+    "col": 0,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C116P77ThinF_IMG_20150930_171635_cell_93.png",
+    "offset": 12565873,
+    "compressedSize": 15619,
+    "size": 15619,
+    "method": 0,
+    "crc32": 2900927890
+   },
+   {
+    "row": 6,
+    "col": 1,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C128P89ThinF_IMG_20151004_131231_cell_108.png",
+    "offset": 208435706,
+    "compressedSize": 11234,
+    "size": 11234,
+    "method": 0,
+    "crc32": 1140391422
+   },
+   {
+    "row": 6,
+    "col": 2,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C142P103ThinF_IMG_20151005_221115_cell_193.png",
+    "offset": 54091532,
+    "compressedSize": 10381,
+    "size": 10381,
+    "method": 0,
+    "crc32": 2042872249
+   },
+   {
+    "row": 6,
+    "col": 3,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C218ThinF_IMG_20151106_143940_cell_23.png",
+    "offset": 273492467,
+    "compressedSize": 12656,
+    "size": 12656,
+    "method": 0,
+    "crc32": 3397284397
+   },
+   {
+    "row": 6,
+    "col": 4,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C239ThinF_IMG_20151127_113223_cell_116.png",
+    "offset": 290602791,
+    "compressedSize": 12543,
+    "size": 12543,
+    "method": 0,
+    "crc32": 3985048089
+   },
+   {
+    "row": 6,
+    "col": 5,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C137P98ThinF_IMG_20151005_160918_cell_69.png",
+    "offset": 49642853,
+    "compressedSize": 9195,
+    "size": 9195,
+    "method": 0,
+    "crc32": 1843863505
+   },
+   {
+    "row": 6,
+    "col": 6,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C122P83ThinF_IMG_20151002_145014_cell_33.png",
+    "offset": 203938184,
+    "compressedSize": 12499,
+    "size": 12499,
+    "method": 0,
+    "crc32": 2147788365
+   },
+   {
+    "row": 6,
+    "col": 7,
+    "label": "Uninfected",
+    "entry": "cell_images/Uninfected/C120P81ThinF_IMG_20151002_130407_cell_59.png",
+    "offset": 202465904,
+    "compressedSize": 7965,
+    "size": 7965,
+    "method": 0,
+    "crc32": 4284675238
+   },
+   {
+    "row": 6,
+    "col": 8,
+    "label": "Parasitized",
+    "entry": "cell_images/Parasitized/C173P134NThinF_IMG_20151130_120046_cell_245.png",
+    "offset": 66427942,
+    "compressedSize": 15243,
+    "size": 15243,
+    "method": 0,
+    "crc32": 1863093809
+   }
+  ]
+ }
+}
