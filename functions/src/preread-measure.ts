@@ -116,9 +116,11 @@ export function malariaMeasurements(tiles: Tile[]): Record<string, number> {
 export const CONFIDENCE_CALIBRATION_NOTE =
   'Band from mean stated tile probability; not calibrated. Not clinical certainty.';
 
+export type ConfidenceBand = 'High' | 'Moderate' | 'Low';
+
 export function confidenceOf(
   tiles: Tile[],
-): { confidence: number; confidenceBand: 'High' | 'Moderate' | 'Low' } {
+): { confidence: number; confidenceBand: ConfidenceBand } {
   if (tiles.length === 0) return { confidence: 0, confidenceBand: 'Low' };
   const confidence = round2(tiles.reduce((sum, t) => sum + t.probability, 0) / tiles.length);
   return {
@@ -126,6 +128,41 @@ export function confidenceOf(
     // Thresholds on stated probabilities only — see CONFIDENCE_CALIBRATION_NOTE.
     confidenceBand: confidence >= 0.85 ? 'High' : confidence >= 0.7 ? 'Moderate' : 'Low',
   };
+}
+
+/**
+ * Bundle 64: until stated probabilities are shown calibrated on the tuning set, model-labelled
+ * drafts never claim High. Stored demo examples do not call this.
+ */
+export const MODEL_CONFIDENCE_BAND_CAP: ConfidenceBand = 'Moderate';
+export const MODEL_CONFIDENCE_VALUE_CAP = 0.84;
+
+export function applyModelConfidenceCap(draft: PrereadDraft): PrereadDraft {
+  const band = draft.confidenceBand as ConfidenceBand;
+  if (band !== 'High' && draft.confidence <= MODEL_CONFIDENCE_VALUE_CAP) return draft;
+  return {
+    ...draft,
+    confidenceBand: band === 'High' ? MODEL_CONFIDENCE_BAND_CAP : band,
+    confidence: Math.min(draft.confidence, MODEL_CONFIDENCE_VALUE_CAP),
+  };
+}
+
+/** Nearest-neighbour enlarge by a whole factor (bundle 64: more encoder patches on 96 px tiles). */
+export function upscaleNearest(src: Raster, factor: number): Raster {
+  if (factor < 1 || !Number.isInteger(factor)) throw new Error('invalid upscale factor');
+  if (factor === 1) return src;
+  const width = src.width * factor;
+  const height = src.height * factor;
+  const out = blank(width, height, 3);
+  for (let y = 0; y < height; y++) {
+    const sy = Math.floor(y / factor);
+    for (let x = 0; x < width; x++) {
+      const sx = Math.floor(x / factor);
+      const si = (sy * src.width + sx) * 3;
+      out.data.set(src.data.subarray(si, si + 3), (y * width + x) * 3);
+    }
+  }
+  return out;
 }
 
 /** Lymph node staging classes by size of the largest focus (0.2 mm and 2 mm). */

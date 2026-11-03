@@ -8,7 +8,9 @@ import { sweepCasesHandler } from './cases';
 import { readObject, saveObject } from './case-support';
 import { later, seedWorld, type World } from './case.test-support';
 import {
+  CONFIDENCE_CALIBRATION_NOTE,
   PREREAD_MAX_TILES,
+  applyModelConfidenceCap,
   decodeImage,
   downscaleByFactor,
   draftNumbersMatch,
@@ -19,6 +21,7 @@ import {
   isJpeg,
   isPng,
   tileBudgetFactor,
+  upscaleNearest,
   type Tile,
 } from './preread-measure';
 import { PROVENANCE } from './seed-cases-media';
@@ -26,7 +29,6 @@ import {
   META_RESPONSES_URL,
   type FetchLike,
 } from './ai-meta';
-import { CONFIDENCE_CALIBRATION_NOTE } from './preread-measure';
 import {
   PREREAD_BATCH_CONCURRENCY,
   PREREAD_IMAGE_TEXT_RULE,
@@ -36,13 +38,16 @@ import {
   PREREAD_TILE_PX,
   PREREAD_WORKER_TIMEOUT_MS,
   TILE_REASONING_EFFORT,
+  TILE_UPSCALE_FACTOR,
   assertPathsUnder,
   buildClassifyInstructions,
   classifyInBatches,
   commitIfStillRunning,
   failureReasonOf,
   httpStatusClass,
+  loadFewShotFixtures,
   processQueuedPreread,
+  upscaleTilePng,
   type ClassifiedTile,
   type PrereadCache,
   type PrereadFailureLog,
@@ -260,6 +265,9 @@ describe('processQueuedPreread', () => {
     assert.equal(run?.status, 'Ready');
     assert.equal(run?.models?.classify, 'muse-spark-1.3');
     assert.equal(run?.models?.promptVersion, PREREAD_PROMPT_VERSION);
+    assert.equal(run?.models?.tileUpscale, String(TILE_UPSCALE_FACTOR));
+    // Bundle 64: model runs never claim High until calibrated.
+    assert.notEqual(run?.draft?.confidenceBand, 'High');
     assert.ok(String(run?.labelsPath).startsWith(`preread/${caseUid}/${runUid}/`));
     assert.ok(String(run?.segmentationPath).startsWith(`preread/${caseUid}/${runUid}/`));
     assert.equal(
@@ -450,9 +458,12 @@ describe('bundle 58: prompt', () => {
   });
 });
 
-describe('bundle 59: labelling prompt v3', () => {
+describe('bundle 59 / 64: labelling prompt', () => {
   it('defines Tumour by the central 32×32 and says most tiles are Normal', () => {
-    assert.equal(PREREAD_PROMPT_VERSION, 'preread-classify-v3');
+    assert.equal(PREREAD_PROMPT_VERSION, 'preread-classify-v4');
+    // Proven setting until the tuning run says otherwise (the live 36-tile run took about 9 s).
+    assert.equal(TILE_UPSCALE_FACTOR, 1);
+    assert.equal(TILE_REASONING_EFFORT, 'minimal');
     assert.match(PREREAD_PCAM_LABEL_RULE, /central 32 by 32/i);
     assert.match(PREREAD_PCAM_LABEL_RULE, /Most tiles are Normal/i);
     const instructions = buildClassifyInstructions('Cancer');
@@ -464,6 +475,58 @@ describe('bundle 59: labelling prompt v3', () => {
   it('records that the confidence band is stated probability, not calibrated certainty', () => {
     assert.match(CONFIDENCE_CALIBRATION_NOTE, /not calibrated/i);
     assert.match(CONFIDENCE_CALIBRATION_NOTE, /Not clinical certainty/i);
+  });
+});
+
+describe('bundle 64: upscale and confidence cap', () => {
+  it('nearest-neighbour upscale multiplies both sides by a whole factor', () => {
+    const src = solidRaster(2, 2, [10, 20, 30]);
+    const out = upscaleNearest(src, 3);
+    assert.equal(out.width, 6);
+    assert.equal(out.height, 6);
+    assert.deepEqual([...out.data.subarray(0, 3)], [10, 20, 30]);
+    const png = upscaleTilePng(solidPng(8, 8, [1, 2, 3]), 2);
+    const decoded = decodeImage(png);
+    assert.equal(decoded.width, 16);
+    assert.equal(decoded.height, 16);
+  });
+
+  it('model-labelled drafts never report High; seed-style drafts stay untouched', () => {
+    const tiles: Tile[] = [
+      {
+        id: 't0',
+        imageUid: 'i',
+        label: 'Tumour',
+        probability: 0.95,
+        row: 0,
+        col: 0,
+        source: 's',
+      },
+      {
+        id: 't1',
+        imageUid: 'i',
+        label: 'Normal',
+        probability: 0.95,
+        row: 0,
+        col: 1,
+        source: 's',
+      },
+    ];
+    const measurements = histologyMeasurements(tiles, { rows: 1, cols: 2, tilePx: 96 }, 0.25);
+    const uncapped = histologyDraft(tiles, measurements);
+    assert.equal(uncapped.confidenceBand, 'High');
+    const capped = applyModelConfidenceCap(uncapped);
+    assert.equal(capped.confidenceBand, 'Moderate');
+    assert.ok(capped.confidence <= 0.84);
+    // Stored demos use histologyDraft without the cap — still High.
+    assert.equal(histologyDraft(tiles, measurements).confidenceBand, 'High');
+  });
+
+  it('loads the committed CC0 few-shot fixtures', () => {
+    const fixtures = loadFewShotFixtures();
+    assert.equal(fixtures.length, 4);
+    assert.equal(fixtures.filter((f) => f.label === 'Tumour').length, 2);
+    assert.equal(fixtures.filter((f) => f.label === 'Normal').length, 2);
   });
 });
 

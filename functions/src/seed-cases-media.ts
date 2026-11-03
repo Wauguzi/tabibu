@@ -26,6 +26,7 @@ export type {
 } from './preread-measure';
 export {
   PREREAD_MAX_TILES,
+  applyModelConfidenceCap,
   confidenceOf,
   cropTilePng,
   decodeImage,
@@ -44,6 +45,7 @@ export {
   malariaMeasurements,
   sha256Hex,
   tileBudgetFactor,
+  upscaleNearest,
 } from './preread-measure';
 
 export interface SlideSpec {

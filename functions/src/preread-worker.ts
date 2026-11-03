@@ -1,4 +1,4 @@
-// cspell:ignore muse PCAM
+// cspell:ignore muse PCAM fewshot
 /**
  * Live pre-read worker: a Queued run becomes Ready (or Failed) after tiles are labelled by
  * Muse Spark vision and every number is computed in code (S-6). SAM segmentation is out of
@@ -25,12 +25,17 @@ import {
   str,
   type Deps,
 } from './case-support';
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
 import {
   PREREAD_MAX_TILES,
+  applyModelConfidenceCap,
   cropTilePng,
   decodeImage,
   downscaleByFactor,
   draftNumbersMatch,
+  encodePng,
   heatmapPng,
   histologyDraft,
   histologyMeasurements,
@@ -38,13 +43,15 @@ import {
   malariaMeasurements,
   sha256Hex,
   tileBudgetFactor,
+  upscaleNearest,
   type PrereadDraft,
   type Tile,
 } from './preread-measure';
 
-export const PREREAD_PROMPT_VERSION = 'preread-classify-v3';
-/** Prior prompt (bundle 58); kept for eval comparison only — never used by the live worker. */
+export const PREREAD_PROMPT_VERSION = 'preread-classify-v4';
+/** Kept for eval A/B only — never used by the live worker. */
 export const PREREAD_PROMPT_VERSION_V2 = 'preread-classify-v2';
+export const PREREAD_PROMPT_VERSION_V3 = 'preread-classify-v3';
 export const PREREAD_TILE_PX = 96;
 /** Many tiles per request; the Model API caps images per call at 50. */
 export const PREREAD_TILES_PER_REQUEST = 16;
@@ -54,7 +61,14 @@ export const PREREAD_BATCH_CONCURRENCY = 4;
 export const PREREAD_WORKER_TIMEOUT_MS = 240_000;
 /** Each Meta fetch stays at the shared AI timeout (60 s). */
 export const PREREAD_FETCH_TIMEOUT_MS = AI_TIMEOUT_MS;
-/** Tile labelling needs no chain-of-thought. */
+/**
+ * Whole-factor nearest-neighbour enlarge of each tile before encoding, so a 96 px tile covers more
+ * encoder patches. 1 is the proven setting (live, 36 tiles in about 9 s); 3 is the candidate that
+ * `eval-preread.ts --variants` scores on the tuning set. Raise it only when that run shows it
+ * better and the 240 s budget still holds for 64 tiles; the factor is part of the cache key.
+ */
+export const TILE_UPSCALE_FACTOR = 1;
+/** muse-spark-1.3 refuses `none` (HTTP 400); `minimal` is the floor. */
 export const TILE_REASONING_EFFORT: ReasoningEffort = 'minimal';
 export { PREREAD_MAX_TILES };
 
@@ -320,17 +334,19 @@ async function runPreread(
     const crops: TileCrop[] = [];
     for (let row = 0; row < rows; row++) {
       for (let col = 0; col < cols; col++) {
+        const png = cropTilePng(raster, row, col, tilePx);
         crops.push({
           id: `img${i}-tile-${row}-${col}`,
           row,
           col,
-          png: cropTilePng(raster, row, col, tilePx),
+          // v4: enlarge each crop so the vision encoder sees more patches on 96 px tissue.
+          png: upscaleTilePng(png, TILE_UPSCALE_FACTOR),
         });
       }
     }
 
     const imageHash = sha256Hex(bytes);
-    const cacheKey = `${MUSE_SPARK_MODEL}|${PREREAD_PROMPT_VERSION}|${imageHash}|f${factor}`;
+    const cacheKey = `${MUSE_SPARK_MODEL}|${PREREAD_PROMPT_VERSION}|u${TILE_UPSCALE_FACTOR}|${imageHash}|f${factor}`;
     let classified = await cache.get(cacheKey);
     if (!classified) {
       classified = await classifyInBatches(vision, crops, profile);
@@ -375,8 +391,10 @@ async function runPreread(
     profile === 'Cancer'
       ? histologyMeasurements(allTiles, grid, effectiveMpp)
       : malariaMeasurements(allTiles);
-  const draft =
-    profile === 'Cancer' ? histologyDraft(allTiles, measurements) : malariaDraft(allTiles, measurements);
+  // Cap High → Moderate on model runs until stated probabilities are calibrated (bundle 64).
+  const draft = applyModelConfidenceCap(
+    profile === 'Cancer' ? histologyDraft(allTiles, measurements) : malariaDraft(allTiles, measurements),
+  );
 
   if (!draftNumbersMatch(draft, measurements, allTiles.length)) {
     throw new NumberCheckError();
@@ -423,10 +441,40 @@ async function runPreread(
       // SAM is out of scope; heatmap is from tile labels.
       segmentation: 'tile-heatmap',
       tileScale: String(tileScale),
-      // Stated-probability band; not calibrated certainty (bundle 59).
-      confidenceNote: 'stated-probability-band',
+      tileUpscale: String(TILE_UPSCALE_FACTOR),
+      // Stated-probability band; capped at Moderate until calibrated (bundle 64).
+      confidenceNote: 'stated-probability-band-capped-moderate',
     },
   };
+}
+
+/** Decode a tile PNG, enlarge by a whole factor, re-encode. */
+export function upscaleTilePng(png: Buffer, factor: number): Buffer {
+  if (factor <= 1) return png;
+  return encodePng(upscaleNearest(decodeImage(png), factor));
+}
+
+interface FewShotTile {
+  id: string;
+  label: 'Tumour' | 'Normal';
+  png: Buffer;
+}
+
+/** Committed CC0 PCam examples for few-shot eval variants (bundle 64). */
+export function loadFewShotFixtures(): FewShotTile[] {
+  const root = join(__dirname, '..', 'data', 'pcam_fewshot');
+  try {
+    const manifest = JSON.parse(readFileSync(join(root, 'manifest.json'), 'utf8')) as {
+      tiles: { id: string; label: 'Tumour' | 'Normal' }[];
+    };
+    return manifest.tiles.map((t) => ({
+      id: t.id,
+      label: t.label,
+      png: readFileSync(join(root, `${t.id}.png`)),
+    }));
+  } catch {
+    return [];
+  }
 }
 
 export function assertPathsUnder(caseUid: string, runUid: string, paths: string[]): void {
