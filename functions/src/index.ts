@@ -240,6 +240,8 @@ export const onPrereadWritten = onDocumentWritten(
     document: 'cases/{caseUid}/preread/{runUid}',
     retry: true,
     timeoutSeconds: 300,
+    // A 4,096 px slide decodes to tens of megabytes, and the resize copies it.
+    memory: '1GiB',
     secrets: [metaApiKey],
   },
   async (event) => {
