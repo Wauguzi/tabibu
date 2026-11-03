@@ -137,8 +137,20 @@ class NotificationService {
     }
   }
 
-  static String? _payloadOf(RemoteMessage message) {
-    final payload = message.data['payload'];
+  /// What a tap carries: the inbox row's uid (engine §7), or the deep link
+  /// alone for topic pushes that have no row (`functions/src/push.ts` /
+  /// `alert-delivery.ts`). Never invent a value the server did not send.
+  static String? _payloadOf(RemoteMessage message) =>
+      payloadFromData(message.data);
+
+  /// Visible for tests: same rules as a live [RemoteMessage].
+  @visibleForTesting
+  static String? payloadFromData(Map<String, dynamic> data) {
+    final uid = data['notificationUid'];
+    if (uid is String && uid.isNotEmpty) return uid;
+    final link = data['deepLink'];
+    if (link is String && link.isNotEmpty) return link;
+    final payload = data['payload'];
     return payload is String && payload.isNotEmpty ? payload : null;
   }
 

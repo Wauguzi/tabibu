@@ -62,5 +62,40 @@ void main() {
     test('returns typed routes', () {
       expect(notificationTarget('/cases/c1', doctor), isA<GoRouteData>());
     });
+
+    test('a push with no Tier 1 target opens the role inbox', () {
+      expect(
+        notificationTapRoute('/conversations/x1', doctor)?.location,
+        '/doctor/notifications',
+      );
+      expect(
+        notificationTapRoute('', patient)?.location,
+        '/patient/notifications',
+      );
+      expect(
+        notificationTapRoute('/alerts/a1/review', doctor)?.location,
+        '/doctor/notifications',
+      );
+      expect(
+        notificationTapRoute('/alerts/a1/review', approver)?.location,
+        '/doctor/alert/a1',
+      );
+      expect(notificationTapRoute('/cases/c1', none), isNull);
+    });
+
+    test('each role has its own notifications home', () {
+      expect(notificationsHome(patient)?.location, '/patient/notifications');
+      expect(notificationsHome(doctor)?.location, '/doctor/notifications');
+      expect(
+        notificationsHome(pathologist)?.location,
+        '/pathologist/notifications',
+      );
+      expect(notificationsHome(none), isNull);
+    });
+
+    test('a path payload is a deep link; a uid is not', () {
+      expect(isNotificationDeepLinkPayload('/cases/c1'), isTrue);
+      expect(isNotificationDeepLinkPayload('resultReleased:c1:p1'), isFalse);
+    });
   });
 }
