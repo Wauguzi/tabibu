@@ -19,6 +19,8 @@ import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_event.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_bloc.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_event.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_event.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/onboarding/blocs/onboarding_bloc/onboarding_bloc.dart';
@@ -53,6 +55,7 @@ abstract final class BlocsHelper {
     BlocProvider<SlideUploadBloc>(create: (_) => SlideUploadBloc()),
     BlocProvider<MdtBloc>(create: (_) => MdtBloc()),
     BlocProvider<ChatBloc>(create: (_) => ChatBloc()),
+    BlocProvider<LockBloc>(create: (_) => LockBloc()),
     BlocProvider<DeskBloc>(create: (_) => DeskBloc()),
     BlocProvider<AlertReviewBloc>(create: (_) => AlertReviewBloc()),
     BlocProvider<CaseWorkspaceBloc>(create: (_) => CaseWorkspaceBloc()),
@@ -72,6 +75,9 @@ abstract final class BlocsHelper {
     context.read<SlideUploadBloc>().add(const SlideUploadReset());
     context.read<MdtBloc>().add(const MdtReset());
     context.read<ChatBloc>().add(const ChatReset());
+    // Clears the in-memory lock; storage is wiped by LockStorageCleared on
+    // sign-out (rule 5).
+    context.read<LockBloc>().add(const LockReset());
     context.read<DeskBloc>().add(const DeskReset());
     context.read<AlertReviewBloc>().add(const AlertReviewReset());
     context.read<CaseWorkspaceBloc>().add(const CaseWorkspaceReset());

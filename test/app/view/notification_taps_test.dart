@@ -21,6 +21,8 @@ import 'package:tabibu/features/alerts/data/datasources/alert_topic_service.dart
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
+import 'package:tabibu/features/lock/data/biometric_authenticator.dart';
+import 'package:tabibu/features/lock/data/lock_storage.dart';
 import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart';
 
 class _MockAuthHelper extends Mock implements AuthHelper {}
@@ -40,6 +42,10 @@ class _MockCache extends Mock implements NotificationCacheHelper {}
 class _MockAlertTopics extends Mock implements AlertTopicService {}
 
 class _MockFacilities extends Mock implements FacilitiesHelper {}
+
+class _MockLockStorage extends Mock implements LockStorage {}
+
+class _MockBiometrics extends Mock implements BiometricAuthenticator {}
 
 /// App tap wiring without mounting a role home (those screens need the full
 /// getIt graph). Route mapping is covered in notification_target_test.
@@ -79,6 +85,8 @@ void main() {
     when(() => cache.getInbox(any())).thenAnswer((_) async => const []);
     when(() => cache.watchInbox(any())).thenAnswer((_) => const Stream.empty());
 
+    final lockStorage = _MockLockStorage();
+    when(lockStorage.isEnabled).thenAnswer((_) async => false);
     getIt
       ..registerSingleton<AuthHelper>(auth)
       ..registerSingleton<HiveHelper>(hive)
@@ -96,7 +104,9 @@ void main() {
       ..registerSingleton<ThemeHelper>(theme)
       ..registerSingleton<NotificationCacheHelper>(cache)
       ..registerSingleton<AlertTopicService>(_MockAlertTopics())
-      ..registerSingleton<FacilitiesHelper>(_MockFacilities());
+      ..registerSingleton<FacilitiesHelper>(_MockFacilities())
+      ..registerSingleton<LockStorage>(lockStorage)
+      ..registerSingleton<BiometricAuthenticator>(_MockBiometrics());
   });
 
   tearDown(getIt.reset);

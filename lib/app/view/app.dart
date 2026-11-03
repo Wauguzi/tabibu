@@ -26,6 +26,9 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_bloc.dart';
 import 'package:tabibu/features/auth/blocs/sign_up_bloc/sign_up_event.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_event.dart';
+import 'package:tabibu/features/lock/presentation/unlock_overlay.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart';
@@ -82,6 +85,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     super.initState();
     WidgetsBinding.instance.addObserver(this);
     unawaited(_loadSavedLocale());
+    // Cover first, then read: no content before the lock answer (rule 2).
+    context.read<LockBloc>().add(const LockColdStart());
   }
 
   Future<void> _loadSavedLocale() async {
@@ -216,9 +221,11 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     if (state == .paused) {
       _hasBeenBackgrounded = true;
       _syncInboxWatch(session, foreground: false);
+      context.read<LockBloc>().add(const LockAppBackgrounded());
     }
     if (state == .resumed && _hasBeenBackgrounded) {
       _syncInboxWatch(session);
+      context.read<LockBloc>().add(const LockAppResumed());
       unawaited(_onResume());
     }
   }
@@ -262,6 +269,8 @@ class _AppState extends State<App> with WidgetsBindingObserver {
             context.read<SignUpBloc>().add(const SignUpDraftCleared());
           case SignOutSuccess():
             context.read<SignUpBloc>().add(const SignUpDraftCleared());
+            // PIN hash leaves the device with the session (rule 5).
+            context.read<LockBloc>().add(const LockStorageCleared());
             BlocsHelper.resetFeatureBlocs(context);
           default:
         }
@@ -297,7 +306,7 @@ class _AppState extends State<App> with WidgetsBindingObserver {
                     extraScaleFactor: screenAwareTextScaleFactor(context),
                   ),
                 ),
-                child: child!,
+                child: UnlockOverlay(child: child!),
               ),
             );
           },

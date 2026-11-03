@@ -7,6 +7,7 @@ import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
@@ -14,6 +15,7 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/presentation/widgets/sign_out_sheet.dart';
 import 'package:tabibu/features/home/presentation/widgets/shell_tab_page.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 import 'package:tabibu/features/profile/presentation/widgets/profile_identity_card.dart';
@@ -87,6 +89,18 @@ class _ProfileScreenState extends State<ProfileScreen> {
       title: l10n.profileTheme,
       supporting: l10n.profileThemeSupporting,
     );
+    // App lock settings (S-3). Supporting mirrors the lock state.
+    final lockOn = context.watch<LockBloc>().state.enabled;
+    final appLock = SettingsRow(
+      icon: Assets.icons.shieldIcon,
+      title: l10n.appLockTitle,
+      supporting: lockOn ? l10n.appLockPin : l10n.appLockOff,
+      onTap: () => unawaited(switch (widget.role) {
+        .patient => const PatientAppLockRoute().push<void>(context),
+        .pathologist => const PathologistAppLockRoute().push<void>(context),
+        _ => const DoctorAppLockRoute().push<void>(context),
+      }),
+    );
     final saving = authState is ProfileSettingChangeInProgress;
     void flip({required ProfileSetting setting, required bool value}) => context
         .read<AuthBloc>()
@@ -98,6 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         patient,
         language: language,
         theme: theme,
+        appLock: appLock,
         saving: saving,
         onFlip: flip,
       ),
@@ -107,6 +122,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         isAlertApprover: roles.isAlertApprover,
         language: language,
         theme: theme,
+        appLock: appLock,
         saving: saving,
         onFlip: flip,
       ),
@@ -158,6 +174,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     PatientModel patient, {
     required Widget language,
     required Widget theme,
+    required Widget appLock,
     required bool saving,
     required void Function({
       required ProfileSetting setting,
@@ -187,6 +204,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             supporting: area.isEmpty ? null : area,
           ),
           theme,
+          appLock,
         ],
       ),
       SettingsGroup(
@@ -209,6 +227,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required bool isAlertApprover,
     required Widget language,
     required Widget theme,
+    required Widget appLock,
     required bool saving,
     required void Function({
       required ProfileSetting setting,
@@ -264,6 +283,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
             ),
           language,
           if (!doctor.isPathologist) theme,
+          appLock,
         ],
       ),
       if (!doctor.isPathologist)

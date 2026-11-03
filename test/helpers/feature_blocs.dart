@@ -25,6 +25,9 @@ import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_state.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_bloc.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_event.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_state.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_event.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_state.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_state.dart';
@@ -72,6 +75,8 @@ class MockMdtBloc extends MockBloc<MdtEvent, MdtState> implements MdtBloc {}
 
 class MockChatBloc extends MockBloc<ChatEvent, ChatState> implements ChatBloc {}
 
+class MockLockBloc extends MockBloc<LockEvent, LockState> implements LockBloc {}
+
 class MockAlertReviewBloc extends MockBloc<AlertReviewEvent, AlertReviewState>
     implements AlertReviewBloc {}
 
@@ -103,6 +108,7 @@ class FeatureBlocs {
     when(() => slideUpload.state).thenReturn(const SlideUploadInitial());
     when(() => mdt.state).thenReturn(const MdtInitial());
     when(() => chat.state).thenReturn(const ChatInitial());
+    when(() => lock.state).thenReturn(const LockInitial());
     when(() => desk.state).thenReturn(const DeskInitial());
     when(() => alertReview.state).thenReturn(const AlertReviewInitial());
     when(() => caseWorkspace.state).thenReturn(const CaseWorkspaceInitial());
@@ -119,6 +125,7 @@ class FeatureBlocs {
       slideUpload,
       mdt,
       chat,
+      lock,
       desk,
       alertReview,
       caseWorkspace,
@@ -138,6 +145,7 @@ class FeatureBlocs {
   final slideUpload = MockSlideUploadBloc();
   final mdt = MockMdtBloc();
   final chat = MockChatBloc();
+  final lock = MockLockBloc();
   final desk = MockDeskBloc();
   final alertReview = MockAlertReviewBloc();
   final caseWorkspace = MockCaseWorkspaceBloc();
@@ -154,6 +162,7 @@ class FeatureBlocs {
     BlocProvider<SlideUploadBloc>.value(value: slideUpload),
     BlocProvider<MdtBloc>.value(value: mdt),
     BlocProvider<ChatBloc>.value(value: chat),
+    BlocProvider<LockBloc>.value(value: lock),
     BlocProvider<DeskBloc>.value(value: desk),
     BlocProvider<AlertReviewBloc>.value(value: alertReview),
     BlocProvider<CaseWorkspaceBloc>.value(value: caseWorkspace),

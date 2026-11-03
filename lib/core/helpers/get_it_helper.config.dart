@@ -60,6 +60,9 @@ import 'package:tabibu/features/conversations/data/cache/conversation_cache_help
     as _i679;
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart'
     as _i746;
+import 'package:tabibu/features/lock/data/biometric_authenticator.dart'
+    as _i894;
+import 'package:tabibu/features/lock/data/lock_storage.dart' as _i377;
 import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart'
     as _i219;
 import 'package:tabibu/features/notifications/data/datasources/notification_firebase.dart'
@@ -156,6 +159,9 @@ extension GetItInjectableX on _i174.GetIt {
         functions: gh<_i809.FirebaseFunctions>(),
       ),
     );
+    gh.lazySingleton<_i894.BiometricAuthenticator>(
+      () => _i894.LocalBiometricAuthenticator(),
+    );
     gh.lazySingleton<_i726.ReportCacheHelper>(
       () => _i726.ReportCacheHelper(
         db: gh<_i705.DBHelper>(),
@@ -185,6 +191,9 @@ extension GetItInjectableX on _i174.GetIt {
         cases: gh<_i449.CaseFirebase>(),
         shares: gh<_i374.ShareCodeFirebase>(),
       ),
+    );
+    gh.lazySingleton<_i377.LockStorage>(
+      () => _i377.LockStorage(secureStorage: gh<_i558.FlutterSecureStorage>()),
     );
     gh.singleton<_i418.HiveHelper>(
       () => _i418.HiveHelperImpl(

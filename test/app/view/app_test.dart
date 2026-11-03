@@ -22,6 +22,8 @@ import 'package:tabibu/features/alerts/data/datasources/alert_topic_service.dart
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
 import 'package:tabibu/features/auth/presentation/decision_screen.dart';
+import 'package:tabibu/features/lock/data/biometric_authenticator.dart';
+import 'package:tabibu/features/lock/data/lock_storage.dart';
 
 class _MockAuthHelper extends Mock implements AuthHelper {}
 
@@ -38,6 +40,10 @@ class _MockThemeHelper extends Mock implements ThemeHelper {}
 class _MockAlertTopics extends Mock implements AlertTopicService {}
 
 class _MockFacilities extends Mock implements FacilitiesHelper {}
+
+class _MockLockStorage extends Mock implements LockStorage {}
+
+class _MockBiometrics extends Mock implements BiometricAuthenticator {}
 
 void main() {
   late _MockAuthHelper auth;
@@ -67,6 +73,8 @@ void main() {
       () => notifications.tokenRefreshes,
     ).thenAnswer((_) => const Stream.empty());
 
+    final lockStorage = _MockLockStorage();
+    when(lockStorage.isEnabled).thenAnswer((_) async => false);
     getIt
       ..registerSingleton<AuthHelper>(auth)
       ..registerSingleton<HiveHelper>(hive)
@@ -83,7 +91,9 @@ void main() {
       ..registerSingleton<RaspService>(RaspService())
       ..registerSingleton<ThemeHelper>(theme)
       ..registerSingleton<AlertTopicService>(_MockAlertTopics())
-      ..registerSingleton<FacilitiesHelper>(_MockFacilities());
+      ..registerSingleton<FacilitiesHelper>(_MockFacilities())
+      ..registerSingleton<LockStorage>(lockStorage)
+      ..registerSingleton<BiometricAuthenticator>(_MockBiometrics());
   });
 
   tearDown(getIt.reset);

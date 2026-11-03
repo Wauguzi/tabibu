@@ -65,6 +65,15 @@ List<RouteBase> get $appRoutes => [
   $pathologistMdtInviteRoute,
   $patientAppointmentChatRoute,
   $doctorAppointmentChatRoute,
+  $patientAppLockRoute,
+  $patientCreatePinRoute,
+  $patientLockAfterRoute,
+  $doctorAppLockRoute,
+  $doctorCreatePinRoute,
+  $doctorLockAfterRoute,
+  $pathologistAppLockRoute,
+  $pathologistCreatePinRoute,
+  $pathologistLockAfterRoute,
 ];
 
 RouteBase get $decisionRoute => GoRouteData.$route(
@@ -2319,6 +2328,249 @@ mixin $DoctorAppointmentChatRoute on GoRouteData {
   String get location => GoRouteData.$location(
     '/doctor/appointment/${Uri.encodeComponent(_self.appointmentUid)}/chat',
   );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientAppLockRoute => GoRouteData.$route(
+  path: '/patient/lock',
+  hasOverriddenOnExit: false,
+  factory: $PatientAppLockRoute._fromState,
+);
+
+mixin $PatientAppLockRoute on GoRouteData {
+  static PatientAppLockRoute _fromState(GoRouterState state) =>
+      const PatientAppLockRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/lock');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientCreatePinRoute => GoRouteData.$route(
+  path: '/patient/lock/create',
+  hasOverriddenOnExit: false,
+  factory: $PatientCreatePinRoute._fromState,
+);
+
+mixin $PatientCreatePinRoute on GoRouteData {
+  static PatientCreatePinRoute _fromState(GoRouterState state) =>
+      const PatientCreatePinRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/lock/create');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $patientLockAfterRoute => GoRouteData.$route(
+  path: '/patient/lock/after',
+  hasOverriddenOnExit: false,
+  factory: $PatientLockAfterRoute._fromState,
+);
+
+mixin $PatientLockAfterRoute on GoRouteData {
+  static PatientLockAfterRoute _fromState(GoRouterState state) =>
+      const PatientLockAfterRoute();
+
+  @override
+  String get location => GoRouteData.$location('/patient/lock/after');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorAppLockRoute => GoRouteData.$route(
+  path: '/doctor/lock',
+  hasOverriddenOnExit: false,
+  factory: $DoctorAppLockRoute._fromState,
+);
+
+mixin $DoctorAppLockRoute on GoRouteData {
+  static DoctorAppLockRoute _fromState(GoRouterState state) =>
+      const DoctorAppLockRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/lock');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorCreatePinRoute => GoRouteData.$route(
+  path: '/doctor/lock/create',
+  hasOverriddenOnExit: false,
+  factory: $DoctorCreatePinRoute._fromState,
+);
+
+mixin $DoctorCreatePinRoute on GoRouteData {
+  static DoctorCreatePinRoute _fromState(GoRouterState state) =>
+      const DoctorCreatePinRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/lock/create');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorLockAfterRoute => GoRouteData.$route(
+  path: '/doctor/lock/after',
+  hasOverriddenOnExit: false,
+  factory: $DoctorLockAfterRoute._fromState,
+);
+
+mixin $DoctorLockAfterRoute on GoRouteData {
+  static DoctorLockAfterRoute _fromState(GoRouterState state) =>
+      const DoctorLockAfterRoute();
+
+  @override
+  String get location => GoRouteData.$location('/doctor/lock/after');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistAppLockRoute => GoRouteData.$route(
+  path: '/pathologist/lock',
+  hasOverriddenOnExit: false,
+  factory: $PathologistAppLockRoute._fromState,
+);
+
+mixin $PathologistAppLockRoute on GoRouteData {
+  static PathologistAppLockRoute _fromState(GoRouterState state) =>
+      const PathologistAppLockRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/lock');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistCreatePinRoute => GoRouteData.$route(
+  path: '/pathologist/lock/create',
+  hasOverriddenOnExit: false,
+  factory: $PathologistCreatePinRoute._fromState,
+);
+
+mixin $PathologistCreatePinRoute on GoRouteData {
+  static PathologistCreatePinRoute _fromState(GoRouterState state) =>
+      const PathologistCreatePinRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/lock/create');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistLockAfterRoute => GoRouteData.$route(
+  path: '/pathologist/lock/after',
+  hasOverriddenOnExit: false,
+  factory: $PathologistLockAfterRoute._fromState,
+);
+
+mixin $PathologistLockAfterRoute on GoRouteData {
+  static PathologistLockAfterRoute _fromState(GoRouterState state) =>
+      const PathologistLockAfterRoute();
+
+  @override
+  String get location => GoRouteData.$location('/pathologist/lock/after');
 
   @override
   void go(BuildContext context) => context.go(location);

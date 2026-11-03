@@ -48,6 +48,9 @@ import 'package:tabibu/features/conversations/presentation/new_mdt_screen.dart';
 import 'package:tabibu/features/home/presentation/doctor_home_screen.dart';
 import 'package:tabibu/features/home/presentation/home_shell.dart';
 import 'package:tabibu/features/home/presentation/patient_home_screen.dart';
+import 'package:tabibu/features/lock/presentation/app_lock_screen.dart';
+import 'package:tabibu/features/lock/presentation/create_pin_screen.dart';
+import 'package:tabibu/features/lock/presentation/lock_after_screen.dart';
 import 'package:tabibu/features/notifications/presentation/notifications_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/get_started_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/intro_screen.dart';
@@ -1115,3 +1118,91 @@ class DoctorAppointmentChatRoute extends GoRouteData
 }
 
 // ── App lock (P-LOCK) ──────────────────────────────────────────────────────
+
+@TypedGoRoute<PatientAppLockRoute>(path: '${RoutePaths.patient}/lock')
+class PatientAppLockRoute extends GoRouteData with $PatientAppLockRoute {
+  const PatientAppLockRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const AppLockScreen(role: .patient);
+}
+
+@TypedGoRoute<PatientCreatePinRoute>(path: '${RoutePaths.patient}/lock/create')
+class PatientCreatePinRoute extends GoRouteData with $PatientCreatePinRoute {
+  const PatientCreatePinRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const CreatePinScreen(role: .patient);
+}
+
+@TypedGoRoute<PatientLockAfterRoute>(path: '${RoutePaths.patient}/lock/after')
+class PatientLockAfterRoute extends GoRouteData with $PatientLockAfterRoute {
+  const PatientLockAfterRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const LockAfterScreen();
+}
+
+@TypedGoRoute<DoctorAppLockRoute>(path: '${RoutePaths.doctor}/lock')
+class DoctorAppLockRoute extends GoRouteData with $DoctorAppLockRoute {
+  const DoctorAppLockRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const AppLockScreen(role: .doctor);
+}
+
+@TypedGoRoute<DoctorCreatePinRoute>(path: '${RoutePaths.doctor}/lock/create')
+class DoctorCreatePinRoute extends GoRouteData with $DoctorCreatePinRoute {
+  const DoctorCreatePinRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const CreatePinScreen(role: .doctor);
+}
+
+@TypedGoRoute<DoctorLockAfterRoute>(path: '${RoutePaths.doctor}/lock/after')
+class DoctorLockAfterRoute extends GoRouteData with $DoctorLockAfterRoute {
+  const DoctorLockAfterRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const LockAfterScreen();
+}
+
+@TypedGoRoute<PathologistAppLockRoute>(path: '${RoutePaths.pathologist}/lock')
+class PathologistAppLockRoute extends GoRouteData
+    with $PathologistAppLockRoute {
+  const PathologistAppLockRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const AppLockScreen(role: .pathologist);
+}
+
+@TypedGoRoute<PathologistCreatePinRoute>(
+  path: '${RoutePaths.pathologist}/lock/create',
+)
+class PathologistCreatePinRoute extends GoRouteData
+    with $PathologistCreatePinRoute {
+  const PathologistCreatePinRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const CreatePinScreen(role: .pathologist);
+}
+
+@TypedGoRoute<PathologistLockAfterRoute>(
+  path: '${RoutePaths.pathologist}/lock/after',
+)
+class PathologistLockAfterRoute extends GoRouteData
+    with $PathologistLockAfterRoute {
+  const PathologistLockAfterRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const LockAfterScreen();
+}
