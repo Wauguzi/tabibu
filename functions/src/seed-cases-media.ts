@@ -25,17 +25,25 @@ export type {
   Urgency,
 } from './preread-measure';
 export {
+  PREREAD_MAX_TILES,
   confidenceOf,
   cropTilePng,
+  decodeImage,
+  decodeJpeg,
   decodePng,
+  downscaleByFactor,
   draftNumbersMatch,
+  encodeJpeg,
   encodePng,
   heatmapPng,
   histologyDraft,
   histologyMeasurements,
+  isJpeg,
+  isPng,
   malariaDraft,
   malariaMeasurements,
   sha256Hex,
+  tileBudgetFactor,
 } from './preread-measure';
 
 export interface SlideSpec {
