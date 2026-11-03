@@ -96,11 +96,20 @@ these steps is being built on `feat/infra`; the architecture's §16 says what ex
 You need the Flutter version in `pubspec.yaml`, and Java 21 and Node.js for the Firebase
 emulators.
 
-```sh
-flutter pub get
-make gen        # generated models, routes, injectables and assets
-make run-dev    # the development flavor (also: make run-web)
-```
+| Step | What happens |
+|---|---|
+| 1. `flutter pub get` | Fetches the packages |
+| 2. `make gen` | Generates the models, routes, injectables and assets |
+| 3. `make run-dev` | Runs the development flavor (also: `make run-web`) |
+
+You are done when the app launches on a simulator, device or Chrome without a build error.
+
+**If it goes sideways:**
+
+- A missing `*.g.dart`, `*.freezed.dart` or `gen/` import means step 2 has not run; run `make gen`.
+- A missing `AppLocalizations` string means the localizations are stale; run `make l10n`.
+- `make run-dev` passes the App Check debug token from the macOS Keychain. Without one the app
+  still builds and runs, because App Check is active but not enforced.
 
 There are three flavors, `development`, `staging` and `production`, each with its own entry point
 in `lib/main_<flavor>.dart`.
@@ -144,6 +153,15 @@ make secrets                 # secret scan
 > [!TIP]
 > To spell-check only the files you edited, run
 > `npx cspell --no-progress -c .github/cspell.json <files>`; `make spell` covers the whole tree.
+
+You are done when every command exits clean. A failure in one is yours to fix before a change
+goes up, including spelling.
+
+**If it goes sideways:**
+
+- `make rules-test` and `make functions-test` need Java 21, and `make rules-test` stops if
+  port 8080 or 9199 is already taken; stop the other emulator first.
+- `make secrets` needs `gitleaks` (`brew install gitleaks`).
 
 Every user-visible string lives in both `lib/l10n/arb/app_en.arb` and `app_sw.arb`; `make l10n`
 regenerates the localizations.
