@@ -21,6 +21,11 @@ import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace
 import 'package:tabibu/features/reports/blocs/case_workspace_bloc/case_workspace_state.dart';
 import 'package:tabibu/features/reports/data/models/notifiable_finding_model.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_model.dart';
+import 'package:tabibu/features/reports/data/models/report_response_model.dart';
+import 'package:tabibu/features/reports/data/models/report_template_model.dart';
+import 'package:tabibu/features/reports/data/models/report_template_question_model.dart';
+import 'package:tabibu/features/reports/data/models/report_template_section_model.dart';
+import 'package:tabibu/features/reports/data/services/report_labels.dart';
 import 'package:tabibu/features/reports/presentation/widgets/case_request_view.dart';
 import 'package:tabibu/features/reports/presentation/widgets/sample_received_view.dart';
 import 'package:tabibu/features/reports/presentation/widgets/signed_case_view.dart';
@@ -59,6 +64,12 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
   final _comments = TextEditingController();
   final _scoreComment = TextEditingController();
 
+  /// The template's own questions: one field each, keyed `Section/question`.
+  /// The server will not sign a report until its required ones are answered.
+  final _answers = <String, TextEditingController>{};
+  ReportTemplateModel? _template;
+  String _templateKey = '';
+
   String? _findingsVerdict;
   String? _impressionVerdict;
   String? _urgencyVerdict;
@@ -93,6 +104,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
       );
     }
     _syncFields(bloc.state.draft);
+    unawaited(_loadTemplate(bloc.state.draft));
     // Rebuild so AI-frame vs "Your edit" switches on the first keystroke (H-2).
     _diagnosis.addListener(_onFieldEdited);
     _comments.addListener(_onFieldEdited);
@@ -113,6 +125,9 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
       ..removeListener(_onFieldEdited)
       ..dispose();
     _scoreComment.dispose();
+    for (final controller in _answers.values) {
+      controller.dispose();
+    }
     super.dispose();
   }
 
@@ -124,7 +139,100 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     if (_comments.text != draft.comments) {
       _comments.text = draft.comments;
     }
+    for (final entry in _answers.entries) {
+      final saved = _answerIn(draft, entry.key);
+      if (entry.value.text != saved) entry.value.text = saved;
+    }
   }
+
+  static String _answerKey(String section, String question) =>
+      '$section/$question';
+
+  String _answerIn(ReportDraftModel draft, String key) {
+    for (final r in draft.responses) {
+      if (_answerKey(r.section, r.question) == key) return r.answer;
+    }
+    return '';
+  }
+
+  /// The questions of the draft's template, once, as fields.
+  Future<void> _loadTemplate(ReportDraftModel? draft) async {
+    if (draft == null || draft.templateKey == _templateKey) return;
+    final key = draft.templateKey;
+    _templateKey = key;
+    ReportTemplateModel? found;
+    try {
+      final all = await _reference.reportTemplates();
+      for (final t in all) {
+        if (t.templateKey == key) found = t;
+      }
+    } on Object catch (_) {
+      found = null;
+    }
+    final loaded = found;
+    if (!mounted || loaded == null) return;
+    setState(() {
+      _template = loaded;
+      for (final section in loaded.sections) {
+        for (final q in section.questions) {
+          _answers.putIfAbsent(
+            _answerKey(section.sectionKey, q.questionKey),
+            TextEditingController.new,
+          );
+        }
+      }
+      _syncFields(draft);
+    });
+  }
+
+  /// The template's questions, in the order the report reads them.
+  List<(ReportTemplateSectionModel, List<ReportTemplateQuestionModel>)>
+  get _sections {
+    final template = _template;
+    if (template == null) return const [];
+    final sections = [...template.sections]
+      ..sort((a, b) => a.order.compareTo(b.order));
+    return [
+      for (final section in sections)
+        (
+          section,
+          [...section.questions]..sort((a, b) => a.order.compareTo(b.order)),
+        ),
+    ];
+  }
+
+  /// Required questions the saved draft has no answer for.
+  bool _missingRequired(ReportDraftModel draft) {
+    for (final (section, questions) in _sections) {
+      for (final q in questions) {
+        if (q.required &&
+            _answerIn(
+              draft,
+              _answerKey(section.sectionKey, q.questionKey),
+            ).trim().isEmpty) {
+          return true;
+        }
+      }
+    }
+    return false;
+  }
+
+  List<ReportResponseModel> _responsesNow() => [
+    for (final (section, questions) in _sections)
+      for (final q in questions)
+        if ((_answers[_answerKey(section.sectionKey, q.questionKey)]?.text ??
+                '')
+            .trim()
+            .isNotEmpty)
+          ReportResponseModel(
+            section: section.sectionKey,
+            question: q.questionKey,
+            answer: _answers[_answerKey(section.sectionKey, q.questionKey)]!
+                .text
+                .trim(),
+            order: q.order,
+          ),
+  ];
 
   Future<void> _loadRegister(CaseWorkspaceState state) async {
     if (_registerLoaded) return;
@@ -168,6 +276,13 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     final comments = _comments.text.trim();
     if (diagnosis != draft.diagnosis) fields['diagnosis'] = diagnosis;
     if (comments != draft.comments) fields['comments'] = comments;
+    final responses = _responsesNow();
+    String signature(List<ReportResponseModel> rows) =>
+        rows.map((r) => '${r.section}/${r.question}=${r.answer}').join('\n');
+    if (_template != null &&
+        signature(responses) != signature(draft.responses)) {
+      fields['responses'] = [for (final r in responses) r.toJson()];
+    }
     if (fields.isEmpty) return;
     _add(CaseDraftEdited(fields: fields));
   }
@@ -276,6 +391,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
           current is CaseWorkspaceLoadFailure,
       listener: (context, state) {
         _syncFields(state.draft);
+        unawaited(_loadTemplate(state.draft));
         unawaited(_loadRegister(state));
         unawaited(_loadImages(state.preread));
         if (state is CaseDraftSaveSuccess) {
@@ -555,6 +671,9 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                 diagnosis: _diagnosis,
                                 comments: _comments,
                                 confirmable: _confirmable,
+                                sections: _sections,
+                                answers: _answers,
+                                missingRequired: _missingRequired(draft),
                                 onWriteOwn: () =>
                                     setState(() => _writeOwn = true),
                                 onStartFromAi: () =>
@@ -582,7 +701,10 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                     ),
                     primary: TabibuButton.primary(
                       label: l10n.workspaceSignReport,
-                      onTap: draft.diagnosis.trim().isEmpty || locked
+                      onTap:
+                          draft.diagnosis.trim().isEmpty ||
+                              locked ||
+                              _missingRequired(draft)
                           ? null
                           : () => _openSign(state),
                     ),
@@ -690,6 +812,9 @@ class _ReportSection extends StatelessWidget {
     required this.diagnosis,
     required this.comments,
     required this.confirmable,
+    required this.sections,
+    required this.answers,
+    required this.missingRequired,
     required this.onWriteOwn,
     required this.onStartFromAi,
     required this.onDiagnosisType,
@@ -704,6 +829,10 @@ class _ReportSection extends StatelessWidget {
   final TextEditingController diagnosis;
   final TextEditingController comments;
   final List<NotifiableDiseaseModel> confirmable;
+  final List<(ReportTemplateSectionModel, List<ReportTemplateQuestionModel>)>
+  sections;
+  final Map<String, TextEditingController> answers;
+  final bool missingRequired;
   final VoidCallback onWriteOwn;
   final VoidCallback onStartFromAi;
   final ValueChanged<DiagnosisType> onDiagnosisType;
@@ -825,6 +954,31 @@ class _ReportSection extends StatelessWidget {
             readOnly: locked,
           ),
         ),
+        for (final (section, questions) in sections) ...[
+          const SizedBox(height: AppSpacing.md),
+          Text(
+            reportSectionLabel(l10n, section.sectionKey),
+            style: Theme.of(context).textTheme.titleMedium,
+          ),
+          for (final q in questions) ...[
+            const SizedBox(height: AppSpacing.sm),
+            TabibuTextField(
+              label: reportQuestionLabel(l10n, q.questionKey),
+              controller: answers['${section.sectionKey}/${q.questionKey}'],
+              required: q.required,
+              maxLines: 3,
+              maxLength: 4000,
+              readOnly: locked,
+            ),
+          ],
+        ],
+        if (missingRequired) ...[
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            l10n.workspaceRequiredBeforeSign,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
         CheckRow(
           circle: true,

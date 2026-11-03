@@ -1699,5 +1699,6 @@
     "workspaceSampleInvalid": "Tumia hadi herufi, namba, / au - 30.",
     "workspaceSampleSuggested": "Imetengenezwa kwa ajili yako. Ibadilishe maabara ikikupa nyingine.",
     "workspaceZoomIn": "Kuza",
-    "workspaceZoomOut": "Punguza"
+    "workspaceZoomOut": "Punguza",
+    "workspaceRequiredBeforeSign": "Jaza sehemu zenye nyota na uhifadhi rasimu ili kusaini."
 }

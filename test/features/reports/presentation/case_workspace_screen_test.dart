@@ -31,6 +31,10 @@ import 'package:tabibu/features/reports/data/models/notifiable_finding_model.dar
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/data/models/preread_score_model.dart';
 import 'package:tabibu/features/reports/data/models/report_draft_model.dart';
+import 'package:tabibu/features/reports/data/models/report_response_model.dart';
+import 'package:tabibu/features/reports/data/models/report_template_model.dart';
+import 'package:tabibu/features/reports/data/models/report_template_question_model.dart';
+import 'package:tabibu/features/reports/data/models/report_template_section_model.dart';
 import 'package:tabibu/features/reports/presentation/case_workspace_screen.dart';
 import 'package:tabibu/features/reports/presentation/widgets/signature_pad.dart';
 import 'package:tabibu/features/reports/presentation/widgets/signed_case_view.dart';
@@ -521,6 +525,174 @@ void main() {
           ),
         );
         expect(field.controller?.text, matches(RegExp(r'^LAB-WK-\d{8}-005$')));
+      });
+    });
+
+    group('the template questions', () {
+      const cancer = ReportTemplateModel(
+        templateKey: 'Cancer',
+        sections: [
+          ReportTemplateSectionModel(
+            sectionKey: 'Macroscopic',
+            order: 1,
+            questions: [
+              ReportTemplateQuestionModel(
+                questionKey: 'specimenDescription',
+                order: 1,
+                required: true,
+              ),
+              ReportTemplateQuestionModel(
+                questionKey: 'specimenSize',
+                order: 2,
+              ),
+            ],
+          ),
+          ReportTemplateSectionModel(
+            sectionKey: 'Microscopic',
+            order: 2,
+            questions: [
+              ReportTemplateQuestionModel(
+                questionKey: 'microscopicDescription',
+                order: 1,
+                required: true,
+              ),
+            ],
+          ),
+        ],
+      );
+
+      ReportDraftModel draft({
+        List<ReportResponseModel> responses = const [],
+      }) => ReportDraftModel(
+        uid: 'draft-1',
+        caseUid: _caseUid,
+        diagnosis: _ownDiagnosis,
+        comments: _ownComments,
+        templateKey: 'Cancer',
+        responses: responses,
+      );
+
+      CaseWorkspaceLoadSuccess loaded(ReportDraftModel d) =>
+          CaseWorkspaceLoadSuccess(
+            caseUid: _caseUid,
+            caseModel: _case(),
+            draft: d,
+          );
+
+      setUp(
+        () => when(reference.reportTemplates).thenAnswer((_) async => [cancer]),
+      );
+
+      Finder questionField(String label) => find.byWidgetPredicate(
+        (w) => w is TabibuTextField && w.label == label,
+      );
+
+      testWidgets('each question is a field, the required ones starred', (
+        tester,
+      ) async {
+        await pumpScreen(tester, loaded(draft()));
+
+        final specimen = tester.widget<TabibuTextField>(
+          questionField(l10n.reportQuestionSpecimenDescription),
+        );
+        final size = tester.widget<TabibuTextField>(
+          questionField(l10n.reportQuestionSpecimenSize),
+        );
+        final microscopic = tester.widget<TabibuTextField>(
+          questionField(l10n.reportQuestionMicroscopicDescription),
+        );
+        expect(specimen.required, isTrue);
+        expect(size.required, isFalse);
+        expect(microscopic.required, isTrue);
+        expect(find.text(l10n.reportSectionMacroscopic), findsWidgets);
+        expect(find.text(l10n.reportSectionMicroscopic), findsWidgets);
+      });
+
+      testWidgets('Sign stays closed, with its reason, until they are saved', (
+        tester,
+      ) async {
+        await pumpScreen(tester, loaded(draft()));
+
+        expect(find.text(l10n.workspaceRequiredBeforeSign), findsOneWidget);
+        final sign = tester.widget<TabibuButton>(
+          find.widgetWithText(TabibuButton, l10n.workspaceSignReport),
+        );
+        expect(sign.onTap, isNull);
+      });
+
+      testWidgets('saved answers fill the fields and open Sign', (
+        tester,
+      ) async {
+        await pumpScreen(
+          tester,
+          loaded(
+            draft(
+              responses: const [
+                ReportResponseModel(
+                  section: 'Macroscopic',
+                  question: 'specimenDescription',
+                  answer: 'One lymph node, 6 mm.',
+                  order: 1,
+                ),
+                ReportResponseModel(
+                  section: 'Microscopic',
+                  question: 'microscopicDescription',
+                  answer: 'A focus of carcinoma cells.',
+                  order: 1,
+                ),
+              ],
+            ),
+          ),
+        );
+
+        expect(find.text('One lymph node, 6 mm.'), findsOneWidget);
+        expect(find.text(l10n.workspaceRequiredBeforeSign), findsNothing);
+        final sign = tester.widget<TabibuButton>(
+          find.widgetWithText(TabibuButton, l10n.workspaceSignReport),
+        );
+        expect(sign.onTap, isNotNull);
+      });
+
+      testWidgets('Save draft sends the answers under their keys', (
+        tester,
+      ) async {
+        await pumpScreen(tester, loaded(draft()));
+
+        await tester.enterText(
+          find.descendant(
+            of: questionField(l10n.reportQuestionSpecimenDescription),
+            matching: find.byType(TextField),
+          ),
+          '  One lymph node, 6 mm.  ',
+        );
+        await tester.enterText(
+          find.descendant(
+            of: questionField(l10n.reportQuestionMicroscopicDescription),
+            matching: find.byType(TextField),
+          ),
+          'A focus of carcinoma cells.',
+        );
+        await tester.tap(find.text(l10n.workspaceSaveDraft));
+        await tester.pump();
+
+        final sent = verify(
+          () => blocs.caseWorkspace.add(captureAny()),
+        ).captured.whereType<CaseDraftEdited>().single;
+        final responses = sent.fields['responses'] as List<dynamic>;
+        expect(responses, [
+          {
+            'section': 'Macroscopic',
+            'question': 'specimenDescription',
+            'answer': 'One lymph node, 6 mm.',
+            'order': 1,
+          },
+          {
+            'section': 'Microscopic',
+            'question': 'microscopicDescription',
+            'answer': 'A focus of carcinoma cells.',
+            'order': 1,
+          },
+        ]);
       });
     });
 
