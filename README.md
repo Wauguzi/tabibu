@@ -32,15 +32,19 @@ Indie developer track, "Build for Your World" theme. The hackathon's inference p
 
 | | Role | What Tabibu uses |
 |---|---|---|
-| Meta | Host | The Muse models (Muse Spark, SAM 3.1, Muse Spark Open, Muse Voice Transcribe) through the Meta Model API, the API credits for the hackathon, and Muse Code, the coding agent Tabibu is built with |
+| Meta | Host | One Muse model, `muse-spark-1.3`, through the Meta Model API: the order risk check, the symptom summary, tile labelling for the pathology pre-read, the plain-language explanation of a signed report, and the outbreak alert draft. The hackathon's API credits, and Muse Code, the coding agent Tabibu is built with. **Not used:** SAM 3.1, Muse Spark Open and Muse Voice Transcribe |
 | Cerebral Valley | Host | The hackathon itself: the event, its schedule and its submission |
-| Baseten | Inference partner | Serving Muse Spark Open, which drafts the pathology report, the alert drafts and the patient explanations, on partner credits |
-| Modal | Inference partner | Compute for the AI service, on partner credits |
+| Baseten | Inference partner | Not used by Tabibu. The Meta Model API serves the one model, so there is nothing to serve elsewhere |
+| Modal | Inference partner | Not used by Tabibu, for the same reason |
 | Fireworks | Inference partner | Not used by Tabibu |
 
 > [!NOTE]
-> The AI service that calls these models is the next branch; the architecture's §16 says what is
-> built today.
+> The models run in Cloud Functions, never in the app, each behind its own Remote Config switch.
+> Live: the risk check, the symptom summary, the pathology pre-read and the explanation drafts. The
+> alert draft is built and off: alerts use their fixed template, which an approver reviews either
+> way. Every AI output is a draft: a pathologist signs the report, the doctor approves the patient's
+> explanation, and an approver releases an alert. What was measured, and what was not, is in
+> [CRQ-0051](./docs/crq/reports/CRQ-0051-live-ai-on-the-meta-model-api.md).
 
 ## How it works
 
