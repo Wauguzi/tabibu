@@ -1,7 +1,9 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/verification_timeline.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -16,7 +18,11 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/cases/data/models/ordered_test_model.dart';
 import 'package:tabibu/features/cases/presentation/patient_result_screen.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_state.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
+import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
+import 'package:tabibu/features/reports/data/models/report_text_model.dart';
 import 'package:tabibu/features/reports/presentation/widgets/listen_card.dart';
 import 'package:tabibu/features/reports/presentation/widgets/report_file_card.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -58,6 +64,7 @@ void main() {
     registerFallbackValue(const CasesRequested(uid: '', role: .patient));
     registerFallbackValue(const CaseLogRequested(caseUid: '', role: .patient));
     registerFallbackValue(const AppointmentsRequested(uid: '', role: .patient));
+    registerFallbackValue(const ReportReaderReset());
   });
 
   group('PatientResultScreen', () {
@@ -247,6 +254,218 @@ void main() {
         ),
       );
       expect(find.text(l10n.resultDetailShared), findsOneWidget);
+    });
+
+    group('explained entry (F-8)', () {
+      const releasedCase = CasesLoadSuccess(
+        cases: [
+          CaseModel(
+            uid: 'c1',
+            resultState: 'Released',
+            doctorName: 'Dr. Kamau',
+            currentReportUid: 'r1',
+            tests: [OrderedTestModel(name: 'Lymph node')],
+          ),
+        ],
+        reports: [PathologyReportModel(uid: 'r1', caseUid: 'c1')],
+      );
+
+      ReportReaderState reader({
+        Map<String, ReportTextApprovedModel> approved = const {},
+        Map<String, ReportTextModel> explanations = const {},
+        Role role = Role.patient,
+        String caseUid = 'c1',
+      }) => ReportReaderLoadSuccess(
+        uid: 'patient-1',
+        role: role,
+        caseUid: caseUid,
+        approved: approved,
+        explanations: explanations,
+      );
+
+      const approved = {
+        'en': ReportTextApprovedModel(
+          uid: 'v1_Explanation_en',
+          language: 'en',
+          approvedText: {'summary': 'Approved text'},
+        ),
+      };
+
+      Future<void> pumpWith(
+        WidgetTester tester, {
+        required ReportReaderState state,
+        CasesState cases = releasedCase,
+        ThemeMode themeMode = ThemeMode.light,
+        Locale? locale,
+      }) async {
+        _useTallSurface(tester);
+        when(() => blocs.reportReader.state).thenReturn(state);
+        await pumpScreen(
+          tester,
+          cases: cases,
+          themeMode: themeMode,
+          locale: locale,
+        );
+      }
+
+      testWidgets('shows the Explained row when the doctor approved one', (
+        tester,
+      ) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpWith(tester, state: reader(approved: approved));
+
+        expect(find.text(l10n.explainedHeadline('Dr. Kamau')), findsOneWidget);
+        expect(find.text(l10n.explainedAiAttribution), findsOneWidget);
+        expect(find.text('Approved text'), findsNothing);
+      });
+
+      testWidgets('shows no row without an approved explanation, even with '
+          'drafts in the state', (tester) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpWith(
+          tester,
+          state: reader(
+            explanations: const {
+              'en': ReportTextModel(
+                uid: 'v1_Explanation_en',
+                machineText: {'summary': 'DRAFT-SENTINEL'},
+              ),
+            },
+          ),
+        );
+
+        expect(find.text(l10n.explainedHeadline('Dr. Kamau')), findsNothing);
+        expect(find.text(l10n.explainedAiAttribution), findsNothing);
+        expect(find.text('DRAFT-SENTINEL'), findsNothing);
+      });
+
+      testWidgets('shows no row for another case', (tester) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpWith(
+          tester,
+          state: reader(approved: approved, caseUid: 'other'),
+        );
+
+        expect(find.text(l10n.explainedAiAttribution), findsNothing);
+      });
+
+      testWidgets('shows no row for another role', (tester) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpWith(
+          tester,
+          state: reader(approved: approved, role: Role.doctor),
+        );
+
+        expect(find.text(l10n.explainedAiAttribution), findsNothing);
+      });
+
+      testWidgets('shows no row while the result is still with the doctor', (
+        tester,
+      ) async {
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpWith(
+          tester,
+          state: reader(approved: approved),
+          cases: const CasesLoadSuccess(
+            cases: [
+              CaseModel(
+                uid: 'c1',
+                resultState: 'WithDoctor',
+                doctorName: 'Dr. Kamau',
+              ),
+            ],
+          ),
+        );
+
+        expect(find.text(l10n.explainedAiAttribution), findsNothing);
+      });
+
+      testWidgets('reads the case through the reader only, opening it as '
+          'the patient', (tester) async {
+        await pumpWith(tester, state: const ReportReaderInitial());
+
+        final added = verify(
+          () => blocs.reportReader.add(captureAny()),
+        ).captured;
+        expect(added, [
+          const ReportReaderOpened(
+            uid: 'patient-1',
+            role: Role.patient,
+            caseUid: 'c1',
+          ),
+        ]);
+      });
+
+      testWidgets('does not reopen a case the reader already holds', (
+        tester,
+      ) async {
+        await pumpWith(tester, state: reader(approved: approved));
+
+        verifyNever(() => blocs.reportReader.add(any()));
+      });
+
+      testWidgets('tapping the row opens the explained result', (tester) async {
+        _useTallSurface(tester);
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        when(() => blocs.cases.state).thenReturn(releasedCase);
+        when(
+          () => blocs.appointments.state,
+        ).thenReturn(const AppointmentsLoadSuccess());
+        when(
+          () => authBloc.state,
+        ).thenReturn(SignInSuccess(session: _session()));
+        when(
+          () => blocs.reportReader.state,
+        ).thenReturn(reader(approved: approved));
+        final router = GoRouter(
+          initialLocation: '/result',
+          routes: [
+            GoRoute(
+              path: '/result',
+              builder: (_, _) => MultiBlocProvider(
+                providers: [
+                  BlocProvider<AuthBloc>.value(value: authBloc),
+                  ...blocs.providers,
+                ],
+                child: const PatientResultScreen(caseUid: 'c1'),
+              ),
+            ),
+            GoRoute(
+              path: '/patient/result/:caseUid/explained',
+              builder: (_, state) =>
+                  Text('stub explained ${state.pathParameters['caseUid']}'),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpRouterApp(router);
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 300));
+
+        await tester.tap(find.text(l10n.explainedAiAttribution));
+        await tester.pumpAndSettle();
+
+        expect(find.text('stub explained c1'), findsOneWidget);
+      });
+
+      for (final scale in const [1.3, 2.0]) {
+        testWidgets('draws in dark mode and Swahili at ${scale}x', (
+          tester,
+        ) async {
+          tester.platformDispatcher.textScaleFactorTestValue = scale;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          final sw = lookupAppLocalizations(const Locale('sw'));
+          await pumpWith(
+            tester,
+            state: reader(approved: approved),
+            themeMode: ThemeMode.dark,
+            locale: const Locale('sw'),
+          );
+
+          expect(find.text(sw.explainedAiAttribution), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        });
+      }
     });
 
     testWidgets('grows at 1.3x without overflow', (tester) async {

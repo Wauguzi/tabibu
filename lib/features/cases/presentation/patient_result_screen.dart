@@ -21,6 +21,8 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
+import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/presentation/widgets/report_file_card.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -56,6 +58,17 @@ class _PatientResultScreenState extends State<PatientResultScreen> {
     context.read<AppointmentsBloc>().add(
       AppointmentsRequested(uid: _patient.uid, role: .patient),
     );
+    final reader = context.read<ReportReaderBloc>();
+    if (reader.state.caseUid != widget.caseUid ||
+        reader.state.role != .patient) {
+      reader.add(
+        ReportReaderOpened(
+          uid: _patient.uid,
+          role: .patient,
+          caseUid: widget.caseUid,
+        ),
+      );
+    }
   }
 
   @override
@@ -383,7 +396,17 @@ class _SharedBody extends StatelessWidget {
     // Next-steps checklist only when the report carries them as text — the
     // model has no nextSteps field, so omit (bundle: otherwise omit).
     // ListenCard omitted (H-9 / explanations only).
-    // Explained-result row skipped until R-4 / ReportReaderBloc.
+
+    // Only text the doctor approved can open P-14 (F-8); the reader's drafts
+    // are never read here.
+    final reader = context.watch<ReportReaderBloc>().state;
+    final explained =
+        reader.caseUid == caseModel.uid &&
+        reader.role == .patient &&
+        reader.approved.isNotEmpty;
+    final explainedDoctor = caseModel.doctorName.isNotEmpty
+        ? caseModel.doctorName
+        : (reader.approved.values.firstOrNull?.approverName ?? '');
 
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.md),
@@ -436,6 +459,21 @@ class _SharedBody extends StatelessWidget {
                 ],
               ),
             ),
+          ),
+        ],
+        if (explained) ...[
+          const SizedBox(height: AppSpacing.md),
+          ListRowCard(
+            leading: IconTile(icon: Assets.icons.notesIcon, tone: .lavender),
+            title: explainedDoctor.isEmpty
+                ? l10n.explainedAiAttribution
+                : l10n.explainedHeadline(explainedDoctor),
+            subtitle: explainedDoctor.isEmpty
+                ? null
+                : l10n.explainedAiAttribution,
+            onTap: () => ExplainedResultRoute(
+              caseUid: caseModel.uid,
+            ).push<void>(context),
           ),
         ],
         const SizedBox(height: AppSpacing.md),
