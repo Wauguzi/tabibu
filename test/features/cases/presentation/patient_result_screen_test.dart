@@ -7,7 +7,6 @@ import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
-import 'package:tabibu/core/widgets/verification_timeline.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';

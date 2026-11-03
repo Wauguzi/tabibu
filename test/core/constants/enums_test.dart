@@ -168,6 +168,18 @@ void main() {
         'invalidPathologist': AppError.invalidPathologist,
         'pathologistDeclined': AppError.invalidPathologist,
         'dailyOrderLimit': AppError.dailyOrderLimit,
+        'wrongCode': AppError.wrongShareCode,
+        'shareExpired': AppError.shareExpired,
+        'shareLocked': AppError.shareLocked,
+        'shareClosed': AppError.shareClosed,
+        'slidesNotRequired': AppError.slidesNotRequired,
+        'invalidStage': AppError.invalidStage,
+        'notOnCase': AppError.notOnCase,
+        'tooManySlides': AppError.tooManySlides,
+        'slideNotUploaded': AppError.slideNotUploaded,
+        'slideNotReserved': AppError.slideNotReserved,
+        'invalidSlides': AppError.invalidSlides,
+        'invalidCount': AppError.invalidSlides,
       };
       for (final entry in keys.entries) {
         final exception = _TestFunctionsException(

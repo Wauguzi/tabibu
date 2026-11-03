@@ -54,6 +54,8 @@ import 'package:tabibu/features/cases/data/datasources/case_firebase.dart'
     as _i449;
 import 'package:tabibu/features/cases/data/datasources/share_code_firebase.dart'
     as _i374;
+import 'package:tabibu/features/cases/data/datasources/slide_storage.dart'
+    as _i496;
 import 'package:tabibu/features/conversations/data/cache/conversation_cache_helper.dart'
     as _i679;
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart'
@@ -192,6 +194,9 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i275.ProfileStorage>(
       () => _i275.ProfileStorage(storage: gh<_i457.FirebaseStorage>()),
+    );
+    gh.lazySingleton<_i496.SlideStorage>(
+      () => _i496.SlideStorage(storage: gh<_i457.FirebaseStorage>()),
     );
     gh.lazySingleton<_i434.PrereadStorage>(
       () => _i434.PrereadStorage(storage: gh<_i457.FirebaseStorage>()),

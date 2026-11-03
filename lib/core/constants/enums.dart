@@ -293,6 +293,14 @@ enum AppError implements Exception {
   shareExpired,
   shareLocked,
   shareClosed,
+  // Slide upload refusals (bundle 54). Descriptions wait on Muse keys.
+  slidesNotRequired,
+  invalidStage,
+  notOnCase,
+  tooManySlides,
+  slideNotUploaded,
+  slideNotReserved,
+  invalidSlides,
   // Thrown directly by the auth flow, not from a Firebase code.
   practitionerPendingVerification,
   noRoleAssigned,
@@ -350,6 +358,13 @@ enum AppError implements Exception {
       'shareExpired' => AppError.shareExpired,
       'shareLocked' => AppError.shareLocked,
       'shareClosed' => AppError.shareClosed,
+      'slidesNotRequired' => AppError.slidesNotRequired,
+      'invalidStage' => AppError.invalidStage,
+      'notOnCase' => AppError.notOnCase,
+      'tooManySlides' => AppError.tooManySlides,
+      'slideNotUploaded' => AppError.slideNotUploaded,
+      'slideNotReserved' => AppError.slideNotReserved,
+      'invalidSlides' || 'invalidCount' => AppError.invalidSlides,
       _ => null,
     };
     return reason ?? fromFirebaseCode(e.code);
@@ -449,6 +464,16 @@ enum AppError implements Exception {
     .shareExpired => l10n.shareCodeExpired,
     .shareLocked => l10n.shareCodeLocked,
     .shareClosed => l10n.shareCodeUsed,
+    // Bundle 55 adds errorSlidesNotRequired, errorInvalidStage,
+    // errorNotOnCase, errorTooManySlides, errorSlideNotUploaded,
+    // errorSlideNotReserved and errorInvalidSlides.
+    .slidesNotRequired ||
+    .invalidStage ||
+    .notOnCase ||
+    .tooManySlides ||
+    .slideNotUploaded ||
+    .slideNotReserved ||
+    .invalidSlides => l10n.errorUnknown,
     .practitionerPendingVerification =>
       l10n.errorPractitionerPendingVerification,
     .noRoleAssigned => l10n.errorNoRoleAssigned,

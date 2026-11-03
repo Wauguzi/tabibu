@@ -102,6 +102,15 @@ class AnalyticsService {
     ),
   );
 
+  /// Slides registered by one upload request: a count, never a uid, name,
+  /// path or anything read off the image.
+  Future<void> logSlidesUploaded({required int count}) => _guard(
+    () => _analytics.logEvent(
+      name: 'slides_uploaded',
+      parameters: {'count': count},
+    ),
+  );
+
   Future<void> _guard(Future<void> Function() body) async {
     try {
       await body();
