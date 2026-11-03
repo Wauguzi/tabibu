@@ -15,6 +15,7 @@ import {
   offsetsAreSpread,
   pageOffsets,
   requireBalancedMinimum,
+  spreadOrder,
   sourceKey,
 } from './pcam-stage';
 
@@ -112,5 +113,15 @@ describe('pcam-stage (bundle 69)', () => {
     assert.ok((labelAgreement(primary, shifted) as number) < PCAM_MIN_LABEL_AGREEMENT);
     // Too little overlap to say.
     assert.equal(labelAgreement(primary.slice(0, 10), inverted.slice(0, 10)), null);
+  });
+
+  it('tries candidates spread through the pool first, then the rest, each once', () => {
+    const pool = Array.from({ length: 10 }, (_, i) => i);
+    const order = spreadOrder(pool, 5);
+    assert.deepEqual(order.slice(0, 5), [0, 2, 4, 6, 8]);
+    assert.deepEqual([...order].sort((a, b) => a - b), pool);
+    assert.deepEqual(spreadOrder(pool, 5), order);
+    // A pool no bigger than the want is simply taken in order.
+    assert.deepEqual(spreadOrder([7, 8, 9], 5), [7, 8, 9]);
   });
 });

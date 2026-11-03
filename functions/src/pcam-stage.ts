@@ -171,3 +171,13 @@ export function labelAgreement(
   }
   return overlap < minOverlap ? null : same / overlap;
 }
+
+/** Candidates in the order to try them: evenly spaced through the pool first, then the rest. */
+export function spreadOrder<T>(pool: T[], want: number): T[] {
+  const step = pool.length / want;
+  const first = new Set<number>();
+  for (let i = 0; i < want && step >= 1; i++) first.add(Math.floor(i * step));
+  const order = [...first].sort((a, b) => a - b);
+  for (let i = 0; i < pool.length; i++) if (!first.has(i)) order.push(i);
+  return order.map((i) => pool[i]);
+}

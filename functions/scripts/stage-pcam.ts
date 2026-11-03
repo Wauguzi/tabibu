@@ -15,7 +15,7 @@
  *   npx ts-node scripts/stage-pcam.ts --fetch
  */
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 import { decodeImage, encodePng } from '../src/preread-measure';
@@ -32,6 +32,7 @@ import {
   labelOf,
   pageOffsets,
   requireBalancedMinimum,
+  spreadOrder,
   sourceKey,
   type PcamCandidate,
   type PcamSplit,
@@ -252,6 +253,94 @@ async function pageSplit(
   return { candidates, offsets };
 }
 
+/** Tiles per class in a staged set: 100 of each, so 200 a set. */
+const TARGET_PER_CLASS = 100;
+
+async function stageSet(
+  rows: PcamCandidate[],
+  dir: string,
+  name: 'tune' | 'eval',
+  offsets: number[],
+  dataset: string,
+  revision: string,
+  seen: Set<string>,
+): Promise<StagedManifestRow[]> {
+  // A set is staged from nothing: leftovers from an earlier run are not part of it.
+  rmSync(dir, { recursive: true, force: true });
+  mkdirSync(dir, { recursive: true });
+  const out: StagedManifestRow[] = [];
+  const hashes: string[] = [];
+  let skipped = 0;
+  for (const label of ['Tumour', 'Normal'] as const) {
+    const pool = rows.filter((r) => r.label === label);
+    let got = 0;
+    for (const row of spreadOrder(pool, TARGET_PER_CLASS)) {
+      if (got >= TARGET_PER_CLASS) break;
+      const id = `${row.split}-${row.row}`;
+      const dest = join(dir, `${id}.png`);
+      await downloadPng(row.imageSrc, dest);
+      await sleep(50);
+      const hash = createHash('sha256').update(readFileSync(dest)).digest('hex');
+      if (seen.has(hash)) {
+        rmSync(dest, { force: true });
+        skipped += 1;
+        continue;
+      }
+      seen.add(hash);
+      hashes.push(hash);
+      got += 1;
+      out.push({
+        id,
+        label: row.label,
+        path: dest,
+        split: row.split,
+        row: row.row,
+        dataset,
+        datasetRevision: revision,
+        offsets,
+      });
+    }
+    if (got < TARGET_PER_CLASS) {
+      throw new Error(
+        `refused: only ${got} distinct ${label} tiles for the ${name} set (need ${TARGET_PER_CLASS}); not padding`,
+      );
+    }
+  }
+  assertNoDuplicateHashes(hashes);
+  const manifestPath = join(dir, 'manifest.json');
+  writeFileSync(
+    manifestPath,
+    JSON.stringify(
+      {
+        dataset,
+        datasetRevision: revision,
+        offsets,
+        pageLength: PCAM_PAGE_LENGTH,
+        pageCount: PCAM_PAGE_COUNT,
+        rows: out,
+      },
+      null,
+      2,
+    ),
+  );
+  console.log(
+    JSON.stringify(
+      {
+        set: name,
+        eligibleBeforeBalance: countByLabel(rows),
+        afterBalance: countByLabel(out),
+        repeatedImagesSkipped: skipped,
+        manifest: manifestPath,
+        dataset,
+        datasetRevision: revision || null,
+      },
+      null,
+      2,
+    ),
+  );
+  return out;
+}
+
 async function main(): Promise<void> {
   const used = seedSources();
   const offsetPlan = Object.fromEntries(
@@ -290,86 +379,30 @@ async function main(): Promise<void> {
   const tuneRaw = [...train.candidates, ...valid.candidates];
   const evalRaw = test.candidates;
 
-  let tuneBalanced: PcamCandidate[];
-  let evalBalanced: PcamCandidate[];
+  // Each class needs enough candidates before anything is downloaded.
   try {
-    tuneBalanced = requireBalancedMinimum(tuneRaw);
-    evalBalanced = requireBalancedMinimum(evalRaw);
+    requireBalancedMinimum(tuneRaw);
+    requireBalancedMinimum(evalRaw);
   } catch (e) {
     console.error(e instanceof Error ? e.message : 'balance refused');
     process.exitCode = 1;
     return;
   }
 
-  assertDisjointSets(tuneBalanced, evalBalanced);
-
-  mkdirSync(TUNE_DIR, { recursive: true });
-  mkdirSync(EVAL_DIR, { recursive: true });
-
-  const writeSet = async (
-    rows: PcamCandidate[],
-    dir: string,
-    name: 'tune' | 'eval',
-    offsets: number[],
-  ): Promise<StagedManifestRow[]> => {
-    const out: StagedManifestRow[] = [];
-    const hashes: string[] = [];
-    for (const row of rows) {
-      const id = `${row.split}-${row.row}`;
-      const dest = join(dir, `${id}.png`);
-      if (!existsSync(dest)) {
-        await downloadPng(row.imageSrc, dest);
-        await sleep(50);
-      }
-      const bytes = readFileSync(dest);
-      hashes.push(createHash('sha256').update(bytes).digest('hex'));
-      out.push({
-        id,
-        label: row.label,
-        path: dest,
-        split: row.split,
-        row: row.row,
-        dataset,
-        datasetRevision: revision,
-        offsets,
-      });
-    }
-    assertNoDuplicateHashes(hashes);
-    const manifestPath = join(dir, 'manifest.json');
-    writeFileSync(
-      manifestPath,
-      JSON.stringify(
-        {
-          dataset,
-          datasetRevision: revision,
-          offsets,
-          pageLength: PCAM_PAGE_LENGTH,
-          pageCount: PCAM_PAGE_COUNT,
-          rows: out,
-        },
-        null,
-        2,
-      ),
-    );
-    console.log(
-      JSON.stringify(
-        {
-          set: name,
-          eligibleBeforeBalance: countByLabel(name === 'tune' ? tuneRaw : evalRaw),
-          afterBalance: countByLabel(out),
-          manifest: manifestPath,
-          dataset,
-          datasetRevision: revision || null,
-        },
-        null,
-        2,
-      ),
-    );
-    return out;
-  };
-
-  await writeSet(tuneBalanced, TUNE_DIR, 'tune', [...train.offsets, ...valid.offsets]);
-  await writeSet(evalBalanced, EVAL_DIR, 'eval', test.offsets);
+  // A tile whose bytes were already staged (in this set or the other) is skipped for the next one;
+  // the dataset repeats blank background patches, which is the source's doing, not padding.
+  const seenHashes = new Set<string>();
+  let tuneStaged: StagedManifestRow[];
+  let evalStaged: StagedManifestRow[];
+  try {
+    tuneStaged = await stageSet(tuneRaw, TUNE_DIR, 'tune', [...train.offsets, ...valid.offsets], dataset, revision, seenHashes);
+    evalStaged = await stageSet(evalRaw, EVAL_DIR, 'eval', test.offsets, dataset, revision, seenHashes);
+  } catch (e) {
+    console.error(e instanceof Error ? e.message : 'staging refused');
+    process.exitCode = 1;
+    return;
+  }
+  assertDisjointSets(tuneStaged, evalStaged);
 }
 
 main().catch((error) => {
