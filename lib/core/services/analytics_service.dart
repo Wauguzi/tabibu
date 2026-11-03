@@ -102,6 +102,31 @@ class AnalyticsService {
     ),
   );
 
+  /// Group consult events carry no ids, names or text.
+  Future<void> logMdtOpened() =>
+      _guard(() => _analytics.logEvent(name: 'mdt_opened'));
+
+  Future<void> logMdtInvited({required int count}) => _guard(
+    () =>
+        _analytics.logEvent(name: 'mdt_invited', parameters: {'count': count}),
+  );
+
+  Future<void> logMdtResponded({required bool accepted}) => _guard(
+    () => _analytics.logEvent(
+      name: 'mdt_responded',
+      parameters: {'accepted': accepted ? 1 : 0},
+    ),
+  );
+
+  Future<void> logMdtLeft() =>
+      _guard(() => _analytics.logEvent(name: 'mdt_left'));
+
+  Future<void> logMdtMemberRemoved() =>
+      _guard(() => _analytics.logEvent(name: 'mdt_member_removed'));
+
+  Future<void> logMdtMessageSent() =>
+      _guard(() => _analytics.logEvent(name: 'mdt_message_sent'));
+
   /// Slides registered by one upload request: a count, never a uid, name,
   /// path or anything read off the image.
   Future<void> logSlidesUploaded({required int count}) => _guard(

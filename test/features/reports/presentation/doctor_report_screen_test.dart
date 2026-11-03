@@ -1067,9 +1067,8 @@ void main() {
     });
 
     group('options', () {
-      testWidgets('the options sheet has one row that opens the full report', (
-        tester,
-      ) async {
+      testWidgets('rule 6: the options sheet opens the full report or starts '
+          'an MDT consult on this case', (tester) async {
         await pumpScreen(tester, reader: loaded(_report()));
 
         await tester.tap(find.byType(MoreButton));
@@ -1078,7 +1077,8 @@ void main() {
 
         expect(find.text('Open pathology report'), findsOneWidget);
         expect(find.text('Full findings'), findsOneWidget);
-        expect(find.textContaining('MDT consult'), findsNothing);
+        expect(find.text('Start an MDT consult'), findsOneWidget);
+        expect(find.text('Bring in other doctors'), findsOneWidget);
         expect(find.textContaining('Message'), findsNothing);
 
         await tester.tap(find.text('Open pathology report'));

@@ -40,10 +40,13 @@ import 'package:tabibu/features/cases/presentation/share_done_screen.dart';
 import 'package:tabibu/features/cases/presentation/share_report_screen.dart';
 import 'package:tabibu/features/cases/presentation/shared_reports_screen.dart';
 import 'package:tabibu/features/cases/presentation/who_can_see_screen.dart';
+import 'package:tabibu/features/conversations/presentation/mdt_consult_screen.dart';
+import 'package:tabibu/features/conversations/presentation/mdt_invite_screen.dart';
+import 'package:tabibu/features/conversations/presentation/mdt_screen.dart';
+import 'package:tabibu/features/conversations/presentation/new_mdt_screen.dart';
 import 'package:tabibu/features/home/presentation/doctor_home_screen.dart';
 import 'package:tabibu/features/home/presentation/home_shell.dart';
 import 'package:tabibu/features/home/presentation/patient_home_screen.dart';
-import 'package:tabibu/features/home/presentation/title_tab_screen.dart';
 import 'package:tabibu/features/notifications/presentation/notifications_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/get_started_screen.dart';
 import 'package:tabibu/features/onboarding/presentation/intro_screen.dart';
@@ -65,7 +68,6 @@ import 'package:tabibu/features/worklist/blocs/desk_bloc/desk_state.dart';
 import 'package:tabibu/features/worklist/presentation/desk_list_screen.dart';
 import 'package:tabibu/features/worklist/presentation/desk_screen.dart';
 import 'package:tabibu/features/worklist/presentation/desk_search_screen.dart';
-import 'package:tabibu/l10n/l10n.dart';
 
 part 'app_routes.g.dart';
 
@@ -461,7 +463,7 @@ class DoctorMdtRoute extends GoRouteData with $DoctorMdtRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      TitleTabScreen(role: .doctor, title: context.l10n.mdtTitle);
+      const MdtScreen(role: .doctor);
 }
 
 class DoctorProfileRoute extends GoRouteData with $DoctorProfileRoute {
@@ -533,7 +535,7 @@ class PathologistMdtRoute extends GoRouteData with $PathologistMdtRoute {
 
   @override
   Widget build(BuildContext context, GoRouterState state) =>
-      TitleTabScreen(role: .pathologist, title: context.l10n.mdtTitle);
+      const MdtScreen(role: .pathologist);
 }
 
 class PathologistProfileRoute extends GoRouteData
@@ -989,4 +991,90 @@ class CompareRoute extends GoRouteData with $CompareRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       CompareScreen(caseUid: caseUid);
+}
+
+// ── MDT (D-MDT, PA-MDT) ────────────────────────────────────────────────────
+// Detail routes carry ids only (F-2). `new` is declared before the consult
+// route so it is never read as a conversation id.
+
+/// D-MDT · New consult, optionally on a case already chosen.
+@TypedGoRoute<DoctorMdtNewRoute>(path: '${RoutePaths.doctor}/mdt/new')
+class DoctorMdtNewRoute extends GoRouteData with $DoctorMdtNewRoute {
+  const DoctorMdtNewRoute({this.caseUid});
+
+  final String? caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      NewMdtScreen(role: .doctor, caseUid: caseUid ?? '');
+}
+
+/// D-MDT · A consult, or an invite to one.
+@TypedGoRoute<DoctorMdtConsultRoute>(
+  path: '${RoutePaths.doctor}/mdt/:conversationUid',
+)
+class DoctorMdtConsultRoute extends GoRouteData with $DoctorMdtConsultRoute {
+  const DoctorMdtConsultRoute({required this.conversationUid});
+
+  final String conversationUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      MdtConsultScreen(role: .doctor, conversationUid: conversationUid);
+}
+
+/// D-MDT · Invite a colleague to a consult.
+@TypedGoRoute<DoctorMdtInviteRoute>(
+  path: '${RoutePaths.doctor}/mdt/:conversationUid/invite',
+)
+class DoctorMdtInviteRoute extends GoRouteData with $DoctorMdtInviteRoute {
+  const DoctorMdtInviteRoute({required this.conversationUid});
+
+  final String conversationUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      MdtInviteScreen(role: .doctor, conversationUid: conversationUid);
+}
+
+/// PA-MDT · New consult, optionally on a case already chosen.
+@TypedGoRoute<PathologistMdtNewRoute>(path: '${RoutePaths.pathologist}/mdt/new')
+class PathologistMdtNewRoute extends GoRouteData with $PathologistMdtNewRoute {
+  const PathologistMdtNewRoute({this.caseUid});
+
+  final String? caseUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      NewMdtScreen(role: .pathologist, caseUid: caseUid ?? '');
+}
+
+/// PA-MDT · A consult, or an invite to one.
+@TypedGoRoute<PathologistMdtConsultRoute>(
+  path: '${RoutePaths.pathologist}/mdt/:conversationUid',
+)
+class PathologistMdtConsultRoute extends GoRouteData
+    with $PathologistMdtConsultRoute {
+  const PathologistMdtConsultRoute({required this.conversationUid});
+
+  final String conversationUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      MdtConsultScreen(role: .pathologist, conversationUid: conversationUid);
+}
+
+/// PA-MDT · Invite a colleague to a consult.
+@TypedGoRoute<PathologistMdtInviteRoute>(
+  path: '${RoutePaths.pathologist}/mdt/:conversationUid/invite',
+)
+class PathologistMdtInviteRoute extends GoRouteData
+    with $PathologistMdtInviteRoute {
+  const PathologistMdtInviteRoute({required this.conversationUid});
+
+  final String conversationUid;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      MdtInviteScreen(role: .pathologist, conversationUid: conversationUid);
 }

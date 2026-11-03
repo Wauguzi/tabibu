@@ -57,6 +57,12 @@ List<RouteBase> get $appRoutes => [
   $pathologistEnterShareCodeRoute,
   $tilesRoute,
   $compareRoute,
+  $doctorMdtNewRoute,
+  $doctorMdtConsultRoute,
+  $doctorMdtInviteRoute,
+  $pathologistMdtNewRoute,
+  $pathologistMdtConsultRoute,
+  $pathologistMdtInviteRoute,
 ];
 
 RouteBase get $decisionRoute => GoRouteData.$route(
@@ -2048,6 +2054,202 @@ mixin $CompareRoute on GoRouteData {
   @override
   String get location => GoRouteData.$location(
     '/pathologist/case/${Uri.encodeComponent(_self.caseUid)}/compare',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorMdtNewRoute => GoRouteData.$route(
+  path: '/doctor/mdt/new',
+  hasOverriddenOnExit: false,
+  factory: $DoctorMdtNewRoute._fromState,
+);
+
+mixin $DoctorMdtNewRoute on GoRouteData {
+  static DoctorMdtNewRoute _fromState(GoRouterState state) =>
+      DoctorMdtNewRoute(caseUid: state.uri.queryParameters['case-uid']);
+
+  DoctorMdtNewRoute get _self => this as DoctorMdtNewRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/doctor/mdt/new',
+    queryParams: {if (_self.caseUid != null) 'case-uid': _self.caseUid},
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorMdtConsultRoute => GoRouteData.$route(
+  path: '/doctor/mdt/:conversationUid',
+  hasOverriddenOnExit: false,
+  factory: $DoctorMdtConsultRoute._fromState,
+);
+
+mixin $DoctorMdtConsultRoute on GoRouteData {
+  static DoctorMdtConsultRoute _fromState(GoRouterState state) =>
+      DoctorMdtConsultRoute(
+        conversationUid: state.pathParameters['conversationUid']!,
+      );
+
+  DoctorMdtConsultRoute get _self => this as DoctorMdtConsultRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/doctor/mdt/${Uri.encodeComponent(_self.conversationUid)}',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $doctorMdtInviteRoute => GoRouteData.$route(
+  path: '/doctor/mdt/:conversationUid/invite',
+  hasOverriddenOnExit: false,
+  factory: $DoctorMdtInviteRoute._fromState,
+);
+
+mixin $DoctorMdtInviteRoute on GoRouteData {
+  static DoctorMdtInviteRoute _fromState(GoRouterState state) =>
+      DoctorMdtInviteRoute(
+        conversationUid: state.pathParameters['conversationUid']!,
+      );
+
+  DoctorMdtInviteRoute get _self => this as DoctorMdtInviteRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/doctor/mdt/${Uri.encodeComponent(_self.conversationUid)}/invite',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistMdtNewRoute => GoRouteData.$route(
+  path: '/pathologist/mdt/new',
+  hasOverriddenOnExit: false,
+  factory: $PathologistMdtNewRoute._fromState,
+);
+
+mixin $PathologistMdtNewRoute on GoRouteData {
+  static PathologistMdtNewRoute _fromState(GoRouterState state) =>
+      PathologistMdtNewRoute(caseUid: state.uri.queryParameters['case-uid']);
+
+  PathologistMdtNewRoute get _self => this as PathologistMdtNewRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/pathologist/mdt/new',
+    queryParams: {if (_self.caseUid != null) 'case-uid': _self.caseUid},
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistMdtConsultRoute => GoRouteData.$route(
+  path: '/pathologist/mdt/:conversationUid',
+  hasOverriddenOnExit: false,
+  factory: $PathologistMdtConsultRoute._fromState,
+);
+
+mixin $PathologistMdtConsultRoute on GoRouteData {
+  static PathologistMdtConsultRoute _fromState(GoRouterState state) =>
+      PathologistMdtConsultRoute(
+        conversationUid: state.pathParameters['conversationUid']!,
+      );
+
+  PathologistMdtConsultRoute get _self => this as PathologistMdtConsultRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/pathologist/mdt/${Uri.encodeComponent(_self.conversationUid)}',
+  );
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+RouteBase get $pathologistMdtInviteRoute => GoRouteData.$route(
+  path: '/pathologist/mdt/:conversationUid/invite',
+  hasOverriddenOnExit: false,
+  factory: $PathologistMdtInviteRoute._fromState,
+);
+
+mixin $PathologistMdtInviteRoute on GoRouteData {
+  static PathologistMdtInviteRoute _fromState(GoRouterState state) =>
+      PathologistMdtInviteRoute(
+        conversationUid: state.pathParameters['conversationUid']!,
+      );
+
+  PathologistMdtInviteRoute get _self => this as PathologistMdtInviteRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/pathologist/mdt/${Uri.encodeComponent(_self.conversationUid)}/invite',
   );
 
   @override

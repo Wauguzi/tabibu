@@ -14,6 +14,8 @@ import 'package:tabibu/features/cases/blocs/share_bloc/share_bloc.dart';
 import 'package:tabibu/features/cases/blocs/share_bloc/share_event.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_bloc.dart';
 import 'package:tabibu/features/cases/blocs/slide_upload_bloc/slide_upload_event.dart';
+import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_bloc.dart';
+import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_event.dart';
 import 'package:tabibu/features/facilities/blocs/facilities_bloc/facilities_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
@@ -47,6 +49,7 @@ abstract final class BlocsHelper {
     BlocProvider<CasesBloc>(create: (_) => CasesBloc()),
     BlocProvider<ShareBloc>(create: (_) => ShareBloc()),
     BlocProvider<SlideUploadBloc>(create: (_) => SlideUploadBloc()),
+    BlocProvider<MdtBloc>(create: (_) => MdtBloc()),
     BlocProvider<DeskBloc>(create: (_) => DeskBloc()),
     BlocProvider<AlertReviewBloc>(create: (_) => AlertReviewBloc()),
     BlocProvider<CaseWorkspaceBloc>(create: (_) => CaseWorkspaceBloc()),
@@ -64,6 +67,7 @@ abstract final class BlocsHelper {
     context.read<CasesBloc>().add(const CasesReset());
     context.read<ShareBloc>().add(const ShareReset());
     context.read<SlideUploadBloc>().add(const SlideUploadReset());
+    context.read<MdtBloc>().add(const MdtReset());
     context.read<DeskBloc>().add(const DeskReset());
     context.read<AlertReviewBloc>().add(const AlertReviewReset());
     context.read<CaseWorkspaceBloc>().add(const CaseWorkspaceReset());
