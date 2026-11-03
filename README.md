@@ -1,8 +1,14 @@
+<div align="center">
+
+<img src="assets/icons/tabibu_logo.png" alt="Tabibu logo" width="96" height="96">
+
 # Tabibu
 
 ![coverage][coverage_badge]
 [![style: very good analysis][very_good_analysis_badge]][very_good_analysis_link]
 [![License: MIT][license_badge]][license_link]
+
+</div>
 
 Tabibu connects patients, doctors and pathologists in Nairobi, in English and Kiswahili. AI
 prepares a pathology pre-read and an outbreak alert draft; a qualified person always decides.
