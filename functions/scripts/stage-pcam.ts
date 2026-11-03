@@ -85,6 +85,30 @@ function rowsUrl(dataset: string, split: PcamSplit, offset: number): string {
   return `https://datasets-server.huggingface.co/rows?${q.toString()}`;
 }
 
+const MAX_RETRIES = 7;
+
+/** Worth asking again: a dropped connection, rate limiting, or a server-side error. */
+function isTransient(status: number): boolean {
+  return status === 0 || status === 429 || status >= 500;
+}
+
+/** Asks again while the answer is transient, waiting longer each time; the same page every time. */
+async function fetchRowsPageRetrying(
+  dataset: string,
+  split: PcamSplit,
+  offset: number,
+  retries: number,
+): ReturnType<typeof fetchRowsPage> {
+  let attempt = 0;
+  let page = await fetchRowsPage(dataset, split, offset);
+  while (isTransient(page.status) && attempt < retries) {
+    attempt += 1;
+    await sleep(Math.min(1500 * 2 ** attempt, 30_000));
+    page = await fetchRowsPage(dataset, split, offset);
+  }
+  return page;
+}
+
 async function sleep(ms: number): Promise<void> {
   await new Promise((r) => setTimeout(r, ms));
 }
@@ -94,7 +118,13 @@ async function fetchRowsPage(
   split: PcamSplit,
   offset: number,
 ): Promise<{ rows: HfRow[]; status: number; error?: string }> {
-  const response = await fetch(rowsUrl(dataset, split, offset));
+  let response: Response;
+  try {
+    response = await fetch(rowsUrl(dataset, split, offset));
+  } catch {
+    // A dropped connection is as transient as a 502.
+    return { rows: [], status: 0, error: `rows ${split}@${offset}: network error` };
+  }
   const status = response.status;
   let body: RowsBody = {};
   try {
@@ -143,7 +173,8 @@ async function requireAgreesWithSeedDataset(fallbackRows: HfRow[]): Promise<void
 /** Probe `/rows` on each candidate dataset; return the first that answers on train@0. */
 async function pickDataset(): Promise<{ dataset: string; revision: string }> {
   for (const dataset of DATASETS) {
-    const probe = await fetchRowsPage(dataset, 'train', 0);
+    // The seed's own dataset is known to refuse (viewer off): two tries; the fallback gets more.
+    const probe = await fetchRowsPageRetrying(dataset, 'train', 0, dataset === DATASETS[0] ? 2 : 5);
     if (probe.rows.length > 0 && dataset !== DATASETS[0]) {
       await requireAgreesWithSeedDataset(probe.rows);
     }
@@ -194,13 +225,8 @@ async function pageSplit(
   const candidates: PcamCandidate[] = [];
   const seen = new Set<number>();
   for (const offset of offsets) {
-    let attempt = 0;
-    let page = await fetchRowsPage(dataset, split, offset);
-    while (page.status === 429 && attempt < 5) {
-      attempt += 1;
-      await sleep(1500 * attempt);
-      page = await fetchRowsPage(dataset, split, offset);
-    }
+    // The dataset server answers 502 and 503 now and then: wait and ask again, then give up.
+    const page = await fetchRowsPageRetrying(dataset, split, offset, MAX_RETRIES);
     if (page.error || page.rows.length === 0) {
       throw new Error(
         `rows refused for ${dataset} ${split}@${offset}: ${page.error ?? 'empty'} (status=${page.status})`,
