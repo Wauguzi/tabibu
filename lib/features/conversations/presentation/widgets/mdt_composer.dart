@@ -98,7 +98,7 @@ class _MdtComposerState extends State<MdtComposer> {
             ),
             const SizedBox(width: AppSpacing.xs),
             CircleIconButton(
-              icon: Assets.icons.forwardIcon,
+              icon: Assets.icons.sendOutlineIcon,
               semanticLabel: widget.sendLabel,
               filled: true,
               onTap: hasText ? _send : null,
