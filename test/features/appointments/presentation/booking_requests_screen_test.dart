@@ -488,7 +488,7 @@ void main() {
 
       expect(find.byType(BookingRequestCard), findsOneWidget);
       expect(find.text('Peter Mwangi'), findsNothing);
-      expect(find.textContaining('SMS confirming'), findsNothing);
+      expect(find.textContaining('is confirmed'), findsNothing);
     });
 
     testWidgets('a failed write shows a toast and keeps the card', (

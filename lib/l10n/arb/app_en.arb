@@ -3397,7 +3397,7 @@
     "@bookingRequestsDecline": {
         "description": "Booking requests: card decline button"
     },
-    "bookingRequestsFootnote": "Patients get an SMS when you accept or decline.",
+    "bookingRequestsFootnote": "Patients are told in the app when you accept or decline.",
     "@bookingRequestsFootnote": {
         "description": "Booking requests: footnote under the list"
     },
@@ -3410,7 +3410,7 @@
             }
         }
     },
-    "bookingRequestsAcceptedBody": "{name} got an SMS confirming {time}.",
+    "bookingRequestsAcceptedBody": "{name} was told that {time} is confirmed.",
     "@bookingRequestsAcceptedBody": {
         "description": "Booking requests: accepted strip body",
         "placeholders": {
@@ -7653,7 +7653,7 @@
     "@privacyP6Title": {
         "description": "Patient policy section 6 title"
     },
-    "privacyP6Body": "Questions? Email privacy@tabibu.co.ke or call 0800 000 000.",
+    "privacyP6Body": "Questions? Call +254 707 716 621.",
     "@privacyP6Body": {
         "description": "Patient policy section 6 body"
     },
@@ -7693,7 +7693,7 @@
     "@privacyD5Title": {
         "description": "Doctor policy section 5 title"
     },
-    "privacyD5Body": "Data protection officer: dpo@tabibu.co.ke",
+    "privacyD5Body": "Questions about data protection? Call +254 707 716 621.",
     "@privacyD5Body": {
         "description": "Doctor policy section 5 body"
     },
@@ -7733,25 +7733,9 @@
     "@helpCallUs": {
         "description": "Call us row"
     },
-    "helpCallUsBody": "0800 000 000 · free, 7 AM to 9 PM",
+    "helpCallUsBody": "+254 707 716 621",
     "@helpCallUsBody": {
         "description": "Call us row body"
-    },
-    "helpWhatsApp": "WhatsApp",
-    "@helpWhatsApp": {
-        "description": "WhatsApp row"
-    },
-    "helpWhatsAppBody": "Usually replies in an hour",
-    "@helpWhatsAppBody": {
-        "description": "WhatsApp row body for patients"
-    },
-    "helpSms": "SMS",
-    "@helpSms": {
-        "description": "SMS row"
-    },
-    "helpSmsBody": "Text HELP to 40400",
-    "@helpSmsBody": {
-        "description": "SMS row body"
     },
     "helpQuestions": "Common questions",
     "@helpQuestions": {
@@ -7797,13 +7781,9 @@
     "@helpCallClinician": {
         "description": "Call clinician support row"
     },
-    "helpCallClinicianBody": "0800 000 001 · 24 hours",
+    "helpCallClinicianBody": "+254 707 716 621",
     "@helpCallClinicianBody": {
         "description": "Clinician line body"
-    },
-    "helpWhatsAppQuick": "Usually replies in 30 min",
-    "@helpWhatsAppQuick": {
-        "description": "WhatsApp row body for clinicians"
     },
     "helpGuides": "Guides",
     "@helpGuides": {
