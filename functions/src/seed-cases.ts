@@ -444,7 +444,11 @@ export async function seedCases(ctx: SeedCtx): Promise<SeedResult> {
     draft: PrereadDraft;
   }
 
-  /** Completes the queued run with a stored example and lets the server's own trigger move the case. */
+  /**
+   * Completes the queued run with a stored example. Transaction wins over the live worker: it
+   * accepts Queued or Running and writes Ready with provenance; the worker's guarded write then
+   * does nothing (bundle 59).
+   */
   async function storePreread(
     r: Run,
     labels: { tiles: Tile[]; width: number; height: number; tilePx: number; positive: string; grid: unknown; measurements: Record<string, number>; draft: PrereadDraft },
@@ -466,7 +470,7 @@ export async function seedCases(ctx: SeedCtx): Promise<SeedResult> {
     const counts: Record<string, number> = {};
     for (const t of labels.tiles) counts[t.label] = (counts[t.label] ?? 0) + 1;
     r.at(r.t + 6 * MIN);
-    await runRef.update({
+    const readyFields = {
       status: 'Ready',
       segmentationPath: `${folder}/heatmap.png`,
       labelsPath: `${folder}/labels.json`,
@@ -475,9 +479,17 @@ export async function seedCases(ctx: SeedCtx): Promise<SeedResult> {
       draft: labels.draft,
       models: { provenance: PROVENANCE },
       inputLanguage: 'en',
+      failureReason: '',
       startedAt: iso(r.t - 4 * MIN),
       readyAt: r.stamp,
       lastUpdatedAt: r.stamp,
+    };
+    await runRef.firestore.runTransaction(async (tx) => {
+      const snap = await tx.get(runRef);
+      if (!snap.exists) return;
+      const status = String(snap.get('status') ?? '');
+      if (status !== 'Queued' && status !== 'Running') return;
+      tx.update(runRef, readyFields);
     });
     await onPrereadWrittenHandler(caseDeps(r), r.caseUid, runUid);
     return { runUid, tiles: labels.tiles, measurements: labels.measurements, draft: labels.draft };

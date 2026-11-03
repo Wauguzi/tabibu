@@ -109,6 +109,13 @@ export function malariaMeasurements(tiles: Tile[]): Record<string, number> {
   };
 }
 
+/**
+ * Band from the mean of the model's *stated* tile probabilities. Those scores are not
+ * calibrated; the band is a coarse signal for triage, never clinical certainty (bundle 59).
+ */
+export const CONFIDENCE_CALIBRATION_NOTE =
+  'Band from mean stated tile probability; not calibrated. Not clinical certainty.';
+
 export function confidenceOf(
   tiles: Tile[],
 ): { confidence: number; confidenceBand: 'High' | 'Moderate' | 'Low' } {
@@ -116,6 +123,7 @@ export function confidenceOf(
   const confidence = round2(tiles.reduce((sum, t) => sum + t.probability, 0) / tiles.length);
   return {
     confidence,
+    // Thresholds on stated probabilities only — see CONFIDENCE_CALIBRATION_NOTE.
     confidenceBand: confidence >= 0.85 ? 'High' : confidence >= 0.7 ? 'Moderate' : 'Low',
   };
 }

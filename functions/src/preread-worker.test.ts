@@ -1,4 +1,4 @@
-// cspell:ignore muse
+// cspell:ignore muse PCAM
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 
@@ -21,15 +21,31 @@ import {
   tileBudgetFactor,
   type Tile,
 } from './preread-measure';
+import { PROVENANCE } from './seed-cases-media';
 import {
+  META_RESPONSES_URL,
+  type FetchLike,
+} from './ai-meta';
+import { CONFIDENCE_CALIBRATION_NOTE } from './preread-measure';
+import {
+  PREREAD_BATCH_CONCURRENCY,
   PREREAD_IMAGE_TEXT_RULE,
+  PREREAD_PCAM_LABEL_RULE,
   PREREAD_PROMPT_VERSION,
+  PREREAD_TILES_PER_REQUEST,
   PREREAD_TILE_PX,
+  PREREAD_WORKER_TIMEOUT_MS,
+  TILE_REASONING_EFFORT,
   assertPathsUnder,
+  buildClassifyInstructions,
+  classifyInBatches,
+  commitIfStillRunning,
   failureReasonOf,
+  httpStatusClass,
   processQueuedPreread,
   type ClassifiedTile,
   type PrereadCache,
+  type PrereadFailureLog,
   type PrereadVision,
   type TileCrop,
 } from './preread-worker';
@@ -433,3 +449,338 @@ describe('bundle 58: prompt', () => {
     assert.match(PREREAD_IMAGE_TEXT_RULE, /inside an image/i);
   });
 });
+
+describe('bundle 59: labelling prompt v3', () => {
+  it('defines Tumour by the central 32×32 and says most tiles are Normal', () => {
+    assert.equal(PREREAD_PROMPT_VERSION, 'preread-classify-v3');
+    assert.match(PREREAD_PCAM_LABEL_RULE, /central 32 by 32/i);
+    assert.match(PREREAD_PCAM_LABEL_RULE, /Most tiles are Normal/i);
+    const instructions = buildClassifyInstructions('Cancer');
+    assert.ok(instructions.includes(PREREAD_PCAM_LABEL_RULE));
+    assert.ok(instructions.includes(PREREAD_IMAGE_TEXT_RULE));
+    assert.ok(!buildClassifyInstructions('Malaria').includes(PREREAD_PCAM_LABEL_RULE));
+  });
+
+  it('records that the confidence band is stated probability, not calibrated certainty', () => {
+    assert.match(CONFIDENCE_CALIBRATION_NOTE, /not calibrated/i);
+    assert.match(CONFIDENCE_CALIBRATION_NOTE, /Not clinical certainty/i);
+  });
+});
+
+describe('bundle 59: parallel batches and reasoning', () => {
+  it('runs up to 4 classify batches at a time', async () => {
+    const delayMs = 80;
+    let inFlight = 0;
+    let maxInFlight = 0;
+    const crops: TileCrop[] = Array.from({ length: 36 }, (_, i) => ({
+      id: `tile-${i}`,
+      row: 0,
+      col: i,
+      png: Buffer.from([0x89, 0x50, 0x4e, 0x47]),
+    }));
+    const vision: PrereadVision = {
+      async classify(batch) {
+        inFlight += 1;
+        maxInFlight = Math.max(maxInFlight, inFlight);
+        await new Promise((r) => setTimeout(r, delayMs));
+        inFlight -= 1;
+        return batch.map((c) => ({ id: c.id, label: 'Normal', probability: 0.9 }));
+      },
+    };
+    const started = Date.now();
+    const labels = await classifyInBatches(vision, crops, 'Cancer');
+    const elapsed = Date.now() - started;
+    assert.equal(labels.length, 36);
+    assert.equal(labels[0].id, 'tile-0');
+    assert.equal(labels[35].id, 'tile-35');
+    assert.equal(Math.ceil(36 / PREREAD_TILES_PER_REQUEST), 3);
+    assert.ok(maxInFlight <= PREREAD_BATCH_CONCURRENCY);
+    assert.ok(maxInFlight >= 2, 'batches should overlap');
+    // Three serial delays would be ~240 ms; three parallel finish near one delay.
+    assert.ok(elapsed < delayMs * 2.5, `expected ~1 delay, got ${elapsed}ms`);
+  });
+
+  it('worker budget is 240 s and tile reasoning effort is none', () => {
+    assert.equal(TILE_REASONING_EFFORT, 'none');
+    assert.equal(PREREAD_WORKER_TIMEOUT_MS, 240_000);
+  });
+
+  it('httpStatusClass maps status codes without leaking bodies', () => {
+    assert.equal(httpStatusClass(200), '2xx');
+    assert.equal(httpStatusClass(404), '4xx');
+    assert.equal(httpStatusClass(503), '5xx');
+    assert.equal(httpStatusClass(undefined), 'none');
+  });
+});
+
+describe('bundle 59: guarded write, log, seed race', () => {
+  let w: World;
+
+  beforeEach(async () => {
+    await resetEmulators();
+    w = await seedWorld();
+  });
+
+  it('logs reason, status class and batch index only on failure', async () => {
+    const logs: PrereadFailureLog[] = [];
+    const vision: PrereadVision = {
+      async classify() {
+        const { PrereadCallError } = await import('./preread-worker');
+        throw new PrereadCallError('ServiceError', '5xx', null);
+      },
+    };
+    const caseUid = randomUUID();
+    const runUid = randomUUID();
+    const imagePath = `cases/${caseUid}/slides/slide-0.png`;
+    await saveObject(BUCKET, imagePath, solidPng(192, 96, [1, 2, 3]), 'image/png');
+    await w.deps.db.collection('cases').doc(caseUid).set({
+      uid: caseUid,
+      currentStage: 'PrereadQueued',
+      prereadRunUid: runUid,
+      pathologistUid: w.pathologist.uid,
+      participantUids: [w.pathologist.uid],
+    });
+    await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).set({
+      uid: runUid,
+      caseUid,
+      profile: 'Cancer',
+      status: 'Queued',
+      imagePaths: [imagePath],
+      micronsPerPixel: 0.25,
+      segmentationPath: '',
+      labelsPath: '',
+      labelCounts: {},
+      measurements: {},
+      draft: {
+        findings: [],
+        impression: '',
+        confidence: 0,
+        confidenceBand: '',
+        urgency: '',
+        nextSteps: [],
+      },
+      models: {},
+      inputLanguage: 'en',
+      failureReason: '',
+      requestedAt: '2026-11-03T00:00:00.000Z',
+      startedAt: '',
+      readyAt: '',
+      lastUpdatedAt: '2026-11-03T00:00:00.000Z',
+    });
+    await processQueuedPreread(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      runUid,
+      { enabled: true, vision, log: (e) => logs.push(e) },
+    );
+    assert.equal(logs.length, 1);
+    assert.deepEqual(Object.keys(logs[0]).sort(), ['batchIndex', 'reason', 'statusClass']);
+    assert.equal(logs[0].reason, 'ServiceError');
+    assert.equal(logs[0].statusClass, '5xx');
+    assert.equal(typeof logs[0].batchIndex, 'number');
+    const serialised = JSON.stringify(logs[0]);
+    assert.ok(!serialised.includes('data:image'));
+    assert.ok(!serialised.includes('Bearer'));
+  });
+
+  it('final write is a no-op once the run is no longer Running', async () => {
+    const runRef = w.deps.db.collection('cases').doc('c-guard').collection('preread').doc('r1');
+    await runRef.set({ status: 'Ready', failureReason: '', models: { provenance: PROVENANCE } });
+    const wrote = await commitIfStillRunning(runRef, {
+      status: 'Failed',
+      failureReason: 'Timeout',
+    });
+    assert.equal(wrote, false);
+    assert.equal((await runRef.get()).get('status'), 'Ready');
+    assert.equal((await runRef.get()).get('failureReason'), '');
+  });
+
+  it('tile classify request sends reasoning.effort none', async () => {
+    const bodies: unknown[] = [];
+    const fetch: FetchLike = async (url, init) => {
+      assert.equal(String(url), META_RESPONSES_URL);
+      const body = JSON.parse(String(init?.body)) as {
+        reasoning?: { effort?: string };
+        input?: { content?: { type?: string }[] }[];
+      };
+      bodies.push(body);
+      const ids: string[] = [];
+      for (const msg of body.input ?? []) {
+        for (const part of msg.content ?? []) {
+          if (part.type === 'input_text' && typeof (part as { text?: string }).text === 'string') {
+            const m = /tile id=(\S+)/.exec((part as { text: string }).text);
+            if (m) ids.push(m[1]);
+          }
+        }
+      }
+      return new Response(
+        JSON.stringify({
+          output: [
+            {
+              type: 'message',
+              role: 'assistant',
+              content: [
+                {
+                  type: 'output_text',
+                  text: JSON.stringify({
+                    tiles: ids.map((id) => ({ id, label: 'Normal', probability: 0.9 })),
+                  }),
+                },
+              ],
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    };
+    const caseUid = randomUUID();
+    const runUid = randomUUID();
+    const imagePath = `cases/${caseUid}/slides/slide-0.png`;
+    await saveObject(BUCKET, imagePath, solidPng(192, 96, [4, 5, 6]), 'image/png');
+    await w.deps.db.collection('cases').doc(caseUid).set({
+      uid: caseUid,
+      currentStage: 'PrereadQueued',
+      prereadRunUid: runUid,
+      pathologistUid: w.pathologist.uid,
+      participantUids: [w.pathologist.uid],
+    });
+    await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).set({
+      uid: runUid,
+      caseUid,
+      profile: 'Cancer',
+      status: 'Queued',
+      imagePaths: [imagePath],
+      micronsPerPixel: 0.25,
+      segmentationPath: '',
+      labelsPath: '',
+      labelCounts: {},
+      measurements: {},
+      draft: {
+        findings: [],
+        impression: '',
+        confidence: 0,
+        confidenceBand: '',
+        urgency: '',
+        nextSteps: [],
+      },
+      models: {},
+      inputLanguage: 'en',
+      failureReason: '',
+      requestedAt: '2026-11-03T00:00:00.000Z',
+      startedAt: '',
+      readyAt: '',
+      lastUpdatedAt: '2026-11-03T00:00:00.000Z',
+    });
+    await processQueuedPreread(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      runUid,
+      { enabled: true, fetch, apiKey: 'test-key-not-real' },
+    );
+    assert.ok(bodies.length >= 1);
+    assert.deepEqual((bodies[0] as { reasoning: unknown }).reasoning, { effort: 'none' });
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    assert.equal(run?.status, 'Ready');
+  });
+
+  it('seed stored example wins over a concurrent worker', async () => {
+    const caseUid = randomUUID();
+    const runUid = randomUUID();
+    const imagePath = `cases/${caseUid}/slides/slide-0.png`;
+    await saveObject(BUCKET, imagePath, solidPng(192, 96, [9, 8, 7]), 'image/png');
+    await w.deps.db.collection('cases').doc(caseUid).set({
+      uid: caseUid,
+      currentStage: 'PrereadQueued',
+      prereadRunUid: runUid,
+      pathologistUid: w.pathologist.uid,
+      participantUids: [w.pathologist.uid],
+    });
+    const runRef = w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid);
+    await runRef.set({
+      uid: runUid,
+      caseUid,
+      profile: 'Cancer',
+      status: 'Queued',
+      imagePaths: [imagePath],
+      micronsPerPixel: 0.25,
+      segmentationPath: '',
+      labelsPath: '',
+      labelCounts: {},
+      measurements: {},
+      draft: {
+        findings: [],
+        impression: '',
+        confidence: 0,
+        confidenceBand: '',
+        urgency: '',
+        nextSteps: [],
+      },
+      models: {},
+      inputLanguage: 'en',
+      failureReason: '',
+      requestedAt: '2026-11-03T00:00:00.000Z',
+      startedAt: '',
+      readyAt: '',
+      lastUpdatedAt: '2026-11-03T00:00:00.000Z',
+    });
+
+    const releaseClassify = new Promise<void>((resolve) => {
+      // Open the classify gate after the seed transaction has committed.
+      setTimeout(resolve, 120);
+    });
+    const vision: PrereadVision = {
+      async classify(crops) {
+        await releaseClassify;
+        return crops.map((c) => ({ id: c.id, label: 'Tumour', probability: 0.99 }));
+      },
+    };
+
+    const worker = processQueuedPreread(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      runUid,
+      { enabled: true, vision },
+    );
+
+    // Wait until the worker has claimed Running, then write the stored example.
+    for (let i = 0; i < 40; i++) {
+      const status = (await runRef.get()).get('status');
+      if (status === 'Running') break;
+      await new Promise((r) => setTimeout(r, 10));
+    }
+    assert.equal((await runRef.get()).get('status'), 'Running');
+
+    const storedDraft = {
+      findings: [{ text: 'Stored demo finding.', evidenceIds: [] as string[] }],
+      impression: 'Stored demo impression.',
+      confidence: 0.5,
+      confidenceBand: 'Moderate',
+      urgency: 'Routine',
+      nextSteps: ['Review.'],
+    };
+    await runRef.firestore.runTransaction(async (tx) => {
+      const snap = await tx.get(runRef);
+      const status = String(snap.get('status') ?? '');
+      if (status !== 'Queued' && status !== 'Running') return;
+      tx.update(runRef, {
+        status: 'Ready',
+        failureReason: '',
+        draft: storedDraft,
+        measurements: { tumourTiles: 0, normalTiles: 2, tumourAreaPercent: 0, largestFocusMm: 0 },
+        models: { provenance: PROVENANCE },
+        readyAt: '2026-11-03T00:01:00.000Z',
+        lastUpdatedAt: '2026-11-03T00:01:00.000Z',
+      });
+    });
+
+    await worker;
+    const final = (await runRef.get()).data();
+    assert.equal(final?.status, 'Ready');
+    assert.equal(final?.models?.provenance, PROVENANCE);
+    assert.equal(final?.draft?.impression, 'Stored demo impression.');
+    assert.equal(final?.failureReason, '');
+  });
+});
+

@@ -1,4 +1,4 @@
-// cspell:ignore muse jsonschema
+// cspell:ignore muse jsonschema xhigh
 /**
  * Server-side model client for the risk check and the symptom summary. The app never sees this:
  * handlers call through `AiClient` / `DomainAiClient`, and a missing key or a kill switch leaves
@@ -22,6 +22,12 @@ import { labTestById } from './lab-tests';
 export const MUSE_SPARK_MODEL = 'muse-spark-1.3';
 
 export const META_RESPONSES_URL = 'https://api.meta.ai/v1/responses';
+
+/** Allowed Responses API reasoning.effort values. */
+export type ReasoningEffort = 'none' | 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
+
+/** Risk check and symptom summary: no heavy chain-of-thought (bundle 59). */
+export const TEXT_REASONING_EFFORT: ReasoningEffort = 'none';
 
 export type FetchLike = (
   input: string | URL | Request,
@@ -111,6 +117,7 @@ async function assessCase(
     input,
     schemaName: 'case_assess',
     schema: assessSchema(),
+    reasoningEffort: TEXT_REASONING_EFFORT,
   });
   return parseAssess(raw);
 }
@@ -136,6 +143,7 @@ async function summarizeSymptoms(
     input,
     schemaName: 'symptom_summary',
     schema: summarySchema(),
+    reasoningEffort: TEXT_REASONING_EFFORT,
   });
   return parseSummary(raw);
 }
@@ -188,12 +196,15 @@ interface CallArgs {
   input: string;
   schemaName: string;
   schema: Record<string, unknown>;
+  reasoningEffort: ReasoningEffort;
 }
 
 async function callResponses(args: CallArgs): Promise<unknown> {
+  // max_output_tokens: not confirmed in the Responses docs we have; omit rather than guess.
   const body = {
     model: MUSE_SPARK_MODEL,
     store: false,
+    reasoning: { effort: args.reasoningEffort },
     instructions: args.instructions,
     input: args.input,
     text: {

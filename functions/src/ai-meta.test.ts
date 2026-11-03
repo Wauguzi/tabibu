@@ -311,5 +311,33 @@ describe('ai-meta', () => {
             (raw as Record<string, string>).authorization;
       assert.equal(auth, `Bearer ${KEY}`);
     });
+
+    it('bundle 59: risk check and symptom summary send reasoning.effort none', async () => {
+      const assessCap = captureFetch(async () =>
+        jsonResponse(
+          responsesBody({
+            inputLanguage: 'en',
+            suggestedLabTestIds: [],
+            advisoryKey: '',
+            translation: { language: 'sw', text: 'Tafsiri.' },
+          }),
+        ),
+      );
+      await createMetaAiClient({ apiKey: KEY, fetch: assessCap.fetch }).assessCase(baseRequest);
+      assert.deepEqual((assessCap.bodies[0] as { reasoning?: unknown }).reasoning, {
+        effort: 'none',
+      });
+
+      const summaryCap = captureFetch(async () =>
+        jsonResponse(responsesBody({ en: 'Fever.', sw: 'Homa.' })),
+      );
+      await createMetaAiClient({
+        apiKey: KEY,
+        fetch: summaryCap.fetch,
+      }).summarizeSymptoms!({ inputText: 'Fever' });
+      assert.deepEqual((summaryCap.bodies[0] as { reasoning?: unknown }).reasoning, {
+        effort: 'none',
+      });
+    });
   });
 });
