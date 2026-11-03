@@ -49,12 +49,22 @@ spine (S-1) and was widened by S-3.
    their own screen through one mapping (F-7); the profile tab, with rows
    that lead nowhere hidden and the Accept-cases and Health-notices
    switches written through `AuthBloc` (bundle 45).
-6. **S-3 additions** (rounds 5 and 6, still landing): sharing and who can
-   see, and a doctor entering a code (`ShareBloc`, bundle 47); the calendar,
-   cancel and reschedule; the consult team; appointment chat; profile
-   details and settings; privacy and help pages; case history; the app
-   lock. Each is added to §9 as it merges.
-7. **Support.** Shared helpers every search screen uses (`closestMatch`,
+6. **S-3 additions** (rounds 5 and 6):
+   - **Landed:** the profile switches (718f038); sharing a report, who can
+     see it, shared reports and a doctor entering a code, with the share
+     error texts (f4445e0, 4cac1b5, c8f3c26); 402 strings for the rest of
+     the round (ef62efc, de3de32).
+   - **Landing:** slide upload for the order flow (bundles 54 and 55: a
+     bloc, a storage datasource and a Slides card on the last order step);
+     the calendar, cancel and reschedule.
+   - **Queued:** the consult team, appointment chat, profile details and
+     settings, privacy and help pages, case history, the app lock. Each is
+     added to §9 as it merges.
+7. **Demo data.** `make seed-cases` seeds ten backdated cases for the three
+   demo accounts through the real handlers (CRQ pending the seed's review):
+   slides from public data sets, and pre-reads stored as examples, never
+   live model output.
+8. **Support.** Shared helpers every search screen uses (`closestMatch`,
    `isOrderNumber`); a demo directory of 22 doctors and pathologists and
    `make seed-directory`; `make verify-practitioner`, the stand-in for an
    approval screen; the approver claims on the demo doctor.
@@ -205,6 +215,23 @@ Decisions that depart from the designs (the full text is in
 - **P-14's listen card** is removed until there is audio (e859157).
 - **F-10 and F-11** hid controls whose screens were not yet in scope; S-3
   shows each as its bundle lands. A control leading to group D stays hidden.
+- **Share-code handling.** The server returns no plain code (it sits on
+  the recipient's notification, T-18), so the share screens never show or
+  cache one: the sender sees who it went to and when access ends, the
+  recipient types the code from the notification into an empty field, and a
+  notification route carries the share id only. The share button says
+  "Share", not "Share with Face ID", until the app lock lands, because no
+  Face ID check runs before then.
+- **Slides.** Slides are uploaded to Storage and never linked: the server
+  fetches no external URL. The doctor uploads between creating the order and
+  the pathologist's acceptance, the pathologist after; each slide needs a
+  pixel size the uploader supplies, with no default, because it sets the
+  physical size in every measurement. Order attachments (files and links)
+  stay out: `createOrder` has no field for them.
+- **Contact details.** The help and privacy pages carry one confirmed
+  number; invented addresses, a short code and SMS and WhatsApp rows were
+  removed (de3de32), and the copy no longer claims an SMS the server does
+  not send.
 - **Attribution line.** CRQ-0049 deferred the alert attribution line to
   this branch. It is built as O-1 resolved it: "Approved for release by an
   authorised Tabibu clinician. Guidance: {source}", with no approver name,
