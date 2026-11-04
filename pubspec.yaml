@@ -1,6 +1,6 @@
 name: tabibu
 description: AI pre-read for pathologists in Kenya, starting with cancer, plus outbreak alerts from every confirmed result for a notifiable disease.
-version: 1.0.12+1012
+version: 1.0.13+1013
 publish_to: none
 
 environment:
