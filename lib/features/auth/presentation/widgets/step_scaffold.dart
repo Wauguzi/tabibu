@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -68,7 +69,7 @@ class StepScaffold extends StatelessWidget {
     ];
 
     final scaffold = Scaffold(
-      backgroundColor: Colors.transparent,
+      backgroundColor: AppColors.transparent,
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.all(AppSpacing.screenMargin),

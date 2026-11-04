@@ -2,6 +2,7 @@ import 'package:flutter/services.dart' show TextInputFormatter;
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
+import 'package:tabibu/core/helpers/paste_sanitizer.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
 
 /// A labeled text field: label with an optional red asterisk, white rounded
@@ -28,12 +29,17 @@ class TabibuTextField extends StatefulWidget {
     this.obscureText = false,
     this.autofillHints,
     this.mergeSemantics = true,
+    this.bordered = false,
+    this.sanitizePaste = false,
+    this.onPasteCut,
     super.key,
   });
 
   final String label;
   final String? hint;
   final TextEditingController? controller;
+
+  /// Decorative and hidden from screen readers; never interactive.
   final Widget? leading;
   final Widget? trailing;
   final String? errorText;
@@ -57,6 +63,18 @@ class TabibuTextField extends StatefulWidget {
   /// unless the trailing carries its own button, which cannot live under a
   /// merge: the password toggle needs a separate node.
   final bool mergeSemantics;
+
+  /// Draws a hairline border before the field is focused, for a field that
+  /// stands alone on a sheet.
+  final bool bordered;
+
+  /// When true, multi-character inserts (paste) are cleaned and, if over
+  /// [maxLength], cut with [onPasteCut]. Off for PIN, accession, email.
+  final bool sanitizePaste;
+
+  /// Fired after a paste was cut to [maxLength]. Show a notice; the counter
+  /// still shows the length.
+  final ValueChanged<int>? onPasteCut;
 
   @override
   State<TabibuTextField> createState() => _TabibuTextFieldState();
@@ -101,7 +119,7 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
       maxLength: maxLength,
       obscureText: widget.obscureText,
       autofillHints: widget.autofillHints,
-      inputFormatters: widget.inputFormatters,
+      inputFormatters: _formatters(maxLength),
       readOnly: widget.readOnly,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
@@ -129,9 +147,13 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
         ),
         prefixIcon: widget.leading == null
             ? null
-            : Padding(
-                padding: const EdgeInsets.only(left: AppSpacing.md),
-                child: _tinted(widget.leading!, iconColor),
+            // Decorative: the label carries the meaning, and a merged image
+            // node trips the merge assert on a route push.
+            : ExcludeSemantics(
+                child: Padding(
+                  padding: const EdgeInsets.only(left: AppSpacing.md),
+                  child: _tinted(widget.leading!, iconColor),
+                ),
               ),
         prefixIconConstraints: const BoxConstraints(minWidth: 54),
         suffixIcon: _suffixIcon(scheme, maxLength, iconColor),
@@ -141,7 +163,9 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: radius,
-          borderSide: BorderSide.none,
+          borderSide: widget.bordered
+              ? BorderSide(color: scheme.outline)
+              : BorderSide.none,
         ),
         disabledBorder: OutlineInputBorder(
           borderRadius: radius,
@@ -227,4 +251,20 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
     data: IconThemeData(color: color, size: 22),
     child: FieldIconTint(color: color, child: icon),
   );
+
+  List<TextInputFormatter>? _formatters(int? maxLength) {
+    final extra = widget.inputFormatters;
+    if (!widget.sanitizePaste) return extra;
+    final paste = PasteSanitizeFormatter(
+      maxLength: maxLength,
+      onPasteCut: (limit) {
+        // Formatters run mid-update; the notice waits for the next frame.
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (!mounted) return;
+          widget.onPasteCut?.call(limit);
+        });
+      },
+    );
+    return [paste, ...?extra];
+  }
 }

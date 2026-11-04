@@ -6,12 +6,14 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/auth_helper.dart';
+import 'package:tabibu/core/helpers/facilities_helper.dart';
 import 'package:tabibu/core/helpers/notifications_helper.dart';
 import 'package:tabibu/core/helpers/role_helper.dart';
 import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/core/services/rasp_service.dart';
+import 'package:tabibu/features/alerts/data/datasources/alert_topic_service.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
@@ -19,6 +21,7 @@ import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_requests.dart';
 import 'package:tabibu/features/auth/data/models/upload_file.dart';
+import 'package:tabibu/features/facilities/data/models/county_model.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
 
@@ -33,6 +36,10 @@ class _MockNotices extends Mock implements NotificationsHelper {}
 class _MockNotifications extends Mock implements NotificationService {}
 
 class _MockRasp extends Mock implements RaspService {}
+
+class _MockAlertTopics extends Mock implements AlertTopicService {}
+
+class _MockFacilities extends Mock implements FacilitiesHelper {}
 
 final _patient = PatientSession(
   patient: PatientModel.empty(),
@@ -72,6 +79,8 @@ void main() {
   late _MockNotices notices;
   late _MockNotifications notifications;
   late _MockRasp rasp;
+  late _MockAlertTopics topics;
+  late _MockFacilities facilities;
   late StreamController<String> tokenRefreshes;
 
   AuthBloc build() => AuthBloc(
@@ -81,6 +90,8 @@ void main() {
     notificationsHelper: notices,
     notificationService: notifications,
     raspService: rasp,
+    alertTopicService: topics,
+    facilitiesHelper: facilities,
   );
 
   setUpAll(() {
@@ -88,7 +99,10 @@ void main() {
     registerFallbackValue(SignInMethod.email);
     registerFallbackValue(Role.patient);
     registerFallbackValue(AppLanguage.en);
+    registerFallbackValue(ProfileSetting.healthNotices);
     registerFallbackValue(_photo);
+    registerFallbackValue(<String>[]);
+    registerFallbackValue(<int>[]);
     registerFallbackValue(_patientDraft.toPatientRequest());
     registerFallbackValue(
       _doctorDraft.toPractitionerRequest(pictureUrl: 'p', licenseUrls: ['l']),
@@ -102,6 +116,8 @@ void main() {
     notices = _MockNotices();
     notifications = _MockNotifications();
     rasp = _MockRasp();
+    topics = _MockAlertTopics();
+    facilities = _MockFacilities();
     tokenRefreshes = StreamController<String>.broadcast();
 
     when(
@@ -118,8 +134,13 @@ void main() {
     when(() => analytics.logCompleteSignUp(any())).thenAnswer((_) async {});
     when(() => analytics.logPasswordResetRequested()).thenAnswer((_) async {});
     when(() => analytics.logLanguageChanged(any())).thenAnswer((_) async {});
+    when(
+      () =>
+          analytics.logProfileSettingChanged(any(), value: any(named: 'value')),
+    ).thenAnswer((_) async {});
     when(() => notices.notifyPatientRegistered()).thenAnswer((_) async {});
     when(() => notices.notifyLicenceReceived()).thenAnswer((_) async {});
+    when(() => notices.notifyWelcomeBack()).thenAnswer((_) async {});
   });
 
   tearDown(() => tokenRefreshes.close());
@@ -205,7 +226,174 @@ void main() {
           () => auth.signInWithEmail(email: 'a@example.com', password: 's'),
         ).called(1);
         verify(() => analytics.logLogin(SignInMethod.email)).called(1);
+        verify(() => notices.notifyWelcomeBack()).called(1);
       },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'patient with notices on joins the area topic once on sign-in',
+      setUp: () {
+        final session = PatientSession(
+          patient: PatientModel.empty().copyWith(
+            county: 'Nairobi',
+            language: 'sw',
+            receiveNotifications: true,
+          ),
+          roles: RoleHelper.fromClaims(const {'role': 'patient'}),
+        );
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => session);
+        when(
+          () => facilities.counties(),
+        ).thenAnswer((_) async => [const CountyModel(id: 47, name: 'Nairobi')]);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) => verify(
+        () => topics.syncSubscription(
+          topic: 'alerts_patient_47_sw',
+          receiveNotifications: true,
+        ),
+      ).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'patient with notices off does not join a topic on sign-in',
+      setUp: () {
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => _patient);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) => verifyNever(
+        () => topics.syncSubscription(
+          topic: any(named: 'topic'),
+          receiveNotifications: any(named: 'receiveNotifications'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a thrown topic subscribe does not fail the sign-in',
+      setUp: () {
+        final session = PatientSession(
+          patient: PatientModel.empty().copyWith(
+            county: 'Nairobi',
+            language: 'sw',
+            receiveNotifications: true,
+          ),
+          roles: RoleHelper.fromClaims(const {'role': 'patient'}),
+        );
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => session);
+        when(
+          () => facilities.counties(),
+        ).thenAnswer((_) async => [const CountyModel(id: 47, name: 'Nairobi')]);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenThrow(Exception('topic'));
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      expect: () => [
+        const SignInInProgress(session: SignedOutSession()),
+        isA<SignInSuccess>(),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'doctor with notices on joins the area topic on sign-in',
+      setUp: () {
+        final session = PractitionerSession(
+          doctor: DoctorModel.empty().copyWith(
+            county: 'Nairobi',
+            language: 'en',
+            receiveNotifications: true,
+          ),
+          roles: RoleHelper.fromClaims(const {'role': 'doctor'}),
+        );
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => session);
+        when(
+          () => facilities.counties(),
+        ).thenAnswer((_) async => [const CountyModel(id: 47, name: 'Nairobi')]);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) => verify(
+        () => topics.syncSubscription(
+          topic: 'alerts_patient_47_en',
+          receiveNotifications: true,
+        ),
+      ).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'no welcome back while a licence is pending',
+      setUp: () => when(
+        () => auth.signInWithEmail(
+          email: any(named: 'email'),
+          password: any(named: 'password'),
+        ),
+      ).thenAnswer((_) async => _pending),
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      expect: () => [
+        const SignInInProgress(session: SignedOutSession()),
+        SignInSuccess(session: _pending),
+      ],
+      verify: (_) => verifyNever(() => notices.notifyWelcomeBack()),
     );
 
     blocTest<AuthBloc, AuthState>(
@@ -302,6 +490,19 @@ void main() {
         error: AppError.serviceUnavailable,
       ),
     ],
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'a Google sign-in welcomes the person back',
+    setUp: () =>
+        when(() => auth.signInWithGoogle()).thenAnswer((_) async => _patient),
+    build: build,
+    act: (bloc) => bloc.add(const GoogleSignInRequested()),
+    expect: () => [
+      const SignInInProgress(session: SignedOutSession()),
+      SignInSuccess(session: _patient),
+    ],
+    verify: (_) => verify(() => notices.notifyWelcomeBack()).called(1),
   );
 
   blocTest<AuthBloc, AuthState>(
@@ -444,6 +645,7 @@ void main() {
     'signs out offline, handing the session over for its token',
     setUp: () {
       when(() => internet.check()).thenAnswer((_) async => false);
+      when(() => topics.unsubscribeBeforeSignOut()).thenAnswer((_) async {});
       when(
         () => auth.signOut(session: any(named: 'session')),
       ).thenAnswer((_) async {});
@@ -456,8 +658,32 @@ void main() {
       const SignOutSuccess(),
     ],
     verify: (_) {
+      verify(() => topics.unsubscribeBeforeSignOut()).called(1);
       verify(() => auth.signOut(session: _patient)).called(1);
       verify(() => analytics.setRole(null)).called(1);
+    },
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'sign-out still finishes when topic unsubscribe throws',
+    setUp: () {
+      when(
+        () => topics.unsubscribeBeforeSignOut(),
+      ).thenThrow(Exception('topic'));
+      when(
+        () => auth.signOut(session: any(named: 'session')),
+      ).thenAnswer((_) async {});
+    },
+    build: build,
+    seed: () => SignInSuccess(session: _patient),
+    act: (bloc) => bloc.add(const SignOutRequested()),
+    expect: () => [
+      SignOutInProgress(session: _patient),
+      const SignOutSuccess(),
+    ],
+    verify: (_) {
+      verify(() => topics.unsubscribeBeforeSignOut()).called(1);
+      verify(() => auth.signOut(session: _patient)).called(1);
     },
   );
 
@@ -576,6 +802,744 @@ void main() {
           error: AppError.tooManyRequests,
         ),
       ],
+    );
+  });
+
+  group('ProfileSettingChanged', () {
+    final nairobi = PatientSession(
+      patient: PatientModel.empty().copyWith(
+        patientId: 'p1',
+        county: 'Nairobi',
+        language: 'sw',
+        firstName: 'Amina',
+      ),
+      roles: RoleHelper.fromClaims(const {'role': 'patient'}),
+    );
+    final doctor = PractitionerSession(
+      doctor: DoctorModel.empty().copyWith(
+        uid: 'd1',
+        county: 'Nairobi',
+        language: 'en',
+        isAvailable: true,
+      ),
+      roles: RoleHelper.fromClaims(const {'role': 'doctor'}),
+    );
+
+    setUp(() {
+      when(
+        () => auth.updateProfileSetting(
+          setting: any(named: 'setting'),
+          value: any(named: 'value'),
+          session: any(named: 'session'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => facilities.counties(),
+      ).thenAnswer((_) async => [const CountyModel(id: 47, name: 'Nairobi')]);
+      when(
+        () => topics.syncSubscription(
+          topic: any(named: 'topic'),
+          receiveNotifications: any(named: 'receiveNotifications'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    blocTest<AuthBloc, AuthState>(
+      'Health notices flip the session and join the area topic',
+      build: build,
+      seed: () => SignInSuccess(session: nairobi),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.healthNotices,
+          value: true,
+        ),
+      ),
+      expect: () => [
+        ProfileSettingChangeInProgress(session: nairobi),
+        ProfileSettingChangeSuccess(
+          session: PatientSession(
+            patient: nairobi.patient.copyWith(receiveNotifications: true),
+            roles: nairobi.roles,
+          ),
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => auth.updateProfileSetting(
+            setting: ProfileSetting.healthNotices,
+            value: true,
+            session: nairobi,
+          ),
+        ).called(1);
+        verify(
+          () => analytics.logProfileSettingChanged(
+            ProfileSetting.healthNotices,
+            value: true,
+          ),
+        ).called(1);
+        verify(
+          () => topics.syncSubscription(
+            topic: 'alerts_patient_47_sw',
+            receiveNotifications: true,
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      "a doctor's switch keeps every other session field",
+      build: build,
+      seed: () => SignInSuccess(session: doctor),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.healthNotices,
+          value: false,
+        ),
+      ),
+      expect: () => [
+        ProfileSettingChangeInProgress(session: doctor),
+        ProfileSettingChangeSuccess(
+          session: PractitionerSession(
+            doctor: doctor.doctor.copyWith(receiveNotifications: false),
+            roles: doctor.roles,
+          ),
+        ),
+      ],
+      verify: (_) => verify(
+        () => topics.syncSubscription(
+          topic: 'alerts_patient_47_en',
+          receiveNotifications: false,
+        ),
+      ).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'Accept cases writes but never touches the alert topic',
+      build: build,
+      seed: () => SignInSuccess(session: doctor),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.acceptCases,
+          value: false,
+        ),
+      ),
+      expect: () => [
+        ProfileSettingChangeInProgress(session: doctor),
+        ProfileSettingChangeSuccess(
+          session: PractitionerSession(
+            doctor: doctor.doctor.copyWith(isAvailable: false),
+            roles: doctor.roles,
+          ),
+        ),
+      ],
+      verify: (_) {
+        verify(
+          () => auth.updateProfileSetting(
+            setting: ProfileSetting.acceptCases,
+            value: false,
+            session: doctor,
+          ),
+        ).called(1);
+        verifyNever(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        );
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'offline, the switch stays where it was and nothing is written',
+      setUp: () => when(() => internet.check()).thenAnswer((_) async => false),
+      build: build,
+      seed: () => SignInSuccess(session: nairobi),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.healthNotices,
+          value: true,
+        ),
+      ),
+      expect: () => [
+        ProfileSettingChangeInProgress(session: nairobi),
+        ProfileSettingChangeFailure(
+          session: nairobi,
+          error: AppError.noInternet,
+        ),
+      ],
+      verify: (_) {
+        verifyNever(
+          () => auth.updateProfileSetting(
+            setting: any(named: 'setting'),
+            value: any(named: 'value'),
+            session: any(named: 'session'),
+          ),
+        );
+        verifyNever(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        );
+      },
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a failed write keeps the old value and skips the topic',
+      setUp: () => when(
+        () => auth.updateProfileSetting(
+          setting: any(named: 'setting'),
+          value: any(named: 'value'),
+          session: any(named: 'session'),
+        ),
+      ).thenThrow(AppError.unknown),
+      build: build,
+      seed: () => SignInSuccess(session: nairobi),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.healthNotices,
+          value: true,
+        ),
+      ),
+      expect: () => [
+        ProfileSettingChangeInProgress(session: nairobi),
+        ProfileSettingChangeFailure(session: nairobi, error: AppError.unknown),
+      ],
+      verify: (_) => verifyNever(
+        () => topics.syncSubscription(
+          topic: any(named: 'topic'),
+          receiveNotifications: any(named: 'receiveNotifications'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a double tap writes once',
+      setUp: () {
+        final gate = Completer<void>();
+        when(
+          () => auth.updateProfileSetting(
+            setting: any(named: 'setting'),
+            value: any(named: 'value'),
+            session: any(named: 'session'),
+          ),
+        ).thenAnswer((_) => gate.future);
+        Future<void>.delayed(const Duration(milliseconds: 20), gate.complete);
+      },
+      build: build,
+      seed: () => SignInSuccess(session: doctor),
+      act: (bloc) {
+        const flip = ProfileSettingChanged(
+          setting: ProfileSetting.acceptCases,
+          value: false,
+        );
+        bloc
+          ..add(flip)
+          ..add(flip);
+      },
+      wait: const Duration(milliseconds: 50),
+      expect: () => [
+        ProfileSettingChangeInProgress(session: doctor),
+        ProfileSettingChangeSuccess(
+          session: PractitionerSession(
+            doctor: doctor.doctor.copyWith(isAvailable: false),
+            roles: doctor.roles,
+          ),
+        ),
+      ],
+      verify: (_) => verify(
+        () => auth.updateProfileSetting(
+          setting: any(named: 'setting'),
+          value: any(named: 'value'),
+          session: any(named: 'session'),
+        ),
+      ).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a topic failure still confirms the write that landed',
+      setUp: () => when(
+        () => topics.syncSubscription(
+          topic: any(named: 'topic'),
+          receiveNotifications: any(named: 'receiveNotifications'),
+        ),
+      ).thenThrow(AppError.unknown),
+      build: build,
+      seed: () => SignInSuccess(session: nairobi),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.healthNotices,
+          value: true,
+        ),
+      ),
+      expect: () => [
+        ProfileSettingChangeInProgress(session: nairobi),
+        ProfileSettingChangeSuccess(
+          session: PatientSession(
+            patient: nairobi.patient.copyWith(receiveNotifications: true),
+            roles: nairobi.roles,
+          ),
+        ),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      "a patient has no practitioner's switch to flip",
+      build: build,
+      seed: () => SignInSuccess(session: nairobi),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.acceptCases,
+          value: true,
+        ),
+      ),
+      expect: () => <AuthState>[],
+      verify: (_) => verifyNever(
+        () => auth.updateProfileSetting(
+          setting: any(named: 'setting'),
+          value: any(named: 'value'),
+          session: any(named: 'session'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a pending licence owns no switches yet',
+      build: build,
+      seed: () => SignUpSuccess(session: _pending),
+      act: (bloc) => bloc.add(
+        const ProfileSettingChanged(
+          setting: ProfileSetting.healthNotices,
+          value: true,
+        ),
+      ),
+      expect: () => <AuthState>[],
+    );
+  });
+
+  group('PatientProfileChanged', () {
+    final session = PatientSession(
+      patient: PatientModel.empty().copyWith(
+        patientId: 'p1',
+        firstName: 'Amina',
+        profilePictureUrl: 'old',
+      ),
+      roles: RoleHelper.fromClaims(const {'role': 'patient'}),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a save lands and carries the new values',
+      setUp: () =>
+          when(
+            () => auth.updatePatientProfile(
+              firstName: 'Amina',
+              middleName: 'Wanjiru',
+              lastName: 'Kamau',
+              phoneNumber: '+254712345678',
+              session: session,
+            ),
+          ).thenAnswer((_) async {
+            return null;
+          }),
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        const PatientProfileChanged(
+          firstName: 'Amina',
+          middleName: 'Wanjiru',
+          lastName: 'Kamau',
+          phoneNumber: '+254712345678',
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveSuccess(
+          session: PatientSession(
+            patient: session.patient.copyWith(
+              firstName: 'Amina',
+              middleName: 'Wanjiru',
+              lastName: 'Kamau',
+              phoneNumber: '+254712345678',
+            ),
+            roles: session.roles,
+          ),
+        ),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a new photo lands in the session',
+      setUp: () => when(
+        () => auth.updatePatientProfile(
+          firstName: any(named: 'firstName'),
+          middleName: any(named: 'middleName'),
+          lastName: any(named: 'lastName'),
+          phoneNumber: any(named: 'phoneNumber'),
+          session: any(named: 'session'),
+          picture: _photo,
+        ),
+      ).thenAnswer((_) async => 'new'),
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        PatientProfileChanged(
+          firstName: 'Amina',
+          middleName: '',
+          lastName: 'Kamau',
+          phoneNumber: '+254712345678',
+          picture: _photo,
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveSuccess(
+          session: PatientSession(
+            patient: session.patient.copyWith(
+              firstName: 'Amina',
+              middleName: '',
+              lastName: 'Kamau',
+              phoneNumber: '+254712345678',
+              profilePictureUrl: 'new',
+            ),
+            roles: session.roles,
+          ),
+        ),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'offline fails with no call',
+      setUp: () {
+        when(() => internet.check()).thenAnswer((_) async => false);
+      },
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        const PatientProfileChanged(
+          firstName: 'Amina',
+          middleName: '',
+          lastName: 'Kamau',
+          phoneNumber: '+254712345678',
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveFailure(session: session, error: AppError.noInternet),
+      ],
+      verify: (_) => verifyNever(
+        () => auth.updatePatientProfile(
+          firstName: any(named: 'firstName'),
+          middleName: any(named: 'middleName'),
+          lastName: any(named: 'lastName'),
+          phoneNumber: any(named: 'phoneNumber'),
+          session: any(named: 'session'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a refused save says why and keeps the session',
+      setUp: () => when(
+        () => auth.updatePatientProfile(
+          firstName: any(named: 'firstName'),
+          middleName: any(named: 'middleName'),
+          lastName: any(named: 'lastName'),
+          phoneNumber: any(named: 'phoneNumber'),
+          session: any(named: 'session'),
+        ),
+      ).thenThrow(AppError.invalidPhone),
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        const PatientProfileChanged(
+          firstName: 'Amina',
+          middleName: '',
+          lastName: 'Kamau',
+          phoneNumber: 'bad',
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveFailure(session: session, error: AppError.invalidPhone),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a practitioner owns no patient save',
+      build: build,
+      seed: () => SignUpSuccess(session: _pending),
+      act: (bloc) => bloc.add(
+        const PatientProfileChanged(
+          firstName: 'Amina',
+          middleName: '',
+          lastName: 'Kamau',
+          phoneNumber: '+254712345678',
+        ),
+      ),
+      expect: () => <AuthState>[],
+    );
+  });
+
+  group('PractitionerProfileChanged', () {
+    final session = PractitionerSession(
+      doctor: DoctorModel.empty().copyWith(uid: 'd1'),
+      roles: RoleHelper.fromClaims(const {'role': 'doctor'}),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a save lands and carries the new values',
+      setUp: () =>
+          when(
+            () => auth.updatePractitionerProfile(
+              specialties: const ['Breast surgery'],
+              bio: 'Kind surgeon.',
+              phoneNumber: '+254712345678',
+              session: session,
+            ),
+          ).thenAnswer((_) async {
+            return null;
+          }),
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        const PractitionerProfileChanged(
+          specialties: ['Breast surgery'],
+          bio: 'Kind surgeon.',
+          phoneNumber: '+254712345678',
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveSuccess(
+          session: PractitionerSession(
+            doctor: session.doctor.copyWith(
+              specialties: const ['Breast surgery'],
+              bio: 'Kind surgeon.',
+              phoneNumber: '+254712345678',
+            ),
+            roles: session.roles,
+          ),
+        ),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'offline fails with no call',
+      setUp: () {
+        when(() => internet.check()).thenAnswer((_) async => false);
+      },
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        const PractitionerProfileChanged(
+          specialties: ['Breast surgery'],
+          bio: '',
+          phoneNumber: '+254712345678',
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveFailure(session: session, error: AppError.noInternet),
+      ],
+      verify: (_) => verifyNever(
+        () => auth.updatePractitionerProfile(
+          specialties: any(named: 'specialties'),
+          bio: any(named: 'bio'),
+          phoneNumber: any(named: 'phoneNumber'),
+          session: any(named: 'session'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a patient owns no practitioner save',
+      build: build,
+      seed: () => SignInSuccess(session: _patient),
+      act: (bloc) => bloc.add(
+        const PractitionerProfileChanged(
+          specialties: ['Breast surgery'],
+          bio: '',
+          phoneNumber: '+254712345678',
+        ),
+      ),
+      expect: () => <AuthState>[],
+    );
+  });
+
+  group('PatientAreaChanged', () {
+    final session = PatientSession(
+      patient: PatientModel.empty().copyWith(
+        patientId: 'p1',
+        county: 'Nairobi',
+        subCounty: 'Embakasi',
+        language: 'sw',
+        receiveNotifications: true,
+      ),
+      roles: RoleHelper.fromClaims(const {'role': 'patient'}),
+    );
+
+    setUp(() {
+      when(
+        () => auth.updatePatientArea(
+          countyId: any(named: 'countyId'),
+          session: any(named: 'session'),
+          subCountyId: any(named: 'subCountyId'),
+        ),
+      ).thenAnswer((_) async => (county: 'Mombasa', subCounty: ''));
+      when(() => facilities.counties()).thenAnswer(
+        (_) async => [
+          const CountyModel(id: 47, name: 'Nairobi'),
+          const CountyModel(id: 1, name: 'Mombasa'),
+        ],
+      );
+      when(
+        () => topics.syncSubscription(
+          topic: any(named: 'topic'),
+          receiveNotifications: any(named: 'receiveNotifications'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    blocTest<AuthBloc, AuthState>(
+      'a moved patient rejoins under the new county',
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(const PatientAreaChanged(countyId: 1)),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveSuccess(
+          session: PatientSession(
+            patient: session.patient.copyWith(county: 'Mombasa', subCounty: ''),
+            roles: session.roles,
+          ),
+        ),
+      ],
+      verify: (_) => verify(
+        () => topics.syncSubscription(
+          topic: AlertTopicService.topicName(countyId: 1, language: 'sw'),
+          receiveNotifications: true,
+        ),
+      ).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'with notices off the topic is left alone',
+      build: build,
+      seed: () => SignInSuccess(
+        session: PatientSession(
+          patient: session.patient.copyWith(receiveNotifications: false),
+          roles: session.roles,
+        ),
+      ),
+      act: (bloc) => bloc.add(const PatientAreaChanged(countyId: 1)),
+      expect: () => [isA<ProfileSaveInProgress>(), isA<ProfileSaveSuccess>()],
+      verify: (_) => verifyNever(
+        () => topics.syncSubscription(
+          topic: any(named: 'topic'),
+          receiveNotifications: any(named: 'receiveNotifications'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'an unknown county refuses with the server reason',
+      setUp: () => when(
+        () => auth.updatePatientArea(
+          countyId: any(named: 'countyId'),
+          session: any(named: 'session'),
+          subCountyId: any(named: 'subCountyId'),
+        ),
+      ).thenThrow(AppError.invalidCounty),
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(const PatientAreaChanged(countyId: 999)),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveFailure(session: session, error: AppError.invalidCounty),
+      ],
+    );
+  });
+
+  group('ClinicHoursChanged', () {
+    final session = PractitionerSession(
+      doctor: DoctorModel.empty().copyWith(uid: 'd1'),
+      roles: RoleHelper.fromClaims(const {'role': 'doctor'}),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a save lands and carries the new hours',
+      setUp: () => when(
+        () => auth.updateClinicHours(
+          workingDays: const [1, 2, 3, 4, 5],
+          dayStartMinute: 540,
+          dayEndMinute: 960,
+          session: session,
+        ),
+      ).thenAnswer((_) async {}),
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        const ClinicHoursChanged(
+          workingDays: [1, 2, 3, 4, 5],
+          dayStartMinute: 540,
+          dayEndMinute: 960,
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveSuccess(
+          session: PractitionerSession(
+            doctor: session.doctor.copyWith(
+              workingDays: const [1, 2, 3, 4, 5],
+              dayStartMinute: 540,
+              dayEndMinute: 960,
+            ),
+            roles: session.roles,
+          ),
+        ),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'offline fails with no call',
+      setUp: () {
+        when(() => internet.check()).thenAnswer((_) async => false);
+      },
+      build: build,
+      seed: () => SignInSuccess(session: session),
+      act: (bloc) => bloc.add(
+        const ClinicHoursChanged(
+          workingDays: [1, 2, 3, 4, 5],
+          dayStartMinute: 540,
+          dayEndMinute: 960,
+        ),
+      ),
+      expect: () => [
+        ProfileSaveInProgress(session: session),
+        ProfileSaveFailure(session: session, error: AppError.noInternet),
+      ],
+      verify: (_) => verifyNever(
+        () => auth.updateClinicHours(
+          workingDays: any(named: 'workingDays'),
+          dayStartMinute: any(named: 'dayStartMinute'),
+          dayEndMinute: any(named: 'dayEndMinute'),
+          session: any(named: 'session'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a patient owns no clinic hours',
+      build: build,
+      seed: () => SignInSuccess(session: _patient),
+      act: (bloc) => bloc.add(
+        const ClinicHoursChanged(
+          workingDays: [1, 2, 3, 4, 5],
+          dayStartMinute: 540,
+          dayEndMinute: 960,
+        ),
+      ),
+      expect: () => <AuthState>[],
     );
   });
 }

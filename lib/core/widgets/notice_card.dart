@@ -56,7 +56,7 @@ class NoticeCard extends StatelessWidget {
     );
     // Never throw in build: a missing icon in release falls back to info.
     final effectiveIcon = switch (variant) {
-      .aiDraft => Assets.icons.inProgressIcon,
+      .aiDraft => Assets.icons.sparkleIcon,
       .signed => Assets.icons.verificationBadge,
       _ => icon ?? Assets.icons.infoIcon,
     };

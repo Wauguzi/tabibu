@@ -25,9 +25,14 @@ class ShareCodeFirebase {
   Future<T> _guard<T>(String operation, Future<T> Function() body) async {
     try {
       return await body();
-    } on Exception catch (e) {
+    } on Exception catch (e, stackTrace) {
       // Never interpolate a share code into this log line.
-      if (kDebugMode) _logger.e('$operation failed: ${_toAppError(e)}');
+      if (kDebugMode) {
+        _logger.e(
+          '$operation failed: ${_toAppError(e)}',
+          stackTrace: stackTrace,
+        );
+      }
       throw _toAppError(e);
     }
   }

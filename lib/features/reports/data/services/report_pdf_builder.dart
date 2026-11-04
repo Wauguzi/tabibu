@@ -10,6 +10,7 @@ import 'package:pdf/widgets.dart' as pw;
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/reports/data/models/report_pdf_input.dart';
+import 'package:tabibu/features/reports/data/services/report_labels.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -169,42 +170,14 @@ class _Page {
 
   String _orMissing(String value) => value.isEmpty ? _missing : value;
 
-  // -- Localisation of the input's wire keys. Unknown keys fall back to
-  // the key itself, never to an empty label. (The enums' fromValue
-  // fallbacks guess a variant, so the lookup below is explicit.)
+  // -- Localisation of the input's wire keys; the lookups are shared with
+  // the on-screen reports (report_labels.dart).
 
-  String _sectionLabel(String key) {
-    for (final section in ReportSection.values) {
-      if (section.value == key) return section.description(l10n);
-    }
-    return key;
-  }
+  String _sectionLabel(String key) => reportSectionLabel(l10n, key);
 
-  String _questionLabel(String key) => switch (key) {
-    'specimenDescription' => l10n.reportQuestionSpecimenDescription,
-    'specimenSize' => l10n.reportQuestionSpecimenSize,
-    'representativeSections' => l10n.reportQuestionRepresentativeSections,
-    'microscopicDescription' => l10n.reportQuestionMicroscopicDescription,
-    'tumourGrade' => l10n.reportQuestionTumourGrade,
-    'margins' => l10n.reportQuestionMargins,
-    'lymphNodes' => l10n.reportQuestionLymphNodes,
-    'immunohistochemistry' => l10n.reportQuestionImmunohistochemistry,
-    'parasiteSpecies' => l10n.reportQuestionParasiteSpecies,
-    'parasiteDensity' => l10n.reportQuestionParasiteDensity,
-    'parasiteStages' => l10n.reportQuestionParasiteStages,
-    'rapidTestResult' => l10n.reportQuestionRapidTestResult,
-    'findings' => l10n.reportQuestionFindings,
-    'methodNotes' => l10n.reportQuestionMethodNotes,
-    _ => key,
-  };
+  String _questionLabel(String key) => reportQuestionLabel(l10n, key);
 
-  // Cases mirror DiagnosisType wire values.
-  String _diagnosisTypeLabel(String key) => switch (key) {
-    'Final' => l10n.reportPdfDiagnosisTypeFinal,
-    'Provisional' => l10n.reportPdfDiagnosisTypeProvisional,
-    'Inconclusive' => l10n.reportPdfDiagnosisTypeInconclusive,
-    _ => key,
-  };
+  String _diagnosisTypeLabel(String key) => reportDiagnosisTypeLabel(l10n, key);
 
   // Cases mirror ReportTemplate wire values.
   String _templateLabel(String key) => switch (key) {

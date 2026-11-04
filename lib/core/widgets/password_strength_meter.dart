@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_shadows.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -110,7 +111,7 @@ class _RuleRow extends StatelessWidget {
             height: 22,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: met ? status.signedDot : Colors.transparent,
+              color: met ? status.signedDot : AppColors.transparent,
               border: met
                   ? null
                   : Border.all(color: scheme.outlineVariant, width: 1.5),
@@ -120,7 +121,7 @@ class _RuleRow extends StatelessWidget {
                 ? AssetIcon(
                     Assets.icons.tickIcon,
                     size: 12,
-                    color: Colors.white,
+                    color: AppColors.white,
                   )
                 : null,
           ),

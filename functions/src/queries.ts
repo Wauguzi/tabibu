@@ -464,6 +464,20 @@ export const queryRegistry: QueryEntry[] = [
     filters: [{ field: 'senderUid', op: '==' }],
     orderBy: [{ field: 'sentAt', direction: 'asc' }],
   },
+  {
+    id: 'practitioners.delta',
+    collection: 'practitioners',
+    scope: 'collection',
+    filters: [{ field: 'lastUpdatedAt', op: '>=' }],
+    orderBy: [{ field: 'lastUpdatedAt', direction: 'asc' }],
+  },
+  {
+    id: 'alerts.awaitingDecision',
+    collection: 'alerts',
+    scope: 'collection',
+    filters: [{ field: 'status', op: '==' }],
+    orderBy: [{ field: 'draftedAt', direction: 'asc' }],
+  },
 ];
 
 /** Typed slots for domains the reviewer adds later. Keep empty until then. */

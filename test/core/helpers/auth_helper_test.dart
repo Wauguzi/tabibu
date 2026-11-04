@@ -67,6 +67,8 @@ void main() {
     registerFallbackValue(DoctorModel.empty());
     registerFallbackValue(_request);
     registerFallbackValue(_photo);
+    registerFallbackValue(<String>[]);
+    registerFallbackValue(<int>[]);
   });
 
   setUp(() {
@@ -569,6 +571,76 @@ void main() {
     });
   });
 
+  group('updateProfileSetting', () {
+    setUp(() {
+      when(
+        () => remote.updateProfileSetting(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          field: any(named: 'field'),
+          value: any(named: 'value'),
+        ),
+      ).thenAnswer((_) async {});
+    });
+
+    test("a patient's switch lands on the patient's document", () async {
+      await helper.updateProfileSetting(
+        setting: ProfileSetting.healthNotices,
+        value: true,
+        session: PatientSession(
+          patient: _patient.copyWith(patientId: 'p9'),
+          roles: _roles({'role': 'patient'}),
+        ),
+      );
+      verify(
+        () => remote.updateProfileSetting(
+          collection: 'patients',
+          docId: 'p9',
+          field: 'receiveNotifications',
+          value: true,
+        ),
+      ).called(1);
+    });
+
+    test("a pathologist's switch lands on the doctor's document", () async {
+      await helper.updateProfileSetting(
+        setting: ProfileSetting.acceptCases,
+        value: false,
+        session: PractitionerSession(
+          doctor: _doctor.copyWith(uid: 'd9'),
+          roles: _roles({'role': 'pathologist'}),
+        ),
+      );
+      verify(
+        () => remote.updateProfileSetting(
+          collection: 'doctors',
+          docId: 'd9',
+          field: 'isAvailable',
+          value: false,
+        ),
+      ).called(1);
+    });
+
+    test('with no profile, it throws instead of confirming nothing', () async {
+      await expectLater(
+        helper.updateProfileSetting(
+          setting: ProfileSetting.healthNotices,
+          value: true,
+          session: const SignedOutSession(),
+        ),
+        throwsStateError,
+      );
+      verifyNever(
+        () => remote.updateProfileSetting(
+          collection: any(named: 'collection'),
+          docId: any(named: 'docId'),
+          field: any(named: 'field'),
+          value: any(named: 'value'),
+        ),
+      );
+    });
+  });
+
   group('addPatientPicture', () {
     final session = PatientSession(
       patient: _patient.copyWith(patientId: 'p9'),
@@ -685,6 +757,213 @@ void main() {
       when(() => remote.sendEmailVerification()).thenAnswer((_) async {});
       await helper.resendVerificationEmail();
       verify(() => remote.sendEmailVerification()).called(1);
+    });
+  });
+
+  group('updatePatientProfile', () {
+    final session = PatientSession(
+      patient: _patient.copyWith(patientId: 'p9'),
+      roles: _roles({'role': 'patient'}),
+    );
+
+    setUp(() {
+      when(
+        () => remote.updatePatientProfile(
+          docId: any(named: 'docId'),
+          firstName: any(named: 'firstName'),
+          middleName: any(named: 'middleName'),
+          lastName: any(named: 'lastName'),
+          phoneNumber: any(named: 'phoneNumber'),
+          profilePictureUrl: any(named: 'profilePictureUrl'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => storage.uploadProfilePicture(
+          owner: any(named: 'owner'),
+          file: any(named: 'file'),
+        ),
+      ).thenAnswer((_) async => 'https://x/p9.jpg');
+    });
+
+    test('names and phone land on the patient document', () async {
+      final url = await helper.updatePatientProfile(
+        firstName: 'Amina',
+        middleName: '',
+        lastName: 'Kamau',
+        phoneNumber: '+254712345678',
+        session: session,
+      );
+      expect(url, isNull);
+      verify(
+        () => remote.updatePatientProfile(
+          docId: 'p9',
+          firstName: 'Amina',
+          middleName: '',
+          lastName: 'Kamau',
+          phoneNumber: '+254712345678',
+        ),
+      ).called(1);
+      verifyNever(
+        () => storage.uploadProfilePicture(
+          owner: any(named: 'owner'),
+          file: any(named: 'file'),
+        ),
+      );
+    });
+
+    test('a picked photo uploads first and joins the write', () async {
+      final url = await helper.updatePatientProfile(
+        firstName: 'Amina',
+        middleName: '',
+        lastName: 'Kamau',
+        phoneNumber: '+254712345678',
+        session: session,
+        picture: _photo,
+      );
+      expect(url, 'https://x/p9.jpg');
+      verify(
+        () => storage.uploadProfilePicture(owner: 'p9', file: _photo),
+      ).called(1);
+      verify(
+        () => remote.updatePatientProfile(
+          docId: 'p9',
+          firstName: 'Amina',
+          middleName: '',
+          lastName: 'Kamau',
+          phoneNumber: '+254712345678',
+          profilePictureUrl: 'https://x/p9.jpg',
+        ),
+      ).called(1);
+    });
+
+    test('without a patient it throws instead of writing', () async {
+      await expectLater(
+        helper.updatePatientProfile(
+          firstName: 'Amina',
+          middleName: '',
+          lastName: 'Kamau',
+          phoneNumber: '+254712345678',
+          session: const SignedOutSession(),
+        ),
+        throwsStateError,
+      );
+      verifyNever(
+        () => remote.updatePatientProfile(
+          docId: any(named: 'docId'),
+          firstName: any(named: 'firstName'),
+          middleName: any(named: 'middleName'),
+          lastName: any(named: 'lastName'),
+          phoneNumber: any(named: 'phoneNumber'),
+        ),
+      );
+    });
+  });
+
+  group('updatePractitionerProfile', () {
+    final session = PractitionerSession(
+      doctor: _doctor.copyWith(uid: 'd9'),
+      roles: _roles({'role': 'doctor'}),
+    );
+
+    setUp(() {
+      when(
+        () => remote.updatePractitionerProfile(
+          docId: any(named: 'docId'),
+          specialties: any(named: 'specialties'),
+          bio: any(named: 'bio'),
+          phoneNumber: any(named: 'phoneNumber'),
+          profilePictureUrl: any(named: 'profilePictureUrl'),
+        ),
+      ).thenAnswer((_) async {});
+      when(
+        () => storage.uploadProfilePicture(
+          owner: any(named: 'owner'),
+          file: any(named: 'file'),
+        ),
+      ).thenAnswer((_) async => 'https://x/d9.jpg');
+    });
+
+    test('fields land on the doctor document', () async {
+      await helper.updatePractitionerProfile(
+        specialties: const ['Breast surgery'],
+        bio: 'Kind surgeon.',
+        phoneNumber: '+254712345678',
+        session: session,
+      );
+      verify(
+        () => remote.updatePractitionerProfile(
+          docId: 'd9',
+          specialties: const ['Breast surgery'],
+          bio: 'Kind surgeon.',
+          phoneNumber: '+254712345678',
+        ),
+      ).called(1);
+    });
+
+    test('a picked photo uploads under the uid', () async {
+      final url = await helper.updatePractitionerProfile(
+        specialties: const ['Breast surgery'],
+        bio: '',
+        phoneNumber: '+254712345678',
+        session: session,
+        picture: _photo,
+      );
+      expect(url, 'https://x/d9.jpg');
+      verify(
+        () => storage.uploadProfilePicture(owner: 'd9', file: _photo),
+      ).called(1);
+    });
+  });
+
+  group('updateClinicHours', () {
+    final session = PractitionerSession(
+      doctor: _doctor.copyWith(uid: 'd9'),
+      roles: _roles({'role': 'doctor'}),
+    );
+
+    test('hours land on the doctor document', () async {
+      when(
+        () => remote.updateClinicHours(
+          docId: any(named: 'docId'),
+          workingDays: any(named: 'workingDays'),
+          dayStartMinute: any(named: 'dayStartMinute'),
+          dayEndMinute: any(named: 'dayEndMinute'),
+        ),
+      ).thenAnswer((_) async {});
+      await helper.updateClinicHours(
+        workingDays: const [1, 2, 3, 4, 5],
+        dayStartMinute: 540,
+        dayEndMinute: 960,
+        session: session,
+      );
+      verify(
+        () => remote.updateClinicHours(
+          docId: 'd9',
+          workingDays: const [1, 2, 3, 4, 5],
+          dayStartMinute: 540,
+          dayEndMinute: 960,
+        ),
+      ).called(1);
+    });
+  });
+
+  group('updatePatientArea', () {
+    test('answers the names the server stored', () async {
+      when(
+        () => remote.updatePatientArea(
+          countyId: any(named: 'countyId'),
+          subCountyId: any(named: 'subCountyId'),
+        ),
+      ).thenAnswer((_) async => (county: 'Mombasa', subCounty: ''));
+      final area = await helper.updatePatientArea(
+        countyId: 1,
+        session: PatientSession(
+          patient: _patient,
+          roles: _roles({'role': 'patient'}),
+        ),
+      );
+      expect(area, (county: 'Mombasa', subCounty: ''));
+      verify(() => remote.updatePatientArea(countyId: 1)).called(1);
     });
   });
 }

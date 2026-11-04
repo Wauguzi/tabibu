@@ -54,14 +54,18 @@ class DBHelperImpl implements DBHelper {
   Future<R> _guard<R>(String operation, Future<R> Function() body) async {
     try {
       return await body();
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('DB $operation failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('DB $operation failed: $e', stackTrace: stackTrace);
+      }
       throw AppError.unknown;
       // A closed or mistyped box raises HiveError, which is an Error; an
       // `on Exception` alone lets it escape unmapped.
       // ignore: avoid_catching_errors
-    } on HiveError catch (e) {
-      if (kDebugMode) _logger.e('DB $operation failed: $e');
+    } on HiveError catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('DB $operation failed: $e', stackTrace: stackTrace);
+      }
       throw AppError.unknown;
     }
   }

@@ -258,4 +258,39 @@ void main() {
       expect(unassigned.isParticipant(''), isFalse);
     });
   });
+
+  group('doctor progress', () {
+    CaseModel at(String stage, {String result = 'Pending'}) =>
+        CaseModel.fromJson({'currentStage': stage, 'resultState': result});
+
+    test('maps every stage to one of the five steps', () {
+      expect(at('OrderCreated').doctorStep, 1);
+      expect(at('PathologistRejected').doctorStep, 1);
+      expect(at('PrereadReady').doctorStep, 2);
+      expect(at('ReportInProgress').doctorStep, 2);
+      expect(at('ReportSigned').doctorStep, 3);
+      expect(at('DiscussionBooked').doctorStep, 3);
+      expect(at('ResultReleased').doctorStep, 5);
+      expect(at('Completed').doctorStep, 5);
+      for (final stage in CaseStage.values) {
+        expect(at(stage.value).doctorStep, inInclusiveRange(1, 5));
+      }
+    });
+
+    test('needs the doctor while signed and not yet discussed', () {
+      expect(at('ReportSigned', result: 'WithDoctor').needsDoctor, isTrue);
+      expect(
+        at('ReportSigned', result: 'UpdateWithDoctor').needsDoctor,
+        isTrue,
+      );
+      expect(at('ResultReleased', result: 'Released').needsDoctor, isFalse);
+    });
+
+    test('done once discussed, completed or cancelled', () {
+      expect(at('ResultReleased').isDone, isTrue);
+      expect(at('Completed').isDone, isTrue);
+      expect(at('Cancelled').isDone, isTrue);
+      expect(at('ReportSigned').isDone, isFalse);
+    });
+  });
 }

@@ -55,9 +55,9 @@ function messageFor(row: DocumentData, tokens: string[]): PushMessage {
   const metadata = (row.metadata ?? {}) as Record<string, unknown>;
   const thread = str(row.threadUid);
   const category = str(row.category);
-  const high = row.priority === 'High';
   const collapses = str(row.templateKey) === 'messageReceived' || str(row.templateKey) === 'mdtMessageReceived';
   const title = str(row.title);
+  const channel = category === 'Account' ? 'account' : category === 'Alert' ? 'alerts' : 'case_updates';
   return {
     tokens,
     notification: { ...(title === '' ? {} : { title }), body: str(row.message) },
@@ -70,15 +70,18 @@ function messageFor(row: DocumentData, tokens: string[]): PushMessage {
       actionType: str(metadata.actionType),
       expiresAt: str(metadata.expiresAt),
       deepLink: str(metadata.deepLink),
-      channel: category === 'Account' ? 'account' : category === 'Alert' ? 'alerts' : 'case_updates',
+      channel,
     },
+    // Every cloud notification is a person's own news and is delivered at high priority, on the
+    // app's own Android channel, with its title and body: the device shows it at once.
     android: {
-      priority: high ? 'high' : 'normal',
-      ...(collapses ? { collapseKey: thread, notification: { tag: thread } } : {}),
+      priority: 'high',
+      ...(collapses ? { collapseKey: thread } : {}),
+      notification: { channelId: channel, ...(collapses ? { tag: thread } : {}) },
     },
     apns: {
       headers: {
-        'apns-priority': high ? '10' : '5',
+        'apns-priority': '10',
         ...(collapses ? { 'apns-collapse-id': thread } : {}),
       },
       payload: { aps: { ...(collapses ? { 'thread-id': thread } : {}) } },

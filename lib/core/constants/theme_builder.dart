@@ -15,11 +15,11 @@ ThemeData buildTheme(Brightness brightness) {
         brightness: brightness,
       ).copyWith(
         primary: isDark ? AppColors.primaryDark : AppColors.primaryLight,
-        onPrimary: isDark ? AppColors.inkLight : Colors.white,
+        onPrimary: isDark ? AppColors.inkLight : AppColors.white,
         secondary: isDark ? AppColors.secondaryDark : AppColors.secondaryLight,
-        onSecondary: isDark ? AppColors.inkLight : Colors.white,
+        onSecondary: isDark ? AppColors.inkLight : AppColors.white,
         error: isDark ? AppColors.errorDark : AppColors.errorLight,
-        onError: isDark ? AppColors.inkLight : Colors.white,
+        onError: isDark ? AppColors.inkLight : AppColors.white,
         surface: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
         onSurface: isDark ? AppColors.onSurfaceDark : AppColors.onSurfaceLight,
         surfaceContainerLowest: isDark
@@ -51,8 +51,8 @@ ThemeData buildTheme(Brightness brightness) {
     colorScheme: colorScheme,
     // Taps give no ripple or highlight anywhere.
     splashFactory: NoSplash.splashFactory,
-    splashColor: Colors.transparent,
-    highlightColor: Colors.transparent,
+    splashColor: AppColors.transparent,
+    highlightColor: AppColors.transparent,
     extensions: <ThemeExtension<dynamic>>[
       AppStatusColors(
         success: isDark ? AppColors.successDark : AppColors.successLight,
@@ -201,7 +201,7 @@ TextTheme _textTheme(ColorScheme scheme) {
       letterSpacing: -0.5,
       color: onSurface,
     ),
-    headlineLarge: base(32, FontWeight.w400, color: onSurface),
+    headlineLarge: base(34, FontWeight.w700, height: 1.1, color: onSurface),
     headlineMedium: base(28, FontWeight.w700, color: onSurface),
     headlineSmall: base(24, FontWeight.w400, color: onSurface),
     titleLarge: base(22, FontWeight.w600, color: onSurface),
@@ -219,7 +219,7 @@ TextTheme _textTheme(ColorScheme scheme) {
 SwitchThemeData _switchTheme(ColorScheme scheme) {
   final selectedThumb = scheme.brightness == .dark
       ? AppColors.inkLight
-      : Colors.white;
+      : AppColors.white;
   return SwitchThemeData(
     thumbColor: WidgetStateProperty.resolveWith(
       (states) => states.contains(WidgetState.selected)
@@ -231,6 +231,6 @@ SwitchThemeData _switchTheme(ColorScheme scheme) {
           ? scheme.primary
           : scheme.surfaceContainerHigh,
     ),
-    trackOutlineColor: const WidgetStatePropertyAll(Colors.transparent),
+    trackOutlineColor: const WidgetStatePropertyAll(AppColors.transparent),
   );
 }

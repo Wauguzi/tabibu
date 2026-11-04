@@ -54,14 +54,25 @@ import 'package:tabibu/features/cases/data/datasources/case_firebase.dart'
     as _i449;
 import 'package:tabibu/features/cases/data/datasources/share_code_firebase.dart'
     as _i374;
+import 'package:tabibu/features/cases/data/datasources/slide_storage.dart'
+    as _i496;
 import 'package:tabibu/features/conversations/data/cache/conversation_cache_helper.dart'
     as _i679;
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart'
     as _i746;
+import 'package:tabibu/features/lock/data/biometric_authenticator.dart'
+    as _i894;
+import 'package:tabibu/features/lock/data/lock_storage.dart' as _i377;
 import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart'
     as _i219;
 import 'package:tabibu/features/notifications/data/datasources/notification_firebase.dart'
     as _i1063;
+import 'package:tabibu/features/practitioners/data/cache/practitioner_cache_helper.dart'
+    as _i750;
+import 'package:tabibu/features/practitioners/data/datasources/practitioner_firebase.dart'
+    as _i821;
+import 'package:tabibu/features/preread/data/datasources/preread_storage.dart'
+    as _i434;
 import 'package:tabibu/features/reports/data/cache/report_cache_helper.dart'
     as _i726;
 import 'package:tabibu/features/reports/data/datasources/report_firebase.dart'
@@ -148,6 +159,9 @@ extension GetItInjectableX on _i174.GetIt {
         functions: gh<_i809.FirebaseFunctions>(),
       ),
     );
+    gh.lazySingleton<_i894.BiometricAuthenticator>(
+      () => _i894.LocalBiometricAuthenticator(),
+    );
     gh.lazySingleton<_i726.ReportCacheHelper>(
       () => _i726.ReportCacheHelper(
         db: gh<_i705.DBHelper>(),
@@ -164,6 +178,10 @@ extension GetItInjectableX on _i174.GetIt {
       () =>
           _i1063.NotificationFirebase(firestore: gh<_i974.FirebaseFirestore>()),
     );
+    gh.lazySingleton<_i821.PractitionerFirebase>(
+      () =>
+          _i821.PractitionerFirebase(firestore: gh<_i974.FirebaseFirestore>()),
+    );
     gh.lazySingleton<_i638.WorklistFirebase>(
       () => _i638.WorklistFirebase(firestore: gh<_i974.FirebaseFirestore>()),
     );
@@ -174,6 +192,9 @@ extension GetItInjectableX on _i174.GetIt {
         shares: gh<_i374.ShareCodeFirebase>(),
       ),
     );
+    gh.lazySingleton<_i377.LockStorage>(
+      () => _i377.LockStorage(secureStorage: gh<_i558.FlutterSecureStorage>()),
+    );
     gh.singleton<_i418.HiveHelper>(
       () => _i418.HiveHelperImpl(
         dbHelper: gh<_i705.DBHelper>(),
@@ -182,6 +203,12 @@ extension GetItInjectableX on _i174.GetIt {
     );
     gh.lazySingleton<_i275.ProfileStorage>(
       () => _i275.ProfileStorage(storage: gh<_i457.FirebaseStorage>()),
+    );
+    gh.lazySingleton<_i496.SlideStorage>(
+      () => _i496.SlideStorage(storage: gh<_i457.FirebaseStorage>()),
+    );
+    gh.lazySingleton<_i434.PrereadStorage>(
+      () => _i434.PrereadStorage(storage: gh<_i457.FirebaseStorage>()),
     );
     gh.lazySingleton<_i656.AppointmentFirebase>(
       () => _i656.AppointmentFirebase(
@@ -207,6 +234,12 @@ extension GetItInjectableX on _i174.GetIt {
       () => _i219.NotificationCacheHelper(
         db: gh<_i705.DBHelper>(),
         remote: gh<_i1063.NotificationFirebase>(),
+      ),
+    );
+    gh.lazySingleton<_i750.PractitionerCacheHelper>(
+      () => _i750.PractitionerCacheHelper(
+        hive: gh<_i418.HiveHelper>(),
+        remote: gh<_i821.PractitionerFirebase>(),
       ),
     );
     gh.lazySingleton<_i210.NotificationsHelper>(

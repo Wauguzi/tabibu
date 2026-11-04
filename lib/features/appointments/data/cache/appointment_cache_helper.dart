@@ -204,6 +204,40 @@ class AppointmentCacheHelper {
     return row.toModel();
   }
 
+  /// Online only: requests the slot, then syncs and returns the new row.
+  Future<AppointmentModel> bookAppointment({
+    required String patientUid,
+    required String appointmentUid,
+    required String doctorUid,
+    required DateTime start,
+    String type = 'Consultation',
+    String caseUid = '',
+    String symptomText = '',
+  }) async {
+    await _remote.requestAppointment(
+      appointmentUid: appointmentUid,
+      type: type,
+      scheduledStart: start.toUtc().toIso8601String(),
+      doctorUid: doctorUid,
+      caseUid: caseUid,
+      symptomText: symptomText,
+    );
+    List<AppointmentModel> rows;
+    try {
+      rows = await syncPatientAppointments(patientUid);
+    } on AppError catch (e) {
+      if (!_offline.contains(e)) rethrow;
+      rows = const [];
+    }
+    final match =
+        rows.firstWhereOrNull((a) => a.uid == appointmentUid) ??
+        (await getPatientAppointments(
+          patientUid,
+        )).firstWhereOrNull((a) => a.uid == appointmentUid);
+    if (match != null) return match;
+    throw AppError.dataNotFound;
+  }
+
   /// Saves the doctor's decision locally, then sends it; offline it stays
   /// queued and the optimistic row is returned.
   Future<AppointmentModel> saveAppointmentDecision({

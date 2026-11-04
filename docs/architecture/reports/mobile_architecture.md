@@ -810,7 +810,7 @@ In summary:
 | Pending practitioner (no role claim) | Edit their own `doctors` profile, KMPDC number and license | Reach any clinical route or read any patient |
 | Doctor | Add a patient; read the profiles of patients whose care team they are on; accept a patient or open a case; order tests; attach a pathologist; receive signed reports; mark a result discussed | Edit or sign a report; see cases they are not on |
 | Pathologist | Work the ranked list of cases assigned to them; review, edit and sign reports; mark a result notifiable | Release a result to a patient |
-| Alert approver (a permission on an admin, held by an authorised public-health officer (MoH or county health department)) | Read a drafted alert and its evidence; approve it as is in one tap, edit it, or reject it; choose clinicians only | Approve an alert raised from their own finding; grant or revoke their own permission; write an alert's status |
+| Alert approver (a permission on a verified doctor who also holds `admin`, granted by an existing approver; in the demo, the seeded doctor) | Read a drafted alert and its evidence; approve it as is in one tap, edit it, or reject it; choose clinicians only | Approve an alert raised from their own finding; grant or revoke their own permission; write an alert's status |
 
 **Scope is participation.** Participation is `participantUids` (the doctor,
 the linked patient, the requested and the accepted pathologist, and viewers),
@@ -977,12 +977,19 @@ to see. Greptile is pointed at this section.
 4. **`test_api: any` is listed under `dependencies`**, not
    `dev_dependencies`, and is unconstrained. Move it, or remove it if nothing
    imports it.
-5. **Rules and functions are written, and not deployed yet** (CRQ-0016,
-   CRQ-0039 to CRQ-0049). `firestore.rules`, `storage.rules` and `functions/`
-   enforce §6.1 and the §6.3 collections, and any collection they do not name
-   is closed. Deploy (`make deploy-rules`,
-   `deploy-storage`, `deploy-functions`) waits for the pull request's
-   review; until then the live project runs whatever the console holds.
+5. **Indexes, rules and functions are live.** Identity rules and functions went live
+   2026-10-30 ([CRQ-0016](../../crq/reports/CRQ-0016-identity-functions-and-rules.md)
+   §9). The §6.3 index file, including seven TTL policies on `expireAt`
+   ([CRQ-0046](../../crq/reports/CRQ-0046-notification-model-v2-and-push.md) §9
+   U-5; `firestore.indexes.json` `fieldOverrides`), deploys with
+   `make deploy-indexes`. Commit `36b8588` records the first live
+   `make smoke-indexes` on `tabibu-86ea2`: 17 app and 50 functions
+   queries ok ([CRQ-0048](../../crq/reports/CRQ-0048-feature-data-sources-and-indexes.md) §9).
+   The domain callables and triggers (CRQ-0041 to CRQ-0049) have been
+   deployed with `make deploy-functions` since 2026-11-03, most recently on
+   2026-11-04, and the end-to-end flow from order to a signed report ran
+   against them and the rules on the live project; the pull request's
+   CRQ-0050 and CRQ-0051 carry that record.
 6. **Cache wipe on sign-out costs a full re-download on sign-in.** Acceptable
    at demo volumes; a pilot with real caseloads needs delta sync that
    survives sign-out, which in turn needs a policy decision on health data
@@ -1019,7 +1026,7 @@ to see. Greptile is pointed at this section.
     | The models, the reference assets (§6.2) and the typeId rows (§6) | Built (CRQ-0039, CRQ-0049) |
     | The 21 encrypted boxes and the feature cache helpers (§6.3) | Built (CRQ-0040) |
     | The Firebase data sources and the query registry | Built (CRQ-0048) |
-    | Rules, indexes and TTL for the §6.3 collections | Written, not deployed (item 5) |
+    | Rules, indexes and TTL for the §6.3 collections | Live: indexes and TTL declared, smoke ok (`36b8588`); functions deployed (item 5) |
     | The case, share-code, report, appointment, conversation, notification and alert functions, with the signed-report PDF | Built (CRQ-0041 to CRQ-0047, CRQ-0049); 518 emulator tests |
     | The eight client kill-switch defaults (§10) | Built (`remote_config_defaults.dart`) |
     | The AI service's new jobs (translation, explanation, intake, notes translation, risk check, speech to text, alert drafting) | The next branch, `feat/ai-service`. No AI client is wired until then: every AI path records `Failed`, and an alert draft is the template |
@@ -1034,6 +1041,8 @@ to see. Greptile is pointed at this section.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-04 | §16 item 5 and the §16.11 status row: indexes and TTL declaration sourced; first live smoke from `36b8588` (CRQ-0046 §9 U-5, CRQ-0048 §9); domain rules/functions deploy left open until a CRQ records it. | Cursor |
+| 2026-11-02 | §11: the alert approver is a verified doctor holding `admin` and `alertApprover`, not a separate public-health account (`feat/ui`, decision S-2). | Theo |
 | 2026-11-02 | §4, §6 (typeId rows), §6.1 (availability, the link job, booking), §6.2, §6.3, §10 and §16 items 5 and 11 brought up to what `feat/infra` built: the domain functions, the alert engine and the signed-report PDF (CRQ-0041 to CRQ-0049). | Theo |
 | 2026-11-01 | The `feat/infra` data layer, as planned: §4 the clinical features; §6 the append rule for shipped classes, typeIds 4-55 reserved, scoping by `participantUids` and `readerUids`, counters on the edge; §6.1 availability, the link job, the patient's `Join` share; §6.2 the four new assets with their sources; §6.3 the collections, Storage paths and boxes; §9 the tap payload and the listeners; §10 eight kill switches and two templates; §11 the patient's rights and the alert approver; §15 rule 4 signing as a transaction; §16 item 11 (CRQ-0039 to CRQ-0049). | Theo |
 | 2026-10-29 | §6.2: the lab test catalogue, with benchmark prices (CRQ-0033). | Theo |

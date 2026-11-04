@@ -158,6 +158,28 @@ void main() {
         'adminOnly': AppError.adminOnly,
         'invalidPractitioner': AppError.invalidPractitioner,
         'invalidDecision': AppError.invalidDecision,
+        'notInCare': AppError.notInCare,
+        'invalidAppointment': AppError.invalidAppointment,
+        'invalidTest': AppError.invalidOrder,
+        'invalidNotes': AppError.invalidOrder,
+        'invalidCollectedAt': AppError.invalidOrder,
+        'invalidPayment': AppError.invalidOrder,
+        'invalidPriority': AppError.invalidOrder,
+        'invalidPathologist': AppError.invalidPathologist,
+        'pathologistDeclined': AppError.invalidPathologist,
+        'dailyOrderLimit': AppError.dailyOrderLimit,
+        'wrongCode': AppError.wrongShareCode,
+        'shareExpired': AppError.shareExpired,
+        'shareLocked': AppError.shareLocked,
+        'shareClosed': AppError.shareClosed,
+        'slidesNotRequired': AppError.slidesNotRequired,
+        'invalidStage': AppError.invalidStage,
+        'notOnCase': AppError.notOnCase,
+        'tooManySlides': AppError.tooManySlides,
+        'slideNotUploaded': AppError.slideNotUploaded,
+        'slideNotReserved': AppError.slideNotReserved,
+        'invalidSlides': AppError.invalidSlides,
+        'invalidCount': AppError.invalidSlides,
       };
       for (final entry in keys.entries) {
         final exception = _TestFunctionsException(
@@ -208,6 +230,14 @@ void main() {
         expect(reason.description(en), isNotEmpty, reason: '$reason en');
         expect(reason.description(sw), isNotEmpty, reason: '$reason sw');
       }
+      for (final urgency in Urgency.values) {
+        expect(urgency.description(en), isNotEmpty, reason: '$urgency en');
+        expect(urgency.description(sw), isNotEmpty, reason: '$urgency sw');
+      }
+      for (final type in AppointmentType.values) {
+        expect(type.description(en), isNotEmpty, reason: '$type en');
+        expect(type.description(sw), isNotEmpty, reason: '$type sw');
+      }
       for (final reason in CancelReason.values) {
         expect(reason.description(en), isNotEmpty, reason: '$reason en');
         expect(reason.description(sw), isNotEmpty, reason: '$reason sw');
@@ -215,6 +245,47 @@ void main() {
       for (final section in ReportSection.values) {
         expect(section.description(en), isNotEmpty, reason: '$section en');
         expect(section.description(sw), isNotEmpty, reason: '$section sw');
+      }
+    });
+
+    test('slide errors resolve to their own copy, never unknown', () {
+      final cases = {
+        AppError.slidesNotRequired: (
+          'This case does not need slides.',
+          'Kesi hii haihitaji slaidi.',
+        ),
+        AppError.invalidStage: (
+          'Slides can no longer be added to this case.',
+          'Slaidi haziwezi kuongezwa kwenye kesi hii tena.',
+        ),
+        AppError.notOnCase: (
+          'You no longer have access to this case.',
+          'Huna ufikiaji wa kesi hii tena.',
+        ),
+        AppError.tooManySlides: (
+          'Too many slides for this case.',
+          'Slaidi ni nyingi mno kwa kesi hii.',
+        ),
+        AppError.slideNotUploaded: (
+          'A slide was not uploaded. Try again.',
+          'Slaidi moja haikupakiwa. Jaribu tena.',
+        ),
+        AppError.slideNotReserved: (
+          'A slide was not reserved. Try again.',
+          'Slaidi moja haikutengwa. Jaribu tena.',
+        ),
+        AppError.invalidSlides: (
+          'Some slides are not valid. Check each row and try again.',
+          'Baadhi ya slaidi si sahihi. Angalia kila mstari na ujaribu tena.',
+        ),
+      };
+      for (final entry in cases.entries) {
+        expect(
+          entry.value.$1,
+          isNot('Something went wrong. Please try again.'),
+        );
+        expect(entry.key.description(en), entry.value.$1);
+        expect(entry.key.description(sw), entry.value.$2);
       }
     });
 

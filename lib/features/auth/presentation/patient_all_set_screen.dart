@@ -25,7 +25,7 @@ class PatientAllSetScreen extends StatelessWidget {
 
     return RoleBackground.patient(
       child: Scaffold(
-        backgroundColor: Colors.transparent,
+        backgroundColor: AppColors.transparent,
         body: SafeArea(
           child: Padding(
             padding: const EdgeInsets.all(AppSpacing.screenMargin),
@@ -146,7 +146,7 @@ class _CalendarIllustration extends StatelessWidget {
               child: AssetIcon(
                 Assets.icons.checkSelectedIcon,
                 size: 26,
-                color: Colors.white,
+                color: AppColors.white,
               ),
             ),
           ),

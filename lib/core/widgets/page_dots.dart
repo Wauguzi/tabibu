@@ -1,8 +1,9 @@
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
+import 'package:tabibu/core/constants/app_status_colors.dart';
 
-/// Page dots for intro carousels: the current page stretches into a teal
-/// pill while the rest stay quiet dots.
+/// Page dots for carousels: the current page stretches into an ink pill
+/// while the rest stay quiet dots.
 class PageDots extends StatelessWidget {
   const PageDots({required this.count, required this.index, super.key})
     : assert(index >= 0 && index < count, 'Index stays within the pages.');
@@ -13,6 +14,7 @@ class PageDots extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final scheme = Theme.of(context).colorScheme;
+    final status = Theme.of(context).extension<AppStatusColors>()!;
     return Row(
       mainAxisSize: .min,
       children: [
@@ -23,7 +25,7 @@ class PageDots extends StatelessWidget {
             width: i == index ? 24 : 8,
             height: 8,
             decoration: BoxDecoration(
-              color: i == index ? scheme.primary : scheme.outlineVariant,
+              color: i == index ? status.ink : scheme.outlineVariant,
               borderRadius: BorderRadius.circular(4),
             ),
           ),

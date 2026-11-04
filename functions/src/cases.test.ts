@@ -376,6 +376,36 @@ describe('cases', () => {
       const caseUid = await requestedCase(w);
       await refusedWith(recordSampleReceivedHandler(w.deps, w.pathologist, { caseUid, labAccessionNo: 'A1' }), 'notOnCase');
     });
+
+    // ABO and Rh D grouping sits outside the pre-read profiles: no slides.
+    const NO_SLIDES = '9f7bb987-d194-4935-8c52-713da8b21f10';
+
+    async function reassignedAfterSample(): Promise<string> {
+      const caseUid = await receivedCase(w, { labTestIds: [NO_SLIDES] });
+      assert.equal((await caseDoc(w, caseUid)).requiresSlides, false);
+      await reassignPathologistHandler(w.deps, w.doctor, { caseUid, pathologistUid: w.otherPathologist.uid });
+      await acceptCaseHandler(w.deps, w.otherPathologist, { caseUid });
+      const doc = await caseDoc(w, caseUid);
+      assert.equal(doc.currentStage, 'PathologistAccepted');
+      assert.equal(doc.labAccessionNo, 'LAB/2026-001');
+      return caseUid;
+    }
+
+    it('reassign after a recorded sample: the same accession moves the stage', async () => {
+      const caseUid = await reassignedAfterSample();
+      await recordSampleReceivedHandler(w.deps, w.otherPathologist, { caseUid, labAccessionNo: 'LAB/2026-001' });
+      const doc = await caseDoc(w, caseUid);
+      assert.equal(doc.currentStage, 'SampleReceived');
+      assert.equal(doc.labAccessionNo, 'LAB/2026-001');
+    });
+
+    it('reassign after a recorded sample: a new accession is stored', async () => {
+      const caseUid = await reassignedAfterSample();
+      await recordSampleReceivedHandler(w.deps, w.otherPathologist, { caseUid, labAccessionNo: 'LAB/2026-002' });
+      const doc = await caseDoc(w, caseUid);
+      assert.equal(doc.currentStage, 'SampleReceived');
+      assert.equal(doc.labAccessionNo, 'LAB/2026-002');
+    });
   });
 
   describe('slides', () => {

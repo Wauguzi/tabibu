@@ -40,7 +40,7 @@ void main() {
         'Embakasi, Nairobi',
         'Light, dark or device theme',
         'Alerts and security',
-        'Biometrics',
+        'Notification settings',
         'Health notices for my area',
         'Help and account',
         'Privacy and data',
@@ -67,13 +67,41 @@ void main() {
         find.text('General surgery · Aga Khan University Hospital'),
         findsOneWidget,
       );
-      expect(find.text('KMPDC verified · A 12345'), findsOneWidget);
+      // The tab's card shows the status, never the licence number.
+      expect(find.text('KMPDC verified'), findsOneWidget);
+      expect(find.text('KMPDC verified · A 12345'), findsNothing);
       expect(
         find.text('You can approve area alerts for Nairobi.'),
         findsOneWidget,
       );
-      expect(find.text('Clinic hours'), findsOneWidget);
       expect(find.text('Theme'), findsOneWidget);
+    });
+
+    testWidgets('only Biometrics stays hidden; its neighbours lead', (
+      tester,
+    ) async {
+      tallView(tester);
+
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
+      await tester.pumpAndSettle();
+      expect(find.text('Biometrics'), findsNothing);
+      expect(find.text('Notification settings'), findsOneWidget);
+
+      await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor/profile');
+      await tester.pumpAndSettle();
+      expect(find.text('Biometrics'), findsNothing);
+      expect(find.text('Notification settings'), findsOneWidget);
+      expect(find.text('Clinic hours'), findsOneWidget);
+
+      await tester.pumpRoleApp(
+        RoleSessions.pathologist,
+        '/pathologist/profile',
+      );
+      await tester.pumpAndSettle();
+      expect(find.text('Biometrics'), findsNothing);
+      expect(find.text('Notification settings'), findsOneWidget);
+      expect(find.text('Clinic hours'), findsNothing);
+      expect(find.text('Alerts and security'), findsOneWidget);
     });
 
     testWidgets('a doctor who does not approve alerts sees no notice', (
@@ -104,8 +132,8 @@ void main() {
       expect(find.text('Cytology'), findsOneWidget);
       expect(find.text('Lab'), findsOneWidget);
       expect(find.text('Accept new cases'), findsOneWidget);
-      expect(find.text('Theme'), findsNothing);
-      expect(find.text('Health notices for my area'), findsNothing);
+      expect(find.text('Theme'), findsOneWidget);
+      expect(find.text('Health notices for my area'), findsOneWidget);
     });
 
     testWidgets('areas read in Kiswahili', (tester) async {
@@ -123,28 +151,91 @@ void main() {
       expect(find.text('Saitolojia'), findsOneWidget);
     });
 
-    testWidgets('a switch row is not yet available', (tester) async {
+    testWidgets('Health notices dispatches its flips', (tester) async {
       tallView(tester);
-      await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
-      await tester.pumpAndSettle();
-      Switch biometrics() => tester.widget<Switch>(
-        find.descendant(
-          of: find
-              .ancestor(
-                of: find.text('Biometrics'),
-                matching: find.byType(GestureDetector),
-              )
-              .first,
-          matching: find.byType(Switch),
-        ),
+      final bloc = await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
       );
-      expect(biometrics().value, isFalse);
-      expect(biometrics().onChanged, isNull);
-
-      await tester.tap(find.text('Biometrics'));
       await tester.pumpAndSettle();
 
-      expect(biometrics().value, isFalse);
+      await tester.tap(find.text('Health notices for my area'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => bloc.add(
+          const ProfileSettingChanged(
+            setting: ProfileSetting.healthNotices,
+            value: false,
+          ),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('Accept cases dispatches its flips', (tester) async {
+      tallView(tester);
+      final bloc = await tester.pumpRoleApp(
+        RoleSessions.pathologist,
+        '/pathologist/profile',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Accept new cases'));
+      await tester.pumpAndSettle();
+
+      verify(
+        () => bloc.add(
+          const ProfileSettingChanged(
+            setting: ProfileSetting.acceptCases,
+            value: false,
+          ),
+        ),
+      ).called(1);
+    });
+
+    testWidgets('the switches hold still while saving', (tester) async {
+      tallView(tester);
+      final bloc = await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
+        states: [ProfileSettingChangeInProgress(session: RoleSessions.patient)],
+      );
+      await tester.pumpAndSettle();
+
+      final row = find.descendant(
+        of: find
+            .ancestor(
+              of: find.text('Health notices for my area'),
+              matching: find.byType(GestureDetector),
+            )
+            .first,
+        matching: find.byType(Switch),
+      );
+      expect(tester.widget<Switch>(row).onChanged, isNull);
+
+      await tester.tap(find.text('Health notices for my area'));
+      await tester.pumpAndSettle();
+      verifyNever(() => bloc.add(any()));
+    });
+
+    testWidgets('a failed save says why', (tester) async {
+      tallView(tester);
+      await tester.pumpRoleApp(
+        RoleSessions.patient,
+        '/patient/profile',
+        states: [
+          ProfileSettingChangeFailure(
+            session: RoleSessions.patient,
+            error: AppError.noInternet,
+          ),
+        ],
+      );
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 300));
+
+      expect(find.text('No internet access.'), findsOneWidget);
+      await tester.pump(const Duration(seconds: 5));
+      await tester.pumpAndSettle();
     });
 
     testWidgets('Sign out asks first, then signs out', (tester) async {
@@ -216,6 +307,133 @@ void main() {
       await tester.pumpAndSettle();
     });
 
+    testWidgets('the patient rows open their screens', (tester) async {
+      tallView(tester);
+      const rows = {
+        'Language':
+            'Choose the language for the app, your results and health notices.',
+        'My area':
+            'We use your area to show doctors nearby and health notices. '
+            'We never track your location.',
+        'Theme': 'Same as my phone',
+        'Notification settings': 'All notifications',
+      };
+      for (final entry in rows.entries) {
+        await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
+        await tester.pumpAndSettle();
+
+        await tester.tap(find.text(entry.key));
+        await tester.pumpAndSettle();
+
+        expect(find.text(entry.value), findsOneWidget, reason: entry.key);
+      }
+    });
+
+    testWidgets('privacy and help rows open their screens', (tester) async {
+      tallView(tester);
+      final sessions = {
+        '/patient/profile': RoleSessions.patient,
+        '/doctor/profile': RoleSessions.doctor(),
+        '/pathologist/profile': RoleSessions.pathologist,
+      };
+      final privacyMarkers = {
+        '/patient/profile':
+            'You decide who sees your health information. '
+            'Tabibu never sells it or tracks where you are.',
+        '/doctor/profile': 'Lock Tabibu with a PIN or Face ID',
+        '/pathologist/profile':
+            'Only your cases open for you. Patient data never leaves '
+            'Tabibu without consent or a legal duty.',
+      };
+      final helpMarkers = {
+        '/patient/profile': 'Talk to us',
+        '/doctor/profile': 'Clinician support',
+        '/pathologist/profile': 'Clinician support',
+      };
+      for (final entry in sessions.entries) {
+        await tester.pumpRoleApp(entry.value, entry.key);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Privacy and data'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(privacyMarkers[entry.key]!),
+          findsOneWidget,
+          reason: entry.key,
+        );
+
+        await tester.pumpRoleApp(entry.value, entry.key);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('Help and support'));
+        await tester.pumpAndSettle();
+        expect(
+          find.text(helpMarkers[entry.key]!),
+          findsOneWidget,
+          reason: entry.key,
+        );
+      }
+    });
+
+    testWidgets('the patient pencil opens the profile details', (tester) async {
+      tallView(tester);
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(CircleIconButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('About me'), findsOneWidget);
+    });
+
+    testWidgets('back from a settings screen returns to the tab', (
+      tester,
+    ) async {
+      tallView(tester);
+      await tester.pumpRoleApp(RoleSessions.patient, '/patient/profile');
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.text('Language'));
+      await tester.pumpAndSettle();
+      expect(find.text('Kiswahili'), findsOneWidget);
+
+      await tester.tap(find.byType(CircleIconButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Your profile'), findsOneWidget);
+    });
+
+    testWidgets('the doctor rows open hours and details', (tester) async {
+      tallView(tester);
+      await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor/profile');
+      await tester.pumpAndSettle();
+
+      expect(find.text('Mon–Fri · 8:00 AM–5:00 PM'), findsOneWidget);
+
+      await tester.tap(find.text('Clinic hours'));
+      await tester.pumpAndSettle();
+      expect(find.text('Accepting new patients'), findsOneWidget);
+
+      await tester.pumpRoleApp(RoleSessions.doctor(), '/doctor/profile');
+      await tester.pumpAndSettle();
+      await tester.tap(find.byType(CircleIconButton));
+      await tester.pumpAndSettle();
+      expect(find.text('Only for Tabibu'), findsOneWidget);
+    });
+
+    testWidgets('the pathologist pencil opens the profile details', (
+      tester,
+    ) async {
+      tallView(tester);
+      await tester.pumpRoleApp(
+        RoleSessions.pathologist,
+        '/pathologist/profile',
+      );
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.byType(CircleIconButton));
+      await tester.pumpAndSettle();
+
+      expect(find.text('Shown to doctors'), findsOneWidget);
+    });
+
     testWidgets('the patient card raises by tone in dark mode', (tester) async {
       tallView(tester);
       await tester.pumpRoleApp(
@@ -271,6 +489,16 @@ void main() {
     test('leaves any other value as it is', () {
       expect(PatientIdentityCard.maskPhone(''), '');
       expect(PatientIdentityCard.maskPhone('0712345678'), '0712345678');
+    });
+  });
+
+  group('PatientIdentityCard.shortName', () {
+    test('keeps the first name with the last initial', () {
+      expect(PatientIdentityCard.shortName('Amina', 'Wambui'), 'Amina W.');
+    });
+
+    test('without a last name shows the first alone', () {
+      expect(PatientIdentityCard.shortName('Amina', ''), 'Amina');
     });
   });
 }

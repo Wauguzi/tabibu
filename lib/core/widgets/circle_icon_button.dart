@@ -17,6 +17,7 @@ class CircleIconButton extends StatelessWidget {
     this.filled = false,
     this.onCard = false,
     this.diameter = 48,
+    this.iconSize = 24,
     super.key,
   }) : assert(diameter >= 48, 'Tap targets are at least 48 dp.');
 
@@ -26,6 +27,7 @@ class CircleIconButton extends StatelessWidget {
   final bool filled;
   final bool onCard;
   final double diameter;
+  final double iconSize;
 
   @override
   Widget build(BuildContext context) {
@@ -38,7 +40,7 @@ class CircleIconButton extends StatelessWidget {
         ? scheme.surfaceContainerLow
         : scheme.surfaceContainerLowest;
     final foreground = filled
-        ? (isDark ? AppColors.inkLight : Colors.white)
+        ? (isDark ? AppColors.inkLight : AppColors.white)
         : scheme.onSurface;
 
     final onTap = this.onTap;
@@ -61,7 +63,7 @@ class CircleIconButton extends StatelessWidget {
             child: Center(
               child: AssetIcon(
                 icon,
-                size: 24,
+                size: iconSize,
                 color: foreground,
                 scaleUp: false,
               ),

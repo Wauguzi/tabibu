@@ -12,7 +12,7 @@ import { randomUUID } from 'node:crypto';
 
 import { initializeApp } from 'firebase-admin/app';
 import { getAuth } from 'firebase-admin/auth';
-import { getFirestore } from 'firebase-admin/firestore';
+import { type Firestore, getFirestore } from 'firebase-admin/firestore';
 import { getStorage } from 'firebase-admin/storage';
 
 import type { Caller } from './common';
@@ -25,13 +25,14 @@ import {
   verifyPractitionerHandler,
 } from './identity';
 
-const PROJECT = 'tabibu-86ea2';
+export const PROJECT = 'tabibu-86ea2';
 const EMULATOR_HOSTS = ['FIRESTORE_EMULATOR_HOST', 'FIREBASE_AUTH_EMULATOR_HOST', 'FIREBASE_STORAGE_EMULATOR_HOST'];
 
 const KENYATTA_NATIONAL_HOSPITAL = '779bc5ec-701d-408f-84d5-b846b2edc45e';
 const MBAGATHI_DISTRICT_HOSPITAL = '88a63b52-4cc1-4db2-a73d-a88c2a9bb816';
 
-function config() {
+/** Where a seed writes: the live project (confirmed) or the emulators (all three hosts set). */
+export function target() {
   const live = process.argv.includes('--live');
   if (live && process.env.SEED_CONFIRM !== PROJECT) {
     throw new Error(`Seeding the live project needs SEED_CONFIRM=${PROJECT}.`);
@@ -43,8 +44,6 @@ function config() {
   if (live && missing.length < EMULATOR_HOSTS.length) {
     throw new Error('--live with emulator hosts set is ambiguous; unset them.');
   }
-  const password = process.env.SEED_PASSWORD ?? '';
-  if (password.length < 12) throw new Error('SEED_PASSWORD must be at least 12 characters.');
   // `{role}` is replaced per account, e.g. `tabibu.demo+{role}@gmail.com`: plus addressing sends
   // every account's mail to one inbox, so password reset works.
   const template = process.env.SEED_EMAIL_TEMPLATE || '{role}@tabibu.test';
@@ -52,6 +51,13 @@ function config() {
     throw new Error('SEED_EMAIL_TEMPLATE must be an email address containing {role}.');
   }
   const email = (role: string) => template.replace('{role}', role).toLowerCase();
+  return { live, email };
+}
+
+export function config() {
+  const { live, email } = target();
+  const password = process.env.SEED_PASSWORD ?? '';
+  if (password.length < 12) throw new Error('SEED_PASSWORD must be at least 12 characters.');
   return { live, password, email };
 }
 
@@ -59,7 +65,7 @@ function config() {
  * The seeded account for [email]. An account the seed did not create is refused, never adopted:
  * anyone can sign up with a seeded address first, and the seed then grants roles and admin.
  */
-async function user(email: string, password: string, displayName: string): Promise<string> {
+export async function user(email: string, password: string, displayName: string): Promise<string> {
   const auth = getAuth();
   let existing: { uid: string; customClaims?: Record<string, unknown> } | undefined;
   try {
@@ -79,12 +85,12 @@ async function user(email: string, password: string, displayName: string): Promi
 }
 
 // The seed creates its accounts confirmed, as the sign-up callables require.
-function caller(uid: string, email: string, role = '', isAdmin = false): Caller {
+export function caller(uid: string, email: string, role = '', isAdmin = false): Caller {
   return { uid, email, emailVerified: true, role, isAdmin };
 }
 
 /** Marks a seeded account as demo content, keeping every claim it already holds. */
-async function markDemo(uid: string): Promise<void> {
+export async function markDemo(uid: string): Promise<void> {
   const auth = getAuth();
   const claims = (await auth.getUser(uid)).customClaims ?? {};
   await auth.setCustomUserClaims(uid, { ...claims, demo: true });
@@ -94,7 +100,7 @@ async function markDemo(uid: string): Promise<void> {
  * The demo-clinician row synthetic alerts page. County and language mirror the synced
  * profile, so the row pages exactly where the practitioner's own row does.
  */
-async function writeDemoAccount(uid: string, role: 'doctor' | 'pathologist'): Promise<void> {
+export async function writeDemoAccount(uid: string, role: 'doctor' | 'pathologist'): Promise<void> {
   const db = getFirestore();
   const practitioner = (await db.collection('practitioners').doc(uid).get()).data();
   const profile = (await db.collection('doctors').doc(uid).get()).data();
@@ -108,7 +114,7 @@ async function writeDemoAccount(uid: string, role: 'doctor' | 'pathologist'): Pr
 }
 
 /** A placeholder license, stored where the rules expect one, with its download URL. */
-async function license(uid: string, bucketName: string): Promise<string> {
+export async function license(uid: string, bucketName: string): Promise<string> {
   const token = randomUUID();
   const path = `licenses/${uid}/license_1.pdf`;
   await getStorage()
@@ -122,7 +128,7 @@ async function license(uid: string, bucketName: string): Promise<string> {
 }
 
 /** A placeholder photo where the rules expect one; the demo uses the app's own portraits. */
-async function picture(uid: string, bucketName: string): Promise<string> {
+export async function picture(uid: string, bucketName: string): Promise<string> {
   const token = randomUUID();
   const path = `profilePictures/${uid}/photo.png`;
   // A 1x1 PNG: the seed proves the path and the rules, not the picture.
@@ -137,7 +143,23 @@ async function picture(uid: string, bucketName: string): Promise<string> {
   return `https://firebasestorage.googleapis.com/v0/b/${bucketName}/o/${encodeURIComponent(path)}?alt=media&token=${token}`;
 }
 
-async function practitioner(
+/**
+ * A demo practitioner's photo: a Pexels stock model (Pexels License, no attribution required),
+ * set after sign-up because sign-up accepts only a Storage URL. Not a picture of the named person.
+ */
+const DEMO_PHOTOS = {
+  // https://www.pexels.com/photo/portrait-of-an-african-woman-in-medical-apron-18788957/
+  doctor: 'https://images.pexels.com/photos/18788957/pexels-photo-18788957.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop',
+  // https://www.pexels.com/photo/woman-wearing-a-white-lab-coat-looking-through-a-microscope-8770727/
+  pathologist: 'https://images.pexels.com/photos/8770727/pexels-photo-8770727.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop',
+};
+
+export async function setDemoPhoto(db: Firestore, uid: string, url: string): Promise<void> {
+  await db.collection('doctors').doc(uid).update({ profilePictureUrl: url, lastUpdatedAt: new Date().toISOString() });
+  await syncPractitionerHandler(db, uid);
+}
+
+export async function practitioner(
   deps: Deps,
   admin: Caller,
   input: { email: string; password: string; isPathologist: boolean; facilityId: string; fields: object },
@@ -157,15 +179,12 @@ async function practitioner(
   return uid;
 }
 
-async function main(): Promise<void> {
-  const { live, password, email } = config();
-  initializeApp({ projectId: PROJECT, storageBucket: `${PROJECT}.firebasestorage.app` });
-  const deps: Deps = {
-    db: getFirestore(),
-    auth: getAuth(),
-    bucket: getStorage().bucket().name,
-  };
-
+/** The four demo accounts and the doctor's clinic patients; each step reuses what already exists. */
+export async function seedAccounts(
+  deps: Deps,
+  password: string,
+  email: (role: string) => string,
+): Promise<{ adminUid: string; doctorUid: string; pathologistUid: string; patientUid: string }> {
   const adminEmail = email('admin');
   const adminUid = await user(adminEmail, password, 'Tabibu admin');
   const existing = (await getAuth().getUser(adminUid)).customClaims ?? {};
@@ -201,14 +220,28 @@ async function main(): Promise<void> {
       kmpdcNumber: 'DEMO-D-0001',
     },
   });
-  // The approver permission used to sit on this doctor; it now sits on the admin
-  // account, so a stale claim from an earlier seed is removed (F-41).
+  // S-2: the demo doctor is the in-app alert approver (admin still approves
+  // from the console). Claims merge with whatever practitioner() wrote.
   const doctorClaims = (await getAuth().getUser(doctorUid)).customClaims ?? {};
-  if (doctorClaims.alertApprover !== undefined) {
-    const kept = { ...doctorClaims };
-    delete kept.alertApprover;
-    await getAuth().setCustomUserClaims(doctorUid, kept);
+  await getAuth().setCustomUserClaims(doctorUid, {
+    ...doctorClaims,
+    admin: true,
+    alertApprover: true,
+  });
+  // Created once: a re-run must not wipe the push tokens the doctor's phone
+  // has since registered.
+  const doctorApprover = getFirestore().collection('alertApprovers').doc(doctorUid);
+  if (!(await doctorApprover.get()).exists) {
+    await doctorApprover.set({
+      uid: doctorUid,
+      grantedByUid: adminUid,
+      grantedAt: seededAt,
+      fcmTokens: [],
+      language: 'en',
+      lastUpdatedAt: seededAt,
+    });
   }
+  await setDemoPhoto(deps.db, doctorUid, DEMO_PHOTOS.doctor);
   await markDemo(doctorUid);
   await writeDemoAccount(doctorUid, 'doctor');
 
@@ -227,6 +260,7 @@ async function main(): Promise<void> {
       kmpdcNumber: 'DEMO-P-0001',
     },
   });
+  await setDemoPhoto(deps.db, pathologistUid, DEMO_PHOTOS.pathologist);
   await markDemo(pathologistUid);
   await writeDemoAccount(pathologistUid, 'pathologist');
 
@@ -262,11 +296,26 @@ async function main(): Promise<void> {
       language: 'sw',
     });
   }
-
-  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin (approver), doctor, pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
+  return { adminUid, doctorUid, pathologistUid, patientUid };
 }
 
-main().catch((e: Error) => {
-  console.error(`Seed failed: ${e.message}`);
-  process.exit(1);
-});
+async function main(): Promise<void> {
+  const { live, password, email } = config();
+  initializeApp({ projectId: PROJECT, storageBucket: `${PROJECT}.firebasestorage.app` });
+  const deps: Deps = {
+    db: getFirestore(),
+    auth: getAuth(),
+    bucket: getStorage().bucket().name,
+  };
+  await seedAccounts(deps, password, email);
+
+  console.log(`Seeded ${live ? PROJECT : 'the emulators'}: admin, doctor (approver), pathologist, patient as ${email('{role}')}; 2 clinic patients.`);
+}
+
+// seed-directory.ts imports the helpers above without running this seed.
+if (require.main === module) {
+  main().catch((e: Error) => {
+    console.error(`Seed failed: ${e.message}`);
+    process.exit(1);
+  });
+}

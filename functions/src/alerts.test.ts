@@ -1,4 +1,4 @@
-// cspell:ignore coun
+// cspell:ignore coun Fuata Nenda ukijisikia vibaya Haina madhara Hakuna kujali
 import assert from 'node:assert/strict';
 
 import type { Firestore } from 'firebase-admin/firestore';
@@ -10,6 +10,7 @@ import { deliverAlert } from './alert-delivery';
 import {
   approveAlertHandler,
   checkDraftOutput,
+  checkGuidanceGrounding,
   onAlertWrittenHandler,
   requestAlertDraftHandler,
   sanitizedDraftOutput,
@@ -46,11 +47,13 @@ const CHIKUNGUNYA_TEST = '9f7bb98b-33ed-452e-9d52-ef49f8170711';
 const MODEL_EN = {
   patient: {
     headline: 'Health alert: {disease} in {county} County',
-    body: 'Cases of {disease} were confirmed in {county} County. Rest and drink fluids.',
+    body:
+      'Cases of {disease} were confirmed in {county} County. Follow the Ministry of Health guidance below, and visit a health facility if you feel unwell.',
   },
   clinician: {
     headline: 'Alert: {disease} in {county} County',
-    body: 'Confirmed {disease} in {county} County, week of {weekStart}: {count}. Watch for cases.',
+    body:
+      'Confirmed {disease} in {county} County, week of {weekStart}: {count}. Watch for suspected cases and follow the Ministry of Health guidance below.',
   },
 };
 
@@ -1049,7 +1052,25 @@ describe('alerts', () => {
       const signalUid = await draftingAlert();
       const seen: { calls: number; input?: AlertDraftInput } = { calls: 0 };
       const after = (await db.collection('alerts').doc(signalUid).get()).data();
-      const outcome = await onAlertWrittenHandler(depsOf(db, { ai: fakeAi('valid', seen) }), signalUid, {
+      // Bundle 77: the sentences are the template's own, so the draft grounds
+      // without quoting a bullet.
+      const valid = {
+        assessCase: async () => {
+          throw new Error('unused');
+        },
+        generateAlertDraft: async (input: AlertDraftInput) => {
+          seen.calls++;
+          seen.input = input;
+          const texts = modelTexts();
+          const own = templateDraft(false);
+          texts.patient_en.body = own.patient_en.body;
+          texts.patient_sw.body = own.patient_sw.body;
+          texts.clinician_en.body = own.clinician_en.body;
+          texts.clinician_sw.body = own.clinician_sw.body;
+          return { texts, models: { draft: 'test-model' } };
+        },
+      };
+      const outcome = await onAlertWrittenHandler(depsOf(db, { ai: valid }), signalUid, {
         before: undefined,
         after,
       });
@@ -1107,6 +1128,127 @@ describe('alerts', () => {
       }
       assert.equal(sanitizedDraftOutput({}), undefined);
       assert.equal(checkDraftOutput(modelTexts()), '');
+    });
+
+    it('bundle 62: missing placeholder, rewritten guidance or an added phone falls back', async () => {
+      await approver(w, 'approver@example.com');
+
+      const missing = modelTexts();
+      missing.patient_en.headline = 'Health alert in the county';
+      missing.patient_en.body = 'Cases were confirmed. Follow the guidance below.';
+      assert.equal(checkDraftOutput(missing), 'OffSchema');
+
+      const phone = modelTexts();
+      phone.patient_en.body += ' Call +254700000000.';
+      assert.equal(checkDraftOutput(phone), 'NumberCheck');
+
+      const guidance = [
+        {
+          bulletId: 'p1',
+          audience: 'Patient',
+          textEn: 'Seek care promptly for fever.',
+          textSw: 'Tafuta matibabu haraka ukiwa na homa.',
+        },
+        {
+          bulletId: 'c1',
+          audience: 'Clinician',
+          textEn: 'Report a suspected case immediately.',
+          textSw: 'Ripoti kesi inayoshukiwa mara moja.',
+        },
+      ];
+      // Bundle 77: every poisoned fixture below starts from a clean draft, so the
+      // OffSchema comes only from the poisoned segment.
+      const first = (body: string): string => body.split(/(?<=[.!?])\s+/)[0];
+      const own = templateDraft(false);
+      const cleanDraft = () => {
+        const texts = modelTexts();
+        texts.patient_en.body = `${first(own.patient_en.body)} Seek care promptly for fever.`;
+        texts.patient_sw.body = `${first(own.patient_sw.body)} Tafuta matibabu haraka ukiwa na homa.`;
+        texts.clinician_en.body = `${first(own.clinician_en.body)} Report a suspected case immediately.`;
+        texts.clinician_sw.body = `${first(own.clinician_sw.body)} Ripoti kesi inayoshukiwa mara moja.`;
+        return texts;
+      };
+
+      const rewritten = cleanDraft();
+      rewritten.patient_en.body =
+        'Follow the Ministry of Health guidance below. Seek care promptly for fever somehow differently.';
+      assert.equal(checkGuidanceGrounding(rewritten, guidance), 'OffSchema');
+
+      // Bundle 77: a headline with an invented claim falls back, even when the body is clean.
+      const headline = cleanDraft();
+      headline.patient_en.headline = 'Fever cases are harmless and under control';
+      assert.equal(checkGuidanceGrounding(headline, guidance), 'OffSchema');
+
+      // Bundle 77: a placeholder never excuses an extra claim in its sentence.
+      const extra = cleanDraft();
+      extra.patient_en.body =
+        'Follow the Ministry of Health guidance below. Cases of {disease} were confirmed in {county} County and it is harmless.';
+      assert.equal(checkGuidanceGrounding(extra, guidance), 'OffSchema');
+
+      // Mentioning the guidance does not excuse a claim made in the same sentence.
+      const smuggled = cleanDraft();
+      smuggled.patient_en.body =
+        'Follow the Ministry of Health guidance for {disease} in {county} County below and confirm every traveller is infected.';
+      assert.equal(checkGuidanceGrounding(smuggled, guidance), 'OffSchema');
+      const smuggledNoPlaceholder = cleanDraft();
+      smuggledNoPlaceholder.clinician_en.body =
+        'Follow the Ministry of Health guidance below and close the clinic for a week.';
+      assert.equal(checkGuidanceGrounding(smuggledNoPlaceholder, guidance), 'OffSchema');
+
+      // The template's own sentences, placeholders intact, are what a faithful draft repeats.
+      const echoed = cleanDraft();
+      echoed.patient_en.body = own.patient_en.body;
+      echoed.patient_sw.body = own.patient_sw.body;
+      echoed.clinician_en.body = own.clinician_en.body;
+      echoed.clinician_sw.body = own.clinician_sw.body;
+      assert.equal(checkGuidanceGrounding(echoed, guidance), '');
+
+      // Bundle 77: reassurance and minimising phrases are banned in both languages.
+      const reassured = modelTexts();
+      reassured.patient_en.body += ' It is harmless and under control.';
+      assert.equal(checkDraftOutput(reassured), 'Banned');
+      const reassuredSw = modelTexts();
+      reassuredSw.patient_sw.body += ' Haina madhara.';
+      const reassuredSw2 = modelTexts();
+      reassuredSw2.patient_sw.body += ' Hakuna cha kujali.';
+      assert.equal(checkDraftOutput(reassuredSw2), 'Banned');
+      assert.equal(checkDraftOutput(reassuredSw), 'Banned');
+
+      // Bundle 77: framing plus exact bullets, with placeholders only in framing
+      // sentences, still passes.
+      const grounded = cleanDraft();
+      assert.equal(checkGuidanceGrounding(grounded, guidance), '');
+      assert.equal(checkDraftOutput(grounded), '');
+
+      const signalUid = signalUidFor('ebola_virus_disease', NAIROBI, WEEK);
+      await db.collection('alerts').doc(signalUid).delete();
+      await draftingAlert();
+      const seen: { calls: number; input?: AlertDraftInput } = { calls: 0 };
+      const after = (await db.collection('alerts').doc(signalUid).get()).data();
+      const outcome = await onAlertWrittenHandler(
+        depsOf(db, {
+          ai: {
+            assessCase: async () => {
+              throw new Error('unused');
+            },
+            generateAlertDraft: async (input: AlertDraftInput) => {
+              seen.calls++;
+              seen.input = input;
+              const texts = modelTexts();
+              texts.patient_en.body =
+                'Cases of {disease} were confirmed in {county} County. Invented advice the bullets never gave.';
+              return { texts, models: { draft: 'test-model' } };
+            },
+          },
+        }),
+        signalUid,
+        { before: undefined, after },
+      );
+      assert.equal(outcome, 'template');
+      assert.equal(seen.calls, 1);
+      const alert = (await db.collection('alerts').doc(signalUid).get()).data();
+      assert.equal(alert?.draftSource, 'Template');
+      assert.equal(alert?.failureReason, 'OffSchema');
     });
 
     it('zero-width smuggling is cleaned before the checks run', async () => {

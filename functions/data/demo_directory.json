@@ -1,0 +1,416 @@
+{
+  "_about": "Demo practitioners for the test directory (make seed-directory). Fictional people at real Nairobi facilities; every licence number starts DEMO-. A photo is a stock model from Pexels, free under the Pexels License with its source and author recorded, never a picture of the named person; null shows initials.",
+  "practitioners": [
+    {
+      "key": "otieno-james",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "James",
+      "lastName": "Otieno",
+      "facilityId": "3859d280-e5f6-4d49-b31d-0599701554d8",
+      "specialties": [
+        "General practice",
+        "Family medicine"
+      ],
+      "bio": "General practice for adults and families in Embakasi. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000201",
+      "kmpdcNumber": "DEMO-D-0101",
+      "photo": {
+        "url": "https://images.pexels.com/photos/4989135/pexels-photo-4989135.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/a-smiling-man-in-a-medical-gown-4989135/",
+        "author": "Ivan S",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "ali-fatuma",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Fatuma",
+      "lastName": "Ali",
+      "facilityId": "ab1ac151-271d-44da-b49a-b164cf16170a",
+      "specialties": [
+        "Paediatrics"
+      ],
+      "bio": "Children from birth to their teens, fevers to follow-ups. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000202",
+      "kmpdcNumber": "DEMO-D-0102",
+      "photo": null
+    },
+    {
+      "key": "wairimu-grace",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Grace",
+      "lastName": "Wairimu",
+      "facilityId": "bb331d93-c2ea-42da-b569-dedfae51d221",
+      "specialties": [
+        "Obstetrics and gynaecology"
+      ],
+      "bio": "Antenatal care, gynaecology and screening for women. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000203",
+      "kmpdcNumber": "DEMO-D-0103",
+      "photo": {
+        "url": "https://images.pexels.com/photos/7580257/pexels-photo-7580257.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/woman-in-white-suit-with-blue-stethoscope-7580257/",
+        "author": "cottonbro studio",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "hassan-ali",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Ali",
+      "lastName": "Hassan",
+      "facilityId": "aa803737-c9cf-4935-b35e-dfb30e898455",
+      "specialties": [
+        "General surgery"
+      ],
+      "bio": "Day-case and general surgery, before and after the operation. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000204",
+      "kmpdcNumber": "DEMO-D-0104",
+      "photo": {
+        "url": "https://images.pexels.com/photos/5327871/pexels-photo-5327871.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/a-man-wearing-his-hospital-uniform-5327871/",
+        "author": "Thirdman",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "nduta-catherine",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Catherine",
+      "lastName": "Nduta",
+      "facilityId": "44bcafe5-67cf-4af4-b263-6140939f8bd6",
+      "specialties": [
+        "Breast surgery",
+        "General surgery"
+      ],
+      "bio": "Breast clinics, biopsies and surgery, with results explained in person. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000205",
+      "kmpdcNumber": "DEMO-D-0105",
+      "photo": {
+        "url": "https://images.pexels.com/photos/18828741/pexels-photo-18828741.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/smiling-doctor-with-a-stethoscope-around-her-neck-18828741/",
+        "author": "Tessy Agbonome",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "mwangi-peter",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Peter",
+      "lastName": "Mwangi",
+      "facilityId": "779bc5ec-701d-408f-84d5-b846b2edc45e",
+      "specialties": [
+        "Internal medicine",
+        "Infectious diseases"
+      ],
+      "bio": "Adult medicine, malaria, HIV and TB care. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000206",
+      "kmpdcNumber": "DEMO-D-0106",
+      "photo": {
+        "url": "https://images.pexels.com/photos/5452274/pexels-photo-5452274.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/pensive-doctor-looking-at-an-ipad-5452274/",
+        "author": "Tima Miroshnichenko",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "njoroge-esther",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Esther",
+      "lastName": "Njoroge",
+      "facilityId": "ed0dbd78-0294-420b-a6a5-12ce99767987",
+      "specialties": [
+        "Oncology"
+      ],
+      "bio": "Cancer care, from the first result to the treatment plan. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000207",
+      "kmpdcNumber": "DEMO-D-0107",
+      "photo": {
+        "url": "https://images.pexels.com/photos/5452195/pexels-photo-5452195.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/young-female-doctor-in-a-white-coat-and-a-stethoscope-5452195/",
+        "author": "Tima Miroshnichenko",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "ochieng-brian",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Brian",
+      "lastName": "Ochieng",
+      "facilityId": "fe9697c1-0703-4996-b8f1-62d336eaf4af",
+      "specialties": [
+        "Urology"
+      ],
+      "bio": "Prostate, kidney and bladder conditions. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000208",
+      "kmpdcNumber": "DEMO-D-0108",
+      "photo": {
+        "url": "https://images.pexels.com/photos/32254662/pexels-photo-32254662.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/confident-doctor-with-stethoscope-portrait-32254662/",
+        "author": "Konrads Photo",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "mutua-ann",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Ann",
+      "lastName": "Mutua",
+      "facilityId": "7ad78c6a-de5c-4cee-9891-fe553f141800",
+      "specialties": [
+        "Dermatology"
+      ],
+      "bio": "Skin, hair and nail conditions, including skin biopsies. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000209",
+      "kmpdcNumber": "DEMO-D-0109",
+      "photo": {
+        "url": "https://images.pexels.com/photos/5234487/pexels-photo-5234487.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/woman-in-white-button-up-dress-checking-her-eyeglasses-5234487/",
+        "author": "Polina Tankilevitch",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "kiprop-daniel",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Daniel",
+      "lastName": "Kiprop",
+      "facilityId": "d64730eb-46e9-4852-bd22-7fcdb5f8b283",
+      "specialties": [
+        "Gastroenterology",
+        "Internal medicine"
+      ],
+      "bio": "Stomach, liver and bowel conditions; endoscopy referrals. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000210",
+      "kmpdcNumber": "DEMO-D-0110",
+      "photo": {
+        "url": "https://images.pexels.com/photos/6129652/pexels-photo-6129652.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/male-doctor-in-white-lab-coat-6129652/",
+        "author": "RDNE Stock project",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "wambui-lucy",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Lucy",
+      "lastName": "Wambui",
+      "facilityId": "26b0a4ff-7301-48ff-982c-bfa8fa31d590",
+      "specialties": [
+        "Family medicine"
+      ],
+      "bio": "Whole-family care and long-term conditions. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000211",
+      "kmpdcNumber": "DEMO-D-0111",
+      "photo": {
+        "url": "https://images.pexels.com/photos/19963169/pexels-photo-19963169.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/doctor-sitting-and-talking-on-phone-19963169/",
+        "author": "Tessy Agbonome",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "omondi-kevin",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Kevin",
+      "lastName": "Omondi",
+      "facilityId": "88a63b52-4cc1-4db2-a73d-a88c2a9bb816",
+      "specialties": [
+        "General practice",
+        "Infectious diseases"
+      ],
+      "bio": "Outpatient care and fevers in Kibra and Langata. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000212",
+      "kmpdcNumber": "DEMO-D-0112",
+      "photo": null
+    },
+    {
+      "key": "chebet-mercy",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Mercy",
+      "lastName": "Chebet",
+      "facilityId": "90521951-a553-4330-8e4b-25234bc467d5",
+      "specialties": [
+        "Obstetrics and gynaecology"
+      ],
+      "bio": "Pregnancy care and safe delivery. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000213",
+      "kmpdcNumber": "DEMO-D-0113",
+      "photo": null
+    },
+    {
+      "key": "karanja-samuel",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Samuel",
+      "lastName": "Karanja",
+      "facilityId": "8a118f92-a311-4114-88cb-24e3744a36e9",
+      "specialties": [
+        "Ear, nose and throat"
+      ],
+      "bio": "Ear, nose and throat conditions in adults and children. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000214",
+      "kmpdcNumber": "DEMO-D-0114",
+      "photo": null
+    },
+    {
+      "key": "achieng-rose",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Rose",
+      "lastName": "Achieng",
+      "facilityId": "0aa22f43-4fd3-42ec-b84f-cbb218ec720d",
+      "specialties": [
+        "General practice",
+        "Paediatrics"
+      ],
+      "bio": "Families in Kayole and Komarock, children included. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000215",
+      "kmpdcNumber": "DEMO-D-0115",
+      "photo": null
+    },
+    {
+      "key": "muthoni-jane",
+      "isPathologist": false,
+      "title": "Dr.",
+      "firstName": "Jane",
+      "lastName": "Muthoni",
+      "facilityId": "a84fd016-74d1-4254-b5b6-b812fe0df0df",
+      "specialties": [
+        "Cardiology",
+        "Internal medicine"
+      ],
+      "bio": "Heart health, blood pressure and diabetes. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000216",
+      "kmpdcNumber": "DEMO-D-0116",
+      "photo": null
+    },
+    {
+      "key": "akinyi-beatrice",
+      "isPathologist": true,
+      "title": "Dr.",
+      "firstName": "Beatrice",
+      "lastName": "Akinyi",
+      "facilityId": "f5525c67-3419-4a05-9503-71e1a6e501aa",
+      "specialties": [
+        "Histopathology",
+        "Cytology"
+      ],
+      "bio": "Reads histopathology and cytology cases. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000301",
+      "kmpdcNumber": "DEMO-P-0101",
+      "photo": {
+        "url": "https://images.pexels.com/photos/8515138/pexels-photo-8515138.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/woman-wearing-laboratory-gown-holding-a-microscope-while-looking-at-the-camera-8515138/",
+        "author": "Yaroslav Shuraev",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "kariuki-joseph",
+      "isPathologist": true,
+      "title": "Dr.",
+      "firstName": "Joseph",
+      "lastName": "Kariuki",
+      "facilityId": "779bc5ec-701d-408f-84d5-b846b2edc45e",
+      "specialties": [
+        "Histopathology",
+        "Immunohistochemistry"
+      ],
+      "bio": "Reads histopathology and immunohistochemistry cases. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000302",
+      "kmpdcNumber": "DEMO-P-0102",
+      "photo": {
+        "url": "https://images.pexels.com/photos/9243387/pexels-photo-9243387.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/a-man-in-coveralls-using-a-microscope-9243387/",
+        "author": "Mikhail Nilov",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "nyambura-faith",
+      "isPathologist": true,
+      "title": "Dr.",
+      "firstName": "Faith",
+      "lastName": "Nyambura",
+      "facilityId": "ed0dbd78-0294-420b-a6a5-12ce99767987",
+      "specialties": [
+        "Haematology"
+      ],
+      "bio": "Reads haematology cases. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000303",
+      "kmpdcNumber": "DEMO-P-0103",
+      "photo": null
+    },
+    {
+      "key": "otieno-paul",
+      "isPathologist": true,
+      "title": "Dr.",
+      "firstName": "Paul",
+      "lastName": "Otieno",
+      "facilityId": "fe9697c1-0703-4996-b8f1-62d336eaf4af",
+      "specialties": [
+        "Microbiology"
+      ],
+      "bio": "Reads microbiology cases. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000304",
+      "kmpdcNumber": "DEMO-P-0104",
+      "photo": {
+        "url": "https://images.pexels.com/photos/8326690/pexels-photo-8326690.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/a-man-looking-into-the-microscope-8326690/",
+        "author": "Kindel Media",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    },
+    {
+      "key": "wanjiku-susan",
+      "isPathologist": true,
+      "title": "Dr.",
+      "firstName": "Susan",
+      "lastName": "Wanjiku",
+      "facilityId": "44bcafe5-67cf-4af4-b263-6140939f8bd6",
+      "specialties": [
+        "Cytology",
+        "Histopathology"
+      ],
+      "bio": "Reads cytology and histopathology cases. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000305",
+      "kmpdcNumber": "DEMO-P-0105",
+      "photo": null
+    },
+    {
+      "key": "kibet-stephen",
+      "isPathologist": true,
+      "title": "Dr.",
+      "firstName": "Stephen",
+      "lastName": "Kibet",
+      "facilityId": "d64730eb-46e9-4852-bd22-7fcdb5f8b283",
+      "specialties": [
+        "Haematology",
+        "Microbiology"
+      ],
+      "bio": "Reads haematology and microbiology cases. A demo profile in Tabibu's test environment.",
+      "phoneNumber": "+254700000306",
+      "kmpdcNumber": "DEMO-P-0106",
+      "photo": {
+        "url": "https://images.pexels.com/photos/6208938/pexels-photo-6208938.jpeg?auto=compress&cs=tinysrgb&w=512&h=512&fit=crop",
+        "source": "https://www.pexels.com/photo/man-in-white-lab-coat-with-blue-and-white-plaid-shirt-6208938/",
+        "author": "cottonbro studio",
+        "licence": "Pexels License (https://www.pexels.com/license/)"
+      }
+    }
+  ]
+}

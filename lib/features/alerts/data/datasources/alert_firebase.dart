@@ -5,6 +5,7 @@ import 'package:injectable/injectable.dart';
 import 'package:logger/logger.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/alerts/data/models/alert_clinician_brief_model.dart';
+import 'package:tabibu/features/alerts/data/models/alert_model.dart';
 import 'package:tabibu/features/alerts/data/models/public_alert_model.dart';
 
 /// Approver callables and public-alert reads. No caching.
@@ -16,6 +17,8 @@ class AlertFirebase {
   final FirebaseFunctions _functions;
   final Logger _logger = Logger();
 
+  static const _server = GetOptions(source: Source.server);
+
   AppError _toAppError(Object e) => switch (e) {
     AppError() => e,
     FirebaseFunctionsException() => AppError.fromFunctionsException(e),
@@ -26,8 +29,10 @@ class AlertFirebase {
   Future<T> _guard<T>(String operation, Future<T> Function() body) async {
     try {
       return await body();
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('$operation failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('$operation failed: $e', stackTrace: stackTrace);
+      }
       throw _toAppError(e);
     }
   }
@@ -46,6 +51,31 @@ class AlertFirebase {
 
   CollectionReference<Map<String, dynamic>> get _publicAlerts =>
       _firestore.collection('publicAlerts');
+
+  CollectionReference<Map<String, dynamic>> get _alerts =>
+      _firestore.collection('alerts');
+
+  /// Approver queue: drafts awaiting a decision, oldest draft first (F-39).
+  Future<List<AlertModel>> fetchAwaitingDecision() =>
+      _guard('Awaiting decision', () async {
+        final snap = await _alerts
+            .where('status', isEqualTo: AlertStatus.draft.value)
+            .orderBy('draftedAt')
+            .get(_server);
+        return [
+          for (final doc in snap.docs)
+            AlertModel.fromJson({'uid': doc.id, ...doc.data()}),
+        ];
+      });
+
+  /// One working alert by id, server source.
+  Future<AlertModel?> fetchAlert(String alertUid) =>
+      _guard('Fetch alert', () async {
+        if (alertUid.isEmpty) return null;
+        final snap = await _alerts.doc(alertUid).get(_server);
+        if (!snap.exists || snap.data() == null) return null;
+        return AlertModel.fromJson({'uid': snap.id, ...snap.data()!});
+      });
 
   Future<Map<String, dynamic>> approveAlert({
     required String alertUid,

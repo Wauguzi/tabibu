@@ -1,0 +1,10 @@
+{
+  "note": "CC0 PatchCamelyon few-shot examples for pre-read v4; not for scoring. Public Hugging Face PatchCamelyon train split.",
+  "licence": "CC0 1.0",
+  "tiles": [
+    { "id": "train-1", "label": "Tumour", "split": "train", "row": 1 },
+    { "id": "train-2", "label": "Tumour", "split": "train", "row": 2 },
+    { "id": "train-55", "label": "Normal", "split": "train", "row": 55 },
+    { "id": "train-94", "label": "Normal", "split": "train", "row": 94 }
+  ]
+}

@@ -76,11 +76,15 @@ class AlertTopicService {
       await _messaging.subscribeToTopic(topic);
       await _preferences.setString(storedTopicKey, topic);
       await _preferences.remove(pendingUnsubscribeKey);
-    } on FirebaseException catch (e) {
-      if (kDebugMode) _logger.e('Alert topic sync failed: $e');
+    } on FirebaseException catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('Alert topic sync failed: $e', stackTrace: stackTrace);
+      }
       throw AppError.fromFirebaseCode(e.code);
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('Alert topic sync failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('Alert topic sync failed: $e', stackTrace: stackTrace);
+      }
       throw AppError.unknown;
     }
   }

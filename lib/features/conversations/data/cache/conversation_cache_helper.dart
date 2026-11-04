@@ -72,11 +72,15 @@ class ConversationCacheHelper {
       // A closed box raises HiveError, which is an Error; catching it here
       // keeps the failure an AppError like every other box failure.
       // ignore: avoid_catching_errors
-    } on HiveError catch (e) {
-      if (kDebugMode) _logger.e('DB $operation failed: $e');
+    } on HiveError catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('DB $operation failed: $e', stackTrace: stackTrace);
+      }
       throw AppError.unknown;
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('DB $operation failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('DB $operation failed: $e', stackTrace: stackTrace);
+      }
       throw AppError.unknown;
     }
   }

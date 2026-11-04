@@ -123,6 +123,43 @@ void main() {
       ).thenAnswer((_) async => const NotificationAppLaunchDetails(false));
       expect(await service.launchPayload(), isNull);
     });
+
+    test('null when the plugin has no implementation (the web)', () async {
+      when(
+        plugin.getNotificationAppLaunchDetails,
+      ).thenThrow(MissingPluginException('no web implementation'));
+      expect(await service.launchPayload(), isNull);
+    });
+  });
+
+  group('payloadFromData', () {
+    test('prefers the server notificationUid (functions/src/push.ts)', () {
+      expect(
+        NotificationService.payloadFromData({
+          'notificationUid': 'resultReleased:c1:p1',
+          'deepLink': '/cases/c1/reports/r1',
+        }),
+        'resultReleased:c1:p1',
+      );
+    });
+
+    test('a topic push without a row uses deepLink', () {
+      expect(
+        NotificationService.payloadFromData({
+          'deepLink': '/alerts/a1',
+          'channel': 'alerts',
+        }),
+        '/alerts/a1',
+      );
+    });
+
+    test('falls back to a local payload key', () {
+      expect(
+        NotificationService.payloadFromData({'payload': 'local-uid'}),
+        'local-uid',
+      );
+      expect(NotificationService.payloadFromData(const {}), isNull);
+    });
   });
 
   test('every channel is named in en and sw', () {

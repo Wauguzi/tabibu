@@ -7,6 +7,38 @@ import '../../helpers/helpers.dart';
 
 void main() {
   group('Tappable', () {
+    testWidgets('a child that cannot give intrinsic sizes still lays out', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        Tappable(
+          onTap: () {},
+          child: LayoutBuilder(
+            builder: (_, constraints) => const SizedBox(width: 20, height: 20),
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(tester.getSize(find.byType(Tappable)).shortestSide, 48);
+    });
+
+    testWidgets('a full-width child stays full width', (tester) async {
+      await tester.pumpApp(
+        Tappable(
+          onTap: () {},
+          child: const SizedBox(width: double.infinity, height: 60),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final width = tester.getSize(find.byType(Tappable)).width;
+      final screen =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      expect(width, screen);
+    });
+
     testWidgets('activates with Enter and Space from the keyboard', (
       tester,
     ) async {
@@ -53,5 +85,35 @@ void main() {
       await tester.pump();
       expect(find.text('Tap'), findsOneWidget);
     });
+
+    testWidgets(
+      'pads a 20 dp child to a 48 dp hit target and exposes its label',
+      (tester) async {
+        await tester.pumpApp(
+          Tappable(
+            onTap: () {},
+            semanticLabel: 'Open day',
+            child: const SizedBox(width: 20, height: 20, child: Text('·')),
+          ),
+        );
+        await tester.pumpAndSettle();
+
+        final size = tester.getSize(find.byType(Tappable));
+        expect(size.width, greaterThanOrEqualTo(48));
+        expect(size.height, greaterThanOrEqualTo(48));
+        expect(
+          tester.getSemantics(find.byType(Tappable)),
+          matchesSemantics(
+            label: 'Open day',
+            isButton: true,
+            hasEnabledState: true,
+            isEnabled: true,
+            isFocusable: true,
+            hasTapAction: true,
+            hasFocusAction: true,
+          ),
+        );
+      },
+    );
   });
 }

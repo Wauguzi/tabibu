@@ -88,9 +88,20 @@ class $AssetsIconsGen {
   /// File path: assets/icons/add_icon.svg
   SvgGenImage get addIcon => const SvgGenImage('assets/icons/add_icon.svg');
 
+  /// File path: assets/icons/alert_icon.svg
+  SvgGenImage get alertIcon => const SvgGenImage('assets/icons/alert_icon.svg');
+
   /// File path: assets/icons/appointments_icon.svg
   SvgGenImage get appointmentsIcon =>
       const SvgGenImage('assets/icons/appointments_icon.svg');
+
+  /// File path: assets/icons/arrow_up_right_icon.svg
+  SvgGenImage get arrowUpRightIcon =>
+      const SvgGenImage('assets/icons/arrow_up_right_icon.svg');
+
+  /// File path: assets/icons/attachment_icon.svg
+  SvgGenImage get attachmentIcon =>
+      const SvgGenImage('assets/icons/attachment_icon.svg');
 
   /// File path: assets/icons/back_icon.svg
   SvgGenImage get backIcon => const SvgGenImage('assets/icons/back_icon.svg');
@@ -99,9 +110,20 @@ class $AssetsIconsGen {
   SvgGenImage get calendarIcon =>
       const SvgGenImage('assets/icons/calendar_icon.svg');
 
+  /// File path: assets/icons/cancel_circle_icon.svg
+  SvgGenImage get cancelCircleIcon =>
+      const SvgGenImage('assets/icons/cancel_circle_icon.svg');
+
   /// File path: assets/icons/cancel_icon.svg
   SvgGenImage get cancelIcon =>
       const SvgGenImage('assets/icons/cancel_icon.svg');
+
+  /// File path: assets/icons/chat_icon.svg
+  SvgGenImage get chatIcon => const SvgGenImage('assets/icons/chat_icon.svg');
+
+  /// File path: assets/icons/check_circle_icon.svg
+  SvgGenImage get checkCircleIcon =>
+      const SvgGenImage('assets/icons/check_circle_icon.svg');
 
   /// File path: assets/icons/check_selected_icon.svg
   SvgGenImage get checkSelectedIcon =>
@@ -115,6 +137,13 @@ class $AssetsIconsGen {
   SvgGenImage get clinicHoursIcon =>
       const SvgGenImage('assets/icons/clinic_hours_icon.svg');
 
+  /// File path: assets/icons/clock_icon.svg
+  SvgGenImage get clockIcon => const SvgGenImage('assets/icons/clock_icon.svg');
+
+  /// File path: assets/icons/cloud_off_icon.svg
+  SvgGenImage get cloudOffIcon =>
+      const SvgGenImage('assets/icons/cloud_off_icon.svg');
+
   /// File path: assets/icons/delete_icon.svg
   SvgGenImage get deleteIcon =>
       const SvgGenImage('assets/icons/delete_icon.svg');
@@ -125,6 +154,10 @@ class $AssetsIconsGen {
   /// File path: assets/icons/document_icon.svg
   SvgGenImage get documentIcon =>
       const SvgGenImage('assets/icons/document_icon.svg');
+
+  /// File path: assets/icons/download_icon.svg
+  SvgGenImage get downloadIcon =>
+      const SvgGenImage('assets/icons/download_icon.svg');
 
   /// File path: assets/icons/drop_down_icon.svg
   SvgGenImage get dropDownIcon =>
@@ -157,6 +190,10 @@ class $AssetsIconsGen {
   /// File path: assets/icons/home_icon.svg
   SvgGenImage get homeIcon => const SvgGenImage('assets/icons/home_icon.svg');
 
+  /// File path: assets/icons/hourglass_icon.svg
+  SvgGenImage get hourglassIcon =>
+      const SvgGenImage('assets/icons/hourglass_icon.svg');
+
   /// File path: assets/icons/identity_icon.svg
   SvgGenImage get identityIcon =>
       const SvgGenImage('assets/icons/identity_icon.svg');
@@ -187,6 +224,16 @@ class $AssetsIconsGen {
   /// File path: assets/icons/mdt_icon.svg
   SvgGenImage get mdtIcon => const SvgGenImage('assets/icons/mdt_icon.svg');
 
+  /// File path: assets/icons/microphone_icon.svg
+  SvgGenImage get microphoneIcon =>
+      const SvgGenImage('assets/icons/microphone_icon.svg');
+
+  /// File path: assets/icons/more_icon.svg
+  SvgGenImage get moreIcon => const SvgGenImage('assets/icons/more_icon.svg');
+
+  /// File path: assets/icons/notes_icon.svg
+  SvgGenImage get notesIcon => const SvgGenImage('assets/icons/notes_icon.svg');
+
   /// File path: assets/icons/notification_bell_icon.svg
   SvgGenImage get notificationBellIcon =>
       const SvgGenImage('assets/icons/notification_bell_icon.svg');
@@ -203,6 +250,9 @@ class $AssetsIconsGen {
   SvgGenImage get passwordVisibleIcon =>
       const SvgGenImage('assets/icons/password_visible_icon.svg');
 
+  /// File path: assets/icons/pause_icon.svg
+  SvgGenImage get pauseIcon => const SvgGenImage('assets/icons/pause_icon.svg');
+
   /// File path: assets/icons/person_icon.svg
   SvgGenImage get personIcon =>
       const SvgGenImage('assets/icons/person_icon.svg');
@@ -213,9 +263,16 @@ class $AssetsIconsGen {
   /// File path: assets/icons/photo_icon.svg
   SvgGenImage get photoIcon => const SvgGenImage('assets/icons/photo_icon.svg');
 
+  /// File path: assets/icons/play_icon.svg
+  SvgGenImage get playIcon => const SvgGenImage('assets/icons/play_icon.svg');
+
   /// File path: assets/icons/practitioner_verified_icon.svg
   SvgGenImage get practitionerVerifiedIcon =>
       const SvgGenImage('assets/icons/practitioner_verified_icon.svg');
+
+  /// File path: assets/icons/refresh_icon.svg
+  SvgGenImage get refreshIcon =>
+      const SvgGenImage('assets/icons/refresh_icon.svg');
 
   /// File path: assets/icons/results_icon.svg
   SvgGenImage get resultsIcon =>
@@ -224,6 +281,13 @@ class $AssetsIconsGen {
   /// File path: assets/icons/search_rounded_icon.svg
   SvgGenImage get searchRoundedIcon =>
       const SvgGenImage('assets/icons/search_rounded_icon.svg');
+
+  /// File path: assets/icons/send_outline_icon.svg
+  SvgGenImage get sendOutlineIcon =>
+      const SvgGenImage('assets/icons/send_outline_icon.svg');
+
+  /// File path: assets/icons/share_icon.svg
+  SvgGenImage get shareIcon => const SvgGenImage('assets/icons/share_icon.svg');
 
   /// File path: assets/icons/shield_icon.svg
   SvgGenImage get shieldIcon =>
@@ -236,6 +300,10 @@ class $AssetsIconsGen {
   /// File path: assets/icons/signed_icon.svg
   SvgGenImage get signedIcon =>
       const SvgGenImage('assets/icons/signed_icon.svg');
+
+  /// File path: assets/icons/sparkle_icon.svg
+  SvgGenImage get sparkleIcon =>
+      const SvgGenImage('assets/icons/sparkle_icon.svg');
 
   /// File path: assets/icons/stethoscope_icon.svg
   SvgGenImage get stethoscopeIcon =>
@@ -263,19 +331,36 @@ class $AssetsIconsGen {
   SvgGenImage get verificationBadge =>
       const SvgGenImage('assets/icons/verification_badge.svg');
 
+  /// File path: assets/icons/zoom_in_icon.svg
+  SvgGenImage get zoomInIcon =>
+      const SvgGenImage('assets/icons/zoom_in_icon.svg');
+
+  /// File path: assets/icons/zoom_out_icon.svg
+  SvgGenImage get zoomOutIcon =>
+      const SvgGenImage('assets/icons/zoom_out_icon.svg');
+
   /// List of all assets
   List<dynamic> get values => [
     addIcon,
+    alertIcon,
     appointmentsIcon,
+    arrowUpRightIcon,
+    attachmentIcon,
     backIcon,
     calendarIcon,
+    cancelCircleIcon,
     cancelIcon,
+    chatIcon,
+    checkCircleIcon,
     checkSelectedIcon,
     checkUnselectedIcon,
     clinicHoursIcon,
+    clockIcon,
+    cloudOffIcon,
     deleteIcon,
     deskIcon,
     documentIcon,
+    downloadIcon,
     dropDownIcon,
     editIcon,
     emailIcon,
@@ -285,6 +370,7 @@ class $AssetsIconsGen {
     google,
     heartIcon,
     homeIcon,
+    hourglassIcon,
     identityIcon,
     inProgressIcon,
     infoIcon,
@@ -293,19 +379,28 @@ class $AssetsIconsGen {
     logoTransparentPrimary,
     logoTransparentWhite,
     mdtIcon,
+    microphoneIcon,
+    moreIcon,
+    notesIcon,
     notificationBellIcon,
     passwordHiddenIcon,
     passwordIcon,
     passwordVisibleIcon,
+    pauseIcon,
     personIcon,
     phoneIcon,
     photoIcon,
+    playIcon,
     practitionerVerifiedIcon,
+    refreshIcon,
     resultsIcon,
     searchRoundedIcon,
+    sendOutlineIcon,
+    shareIcon,
     shieldIcon,
     signOutIcon,
     signedIcon,
+    sparkleIcon,
     stethoscopeIcon,
     tabibuLogo,
     testTubeIcon,
@@ -313,6 +408,8 @@ class $AssetsIconsGen {
     tickIcon,
     uploadIcon,
     verificationBadge,
+    zoomInIcon,
+    zoomOutIcon,
   ];
 }
 

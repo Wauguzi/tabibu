@@ -1,4 +1,5 @@
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -65,10 +66,10 @@ class StatusMark extends StatelessWidget {
     final (background, foreground, glyph) = switch (_state) {
       _MarkState.done => (
         status.signedDot,
-        Colors.white,
+        AppColors.white,
         Assets.icons.tickIcon,
       ),
-      _MarkState.current => (status.ink, Colors.white, icon!),
+      _MarkState.current => (status.ink, AppColors.white, icon!),
       _MarkState.pending => (
         scheme.surfaceContainerHigh,
         scheme.onSurfaceVariant,

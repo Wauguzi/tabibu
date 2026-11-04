@@ -19,6 +19,7 @@ class VerificationStep {
     required this.chipLabel,
     required this.stateLabel,
     this.icon,
+    this.onSupportingTap,
   });
 
   /// The mark icon for current and upcoming steps; done steps show a check.
@@ -30,6 +31,9 @@ class VerificationStep {
 
   /// The state announced to screen readers ("Done", "In progress"...).
   final String stateLabel;
+
+  /// Makes [supporting] a link.
+  final VoidCallback? onSupportingTap;
 }
 
 /// The verification tracker: status marks joined by a line, each with a
@@ -149,17 +153,40 @@ class _StepRow extends StatelessWidget {
                 crossAxisAlignment: .start,
                 mainAxisSize: .min,
                 children: [
-                  Row(
-                    crossAxisAlignment: .start,
+                  // A wrap, not a row: at large text a long title and
+                  // chip share the line when they fit, else the chip drops
+                  // below instead of overflowing.
+                  Wrap(
+                    alignment: .spaceBetween,
+                    spacing: AppSpacing.xs,
+                    runSpacing: AppSpacing.xs,
                     children: [
-                      Expanded(
-                        child: Text(step.title, style: textTheme.titleSmall),
-                      ),
-                      const SizedBox(width: AppSpacing.xs),
+                      Text(step.title, style: textTheme.titleSmall),
                       StatusChip(label: step.chipLabel, tone: tone),
                     ],
                   ),
-                  Text(step.supporting, style: textTheme.bodySmall),
+                  if (step.onSupportingTap case final onTap?)
+                    Semantics(
+                      button: true,
+                      child: InkWell(
+                        onTap: onTap,
+                        child: ConstrainedBox(
+                          constraints: const BoxConstraints(minHeight: 48),
+                          child: Align(
+                            alignment: .centerLeft,
+                            child: Text(
+                              step.supporting,
+                              style: textTheme.bodyMedium?.copyWith(
+                                color: Theme.of(context).colorScheme.primary,
+                                decoration: .underline,
+                              ),
+                            ),
+                          ),
+                        ),
+                      ),
+                    )
+                  else
+                    Text(step.supporting, style: textTheme.bodySmall),
                 ],
               ),
             ),

@@ -21,6 +21,29 @@ void main() {
       expect(find.text('Nairobi'), findsOneWidget);
     });
 
+    testWidgets('hugs its label under a loose, bounded parent', (tester) async {
+      await tester.pumpApp(
+        Wrap(
+          children: [
+            TabibuFilterChip(label: 'All', selected: true, onTap: () {}),
+            TabibuFilterChip(label: 'Signed', selected: false, onTap: () {}),
+          ],
+        ),
+      );
+
+      final screen =
+          tester.view.physicalSize.width / tester.view.devicePixelRatio;
+      for (final chip in tester.widgetList(find.byType(TabibuFilterChip))) {
+        final width = tester.getSize(find.byWidget(chip)).width;
+        expect(width, lessThan(screen / 2));
+      }
+      // Both chips share one line instead of stacking.
+      expect(
+        tester.getTopLeft(find.text('All')).dy,
+        tester.getTopLeft(find.text('Signed')).dy,
+      );
+    });
+
     testWidgets('fires onTap', (tester) async {
       var taps = 0;
       await tester.pumpApp(

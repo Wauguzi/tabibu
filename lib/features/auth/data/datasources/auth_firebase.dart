@@ -52,8 +52,10 @@ class AuthFirebase {
   Future<T> _guard<T>(String operation, Future<T> Function() body) async {
     try {
       return await body();
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('$operation failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('$operation failed: $e', stackTrace: stackTrace);
+      }
       throw _toAppError(e);
     }
   }
@@ -102,17 +104,21 @@ class AuthFirebase {
         GoogleAuthProvider.credential(idToken: idToken),
       );
       return true;
-    } on GoogleSignInException catch (e) {
+    } on GoogleSignInException catch (e, stackTrace) {
       if (e.code == GoogleSignInExceptionCode.canceled) return false;
-      if (kDebugMode) _logger.e('Google sign-in [${e.code}]');
+      if (kDebugMode) {
+        _logger.e('Google sign-in [${e.code}]', stackTrace: stackTrace);
+      }
       await _signOutOfGoogle();
       throw AppError.unknown;
     } on FirebaseAuthException catch (e) {
       if (_cancelledPopupCodes.contains(e.code)) return false;
       await _signOutOfGoogle();
       throw _toAppError(e);
-    } on Exception catch (e) {
-      if (kDebugMode) _logger.e('Google sign-in failed: $e');
+    } on Exception catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('Google sign-in failed: $e', stackTrace: stackTrace);
+      }
       await _signOutOfGoogle();
       throw _toAppError(e);
     }
@@ -248,6 +254,97 @@ class AuthFirebase {
           'lastUpdatedAt': syncTimestamp(),
         }),
       );
+
+  /// A profile switch the owner flips: one boolean field, stamped like
+  /// every owner write. The caller names a field the rules let the owner
+  /// touch (`isAvailable`, `receiveNotifications`).
+  Future<void> updateProfileSetting({
+    required String collection,
+    required String docId,
+    required String field,
+    required bool value,
+  }) => _guard(
+    'Updating profile setting',
+    () => _firestore.collection(collection).doc(docId).update({
+      field: value,
+      'lastUpdatedAt': syncTimestamp(),
+    }),
+  );
+
+  /// The patient's own names, phone and photo: the fields the rules let a
+  /// patient write. The photo URL joins only when a new photo landed.
+  Future<void> updatePatientProfile({
+    required String docId,
+    required String firstName,
+    required String middleName,
+    required String lastName,
+    required String phoneNumber,
+    String? profilePictureUrl,
+  }) => _guard(
+    'Updating patient profile',
+    () => _firestore.collection('patients').doc(docId).update({
+      'firstName': firstName,
+      'middleName': middleName,
+      'lastName': lastName,
+      'phoneNumber': phoneNumber,
+      'profilePictureUrl': ?profilePictureUrl,
+      'lastUpdatedAt': syncTimestamp(),
+    }),
+  );
+
+  /// A verified practitioner's editable fields: names stay locked, the
+  /// photo URL joins only when a new photo landed.
+  Future<void> updatePractitionerProfile({
+    required String docId,
+    required List<String> specialties,
+    required String bio,
+    required String phoneNumber,
+    String? profilePictureUrl,
+  }) => _guard(
+    'Updating practitioner profile',
+    () => _firestore.collection('doctors').doc(docId).update({
+      'specialties': specialties,
+      'bio': bio,
+      'phoneNumber': phoneNumber,
+      'profilePictureUrl': ?profilePictureUrl,
+      'lastUpdatedAt': syncTimestamp(),
+    }),
+  );
+
+  /// The doctor's booking hours: working days plus the one range all days
+  /// share. The rules (`validHours`) take it from here.
+  Future<void> updateClinicHours({
+    required String docId,
+    required List<int> workingDays,
+    required int dayStartMinute,
+    required int dayEndMinute,
+  }) => _guard(
+    'Updating clinic hours',
+    () => _firestore.collection('doctors').doc(docId).update({
+      'workingDays': workingDays,
+      'dayStartMinute': dayStartMinute,
+      'dayEndMinute': dayEndMinute,
+      'lastUpdatedAt': syncTimestamp(),
+    }),
+  );
+
+  /// The patient's area over the callable (county fields are not
+  /// owner-writable). Answers the names the server stored.
+  Future<({String county, String subCounty})> updatePatientArea({
+    required int countyId,
+    int? subCountyId,
+  }) => _guard('Updating patient area', () async {
+    final result = await _functions
+        .httpsCallable('updatePatientArea')
+        .call<Map<String, dynamic>>({
+          'countyId': countyId,
+          'subCountyId': ?subCountyId,
+        });
+    return (
+      county: '${result.data['county'] ?? ''}',
+      subCounty: '${result.data['subCounty'] ?? ''}',
+    );
+  });
 
   Future<DoctorModel?> fetchDoctorProfile(String uid) =>
       _guard('Reading practitioner profile', () async {

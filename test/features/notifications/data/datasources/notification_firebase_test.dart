@@ -13,6 +13,66 @@ void main() {
     remote = NotificationFirebase(firestore: firestore);
   });
 
+  group('watchInboxDelta', () {
+    test(
+      'emits added and modified rows; skips removed; honours the cursor',
+      () async {
+        await firestore.collection('notifications').doc('old').set({
+          'recipientUid': 'u1',
+          'status': 'Unread',
+          'title': 'before',
+          'lastUpdatedAt': '2026-11-01T09:00:00.000Z',
+        });
+
+        final events = <List<String>>[];
+        final sub = remote
+            .watchInboxDelta(
+              recipientUid: 'u1',
+              cursor: '2026-11-01T10:00:00.000Z',
+            )
+            .listen((rows) => events.add(rows.map((r) => r.uid).toList()));
+
+        // First snapshot for an empty matching set emits nothing.
+        await Future<void>.delayed(Duration.zero);
+        expect(events, isEmpty);
+
+        await firestore.collection('notifications').doc('n1').set({
+          'recipientUid': 'u1',
+          'status': 'Unread',
+          'title': 'new',
+          'lastUpdatedAt': '2026-11-01T12:00:00.000Z',
+        });
+        await Future<void>.delayed(Duration.zero);
+        expect(events, [
+          ['n1'],
+        ]);
+
+        await firestore.collection('notifications').doc('n1').update({
+          'title': 'changed',
+          'lastUpdatedAt': '2026-11-01T13:00:00.000Z',
+        });
+        await Future<void>.delayed(Duration.zero);
+        expect(events.last, ['n1']);
+
+        await firestore.collection('notifications').doc('n1').delete();
+        await Future<void>.delayed(Duration.zero);
+        // Removed rows must not produce an event.
+        expect(events, hasLength(2));
+
+        // Outside the cursor / other recipient stay out.
+        await firestore.collection('notifications').doc('n2').set({
+          'recipientUid': 'u2',
+          'status': 'Unread',
+          'lastUpdatedAt': '2026-11-01T14:00:00.000Z',
+        });
+        await Future<void>.delayed(Duration.zero);
+        expect(events, hasLength(2));
+
+        await sub.cancel();
+      },
+    );
+  });
+
   group('fetchInboxDelta', () {
     test('returns only the recipient rows at or after the cursor', () async {
       await firestore.collection('notifications').doc('n1').set({

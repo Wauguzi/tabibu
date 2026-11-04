@@ -112,10 +112,18 @@ stay readable: the v1 readers ignore the new fields.
 
 ## 9. Post-implementation review
 
-- **U-5**: whether `firebase-tools` deploys TTL from
-  `fieldOverrides` is still open; the check is `make deploy-indexes`
-  on dev, then the console's TTL tab. Fallback: a `make ttl` target
-  (Theo runs it).
+- **U-5 (file and deploy path answered; live console still open):**
+  `firestore.indexes.json` declares **seven** TTL policies on
+  `expireAt` (`ttl: true`) for `notifications`, `counterMarks`,
+  `orderCounters`, `orderNumbers`, `rateCounters`, `transcriptions`
+  and `alertDeliveries` (see that file's `fieldOverrides`). They
+  ship with the same index deploy as the composites:
+  `make deploy-indexes` → `firebase deploy --only firestore:indexes`
+  ([`Makefile`](../../../Makefile)). There is **no** `make ttl`
+  target. Whether the live project's console TTL tab shows those
+  seven policies after an indexes deploy is still for Theo to
+  confirm; nothing in this CRQ or another CRQ records a console
+  check. Related smoke: [CRQ-0048](./CRQ-0048-feature-data-sources-and-indexes.md) §9.
 - **F-26.8 kept**: local keys include the resource uid, so two rows
   for one resource in one minute collapse by design (the one-minute
   dedupe).

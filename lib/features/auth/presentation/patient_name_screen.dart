@@ -108,7 +108,7 @@ class _PatientNameScreenState extends State<PatientNameScreen> {
           child: CupertinoTheme(
             data: CupertinoThemeData(brightness: brightness),
             child: CupertinoDatePicker(
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.transparent,
               initialDateTime: opening,
               minimumDate: DateTime(1900),
               maximumDate: now,

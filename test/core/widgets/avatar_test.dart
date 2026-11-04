@@ -22,6 +22,14 @@ void main() {
       expect(find.text('M'), findsOneWidget);
     });
 
+    testWidgets('a title is not an initial', (tester) async {
+      await tester.pumpApp(const Avatar(name: 'Dr. Achieng Odhiambo'));
+      expect(find.text('AO'), findsOneWidget);
+
+      await tester.pumpApp(const Avatar(name: 'Dr. Odhiambo'));
+      expect(find.text('O'), findsOneWidget);
+    });
+
     testWidgets('shows the photo when provided', (tester) async {
       await tester.pumpApp(
         Avatar(

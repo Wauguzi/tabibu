@@ -108,7 +108,7 @@ void main() {
         } on Object catch (e) {
           caught = e;
         }
-        expect(caught, AppError.permissionDenied);
+        expect(caught, AppError.wrongShareCode);
         expect(caught.toString(), isNot(contains(secret)));
         expect('$caught', isNot(contains(secret)));
 

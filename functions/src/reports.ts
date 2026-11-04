@@ -55,6 +55,8 @@ import { diseaseById } from './disease-data';
 import { prereadProfileOf } from './lab-tests';
 import { NotificationTx, type NotifyLanguage } from './notifications';
 import { CaseState, commitCase, transition, type CaseStage } from './orchestrator';
+import { processQueuedPreread } from './preread-worker';
+import { processQueuedReportText } from './report-text-worker';
 import { sanitize } from './sanitize';
 import { closeShare, loadShareClose, mintShareCode } from './shares';
 import { bumpModelSignal } from './signals';
@@ -1261,6 +1263,14 @@ export async function onPrereadWrittenHandler(deps: Deps, caseUid: string, runUi
   const { db } = deps;
   const now = nowOf(deps);
 
+  // Live worker (bundle 57): process a Queued run to Ready/Failed, then the stage move below.
+  const before = (
+    await db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+  ).data();
+  if (before && str(before.status) === 'Queued') {
+    await processQueuedPreread(deps, caseUid, runUid);
+  }
+
   await db.runTransaction(async (tx) => {
     const caseSnap = await tx.get(db.collection('cases').doc(caseUid));
     if (!caseSnap.exists) return;
@@ -1405,6 +1415,12 @@ export async function onReportDraftWrittenHandler(
 export async function onReportTextWrittenHandler(deps: Deps, caseUid: string, id: string): Promise<void> {
   const { db } = deps;
   const now = nowOf(deps);
+
+  // Live worker (bundle 61): Queued → Ready/Failed; Ready notifies the approver below.
+  const before = (await textRef(deps, caseUid, id).get()).data();
+  if (before && str(before.status) === 'Queued') {
+    await processQueuedReportText(deps, caseUid, id);
+  }
 
   await db.runTransaction(async (tx) => {
     const text = (await tx.get(textRef(deps, caseUid, id))).data();

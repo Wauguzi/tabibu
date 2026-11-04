@@ -352,6 +352,53 @@ seed-live:
 		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
 		  ./node_modules/.bin/ts-node src/seed.ts --live
 
+# Demo doctors and pathologists for the directory (functions/data/demo_directory.json), after
+# seed-live: e.g. make seed-directory CONFIRM=tabibu-86ea2 SEED_EMAIL_TEMPLATE='tabibu.demo+{role}@gmail.com'
+seed-directory:
+		@test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make seed-directory CONFIRM=$(PROJECT)"; exit 1; }
+		cd functions && npm install --silent && \
+		  SEED_CONFIRM=$(CONFIRM) SEED_EMAIL_TEMPLATE="$(SEED_EMAIL_TEMPLATE)" \
+		  SEED_PASSWORD="$$(security find-generic-password -a "$$USER" -s $(KEYCHAIN_SEED) -w)" \
+		  ./node_modules/.bin/ts-node src/seed-directory.ts --live
+
+# Fourteen demo cases, their appointments and two alerts for the demo accounts, backdated from
+# SEED_FROM (default 2026-10-26) to now, through the same handlers as the callables. Needs no
+# password: it reads the unlock-code key from Secret Manager with your Application Default
+# Credentials. Run it on the day: the waiting cases and the pending visit time out by the product's
+# own rules.
+# e.g. make seed-cases CONFIRM=tabibu-86ea2 SEED_EMAIL_TEMPLATE='tabibu.demo+{role}@gmail.com' SEED_FROM=2026-10-26
+seed-cases:
+		@test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make seed-cases CONFIRM=$(PROJECT)"; exit 1; }
+		cd functions && npm install --silent && \
+		  SEED_CONFIRM=$(CONFIRM) SEED_EMAIL_TEMPLATE="$(SEED_EMAIL_TEMPLATE)" SEED_FROM="$(SEED_FROM)" \
+		  SEED_CASES_TAG="$(SEED_CASES_TAG)" \
+		  ./node_modules/.bin/ts-node src/seed-cases.ts --live
+
+# The same into running emulators, after seed-emulator (the malaria cells are fetched from the archive).
+seed-cases-emulator:
+		cd functions && npm install --silent && \
+		  FIRESTORE_EMULATOR_HOST=127.0.0.1:8080 FIREBASE_AUTH_EMULATOR_HOST=127.0.0.1:9099 \
+		  FIREBASE_STORAGE_EMULATOR_HOST=127.0.0.1:9199 \
+		  SEED_EMAIL_TEMPLATE="$(SEED_EMAIL_TEMPLATE)" SEED_FROM="$(SEED_FROM)" SEED_CASES_TAG="$(SEED_CASES_TAG)" \
+		  ./node_modules/.bin/ts-node src/seed-cases.ts
+
+# Read-only: every seeded demo case matches its expected stage, slides, accession and pre-read.
+# Against the live project CONFIRM must name it; against an emulator it is not needed.
+# e.g. make check-demo CONFIRM=tabibu-86ea2 SEED_CASES_TAG=…
+check-demo:
+		@test -n "$(FIRESTORE_EMULATOR_HOST)" || test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make check-demo CONFIRM=$(PROJECT) [SEED_CASES_TAG=…]"; exit 1; }
+		cd functions && ./node_modules/.bin/ts-node scripts/check-demo.ts
+
+# Until the app has an approval screen: verifies one practitioner as verifyPractitioner does
+# (status, then role claim). Dry run unless CONFIRM names the project; a CONFIRM that
+# names anything else fails instead of silently dry-running.
+# e.g. make verify-practitioner PRACTITIONER=<uid>, then again with CONFIRM=tabibu-86ea2
+verify-practitioner:
+		@test -n "$(PRACTITIONER)" || { echo "usage: make verify-practitioner PRACTITIONER=<uid> [CONFIRM=$(PROJECT)]"; exit 1; }
+		@test -z "$(CONFIRM)" || test "$(CONFIRM)" = "$(PROJECT)" || { echo "CONFIRM names no project I know: use CONFIRM=$(PROJECT) or leave it unset for a dry run."; exit 1; }
+		cd functions && npm install --silent
+		node scripts/verify-practitioner.cjs $(PROJECT) $(PRACTITIONER) $(if $(CONFIRM),--confirm $(CONFIRM))
+
 # The tag this commit would release: v + the pubspec.yaml version (CRQ-0025).
 release-next:
 		node scripts/next-release.cjs
@@ -395,6 +442,6 @@ deploy-hosting:
 .PHONY: adb icons splash gen gen-watch l10n fmt commas analyze bloc-lint spell licenses secrets \
 	apk apk-release dev-apk aab aab-release base64 ipa web-release sha1 rdr rpr run-dev run-web \
 	clean-pods ios-deps pods pods-clean pods-no-update pods-no-cdn fastlane-setup keys-add key-add modal-token-add modal keys-check app-check-token app-check-token-copy app-check-defines app-check-defines-clean muse ai-dev pods-ios-target facilities lab-tests alerts-data test test-randomize test-watch coverage \
-	emulators rules-test functions-test seed-password seed-emulator seed-live \
+	emulators rules-test functions-test seed-password seed-emulator seed-live seed-directory seed-cases seed-cases-emulator verify-practitioner \
 	release-next release-check release-publish \
 	deploy-rules deploy-functions deploy-indexes smoke-indexes deploy-storage deploy-hosting

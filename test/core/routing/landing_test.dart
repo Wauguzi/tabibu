@@ -73,6 +73,24 @@ void main() {
       expect(guard('/patient', _doctor), startsWith('/decision'));
     });
 
+    test('alert review needs the approver permission on a doctor (F-6)', () {
+      final approver = PractitionerSession(
+        doctor: DoctorModel.empty(),
+        roles: RoleHelper.fromClaims(const {
+          'role': 'doctor',
+          'admin': true,
+          'alertApprover': true,
+        }),
+      );
+      expect(guard('/doctor/alert/a1', approver), isNull);
+      expect(guard('/doctor/alert/a1/sent', approver), isNull);
+
+      expect(guard('/doctor/alert/a1', _doctor), '/doctor');
+      expect(guard('/doctor/alert/a1/sent', _doctor), '/doctor');
+      expect(guard('/doctor/alerts-archive', _doctor), isNull);
+      expect(guard('/doctor/alert/a1', _patient), startsWith('/decision'));
+    });
+
     test('a pending practitioner reaches no clinical route (T-14)', () {
       for (final area in ['/patient', '/doctor', '/pathologist']) {
         expect(guard(area, _pending), startsWith('/decision'));

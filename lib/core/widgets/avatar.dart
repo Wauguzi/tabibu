@@ -20,8 +20,15 @@ class Avatar extends StatelessWidget {
   final double radius;
   final bool _circle;
 
+  static final _title = RegExp(
+    r'^(dr|prof|mr|mrs|ms)\.?$',
+    caseSensitive: false,
+  );
+
   String get _initials {
     final parts = name.trim().split(RegExp(r'\s+'));
+    // A title is not part of a person's initials.
+    if (parts.length > 1 && _title.hasMatch(parts.first)) parts.removeAt(0);
     if (parts.first.isEmpty) return '';
     if (parts.length == 1) return parts.first.characters.first.toUpperCase();
     return (parts.first.characters.first + parts.last.characters.first)

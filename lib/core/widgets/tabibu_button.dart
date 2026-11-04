@@ -100,7 +100,7 @@ class _TabibuButtonState extends State<TabibuButton> {
       .primary => enabled ? status.ink : scheme.surfaceContainerHigh,
       .secondary => scheme.surfaceContainerHigh,
       .outline => scheme.surfaceContainerLowest,
-      .ghost => Colors.transparent,
+      .ghost => AppColors.transparent,
     };
     final foreground =
         foregroundColor ??
@@ -109,7 +109,7 @@ class _TabibuButtonState extends State<TabibuButton> {
             enabled
                 ? (scheme.brightness == .dark
                       ? AppColors.inkLight
-                      : Colors.white)
+                      : AppColors.white)
                 : scheme.onSurfaceVariant,
           .secondary => enabled ? scheme.onSurface : scheme.onSurfaceVariant,
           .outline => enabled ? scheme.onSurface : scheme.onSurfaceVariant,
@@ -177,6 +177,8 @@ class _TabibuButtonState extends State<TabibuButton> {
                                       color: foreground,
                                     ),
                                     textAlign: .center,
+                                    maxLines: 1,
+                                    overflow: .ellipsis,
                                   ),
                                 ),
                               ],

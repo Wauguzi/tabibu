@@ -105,11 +105,14 @@ async function run() {
     console.warn('functions/lib/queries.js missing; run functions build first');
   }
 
-  const admin = require(path.join(ROOT, 'functions/node_modules/firebase-admin'));
-  if (!admin.apps.length) {
-    admin.initializeApp({ projectId });
+  // firebase-admin 14 has only the modular API.
+  const adminLib = require('node:module').createRequire(path.join(ROOT, 'functions/package.json'));
+  const { getApps, initializeApp } = adminLib('firebase-admin/app');
+  const { getFirestore } = adminLib('firebase-admin/firestore');
+  if (!getApps().length) {
+    initializeApp({ projectId });
   }
-  const db = admin.firestore();
+  const db = getFirestore();
 
   const failures = [];
 

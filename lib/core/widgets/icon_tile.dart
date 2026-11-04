@@ -62,7 +62,7 @@ class IconTile extends StatelessWidget {
       (.peach, true) => (AppColors.peachDark, status.attentionText),
       (.white, false) => (scheme.surfaceContainerLowest, status.primaryText),
       (.white, true) => (scheme.surfaceContainerHigh, status.primaryText),
-      (.glass, _) => (Colors.white.withValues(alpha: 0.16), Colors.white),
+      (.glass, _) => (AppColors.white.withValues(alpha: 0.16), AppColors.white),
       (.neutral, _) => (scheme.surfaceContainerLow, scheme.onSurface),
       (.danger, _) => (status.errorContainer, scheme.error),
     };

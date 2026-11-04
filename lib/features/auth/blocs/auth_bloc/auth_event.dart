@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/auth/data/models/sign_up_draft.dart';
+import 'package:tabibu/features/auth/data/models/upload_file.dart';
 
 sealed class AuthEvent extends Equatable {
   const AuthEvent();
@@ -103,4 +104,90 @@ final class EmailVerificationCheckRequested extends AuthEvent {
 
 final class VerificationEmailResendRequested extends AuthEvent {
   const VerificationEmailResendRequested();
+}
+
+/// The profile tab's switches: no optimistic flip, the session carries the
+/// new value once the write lands.
+final class ProfileSettingChanged extends AuthEvent {
+  const ProfileSettingChanged({required this.setting, required this.value});
+
+  final ProfileSetting setting;
+  final bool value;
+
+  @override
+  List<Object?> get props => [setting, value];
+}
+
+/// The edit-profile Save: names, phone, and a picked photo held until the
+/// write uploads it. The screen validates first; the rules check again.
+final class PatientProfileChanged extends AuthEvent {
+  const PatientProfileChanged({
+    required this.firstName,
+    required this.middleName,
+    required this.lastName,
+    required this.phoneNumber,
+    this.picture,
+  });
+
+  final String firstName;
+  final String middleName;
+  final String lastName;
+  final String phoneNumber;
+  final UploadFile? picture;
+
+  @override
+  List<Object?> get props => [
+    firstName,
+    middleName,
+    lastName,
+    phoneNumber,
+    picture,
+  ];
+}
+
+/// The practitioner details Save: specialties, bio, phone, and a picked
+/// photo. Names stay locked once verified.
+final class PractitionerProfileChanged extends AuthEvent {
+  const PractitionerProfileChanged({
+    required this.specialties,
+    required this.bio,
+    required this.phoneNumber,
+    this.picture,
+  });
+
+  final List<String> specialties;
+  final String bio;
+  final String phoneNumber;
+  final UploadFile? picture;
+
+  @override
+  List<Object?> get props => [specialties, bio, phoneNumber, picture];
+}
+
+/// The area Save: county and sub-county ids, resolved to names by the
+/// server. Nairobi alone needs a sub-county.
+final class PatientAreaChanged extends AuthEvent {
+  const PatientAreaChanged({required this.countyId, this.subCountyId});
+
+  final int countyId;
+  final int? subCountyId;
+
+  @override
+  List<Object?> get props => [countyId, subCountyId];
+}
+
+/// The clinic-hours Save: working days plus the one range all days share.
+final class ClinicHoursChanged extends AuthEvent {
+  const ClinicHoursChanged({
+    required this.workingDays,
+    required this.dayStartMinute,
+    required this.dayEndMinute,
+  });
+
+  final List<int> workingDays;
+  final int dayStartMinute;
+  final int dayEndMinute;
+
+  @override
+  List<Object?> get props => [workingDays, dayStartMinute, dayEndMinute];
 }

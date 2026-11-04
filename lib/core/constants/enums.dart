@@ -113,6 +113,10 @@ enum ThemePreference {
   };
 }
 
+/// A profile switch the owner flips themselves; both fields are
+/// owner-writable by the rules.
+enum ProfileSetting { acceptCases, healthNotices }
+
 /// A practitioner's title, stored as its display value.
 enum PractitionerTitle {
   dr,
@@ -279,6 +283,24 @@ enum AppError implements Exception {
   adminOnly,
   invalidPractitioner,
   invalidDecision,
+  notInCare,
+  invalidAppointment,
+  invalidOrder,
+  invalidPathologist,
+  dailyOrderLimit,
+  // Share-code redeem refusals (bundle 47). Descriptions wait on Muse keys.
+  wrongShareCode,
+  shareExpired,
+  shareLocked,
+  shareClosed,
+  // Slide upload refusals (bundle 54). Descriptions wait on Muse keys.
+  slidesNotRequired,
+  invalidStage,
+  notOnCase,
+  tooManySlides,
+  slideNotUploaded,
+  slideNotReserved,
+  invalidSlides,
   // Thrown directly by the auth flow, not from a Firebase code.
   practitionerPendingVerification,
   noRoleAssigned,
@@ -322,6 +344,27 @@ enum AppError implements Exception {
       'adminOnly' => AppError.adminOnly,
       'invalidPractitioner' => AppError.invalidPractitioner,
       'invalidDecision' => AppError.invalidDecision,
+      'notInCare' => AppError.notInCare,
+      'invalidAppointment' => AppError.invalidAppointment,
+      'invalidTest' ||
+      'invalidNotes' ||
+      'invalidCollectedAt' ||
+      'invalidPayment' ||
+      'invalidPriority' => AppError.invalidOrder,
+      'invalidPathologist' ||
+      'pathologistDeclined' => AppError.invalidPathologist,
+      'dailyOrderLimit' => AppError.dailyOrderLimit,
+      'wrongCode' => AppError.wrongShareCode,
+      'shareExpired' => AppError.shareExpired,
+      'shareLocked' => AppError.shareLocked,
+      'shareClosed' => AppError.shareClosed,
+      'slidesNotRequired' => AppError.slidesNotRequired,
+      'invalidStage' => AppError.invalidStage,
+      'notOnCase' => AppError.notOnCase,
+      'tooManySlides' => AppError.tooManySlides,
+      'slideNotUploaded' => AppError.slideNotUploaded,
+      'slideNotReserved' => AppError.slideNotReserved,
+      'invalidSlides' || 'invalidCount' => AppError.invalidSlides,
       _ => null,
     };
     return reason ?? fromFirebaseCode(e.code);
@@ -412,6 +455,22 @@ enum AppError implements Exception {
     .adminOnly => l10n.errorAdminOnly,
     .invalidPractitioner => l10n.errorInvalidPractitioner,
     .invalidDecision => l10n.errorInvalidDecision,
+    .notInCare => l10n.errorNotInCare,
+    .invalidAppointment => l10n.errorInvalidAppointment,
+    .invalidOrder => l10n.errorInvalidOrder,
+    .invalidPathologist => l10n.errorInvalidPathologist,
+    .dailyOrderLimit => l10n.errorDailyOrderLimit,
+    .wrongShareCode => l10n.shareCodeWrong,
+    .shareExpired => l10n.shareCodeExpired,
+    .shareLocked => l10n.shareCodeLocked,
+    .shareClosed => l10n.shareCodeUsed,
+    .slidesNotRequired => l10n.errorSlidesNotRequired,
+    .invalidStage => l10n.errorInvalidStage,
+    .notOnCase => l10n.errorNotOnCase,
+    .tooManySlides => l10n.errorTooManySlides,
+    .slideNotUploaded => l10n.errorSlideNotUploaded,
+    .slideNotReserved => l10n.errorSlideNotReserved,
+    .invalidSlides => l10n.errorInvalidSlides,
     .practitionerPendingVerification =>
       l10n.errorPractitionerPendingVerification,
     .noRoleAssigned => l10n.errorNoRoleAssigned,
@@ -736,6 +795,12 @@ enum Urgency {
     'Priority' => .priority,
     'Urgent' => .urgent,
     _ => .routine,
+  };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .routine => l10n.urgencyRoutine,
+    .priority => l10n.urgencyPriority,
+    .urgent => l10n.urgencyUrgent,
   };
 }
 
@@ -1222,6 +1287,11 @@ enum AppointmentType {
     'Consultation' => .consultation,
     'CaseDiscussion' => .caseDiscussion,
     _ => .consultation,
+  };
+
+  String description(AppLocalizations l10n) => switch (this) {
+    .consultation => l10n.appointmentsTypeConsultation,
+    .caseDiscussion => l10n.appointmentsTypeCaseDiscussion,
   };
 }
 
@@ -1802,20 +1872,64 @@ enum NotificationTemplate {
     return .unknown;
   }
 
-  String title(AppLocalizations l10n, Map<String, String> args) =>
-      switch (this) {
-        .appointmentRequested => l10n.notificationAppointmentRequestedTitle,
-        .caseDiscussionRequested =>
-          l10n.notificationCaseDiscussionRequestedTitle,
-        .appointmentAccepted => l10n.notificationAppointmentAcceptedTitle,
-        .appointmentDeclined => l10n.notificationAppointmentDeclinedTitle,
-        .appointmentExpired => l10n.notificationAppointmentExpiredTitle,
-        .appointmentCancelledByPatient =>
-          l10n.notificationAppointmentCancelledByPatientTitle,
-        .appointmentCancelledByDoctor =>
-          l10n.notificationAppointmentCancelledByDoctorTitle,
-        _ => '',
-      };
+  String title(
+    AppLocalizations l10n,
+    Map<String, String> args,
+  ) => switch (this) {
+    .appointmentRequested => l10n.notificationAppointmentRequestedTitle,
+    .caseDiscussionRequested => l10n.notificationCaseDiscussionRequestedTitle,
+    .appointmentAccepted => l10n.notificationAppointmentAcceptedTitle,
+    .appointmentDeclined => l10n.notificationAppointmentDeclinedTitle,
+    .appointmentExpired => l10n.notificationAppointmentExpiredTitle,
+    .appointmentCancelledByPatient =>
+      l10n.notificationAppointmentCancelledByPatientTitle,
+    .appointmentCancelledByDoctor =>
+      l10n.notificationAppointmentCancelledByDoctorTitle,
+    .orderCreated => l10n.notificationOrderCreatedTitle,
+    .pathologistRequested => l10n.notificationPathologistRequestedTitle,
+    .pathologistAccepted => l10n.notificationPathologistAcceptedTitle,
+    .pathologistAcceptedPatient =>
+      l10n.notificationPathologistAcceptedPatientTitle,
+    .pathologistRejected => l10n.notificationPathologistRejectedTitle,
+    .caseWithdrawn => l10n.notificationCaseWithdrawnTitle,
+    .prereadReady => l10n.notificationPrereadReadyTitle,
+    .prereadFailed => l10n.notificationPrereadFailedTitle,
+    .orderCancelled => l10n.notificationOrderCancelledTitle,
+    .caseShared => l10n.notificationCaseSharedTitle,
+    .shareRedeemed => l10n.notificationShareRedeemedTitle,
+    .reportSigned => l10n.notificationReportSignedTitle,
+    .reportUpdated => l10n.notificationReportUpdatedTitle,
+    .shareCodeReissued => l10n.notificationShareCodeReissuedTitle,
+    .criticalReportUnopened => l10n.notificationCriticalReportUnopenedTitle,
+    .resultsWithDoctor => l10n.notificationResultsWithDoctorTitle,
+    .resultReleased => l10n.notificationResultReleasedTitle,
+    .translationReady => l10n.notificationTranslationReadyTitle,
+    .explanationReady => l10n.notificationExplanationReadyTitle,
+    .mdtInvited => l10n.notificationMdtInvitedTitle,
+    .mdtInviteAccepted => l10n.notificationMdtInviteAcceptedTitle,
+    .mdtInviteDeclined => l10n.notificationMdtInviteDeclinedTitle,
+    .messageReceived => l10n.notificationMessageReceivedTitle,
+    .alertDrafted => l10n.notificationAlertDraftedTitle,
+    .alertDraftReminder => l10n.notificationAlertDraftReminderTitle,
+    .alertExpired => l10n.notificationAlertExpiredTitle,
+    .alertWithdrawn => l10n.notificationAlertWithdrawnTitle,
+    .alertEvidenceChanged => l10n.notificationAlertEvidenceChangedTitle,
+    .alertDeliveredClinician => l10n.notificationAlertDeliveredClinicianTitle,
+    .alertDeliveredPatient => l10n.notificationAlertDeliveredPatientTitle,
+    .confirmatoryTestRequested =>
+      l10n.notificationConfirmatoryTestRequestedTitle,
+    .alertDeliveryHeld => l10n.notificationAlertDeliveryHeldTitle,
+    .pathologistRequestExpired => l10n.notificationPathologistRejectedTitle,
+    .criticalReportUnopenedSigner =>
+      l10n.notificationCriticalReportUnopenedTitle,
+    .resultUpdateWithDoctor => l10n.notificationResultsWithDoctorTitle,
+    .mdtMessageReceived => l10n.notificationMessageReceivedTitle,
+    .alertDeliveredClinicianDemo =>
+      l10n.notificationAlertDeliveredClinicianTitle,
+    .alertDeliveredPatientDemo => l10n.notificationAlertDeliveredPatientTitle,
+    .alertDeliveryStopped => l10n.notificationAlertDeliveryHeldTitle,
+    _ => '',
+  };
 
   String body(
     AppLocalizations l10n,

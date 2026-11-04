@@ -5,6 +5,8 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/features/alerts/data/datasources/alert_firebase.dart';
 
+import '../../../../helpers/recording_firestore.dart';
+
 class _MockFunctions extends Mock implements FirebaseFunctions {}
 
 class _MockCallable extends Mock implements HttpsCallable {}
@@ -146,6 +148,53 @@ void main() {
       final brief = await remote.fetchClinicianBrief('a1');
       expect(brief?.alertUid, 'a1');
       expect(brief?.confirmedCount, 3);
+    });
+
+    test('awaiting decision filters Draft and orders by draftedAt', () async {
+      await firestore.collection('alerts').doc('a-late').set({
+        'status': AlertStatus.draft.value,
+        'draftedAt': '2026-11-02T12:00:00.000Z',
+        'diseaseId': 'cholera',
+      });
+      await firestore.collection('alerts').doc('a-early').set({
+        'status': AlertStatus.draft.value,
+        'draftedAt': '2026-11-01T08:00:00.000Z',
+        'diseaseId': 'cholera',
+      });
+      await firestore.collection('alerts').doc('a-drafting').set({
+        'status': AlertStatus.drafting.value,
+        'draftedAt': '2026-11-01T07:00:00.000Z',
+        'diseaseId': 'cholera',
+      });
+
+      final rows = await remote.fetchAwaitingDecision();
+      expect(rows.map((r) => r.uid), ['a-early', 'a-late']);
+      expect(rows.every((r) => r.status == AlertStatus.draft.value), isTrue);
+    });
+
+    test('fetchAlert maps the document id onto uid', () async {
+      await firestore.collection('alerts').doc('a1').set({
+        'status': AlertStatus.draft.value,
+        'draftedAt': '2026-11-01T08:00:00.000Z',
+        'diseaseId': 'cholera',
+      });
+
+      final row = await remote.fetchAlert('a1');
+      expect(row?.uid, 'a1');
+      expect(row?.status, AlertStatus.draft.value);
+      expect(await remote.fetchAlert('missing'), isNull);
+    });
+  });
+
+  group('server reads', () {
+    test('approver queue and single-row reads reach the server', () async {
+      final recording = RecordingFirestore();
+      final server = AlertFirebase(firestore: recording, functions: functions);
+
+      await server.fetchAwaitingDecision();
+      await server.fetchAlert('a1');
+
+      recording.expectServerReads(2);
     });
   });
 }

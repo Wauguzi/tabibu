@@ -8,6 +8,29 @@ import '../../helpers/helpers.dart';
 
 void main() {
   group('FloatingTabBar', () {
+    testWidgets('the tab that loses the selection has no fade', (tester) async {
+      await tester.pumpApp(
+        Center(
+          child: FloatingTabBar(
+            tabs: [
+              FloatingTab(icon: Assets.icons.homeIcon, label: 'Today'),
+              FloatingTab(icon: Assets.icons.documentIcon, label: 'Cases'),
+            ],
+            currentIndex: 0,
+            onSelected: (_) {},
+          ),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final pills = tester
+          .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
+          .toList();
+      // The selected pill animates; the other snaps, so no ink fades out.
+      expect(pills.first.duration, isNot(Duration.zero));
+      expect(pills.last.duration, Duration.zero);
+    });
+
     final tabs = [
       FloatingTab(icon: Assets.icons.homeIcon, label: 'Home'),
       FloatingTab(icon: Assets.icons.appointmentsIcon, label: 'Appointments'),

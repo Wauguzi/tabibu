@@ -456,6 +456,165 @@ void main() {
     });
   });
 
+  group('bookAppointment', () {
+    final start = DateTime.utc(2026, 11, 10, 10);
+
+    test('calls the callable with a UTC Z start, then syncs the row', () async {
+      when(
+        () => remote.requestAppointment(
+          appointmentUid: any(named: 'appointmentUid'),
+          type: any(named: 'type'),
+          scheduledStart: any(named: 'scheduledStart'),
+          doctorUid: any(named: 'doctorUid'),
+          caseUid: any(named: 'caseUid'),
+          symptomText: any(named: 'symptomText'),
+          inputMode: any(named: 'inputMode'),
+          transcriptionUid: any(named: 'transcriptionUid'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{});
+      when(
+        () => remote.fetchPatientDelta(
+          patientUid: 'p1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_appt('a-new')]);
+
+      final booked = await helper.bookAppointment(
+        patientUid: 'p1',
+        appointmentUid: 'a-new',
+        doctorUid: 'd1',
+        start: start,
+        symptomText: 'fever',
+      );
+
+      expect(booked.uid, 'a-new');
+      verify(
+        () => remote.requestAppointment(
+          appointmentUid: 'a-new',
+          type: 'Consultation',
+          scheduledStart: '2026-11-10T10:00:00.000Z',
+          doctorUid: 'd1',
+          caseUid: '',
+          symptomText: 'fever',
+          // ignore: avoid_redundant_argument_values — contract under test.
+          inputMode: 'Typed',
+        ),
+      ).called(1);
+      verify(
+        () => remote.fetchPatientDelta(
+          patientUid: 'p1',
+          cursor: any(named: 'cursor'),
+        ),
+      ).called(1);
+    });
+
+    test('offline sync returns the cached row', () async {
+      await helper.cacheAppointments([_appt('a-new')], fromCloud: true);
+      when(
+        () => remote.requestAppointment(
+          appointmentUid: any(named: 'appointmentUid'),
+          type: any(named: 'type'),
+          scheduledStart: any(named: 'scheduledStart'),
+          doctorUid: any(named: 'doctorUid'),
+          caseUid: any(named: 'caseUid'),
+          symptomText: any(named: 'symptomText'),
+          inputMode: any(named: 'inputMode'),
+          transcriptionUid: any(named: 'transcriptionUid'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{});
+      when(
+        () => remote.fetchPatientDelta(
+          patientUid: any(named: 'patientUid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenThrow(AppError.noInternet);
+
+      final booked = await helper.bookAppointment(
+        patientUid: 'p1',
+        appointmentUid: 'a-new',
+        doctorUid: 'd1',
+        start: start,
+      );
+
+      expect(booked.uid, 'a-new');
+    });
+
+    test('a discussion rebook carries its case', () async {
+      when(
+        () => remote.requestAppointment(
+          appointmentUid: any(named: 'appointmentUid'),
+          type: any(named: 'type'),
+          scheduledStart: any(named: 'scheduledStart'),
+          doctorUid: any(named: 'doctorUid'),
+          caseUid: any(named: 'caseUid'),
+          symptomText: any(named: 'symptomText'),
+          inputMode: any(named: 'inputMode'),
+          transcriptionUid: any(named: 'transcriptionUid'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{});
+      when(
+        () => remote.fetchPatientDelta(
+          patientUid: any(named: 'patientUid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_appt('a-new')]);
+
+      await helper.bookAppointment(
+        patientUid: 'p1',
+        appointmentUid: 'a-new',
+        doctorUid: 'd1',
+        start: start,
+        type: 'CaseDiscussion',
+        caseUid: 'c1',
+      );
+
+      verify(
+        () => remote.requestAppointment(
+          appointmentUid: 'a-new',
+          type: 'CaseDiscussion',
+          scheduledStart: '2026-11-10T10:00:00.000Z',
+          doctorUid: 'd1',
+          caseUid: 'c1',
+          // ignore: avoid_redundant_argument_values — contract under test.
+          symptomText: '',
+          // ignore: avoid_redundant_argument_values — contract under test.
+          inputMode: 'Typed',
+        ),
+      ).called(1);
+    });
+
+    test('no row after sync throws dataNotFound', () async {
+      when(
+        () => remote.requestAppointment(
+          appointmentUid: any(named: 'appointmentUid'),
+          type: any(named: 'type'),
+          scheduledStart: any(named: 'scheduledStart'),
+          doctorUid: any(named: 'doctorUid'),
+          caseUid: any(named: 'caseUid'),
+          symptomText: any(named: 'symptomText'),
+          inputMode: any(named: 'inputMode'),
+          transcriptionUid: any(named: 'transcriptionUid'),
+        ),
+      ).thenAnswer((_) async => <String, dynamic>{});
+      when(
+        () => remote.fetchPatientDelta(
+          patientUid: any(named: 'patientUid'),
+          cursor: any(named: 'cursor'),
+        ),
+      ).thenAnswer((_) async => [_appt('other')]);
+
+      await expectLater(
+        helper.bookAppointment(
+          patientUid: 'p1',
+          appointmentUid: 'a-new',
+          doctorUid: 'd1',
+          start: start,
+        ),
+        throwsA(AppError.dataNotFound),
+      );
+    });
+  });
+
   group('complete', () {
     test('a completion updates the cached row', () async {
       await helper.cacheAppointments([_appt('a1')], fromCloud: true);

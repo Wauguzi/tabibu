@@ -19,7 +19,7 @@ Future<void> showTabibuNotification(
     context: context,
     barrierDismissible: true,
     barrierLabel: MaterialLocalizations.of(context).modalBarrierDismissLabel,
-    barrierColor: Colors.transparent,
+    barrierColor: AppColors.transparent,
     transitionDuration: const Duration(milliseconds: 250),
     pageBuilder: (context, _, _) => _NotificationBody(
       message: message,
@@ -90,7 +90,9 @@ class _NotificationBodyState extends State<_NotificationBody> {
                   ),
                   child: Text(
                     widget.message,
-                    style: textTheme.titleSmall?.copyWith(color: Colors.white),
+                    style: textTheme.titleSmall?.copyWith(
+                      color: AppColors.white,
+                    ),
                     textAlign: .center,
                   ),
                 ),

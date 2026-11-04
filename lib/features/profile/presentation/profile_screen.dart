@@ -1,28 +1,33 @@
 import 'dart:async';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:package_info_plus/package_info_plus.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
+import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/presentation/widgets/sign_out_sheet.dart';
 import 'package:tabibu/features/home/presentation/widgets/shell_tab_page.dart';
+import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/profile/data/models/doctor_model.dart';
+import 'package:tabibu/features/profile/presentation/widgets/profile_form.dart';
 import 'package:tabibu/features/profile/presentation/widgets/profile_identity_card.dart';
 import 'package:tabibu/features/profile/presentation/widgets/settings_group.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// Every role's last tab: who is signed in, their settings, and sign-out.
-/// The rows open screens built later; until then only Sign out acts, and
-/// the switches are disabled until a bloc saves their values.
+/// The rows lead to the profile screens (S-3); biometrics, delete account
+/// and the facility change stay hidden (Tier 3 and group D).
 class ProfileScreen extends StatefulWidget {
   const ProfileScreen({required this.role, super.key});
 
@@ -39,6 +44,58 @@ class _ProfileScreenState extends State<ProfileScreen> {
       Localizations.localeOf(context).languageCode == 'sw'
       ? l10n.languageSw
       : l10n.languageEn;
+
+  void _push(GoRouteData route) => unawaited(route.push<void>(context));
+
+  void _openDetails() => _push(switch (widget.role) {
+    .patient => const PatientProfileDetailsRoute(),
+    .doctor => const DoctorProfileDetailsRoute(),
+    .pathologist => const PathologistProfileDetailsRoute(),
+  });
+
+  void _openLanguage() => _push(switch (widget.role) {
+    .patient => const PatientProfileLanguageRoute(),
+    .doctor => const DoctorProfileLanguageRoute(),
+    .pathologist => const PathologistProfileLanguageRoute(),
+  });
+
+  void _openTheme() => _push(switch (widget.role) {
+    .patient => const PatientProfileThemeRoute(),
+    .doctor => const DoctorProfileThemeRoute(),
+    .pathologist => const PathologistProfileThemeRoute(),
+  });
+
+  void _openNotifications() => _push(switch (widget.role) {
+    .patient => const PatientProfileNotificationsRoute(),
+    .doctor => const DoctorProfileNotificationsRoute(),
+    .pathologist => const PathologistProfileNotificationsRoute(),
+  });
+
+  void _openPrivacy() => _push(switch (widget.role) {
+    .patient => const PatientPrivacyRoute(),
+    .doctor => const DoctorPrivacyRoute(),
+    .pathologist => const PathologistPrivacyRoute(),
+  });
+
+  void _openHelp() => _push(switch (widget.role) {
+    .patient => const PatientHelpRoute(),
+    .doctor => const DoctorHelpRoute(),
+    .pathologist => const PathologistHelpRoute(),
+  });
+
+  /// "Mon–Fri · 9:00 AM–4:00 PM" under the clinic-hours row, from the
+  /// stored days and range.
+  String _hoursSummary(AppLocalizations l10n, DoctorModel doctor) {
+    final days = doctor.workingDays.toSet();
+    if (days.isEmpty) return l10n.clinicHoursClosed;
+    final language = Localizations.localeOf(context).languageCode;
+    final range = hoursRangeText(
+      context,
+      doctor.dayStartMinute,
+      doctor.dayEndMinute,
+    );
+    return '${workingDaysSummary(language, days)} · $range';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -57,8 +114,16 @@ class _ProfileScreenState extends State<ProfileScreen> {
     final help = SettingsGroup(
       title: l10n.profileSectionHelp,
       children: [
-        SettingsRow(icon: Assets.icons.shieldIcon, title: l10n.profilePrivacy),
-        SettingsRow(icon: Assets.icons.heartIcon, title: l10n.profileHelp),
+        SettingsRow(
+          icon: Assets.icons.shieldIcon,
+          title: l10n.profilePrivacy,
+          onTap: _openPrivacy,
+        ),
+        SettingsRow(
+          icon: Assets.icons.heartIcon,
+          title: l10n.profileHelp,
+          onTap: _openHelp,
+        ),
         SettingsRow(
           icon: Assets.icons.signOutIcon,
           title: l10n.profileSignOut,
@@ -80,23 +145,35 @@ class _ProfileScreenState extends State<ProfileScreen> {
       icon: Assets.icons.languageIcon,
       title: l10n.profileLanguage,
       supporting: _languageName(l10n),
+      onTap: _openLanguage,
     );
     final theme = SettingsRow(
       icon: Assets.icons.themeIcon,
       title: l10n.profileTheme,
       supporting: l10n.profileThemeSupporting,
+      onTap: _openTheme,
     );
     final notifications = SettingsRow(
       icon: Assets.icons.notificationBellIcon,
-      title: l10n.profileNotifications,
+      title: l10n.notificationSettingsTitle,
+      onTap: _openNotifications,
     );
-    // Not yet available: no bloc saves it, so the switch stays off.
-    final biometrics = SettingsSwitchRow(
-      icon: Assets.icons.fingerprintIcon,
-      title: l10n.profileBiometrics,
-      value: false,
-      onChanged: null,
+    // Bundle 53: app lock settings (S-3). Supporting mirrors the lock state.
+    final lockOn = context.watch<LockBloc>().state.enabled;
+    final appLock = SettingsRow(
+      icon: Assets.icons.shieldIcon,
+      title: l10n.appLockTitle,
+      supporting: lockOn ? l10n.appLockPin : l10n.appLockOff,
+      onTap: () => unawaited(switch (widget.role) {
+        .patient => const PatientAppLockRoute().push<void>(context),
+        .pathologist => const PathologistAppLockRoute().push<void>(context),
+        _ => const DoctorAppLockRoute().push<void>(context),
+      }),
     );
+    final saving = authState is ProfileSettingChangeInProgress;
+    void flip({required ProfileSetting setting, required bool value}) => context
+        .read<AuthBloc>()
+        .add(ProfileSettingChanged(setting: setting, value: value));
 
     final body = switch (authState.session) {
       PatientSession(:final patient) => _patient(
@@ -104,8 +181,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         patient,
         language: language,
         theme: theme,
+        appLock: appLock,
         notifications: notifications,
-        biometrics: biometrics,
+        saving: saving,
+        onFlip: flip,
       ),
       PractitionerSession(:final doctor, :final roles) => _practitioner(
         l10n,
@@ -113,23 +192,34 @@ class _ProfileScreenState extends State<ProfileScreen> {
         isAlertApprover: roles.isAlertApprover,
         language: language,
         theme: theme,
+        appLock: appLock,
         notifications: notifications,
-        biometrics: biometrics,
+        saving: saving,
+        onFlip: flip,
       ),
       // Signing out: the guard is about to leave this route.
       _ => const <Widget>[],
     };
 
     return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (_, state) => state is SignOutFailure,
-      listener: (context, state) => unawaited(
-        showTabibuNotification(
-          context,
-          message: (state as SignOutFailure).error.description(l10n),
-          isError: true,
-          dismissLabel: l10n.commonDismiss,
-        ),
-      ),
+      listenWhen: (_, state) =>
+          state is SignOutFailure || state is ProfileSettingChangeFailure,
+      listener: (context, state) {
+        final error = switch (state) {
+          SignOutFailure(:final error) => error,
+          ProfileSettingChangeFailure(:final error) => error,
+          _ => null,
+        };
+        if (error == null) return;
+        unawaited(
+          showTabibuNotification(
+            context,
+            message: error.description(l10n),
+            isError: true,
+            dismissLabel: l10n.commonDismiss,
+          ),
+        );
+      },
       child: ShellTabPage(
         role: widget.role,
         children: [
@@ -155,8 +245,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     PatientModel patient, {
     required Widget language,
     required Widget theme,
+    required Widget appLock,
     required Widget notifications,
-    required Widget biometrics,
+    required bool saving,
+    required void Function({
+      required ProfileSetting setting,
+      required bool value,
+    })
+    onFlip,
   }) {
     final area = [
       patient.subCounty,
@@ -169,6 +265,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
         phoneNumber: patient.phoneNumber,
         photoUrl: patient.profilePictureUrl,
         editLabel: l10n.profileEdit,
+        onEdit: _openDetails,
       ),
       SettingsGroup(
         title: l10n.profileSectionPreferences,
@@ -178,16 +275,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
             icon: Assets.icons.locationIcon,
             title: l10n.profileMyArea,
             supporting: area.isEmpty ? null : area,
+            onTap: () => _push(const PatientProfileAreaRoute()),
           ),
           theme,
+          appLock,
         ],
       ),
       SettingsGroup(
         title: l10n.profileSectionAlerts,
         children: [
           notifications,
-          biometrics,
-          _healthNoticesRow(l10n, patient.receiveNotifications),
+          _healthNoticesRow(
+            l10n,
+            patient.receiveNotifications,
+            saving: saving,
+            onFlip: onFlip,
+          ),
         ],
       ),
     ];
@@ -199,8 +302,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
     required bool isAlertApprover,
     required Widget language,
     required Widget theme,
+    required Widget appLock,
     required Widget notifications,
-    required Widget biometrics,
+    required bool saving,
+    required void Function({
+      required ProfileSetting setting,
+      required bool value,
+    })
+    onFlip,
   }) {
     final specialties = [
       for (final value in doctor.specialties)
@@ -215,8 +324,10 @@ class _ProfileScreenState extends State<ProfileScreen> {
         subtitle: role == null
             ? doctor.facilityName
             : l10n.profileRoleAtFacility(role, doctor.facilityName),
-        verifiedLabel: l10n.profileKmpdcVerified(doctor.kmpdcNumber),
+        verifiedLabel: l10n.doctorProfileVerified,
         photoUrl: doctor.profilePictureUrl,
+        onEdit: _openDetails,
+        editLabel: l10n.profileEdit,
       ),
       if (!doctor.isPathologist && isAlertApprover && doctor.county.isNotEmpty)
         NoticeCard(
@@ -235,44 +346,66 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 ? l10n.profileLab
                 : l10n.profileFacility,
             supporting: doctor.facilityName,
+            // A check, not a chevron, until the facility can be changed.
+            trailingIcon: Assets.icons.tickIcon,
           ),
+          if (!doctor.isPathologist)
+            SettingsRow(
+              icon: Assets.icons.clockIcon,
+              title: l10n.clinicHoursTitle,
+              supporting: _hoursSummary(l10n, doctor),
+              onTap: () => _push(const DoctorClinicHoursRoute()),
+            ),
           if (doctor.isPathologist)
-            // Not yet available: no bloc saves it, so the value is shown.
             SettingsSwitchRow(
               icon: Assets.icons.testTubeIcon,
               title: l10n.profileAcceptCases,
               value: doctor.isAvailable,
-              onChanged: null,
-            )
-          else
-            SettingsRow(
-              icon: Assets.icons.clinicHoursIcon,
-              title: l10n.profileClinicHours,
+              onChanged: saving
+                  ? null
+                  : (value) => onFlip(
+                      setting: ProfileSetting.acceptCases,
+                      value: value,
+                    ),
             ),
           language,
-          if (!doctor.isPathologist) theme,
+          theme,
+          appLock,
         ],
       ),
       SettingsGroup(
         title: l10n.profileSectionAlerts,
         children: [
           notifications,
-          if (!doctor.isPathologist)
-            _healthNoticesRow(l10n, doctor.receiveNotifications),
-          biometrics,
+          _healthNoticesRow(
+            l10n,
+            doctor.receiveNotifications,
+            saving: saving,
+            onFlip: onFlip,
+          ),
         ],
       ),
     ];
   }
 
-  // Not yet available: no bloc saves it, so the value is shown.
-  Widget _healthNoticesRow(AppLocalizations l10n, bool initial) =>
-      SettingsSwitchRow(
-        icon: Assets.icons.infoIcon,
-        title: l10n.profileHealthNotices,
-        value: initial,
-        onChanged: null,
-      );
+  Widget _healthNoticesRow(
+    AppLocalizations l10n,
+    bool initial, {
+    required bool saving,
+    required void Function({
+      required ProfileSetting setting,
+      required bool value,
+    })
+    onFlip,
+  }) => SettingsSwitchRow(
+    icon: Assets.icons.infoIcon,
+    title: l10n.profileHealthNotices,
+    value: initial,
+    onChanged: saving
+        ? null
+        : (value) =>
+              onFlip(setting: ProfileSetting.healthNotices, value: value),
+  );
 }
 
 /// The pathologist's report areas as mint pills.

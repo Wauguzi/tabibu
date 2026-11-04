@@ -244,8 +244,9 @@ enforces it, so no screen implements it on its own.
 ### 4.5 Alerts
 
 - Every delivered alert ends with its attribution: "Approved for release by
-  an authorised public-health officer. Guidance: {source}". The guidance is
-  shown verbatim, each bullet linked to its source.
+  an authorised Tabibu clinician. Guidance: {source}", in the reader's
+  language. It never names the approver. The guidance is shown verbatim, each bullet
+  linked to its source.
 - Kiswahili guidance carries "Kiswahili translation by Tabibu" ("Tafsiri ya
   Kiswahili na Tabibu"), because no official Kiswahili version exists.
 - The pathologist's notifiable mark and the clinician brief both carry the
@@ -366,6 +367,7 @@ Quotation marks are straight double quotes in both languages.
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-02 | §4.5: the alert attribution names an authorised Tabibu clinician, never the person, since the approver is a doctor holding the approver permission (`feat/ui`, decision S-2). | Theo |
 | 2026-11-01 | For the `feat/infra` data layer: §4.1 the surfaces `AiDraftFrame` wraps, Approve as is first, the approval attributions, the draft-and-diff link for the signer and admins only, the PDF's own layout; §4.4 the explanation approved by the doctor and the update banner; §4.5 the alert screens (CRQ-0043, CRQ-0045, CRQ-0049). | Theo |
 | 2026-10-28 | §2.1, §6 and §8 item 6: draft versus signed made structural (CRQ-0030). | Theo |
 | 2026-10-28 | §2 rewritten to the sheet's tokens (colour, Manrope type, spacing, radii, iconography); sheet rules added to §5 and §6; §8 items 1, 5 and 6 (brief 03). | Theo |

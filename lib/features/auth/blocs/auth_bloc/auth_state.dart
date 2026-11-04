@@ -161,3 +161,35 @@ final class VerificationEmailResendFailure extends AuthOperationFailure {
     required super.error,
   });
 }
+
+/// A profile switch is being saved; the screen holds its switches still.
+final class ProfileSettingChangeInProgress extends AuthState {
+  const ProfileSettingChangeInProgress({required super.session});
+}
+
+/// [session] carries the new value; every other field is untouched.
+final class ProfileSettingChangeSuccess extends AuthState {
+  const ProfileSettingChangeSuccess({required super.session});
+}
+
+final class ProfileSettingChangeFailure extends AuthOperationFailure {
+  const ProfileSettingChangeFailure({
+    required super.session,
+    required super.error,
+  });
+}
+
+/// A profile save (details, area, hours) is running; the screen holds its
+/// Save still.
+final class ProfileSaveInProgress extends AuthState {
+  const ProfileSaveInProgress({required super.session});
+}
+
+/// [session] carries the saved values; every other field is untouched.
+final class ProfileSaveSuccess extends AuthState {
+  const ProfileSaveSuccess({required super.session});
+}
+
+final class ProfileSaveFailure extends AuthOperationFailure {
+  const ProfileSaveFailure({required super.session, required super.error});
+}

@@ -48,8 +48,10 @@ class ProfileStorage {
         SettableMetadata(contentType: file.contentType),
       );
       return await ref.getDownloadURL();
-    } on FirebaseException catch (e) {
-      if (kDebugMode) _logger.e('Upload failed [${e.code}]');
+    } on FirebaseException catch (e, stackTrace) {
+      if (kDebugMode) {
+        _logger.e('Upload failed [${e.code}]', stackTrace: stackTrace);
+      }
       throw AppError.fromFirebaseCode(e.code);
     }
   }

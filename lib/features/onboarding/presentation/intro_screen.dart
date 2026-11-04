@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_gradients.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
@@ -62,7 +63,7 @@ class _IntroScreenState extends State<IntroScreen> {
 
     return AnnotatedRegion<SystemUiOverlayStyle>(
       value: SystemUiOverlayStyle(
-        statusBarColor: Colors.transparent,
+        statusBarColor: AppColors.transparent,
         statusBarBrightness: isDark ? .dark : .light,
         statusBarIconBrightness: isDark ? .light : .dark,
       ),
@@ -90,7 +91,7 @@ class _IntroScreenState extends State<IntroScreen> {
           builder: (context, state) {
             final busy = state is OnboardingInProgress;
             return Scaffold(
-              backgroundColor: Colors.transparent,
+              backgroundColor: AppColors.transparent,
               body: SafeArea(
                 child: Padding(
                   padding: const EdgeInsets.all(AppSpacing.screenMargin),

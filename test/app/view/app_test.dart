@@ -8,6 +8,7 @@ import 'package:tabibu/app/app.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/auth_helper.dart';
 import 'package:tabibu/core/helpers/blocs_helper.dart';
+import 'package:tabibu/core/helpers/facilities_helper.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/hive_helper.dart';
 import 'package:tabibu/core/helpers/notifications_helper.dart';
@@ -17,8 +18,13 @@ import 'package:tabibu/core/services/app_update_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/core/services/notification_service.dart';
 import 'package:tabibu/core/services/rasp_service.dart';
+import 'package:tabibu/features/alerts/data/datasources/alert_topic_service.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/auth/data/models/onboarding_hive.dart';
+import 'package:tabibu/features/auth/presentation/decision_screen.dart';
+import 'package:tabibu/features/lock/data/biometric_authenticator.dart';
+import 'package:tabibu/features/lock/data/lock_storage.dart';
+import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart';
 
 class _MockAuthHelper extends Mock implements AuthHelper {}
 
@@ -31,6 +37,16 @@ class _MockNotifications extends Mock implements NotificationService {}
 class _MockAnalytics extends Mock implements AnalyticsService {}
 
 class _MockThemeHelper extends Mock implements ThemeHelper {}
+
+class _MockAlertTopics extends Mock implements AlertTopicService {}
+
+class _MockFacilities extends Mock implements FacilitiesHelper {}
+
+class _MockLockStorage extends Mock implements LockStorage {}
+
+class _MockBiometrics extends Mock implements BiometricAuthenticator {}
+
+class _MockNotificationCache extends Mock implements NotificationCacheHelper {}
 
 void main() {
   late _MockAuthHelper auth;
@@ -60,6 +76,8 @@ void main() {
       () => notifications.tokenRefreshes,
     ).thenAnswer((_) => const Stream.empty());
 
+    final lockStorage = _MockLockStorage();
+    when(lockStorage.isEnabled).thenAnswer((_) async => false);
     getIt
       ..registerSingleton<AuthHelper>(auth)
       ..registerSingleton<HiveHelper>(hive)
@@ -74,7 +92,13 @@ void main() {
         ),
       )
       ..registerSingleton<RaspService>(RaspService())
-      ..registerSingleton<ThemeHelper>(theme);
+      ..registerSingleton<ThemeHelper>(theme)
+      ..registerSingleton<AlertTopicService>(_MockAlertTopics())
+      ..registerSingleton<FacilitiesHelper>(_MockFacilities())
+      ..registerSingleton<LockStorage>(lockStorage)
+      ..registerSingleton<BiometricAuthenticator>(_MockBiometrics())
+      // The app listens to the inbox from its first build, so its bloc exists.
+      ..registerSingleton<NotificationCacheHelper>(_MockNotificationCache());
   });
 
   tearDown(getIt.reset);
@@ -87,6 +111,11 @@ void main() {
         child: const App(),
       ),
     );
+    for (var i = 0; i < 5; i++) {
+      await tester.pump(const Duration(milliseconds: 100));
+    }
+    // Past the splash's hold, then the page transition.
+    await tester.pump(DecisionScreen.minimumDwell);
     for (var i = 0; i < 5; i++) {
       await tester.pump(const Duration(milliseconds: 100));
     }
