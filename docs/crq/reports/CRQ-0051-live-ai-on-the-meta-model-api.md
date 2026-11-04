@@ -157,8 +157,12 @@ off.
 | Live: pre-read | Ready in about 9 s for 36 tiles on a slide Theo uploaded; `models.promptVersion` `preread-classify-v3` at that run; the pathologist scored and signed it |
 | Live: explanation | Ready in about 15 s in English and Kiswahili on a signed report (3 Nov); `models.promptVersion` `report-text-v1`; no name, facility or placeholder in either text |
 | Evaluation, first run (3 Nov) | Too small to use: the staging could read only the first 100 rows of each split, almost all tumour, leaving 4 tuning tiles and 2 held-out tiles. **No accuracy figure comes from it**; latency and token cost were measured (minimal effort about 3 to 4 s a tile, low about 6 s, medium about 11 s) |
-| Evaluation, second run (4 Nov) | **To be filled from the three files of 4 Nov:** held-out accuracy, sensitivity and specificity with Wilson 95% intervals (n = 200); the three variants on 200 tuning tiles; the false-positive rate on the demo mosaics' normal tiles. Until then no accuracy is claimed |
-| Model evaluation threshold | Not met by anything quoted; the band is capped at Low |
+| Evaluation, second run (4 Nov), held-out, one tile per request, live configuration | 200 tiles (100 tumour, 100 normal): accuracy **63%** (95% interval 56 to 69), sensitivity 56%, specificity 70% (30 normal tiles called tumour, 44 tumour tiles missed). Of 167 tiles where the model stated at least 0.8, 35% were wrong |
+| Same, with the four labelled examples in the prompt | Accuracy **72%** (65 to 78), sensitivity 54%, specificity 90% (10 false tumours, 46 missed). Of 170 tiles stated at least 0.8, 25% were wrong |
+| Same, 16 tiles per request (how the first live worker sent them) | Without examples: accuracy **51.5%** (45 to 58), sensitivity 36%, 33 false tumours, 50% of stated-at-least-0.8 wrong. With examples: **62%** (55 to 68), sensitivity 39%, 15 false tumours, 28% wrong. Sending 16 tiles at once cost accuracy, so the worker now sends one tile per request with the examples |
+| Variants on 200 tuning tiles (single tile) | Baseline 64.5% (58 to 71); tiles enlarged three times 65%, no gain; with examples 73.5% (67 to 79), specificity 90%. Two of the four example tiles are also in the tuning set, so that figure is slightly generous; the held-out run above is the clean one |
+| Demo mosaics, normal tiles called tumour (108 tiles) | One tile per request: 22% (15 to 32) without examples, **11.1%** (6 to 19) with them. At 16 per request: 27.8% (20 to 38) without, 13.3% (8 to 22) with |
+| Model evaluation threshold | Not met by anything quoted: the model still misses about half of the tumour tiles. The band is capped at Low and the pre-read is a prompt for the pathologist, never a result |
 | Manual run | Done by Theo on the live project; the device pass is separate (CRQ-0050) |
 
 The evaluation set is a community copy of PatchCamelyon on Hugging Face
@@ -194,11 +198,15 @@ original release.
   and that slide's own ground truth was not recorded, so it says nothing about
   accuracy. Neither is a measurement. The demo-mosaics check in §7 measures the
   first directly.
-- The tile enlarge (×3) and few-shot variants are built and left off: the
-  evidence for them was four tiles. The worker stays at the setting that ran
-  live until the second evaluation says otherwise.
+- The tile enlarge (×3) showed no gain and stays off. The four labelled
+  examples did help on 200 held-out tiles, but only when each request carries
+  one tile: at 16 tiles per request the worker was close to chance (51.5%). So
+  the worker now sends one tile per request with the examples, retries a failed
+  request once, and takes about four times as long per case (roughly 35 s for
+  36 tiles in place of 10 s). The model still misses about half the tumour
+  tiles, so none of this changes what the pre-read is for.
 - Known limits: an explanation left `Running` by a crash is not reclaimed (the
-  doctor writes their own); the no-advice list matches word fragments; the
+  doctor writes their own); the no-advice list matches word fragments (the pre-read words match whole words only); the
   language check is cheap; the alert framing check accepts a sentence that
   mentions the guidance, so the approver's review is the real gate.
 
