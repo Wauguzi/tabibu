@@ -1048,8 +1048,11 @@ void main() {
         },
       );
 
+      var calls = 0;
+      var concurrent = 0;
+      var maxConcurrent = 0;
       blocTest<AppointmentsBloc, AppointmentsState>(
-        'double tap transcribes once (droppable)',
+        'a second transcribe while one runs is answered after the first',
         setUp: () {
           when(
             () => cache.transcribeSymptoms(
@@ -1059,10 +1062,15 @@ void main() {
               contentType: any(named: 'contentType'),
             ),
           ).thenAnswer((_) async {
+            calls += 1;
+            final n = calls;
+            concurrent += 1;
+            if (concurrent > maxConcurrent) maxConcurrent = concurrent;
             await Future<void>.delayed(const Duration(milliseconds: 20));
-            return const TranscriptionResultModel(
-              transcriptionUid: 't1',
-              transcript: 'ok',
+            concurrent -= 1;
+            return TranscriptionResultModel(
+              transcriptionUid: 't$n',
+              transcript: 'Take $n',
               detectedLanguage: 'sw',
             );
           });
@@ -1074,6 +1082,7 @@ void main() {
           ).thenAnswer((_) async {});
         },
         build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
         act: (bloc) async {
           bloc
             ..add(
@@ -1091,7 +1100,31 @@ void main() {
               ),
             );
         },
-        wait: const Duration(milliseconds: 50),
+        wait: const Duration(milliseconds: 150),
+        expect: () => [
+          SymptomsTranscribeInProgress(
+            requestId: 'r1',
+            appointments: [_appt('a0')],
+          ),
+          SymptomsTranscribeSuccess(
+            requestId: 'r1',
+            transcript: 'Take 1',
+            transcriptionUid: 't1',
+            detectedLanguage: 'sw',
+            appointments: [_appt('a0')],
+          ),
+          SymptomsTranscribeInProgress(
+            requestId: 'r2',
+            appointments: [_appt('a0')],
+          ),
+          SymptomsTranscribeSuccess(
+            requestId: 'r2',
+            transcript: 'Take 2',
+            transcriptionUid: 't2',
+            detectedLanguage: 'sw',
+            appointments: [_appt('a0')],
+          ),
+        ],
         verify: (_) {
           verify(
             () => cache.transcribeSymptoms(
@@ -1100,7 +1133,8 @@ void main() {
               bytes: any(named: 'bytes'),
               contentType: any(named: 'contentType'),
             ),
-          ).called(1);
+          ).called(2);
+          expect(maxConcurrent, 1);
         },
       );
     });

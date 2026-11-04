@@ -310,8 +310,9 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
     final muted = textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant);
-    final transcribing =
-        context.watch<AppointmentsBloc>().state is SymptomsTranscribeInProgress;
+    // Busy is this form's own pending id only: a shared bloc state must
+    // not decide the buttons.
+    final busy = _requestId != null;
 
     if (_voiceUnavailable) {
       return Text(l10n.symptomVoiceUnavailable, style: muted);
@@ -379,11 +380,9 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
                 icon: _recording
                     ? Assets.icons.cancelIcon
                     : Assets.icons.microphoneIcon,
-                // Recording over a pending request would orphan it (the
-                // bloc drops the second transcribe), so the mic waits.
-                onTap: _requestId != null || transcribing
-                    ? null
-                    : _toggleRecord,
+                // Recording over a pending request would orphan it, so the
+                // mic waits for this form's own answer.
+                onTap: busy ? null : _toggleRecord,
                 semanticLabel: _recording
                     ? l10n.symptomVoiceStopLabel
                     : l10n.symptomVoiceRecordLabel,
@@ -411,13 +410,10 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
                       )
                     : TabibuButton.secondary(
                         label: l10n.symptomVoiceTranscribeLabel,
-                        onTap:
-                            _pending == null ||
-                                widget.offline ||
-                                _requestId != null
+                        onTap: _pending == null || widget.offline || busy
                             ? null
                             : _transcribe,
-                        isLoading: transcribing,
+                        isLoading: busy,
                       ),
               ),
             ],

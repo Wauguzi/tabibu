@@ -30,7 +30,10 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     // One booking at a time; a retry reuses the pending uid.
     on<AppointmentBookRequested>(_onBook, transformer: droppable());
     // Double tap on Transcribe must not fire twice.
-    on<SymptomsTranscribeRequested>(_onTranscribe, transformer: droppable());
+    // Sequential, not droppable: every request is answered with its own
+    // id, one model call at a time. A dropped request would leave its form
+    // waiting for an answer that never comes.
+    on<SymptomsTranscribeRequested>(_onTranscribe, transformer: sequential());
     // Writes must not race each other.
     on<AppointmentDecisionRequested>(_onDecision, transformer: sequential());
     on<AppointmentCompleteRequested>(_onComplete, transformer: sequential());

@@ -664,16 +664,13 @@ void main() {
     await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
     await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
     await tester.pump();
-    // And once rebuilt, the button itself is disabled.
+    // And once rebuilt, the button itself is disabled. By type: while
+    // loading, the spinner replaces the label text.
     expect(
-      tester
-          .widget<TabibuButton>(
-            find.widgetWithText(TabibuButton, l10n.symptomVoiceTranscribeLabel),
-          )
-          .onTap,
+      tester.widget<TabibuButton>(find.byType(TabibuButton)).onTap,
       isNull,
     );
-    await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
+    await tester.tap(find.byType(TabibuButton));
     await tester.pump();
     final captured = verify(() => appointments.add(captureAny())).captured;
     expect(captured, hasLength(1));
@@ -854,6 +851,190 @@ void main() {
     await tester.pump();
     expect(symptoms.text, isEmpty);
     expect(tester.takeException(), isNull);
+  });
+
+  testWidgets('two running forms are each answered with their own text', (
+    tester,
+  ) async {
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
+    whenListen(
+      appointments,
+      states.stream,
+      initialState: const AppointmentsInitial(),
+    );
+    final otherSymptoms = TextEditingController();
+    addTearDown(otherSymptoms.dispose);
+    Widget form(TextEditingController controller) => SymptomVoiceControls(
+      patientUid: 'p1',
+      symptoms: controller,
+      recorder: recorder,
+      analytics: analytics,
+      cues: cues,
+      voiceInputEnabled: () => true,
+      preferences: SharedPreferences.getInstance,
+      initialClip: fakeRecordedAudio(),
+      onTranscriptionUid: (_) {},
+      showAiNotice: (_) {},
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: Column(children: [form(symptoms), form(otherSymptoms)]),
+      ),
+    );
+    await tester.pump();
+
+    // Both forms send while the first call still runs.
+    await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel).first);
+    await tester.pump();
+    await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel).last);
+    await tester.pump();
+    final requests = verify(
+      () => appointments.add(captureAny()),
+    ).captured.cast<SymptomsTranscribeRequested>();
+    final first = requests[0];
+    final second = requests[1];
+
+    // Answers arrive in order; each fills only its own field.
+    states.add(
+      SymptomsTranscribeSuccess(
+        requestId: first.requestId,
+        transcript: 'Headache',
+        transcriptionUid: 't1',
+        detectedLanguage: 'en',
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text, 'Headache');
+    expect(otherSymptoms.text, isEmpty);
+    states.add(
+      SymptomsTranscribeSuccess(
+        requestId: second.requestId,
+        transcript: 'Dry cough',
+        transcriptionUid: 't2',
+        detectedLanguage: 'en',
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text, 'Headache');
+    expect(otherSymptoms.text, 'Dry cough');
+  });
+
+  testWidgets('a refresh mid-flight leaves the new form answerable', (
+    tester,
+  ) async {
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
+    whenListen(
+      appointments,
+      states.stream,
+      initialState: const AppointmentsInitial(),
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: SymptomVoiceControls(
+          patientUid: 'p1',
+          symptoms: symptoms,
+          recorder: recorder,
+          analytics: analytics,
+          cues: cues,
+          voiceInputEnabled: () => true,
+          preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
+          onTranscriptionUid: (_) {},
+          showAiNotice: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    // Another form's call is in flight, then a refresh replaces the
+    // in-progress state before this form transcribes.
+    states.add(const SymptomsTranscribeInProgress(requestId: 'someone-else'));
+    await tester.pump();
+    await tester.pump();
+    states.add(const AppointmentsLoadSuccess());
+    await tester.pump();
+    await tester.pump();
+    final requestId = await transcribeAndCaptureId(tester);
+    // The first call's answer is not this form's; its own answer lands
+    // and the buttons come back.
+    states.add(
+      const SymptomsTranscribeSuccess(
+        requestId: 'someone-else',
+        transcript: 'Foreign',
+        transcriptionUid: 'tx',
+        detectedLanguage: 'en',
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text, isEmpty);
+    states.add(
+      SymptomsTranscribeSuccess(
+        requestId: requestId,
+        transcript: 'Headache',
+        transcriptionUid: 't9',
+        detectedLanguage: 'en',
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text, 'Headache');
+    expect(
+      tester.widget<CircleIconButton>(find.byType(CircleIconButton)).onTap,
+      isNotNull,
+    );
+  });
+
+  testWidgets("voice buttons follow only the form's own pending id", (
+    tester,
+  ) async {
+    // By type: while loading, the spinner replaces the label text.
+    TabibuButton transcribeButton() =>
+        tester.widget<TabibuButton>(find.byType(TabibuButton));
+    CircleIconButton mic() =>
+        tester.widget<CircleIconButton>(find.byType(CircleIconButton));
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
+    whenListen(
+      appointments,
+      states.stream,
+      initialState: const AppointmentsInitial(),
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: SymptomVoiceControls(
+          patientUid: 'p1',
+          symptoms: symptoms,
+          recorder: recorder,
+          analytics: analytics,
+          cues: cues,
+          voiceInputEnabled: () => true,
+          preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
+          onTranscriptionUid: (_) {},
+          showAiNotice: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    // Another form's in-flight request touches neither button here.
+    states.add(const SymptomsTranscribeInProgress(requestId: 'someone-else'));
+    await tester.pump();
+    await tester.pump();
+    expect(mic().onTap, isNotNull);
+    expect(transcribeButton().onTap, isNotNull);
+    expect(transcribeButton().isLoading, isFalse);
+    // This form's own request disables the mic, the button, and spins it.
+    await transcribeAndCaptureId(tester);
+    expect(mic().onTap, isNull);
+    expect(transcribeButton().onTap, isNull);
+    expect(transcribeButton().isLoading, isTrue);
   });
 
   testWidgets('dispose during an unfinished start cancels the recorder', (
