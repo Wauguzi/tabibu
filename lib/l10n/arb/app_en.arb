@@ -8532,5 +8532,9 @@
     "symptomVoiceFailed": "We could not turn that recording into text. The field is unchanged — type your symptoms, or try again.",
     "@symptomVoiceFailed": {
         "description": "Booking: transcription failed or empty"
+    },
+    "symptomVoiceStartFailed": "We could not start recording. Type your symptoms, or try again.",
+    "@symptomVoiceStartFailed": {
+        "description": "Booking: mic start failed for a reason other than permission"
     }
 }

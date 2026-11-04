@@ -153,6 +153,111 @@ void main() {
     expect(notice, isTrue);
   });
 
+  testWidgets('typed text plus a transcription keeps the typed text', (
+    tester,
+  ) async {
+    symptoms.text = 'Fever for two days';
+    whenListen(
+      appointments,
+      Stream.fromIterable([
+        const SymptomsTranscribeSuccess(
+          transcript: 'Also a dry cough',
+          transcriptionUid: 't2',
+          detectedLanguage: 'en',
+        ),
+      ]),
+      initialState: const AppointmentsInitial(),
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: SymptomVoiceControls(
+          patientUid: 'p1',
+          symptoms: symptoms,
+          recorder: recorder,
+          preferences: SharedPreferences.getInstance,
+          onTranscriptionUid: (_) {},
+          showAiNotice: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text, contains('Fever for two days'));
+    expect(symptoms.text, contains('Also a dry cough'));
+  });
+
+  testWidgets('a 600-character transcript is cut at the field limit', (
+    tester,
+  ) async {
+    final long = 'a' * 600;
+    whenListen(
+      appointments,
+      Stream.fromIterable([
+        SymptomsTranscribeSuccess(
+          transcript: long,
+          transcriptionUid: 't3',
+          detectedLanguage: 'en',
+        ),
+      ]),
+      initialState: const AppointmentsInitial(),
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: SymptomVoiceControls(
+          patientUid: 'p1',
+          symptoms: symptoms,
+          recorder: recorder,
+          preferences: SharedPreferences.getInstance,
+          onTranscriptionUid: (_) {},
+          showAiNotice: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text.length, SymptomVoiceControls.symptomsMaxLength);
+    expect(
+      find.text(l10n.pasteCutAtLimit(SymptomVoiceControls.symptomsMaxLength)),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('tick and tap at the same second keep the clip', (tester) async {
+    recorder.stopDelay = const Duration(milliseconds: 100);
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(recorder.startCount, 1);
+    // First stop stays open; a second stop races it (cap timer or double tap).
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+    await tester.pump(const Duration(milliseconds: 150));
+    await tester.pump();
+    expect(find.text(l10n.symptomVoiceTranscribeLabel), findsOneWidget);
+    expect(find.text(l10n.symptomVoiceFailed), findsNothing);
+    await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
+    await tester.pump();
+    verify(
+      () => appointments.add(any(that: isA<SymptomsTranscribeRequested>())),
+    ).called(1);
+  });
+
+  testWidgets('a failed start is not reported as permission denied', (
+    tester,
+  ) async {
+    recorder.startError = StateError('device busy');
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text(l10n.symptomVoicePermissionDenied), findsNothing);
+    expect(find.text(l10n.symptomVoiceStartFailed), findsOneWidget);
+  });
+
   testWidgets('1.0x and 2.0x in en and sw without overflow', (tester) async {
     for (final locale in const [Locale('en'), Locale('sw')]) {
       for (final scale in [1.0, 2.0]) {

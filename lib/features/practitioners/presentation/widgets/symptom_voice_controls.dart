@@ -29,6 +29,7 @@ class SymptomVoiceControls extends StatefulWidget {
     this.preferences,
     this.offline = false,
     this.initialClip,
+    this.maxSeconds = defaultMaxSeconds,
     super.key,
   });
 
@@ -43,7 +44,11 @@ class SymptomVoiceControls extends StatefulWidget {
   /// Test hook: a finished clip ready to Transcribe without recording.
   final RecordedAudio? initialClip;
 
-  static const maxSeconds = 60;
+  /// Cap for a symptoms take; tests may lower it to fire the auto-stop.
+  final int maxSeconds;
+
+  static const defaultMaxSeconds = 60;
+  static const symptomsMaxLength = 500;
   static const consentKey = 'symptom_voice_consent_v1';
 
   @override
@@ -56,6 +61,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   Timer? _tick;
   RecordedAudio? _pending;
   var _recording = false;
+  var _stopping = false;
   var _seconds = 0;
   var _level = 0.0;
   var _status = '';
@@ -124,7 +130,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
       await _recorder.start();
     } on Object catch (_) {
       if (!mounted) return;
-      setState(() => _status = l10n.symptomVoicePermissionDenied);
+      setState(() => _status = l10n.symptomVoiceStartFailed);
       return;
     }
     if (!mounted) return;
@@ -142,19 +148,25 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     _tick = Timer.periodic(const Duration(seconds: 1), (_) async {
       if (!mounted) return;
       setState(() => _seconds += 1);
-      if (_seconds >= SymptomVoiceControls.maxSeconds) {
+      if (_seconds >= widget.maxSeconds) {
         await _stop();
       }
     });
   }
 
   Future<void> _stop() async {
+    if (_stopping) return;
+    _stopping = true;
     _tick?.cancel();
     _tick = null;
-    await _levelsSub?.cancel();
+    final levels = _levelsSub;
     _levelsSub = null;
+    unawaited(levels?.cancel());
     final clip = await _recorder.stop();
-    if (!mounted) return;
+    if (!mounted) {
+      _stopping = false;
+      return;
+    }
     setState(() {
       _recording = false;
       _level = 0;
@@ -163,6 +175,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
         _status = context.l10n.symptomVoiceFailed;
       }
     });
+    _stopping = false;
   }
 
   void _transcribe() {
@@ -203,12 +216,22 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
             :final transcript,
             :final transcriptionUid,
           ):
-            widget.symptoms.text = transcript;
+            final existing = widget.symptoms.text.trim();
+            final combined = existing.isEmpty
+                ? transcript
+                : '$existing\n$transcript';
+            const limit = SymptomVoiceControls.symptomsMaxLength;
+            final cut = combined.length > limit;
+            widget.symptoms.text = cut
+                ? combined.substring(0, limit)
+                : combined;
             widget.onTranscriptionUid(transcriptionUid);
             widget.showAiNotice(true);
             setState(() {
               _pending = null;
-              _status = l10n.symptomVoiceDeletedNotice;
+              _status = cut
+                  ? l10n.pasteCutAtLimit(limit)
+                  : l10n.symptomVoiceDeletedNotice;
             });
           case SymptomsTranscribeFailure(:final error):
             setState(() {

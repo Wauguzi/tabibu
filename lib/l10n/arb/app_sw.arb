@@ -1785,5 +1785,6 @@
     "symptomVoiceUnsupported": "Kusema dalili hakupatikani kwenye kivinjari hiki. Tafadhali ziandike.",
     "symptomVoicePermissionDenied": "Kibali cha maikrofoni kimezimwa. Unaweza kuandika dalili, au kuwasha maikrofoni katika Mipangilio.",
     "symptomVoiceOffline": "Hauna mtandao. Andika dalili zako, au jaribu tena utakaporudi mtandaoni.",
-    "symptomVoiceFailed": "Hatukuweza kugeuza rekodi hiyo kuwa maandishi. Sehemu haijabadilika — andika dalili, au jaribu tena."
+    "symptomVoiceFailed": "Hatukuweza kugeuza rekodi hiyo kuwa maandishi. Sehemu haijabadilika — andika dalili, au jaribu tena.",
+    "symptomVoiceStartFailed": "Hatukuweza kuanza kurekodi. Andika dalili zako, au jaribu tena."
 }

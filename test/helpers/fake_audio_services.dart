@@ -10,12 +10,20 @@ class FakeAudioRecorderService implements AudioRecorderService {
     this.permission = MicPermission.granted,
     this.recorded,
     this.levelValues = const [0.2, 0.5, 0.8],
+    this.startError,
+    this.stopDelay = Duration.zero,
   });
 
   bool supported;
   MicPermission permission;
   RecordedAudio? recorded;
   List<double> levelValues;
+
+  /// When set, [start] throws this instead of opening the mic.
+  Error? startError;
+
+  /// Holds [stop] open so a second stop can race the first.
+  Duration stopDelay;
 
   int startCount = 0;
   int stopCount = 0;
@@ -44,6 +52,8 @@ class FakeAudioRecorderService implements AudioRecorderService {
     if (_recording) {
       throw StateError('already recording');
     }
+    final error = startError;
+    if (error != null) throw error;
     startCount += 1;
     _recording = true;
     final levels = StreamController<double>.broadcast();
@@ -54,9 +64,15 @@ class FakeAudioRecorderService implements AudioRecorderService {
   @override
   Future<RecordedAudio?> stop() async {
     stopCount += 1;
+    if (stopDelay > Duration.zero) {
+      await Future<void>.delayed(stopDelay);
+    }
+    if (!_recording) {
+      _closeLevels();
+      return null;
+    }
     _recording = false;
-    await _levels?.close();
-    _levels = null;
+    _closeLevels();
     return recorded;
   }
 
@@ -64,8 +80,17 @@ class FakeAudioRecorderService implements AudioRecorderService {
   Future<void> cancel() async {
     cancelCount += 1;
     _recording = false;
-    await _levels?.close();
+    _closeLevels();
+  }
+
+  /// Drop the level stream without awaiting [StreamController.close], which
+  /// waits for listeners and deadlocks a caller that cancels after [stop].
+  void _closeLevels() {
+    final levels = _levels;
     _levels = null;
+    if (levels != null && !levels.isClosed) {
+      unawaited(levels.close());
+    }
   }
 
   @override
