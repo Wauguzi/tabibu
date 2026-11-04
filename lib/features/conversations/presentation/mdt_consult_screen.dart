@@ -1,11 +1,15 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
+import 'package:tabibu/core/services/audio_service_contract.dart';
+import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
@@ -14,9 +18,11 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_bloc.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_event.dart';
 import 'package:tabibu/features/conversations/blocs/mdt_bloc/mdt_state.dart';
+import 'package:tabibu/features/conversations/data/cache/conversation_cache_helper.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_member_model.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
+import 'package:tabibu/features/conversations/data/voice_pending_store.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_labels.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_routes.dart';
 import 'package:tabibu/features/conversations/presentation/widgets/mdt_composer.dart';
@@ -28,19 +34,27 @@ import 'package:tabibu/features/conversations/presentation/widgets/mdt_pinned_ca
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
-/// D-MDT and PA-MDT · A consult. A member reads the thread, sends text and
-/// sees the case pinned; a person who is only invited sees the invite and
-/// nothing else (rule 1). The pinned case never carries an unsigned draft
-/// (rule 2).
+/// D-MDT and PA-MDT · A consult. A member reads the thread, sends text or a
+/// voice note and sees the case pinned; a person who is only invited sees the
+/// invite and nothing else (rule 1). The pinned case never carries an unsigned
+/// draft (rule 2).
 class MdtConsultScreen extends StatefulWidget {
+  /// [recorder], [player] and [cues] are injected in tests so getIt need not
+  /// be configured for the composer.
   const MdtConsultScreen({
     required this.role,
     required this.conversationUid,
+    this.recorder,
+    this.player,
+    this.cues,
     super.key,
   });
 
   final Role role;
   final String conversationUid;
+  final AudioRecorderService? recorder;
+  final AudioPlayerService? player;
+  final RecordingCueService? cues;
 
   @override
   State<MdtConsultScreen> createState() => _MdtConsultScreenState();
@@ -48,6 +62,7 @@ class MdtConsultScreen extends StatefulWidget {
 
 class _MdtConsultScreenState extends State<MdtConsultScreen> {
   late final String _uid;
+  final _voiceStore = VoicePendingStore();
   var _leaving = false;
   var _accepting = false;
 
@@ -189,6 +204,33 @@ class _MdtConsultScreenState extends State<MdtConsultScreen> {
     );
   }
 
+  Future<bool> _sendVoice(RecordedAudio audio) async {
+    final bloc = context.read<MdtBloc>();
+    final path = await _voiceStore.write(audio.bytes);
+    if (!mounted) {
+      await _voiceStore.delete(path);
+      return false;
+    }
+    final event = MdtVoiceNoteSendRequested(
+      uid: _uid,
+      conversationUid: widget.conversationUid,
+      localPath: path,
+      durationMs: audio.durationMs,
+      voicePeaks: audio.peaks,
+      contentType: audio.contentType,
+    );
+    bloc.add(event);
+    final ok = await event.result.future.timeout(
+      const Duration(seconds: 60),
+      onTimeout: () => false,
+    );
+    if (!ok) await _voiceStore.delete(path);
+    return ok;
+  }
+
+  Future<Uint8List> _loadVoice(MessageModel message) =>
+      getIt<ConversationCacheHelper>().voiceNoteBytes(message);
+
   /// The case link, only for someone who is on the case: the server answers
   /// a colleague's request for it with a refusal, so it is not offered.
   ({String label, VoidCallback onTap})? _caseLink(
@@ -235,7 +277,9 @@ class _MdtConsultScreenState extends State<MdtConsultScreen> {
         : null;
     final shown = [
       for (final m in messages)
-        if (m.kindValue == .text && m.text.isNotEmpty) m,
+        if ((m.kindValue == .text && m.text.isNotEmpty) ||
+            m.kindValue == .voice)
+          m,
     ];
     // `messages` is newest first; build oldest first, the pill before the
     // first message sent after I joined.
@@ -253,6 +297,7 @@ class _MdtConsultScreenState extends State<MdtConsultScreen> {
           mine: m.senderUid == _uid,
           sender:
               consult.members[m.senderUid] ?? const ConversationMemberModel(),
+          loadVoiceBytes: _loadVoice,
         ),
       );
     }
@@ -464,6 +509,10 @@ class _MdtConsultScreenState extends State<MdtConsultScreen> {
             hint: l10n.mdtComposer,
             sendLabel: l10n.mdtComposer,
             onSend: _send,
+            onVoiceSend: _sendVoice,
+            recorder: widget.recorder,
+            player: widget.player,
+            cues: widget.cues,
           ),
       ],
     );

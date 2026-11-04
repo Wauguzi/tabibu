@@ -131,6 +131,21 @@ class AnalyticsService {
   Future<void> logChatMessageSent() =>
       _guard(() => _analytics.logEvent(name: 'chat_message_sent'));
 
+  /// Voice note sent: duration bucket only — never audio, path or ids.
+  Future<void> logChatVoiceNoteSent({required String durationBucket}) => _guard(
+    () => _analytics.logEvent(
+      name: 'chat_voice_note_sent',
+      parameters: {'duration_bucket': durationBucket},
+    ),
+  );
+
+  Future<void> logMdtVoiceNoteSent({required String durationBucket}) => _guard(
+    () => _analytics.logEvent(
+      name: 'mdt_voice_note_sent',
+      parameters: {'duration_bucket': durationBucket},
+    ),
+  );
+
   Future<void> logChatClosed() =>
       _guard(() => _analytics.logEvent(name: 'chat_closed'));
 

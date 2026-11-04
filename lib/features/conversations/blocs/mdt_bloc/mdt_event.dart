@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:tabibu/core/constants/enums.dart';
 
@@ -140,6 +142,40 @@ final class MdtMessageSendRequested extends MdtEvent {
 
   @override
   List<Object?> get props => [uid, conversationUid, text];
+}
+
+/// Send a voice note from a local AAC file.
+/// Droppable so a double tap sends once.
+final class MdtVoiceNoteSendRequested extends MdtEvent {
+  MdtVoiceNoteSendRequested({
+    required this.uid,
+    required this.conversationUid,
+    required this.localPath,
+    required this.durationMs,
+    required this.voicePeaks,
+    this.contentType = 'audio/mp4',
+    Completer<bool>? result,
+  }) : result = result ?? Completer<bool>();
+
+  final String uid;
+  final String conversationUid;
+  final String localPath;
+  final int durationMs;
+  final List<int> voicePeaks;
+  final String contentType;
+
+  /// Completed by the bloc so a concurrent text write cannot clear the preview.
+  final Completer<bool> result;
+
+  @override
+  List<Object?> get props => [
+    uid,
+    conversationUid,
+    localPath,
+    durationMs,
+    voicePeaks,
+    contentType,
+  ];
 }
 
 final class MdtReset extends MdtEvent {

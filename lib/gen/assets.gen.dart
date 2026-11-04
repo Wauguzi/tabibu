@@ -103,6 +103,9 @@ class $AssetsIconsGen {
   SvgGenImage get attachmentIcon =>
       const SvgGenImage('assets/icons/attachment_icon.svg');
 
+  /// File path: assets/icons/audio_wave.svg
+  SvgGenImage get audioWave => const SvgGenImage('assets/icons/audio_wave.svg');
+
   /// File path: assets/icons/back_icon.svg
   SvgGenImage get backIcon => const SvgGenImage('assets/icons/back_icon.svg');
 
@@ -346,6 +349,7 @@ class $AssetsIconsGen {
     appointmentsIcon,
     arrowUpRightIcon,
     attachmentIcon,
+    audioWave,
     backIcon,
     calendarIcon,
     cancelCircleIcon,
@@ -420,6 +424,19 @@ class $AssetsImagesGen {
   $AssetsImagesPortraitsGen get portraits => const $AssetsImagesPortraitsGen();
 }
 
+class $AssetsSoundsGen {
+  const $AssetsSoundsGen();
+
+  /// File path: assets/sounds/record_start.wav
+  String get recordStart => 'assets/sounds/record_start.wav';
+
+  /// File path: assets/sounds/record_stop.wav
+  String get recordStop => 'assets/sounds/record_stop.wav';
+
+  /// List of all assets
+  List<String> get values => [recordStart, recordStop];
+}
+
 class $AssetsImagesPortraitsGen {
   const $AssetsImagesPortraitsGen();
 
@@ -467,6 +484,7 @@ abstract final class Assets {
   static const $AssetsDataGen data = $AssetsDataGen();
   static const $AssetsIconsGen icons = $AssetsIconsGen();
   static const $AssetsImagesGen images = $AssetsImagesGen();
+  static const $AssetsSoundsGen sounds = $AssetsSoundsGen();
   static const $FontsGen fonts = $FontsGen();
 }
 

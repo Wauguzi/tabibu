@@ -576,7 +576,9 @@ void main() {
       );
 
       expect(sent.synced, isTrue);
-      expect(sent.localAttachmentPath, file.path);
+      // Upload landed: pending path cleared and the local file deleted.
+      expect(sent.localAttachmentPath, isEmpty);
+      expect(file.existsSync(), isFalse);
       final captured =
           verify(
                 () => remote.createVoiceMessage(

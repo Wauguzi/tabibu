@@ -64,6 +64,17 @@ void main() {
     synced: false,
   );
 
+  const voiceQueued = MessageModel(
+    uid: 'v1',
+    conversationUid: 'appt_a1',
+    senderUid: 'me',
+    kind: 'Voice',
+    voiceDurationMs: 2500,
+    voicePeaks: [10, 40, 70],
+    status: 'Pending',
+    synced: false,
+  );
+
   const open = ChatOpened(uid: 'me', role: .patient, appointmentUid: 'a1');
 
   setUpAll(() {
@@ -76,6 +87,11 @@ void main() {
     internet = _MockInternet();
     analytics = _MockAnalytics();
     when(() => analytics.logChatMessageSent()).thenAnswer((_) async {});
+    when(
+      () => analytics.logChatVoiceNoteSent(
+        durationBucket: any(named: 'durationBucket'),
+      ),
+    ).thenAnswer((_) async {});
     when(() => analytics.logChatClosed()).thenAnswer((_) async {});
     when(() => internet.check()).thenAnswer((_) async => true);
     when(
@@ -109,6 +125,16 @@ void main() {
         text: any(named: 'text'),
       ),
     ).thenAnswer((_) async => queued);
+    when(
+      () => cache.queueVoiceMessage(
+        conversationUid: any(named: 'conversationUid'),
+        senderUid: any(named: 'senderUid'),
+        localPath: any(named: 'localPath'),
+        durationMs: any(named: 'durationMs'),
+        voicePeaks: any(named: 'voicePeaks'),
+        contentType: any(named: 'contentType'),
+      ),
+    ).thenAnswer((_) async => voiceQueued);
   });
 
   group('ChatBloc', () {
@@ -509,6 +535,137 @@ void main() {
             ),
           );
         },
+      );
+
+      blocTest<ChatBloc, ChatState>(
+        'voice note queues once with a duration bucket only',
+        build: build,
+        seed: () =>
+            ChatLoadSuccess(conversation: thread(), messages: const [history]),
+        act: (bloc) => bloc.add(
+          ChatVoiceNoteSendRequested(
+            uid: 'me',
+            conversationUid: 'appt_a1',
+            localPath: '/tmp/v.m4a',
+            durationMs: 2500,
+            voicePeaks: const [10, 40, 70],
+          ),
+        ),
+        expect: () => [
+          ChatWriteSuccess(
+            conversation: thread(),
+            messages: const [voiceQueued, history],
+          ),
+        ],
+        verify: (_) {
+          verify(
+            () => cache.queueVoiceMessage(
+              conversationUid: 'appt_a1',
+              senderUid: 'me',
+              localPath: '/tmp/v.m4a',
+              durationMs: 2500,
+              voicePeaks: const [10, 40, 70],
+            ),
+          ).called(1);
+          verify(
+            () => analytics.logChatVoiceNoteSent(durationBucket: '0_15'),
+          ).called(1);
+        },
+      );
+
+      blocTest<ChatBloc, ChatState>(
+        'voice send completes its own result, not any WriteSuccess',
+        build: build,
+        seed: () =>
+            ChatLoadSuccess(conversation: thread(), messages: const [history]),
+        act: (bloc) async {
+          final event = ChatVoiceNoteSendRequested(
+            uid: 'me',
+            conversationUid: 'appt_a1',
+            localPath: '/tmp/v.m4a',
+            durationMs: 2500,
+            voicePeaks: const [10, 40, 70],
+          );
+          bloc.add(event);
+          await expectLater(event.result.future, completion(isTrue));
+        },
+      );
+
+      blocTest<ChatBloc, ChatState>(
+        'a double voice send is droppable',
+        build: build,
+        seed: () =>
+            ChatLoadSuccess(conversation: thread(), messages: const [history]),
+        act: (bloc) async {
+          bloc
+            ..add(
+              ChatVoiceNoteSendRequested(
+                uid: 'me',
+                conversationUid: 'appt_a1',
+                localPath: '/tmp/v.m4a',
+                durationMs: 2500,
+                voicePeaks: const [10, 40, 70],
+              ),
+            )
+            ..add(
+              ChatVoiceNoteSendRequested(
+                uid: 'me',
+                conversationUid: 'appt_a1',
+                localPath: '/tmp/v2.m4a',
+                durationMs: 2500,
+                voicePeaks: const [10, 40, 70],
+              ),
+            );
+        },
+        verify: (_) {
+          verify(
+            () => cache.queueVoiceMessage(
+              conversationUid: any(named: 'conversationUid'),
+              senderUid: any(named: 'senderUid'),
+              localPath: any(named: 'localPath'),
+              durationMs: any(named: 'durationMs'),
+              voicePeaks: any(named: 'voicePeaks'),
+              contentType: any(named: 'contentType'),
+            ),
+          ).called(1);
+        },
+      );
+
+      blocTest<ChatBloc, ChatState>(
+        'a failed voice send leaves the thread unchanged',
+        build: build,
+        seed: () =>
+            ChatLoadSuccess(conversation: thread(), messages: const [history]),
+        setUp: () {
+          when(
+            () => cache.queueVoiceMessage(
+              conversationUid: any(named: 'conversationUid'),
+              senderUid: any(named: 'senderUid'),
+              localPath: any(named: 'localPath'),
+              durationMs: any(named: 'durationMs'),
+              voicePeaks: any(named: 'voicePeaks'),
+              contentType: any(named: 'contentType'),
+            ),
+          ).thenThrow(AppError.noInternet);
+        },
+        act: (bloc) async {
+          final event = ChatVoiceNoteSendRequested(
+            uid: 'me',
+            conversationUid: 'appt_a1',
+            localPath: '/tmp/v.m4a',
+            durationMs: 2500,
+            voicePeaks: const [10, 40, 70],
+          );
+          bloc.add(event);
+          await expectLater(event.result.future, completion(isFalse));
+        },
+        expect: () => [
+          ChatWriteFailure(
+            error: .noInternet,
+            conversation: thread(),
+            messages: const [history],
+          ),
+        ],
       );
     });
 

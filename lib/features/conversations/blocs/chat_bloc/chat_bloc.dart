@@ -34,6 +34,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatOpened>(_onOpened, transformer: sequential());
     on<ChatRefreshed>(_onRefreshed, transformer: droppable());
     on<ChatMessageSendRequested>(_onSend, transformer: sequential());
+    on<ChatVoiceNoteSendRequested>(_onVoiceSend, transformer: droppable());
     on<ChatCloseRequested>(_onClose, transformer: sequential());
     on<ChatReset>(_onReset);
   }
@@ -208,6 +209,65 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         ),
       );
     }
+  }
+
+  Future<void> _onVoiceSend(
+    ChatVoiceNoteSendRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    try {
+      final conversation = await _cache.getConversation(
+        event.uid,
+        event.conversationUid,
+      );
+      if (conversation.uid.isEmpty) throw AppError.dataNotFound;
+      final heldClosed =
+          state.conversation.uid == event.conversationUid && state.readOnly;
+      if (heldClosed || conversation.statusValue == ConversationStatus.closed) {
+        throw AppError.permissionDenied;
+      }
+      final sent = await _cache.queueVoiceMessage(
+        conversationUid: event.conversationUid,
+        senderUid: event.uid,
+        localPath: event.localPath,
+        durationMs: event.durationMs,
+        voicePeaks: event.voicePeaks,
+        contentType: event.contentType,
+      );
+      unawaited(
+        _analytics.logChatVoiceNoteSent(
+          durationBucket: _durationBucket(event.durationMs),
+        ),
+      );
+      emit(
+        ChatWriteSuccess(
+          conversation: state.conversation,
+          messages: state.conversation.uid == event.conversationUid
+              ? [sent, ...state.messages]
+              : state.messages,
+          offline: state.offline,
+        ),
+      );
+      if (!event.result.isCompleted) event.result.complete(true);
+    } on Object catch (e) {
+      emit(
+        ChatWriteFailure(
+          error: _toAppError(e),
+          conversation: state.conversation,
+          messages: state.messages,
+          offline: state.offline,
+        ),
+      );
+      if (!event.result.isCompleted) event.result.complete(false);
+    }
+  }
+
+  /// Coarse buckets only — never the raw duration.
+  String _durationBucket(int durationMs) {
+    if (durationMs < 15000) return '0_15';
+    if (durationMs < 30000) return '15_30';
+    if (durationMs < 60000) return '30_60';
+    return '60_plus';
   }
 
   Future<void> _onClose(

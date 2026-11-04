@@ -1,27 +1,36 @@
+import 'dart:typed_data';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_colors.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
+import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_member_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_labels.dart';
 import 'package:tabibu/features/conversations/presentation/widgets/mdt_avatar_stack.dart';
+import 'package:tabibu/features/conversations/presentation/widgets/voice_note_player.dart';
 
-/// One text message: mine on ink to the right, a colleague's on white to the
-/// left with their photo.
+/// One text or voice message: mine on ink to the right, a colleague's on white
+/// to the left with their photo.
 class MdtMessageBubble extends StatelessWidget {
   const MdtMessageBubble({
     required this.message,
     required this.mine,
     required this.sender,
+    this.loadVoiceBytes,
+    this.player,
     super.key,
   });
 
   final MessageModel message;
   final bool mine;
   final ConversationMemberModel sender;
+  final Future<Uint8List> Function(MessageModel message)? loadVoiceBytes;
+  final AudioPlayerService? player;
 
   @override
   Widget build(BuildContext context) {
@@ -38,6 +47,7 @@ class MdtMessageBubble extends StatelessWidget {
     final foreground = mine
         ? (isDark ? AppColors.inkLight : AppColors.white)
         : scheme.onSurface;
+    final isVoice = message.kindValue == MessageKind.voice;
     final bubble = Container(
       constraints: BoxConstraints(
         maxWidth: MediaQuery.sizeOf(context).width * 0.72,
@@ -50,10 +60,25 @@ class MdtMessageBubble extends StatelessWidget {
       child: Column(
         crossAxisAlignment: .stretch,
         children: [
-          Text(
-            message.text,
-            style: textTheme.bodyLarge?.copyWith(color: foreground),
-          ),
+          if (isVoice && loadVoiceBytes != null)
+            VoiceNotePlayer(
+              message: message,
+              foreground: foreground,
+              loadBytes: loadVoiceBytes!,
+              player: player,
+            )
+          else if (isVoice)
+            Text(
+              message.voiceDurationMs > 0
+                  ? '${(message.voiceDurationMs / 1000).ceil()}s'
+                  : '',
+              style: textTheme.bodyLarge?.copyWith(color: foreground),
+            )
+          else
+            Text(
+              message.text,
+              style: textTheme.bodyLarge?.copyWith(color: foreground),
+            ),
           const SizedBox(height: AppSpacing.xxs),
           Text(
             mdtClockLabel(message.sentAt, language),

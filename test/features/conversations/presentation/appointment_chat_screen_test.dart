@@ -79,6 +79,9 @@ AppointmentModel _appointment() => AppointmentModel(
 void main() {
   late FeatureBlocs blocs;
   late MockAuthBloc authBloc;
+  late FakeAudioRecorderService recorder;
+  late FakeAudioPlayerService player;
+  late FakeRecordingCueService cues;
   final l10n = lookupAppLocalizations(const Locale('en'));
 
   setUpAll(() {
@@ -88,12 +91,19 @@ void main() {
   setUp(() {
     blocs = FeatureBlocs();
     authBloc = MockAuthBloc();
+    recorder = FakeAudioRecorderService(supported: false);
+    player = FakeAudioPlayerService();
+    cues = FakeRecordingCueService();
     when(
       () => authBloc.state,
     ).thenReturn(SignInSuccess(session: _patientSession()));
     when(
       () => blocs.appointments.state,
     ).thenReturn(AppointmentsLoadSuccess(appointments: [_appointment()]));
+  });
+
+  tearDown(() async {
+    await player.dispose();
   });
 
   Future<void> pumpChat(
@@ -130,7 +140,13 @@ void main() {
             BlocProvider<AppointmentsBloc>.value(value: blocs.appointments),
             ...blocs.providers,
           ],
-          child: AppointmentChatScreen(role: role, appointmentUid: 'a1'),
+          child: AppointmentChatScreen(
+            role: role,
+            appointmentUid: 'a1',
+            recorder: recorder,
+            player: player,
+            cues: cues,
+          ),
         ),
       ),
       themeMode: themeMode,

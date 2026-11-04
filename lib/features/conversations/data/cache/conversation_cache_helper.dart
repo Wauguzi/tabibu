@@ -658,6 +658,9 @@ class ConversationCacheHelper {
             voicePeaks: row.voicePeaks,
             sentAt: row.sentAt,
           );
+          // Upload landed: drop the pending file so patient audio does not
+          // linger on the device after it left.
+          await _deleteLocalVoice(row.localAttachmentPath);
         case MessageKind.image:
           // No image send exists server-side yet; fail visibly, keep the row.
           await _markFailed(row.uid, 'no image send');
@@ -671,6 +674,16 @@ class ConversationCacheHelper {
     await _cacheSentEcho(row);
   }
 
+  Future<void> _deleteLocalVoice(String path) async {
+    if (path.isEmpty) return;
+    try {
+      final file = File(path);
+      if (file.existsSync()) file.deleteSync();
+    } on Exception catch (_) {
+      // Best-effort; a later replay will fail loudly if the file is gone.
+    }
+  }
+
   /// The queued recording, or a terminal `Failed` when it is gone.
   Future<Uint8List> _voiceBytes(MessageModel row) async {
     try {
@@ -680,6 +693,22 @@ class ConversationCacheHelper {
       await _markFailed(row.uid, 'recording missing');
       throw AppError.dataNotFound;
     }
+  }
+
+  /// Bytes for playback: local file when present, else Storage through the SDK
+  /// (never a download URL).
+  Future<Uint8List> voiceNoteBytes(MessageModel message) async {
+    if (message.localAttachmentPath.isNotEmpty) {
+      try {
+        return await File(message.localAttachmentPath).readAsBytes();
+      } on Exception catch (_) {
+        // Fall through to Storage.
+      }
+    }
+    return await _remote.fetchVoiceNoteBytes(
+      conversationUid: message.conversationUid,
+      messageUid: message.uid,
+    );
   }
 
   /// The create landed: prefer the server echo, else mark our row sent. A
@@ -696,18 +725,16 @@ class ConversationCacheHelper {
     }
     final found = echo;
     return await _guardLazy('cacheSentEcho', (box) async {
+      // Voice bytes are on Storage now; clear the pending path (file deleted
+      // in _send) so playback uses the SDK fetch.
+      final keepLocal = row.kindValue == MessageKind.voice
+          ? ''
+          : (await box.get(row.uid))?.localAttachmentPath ?? '';
       if (found != null) {
-        // Direct: the merge guard would keep the queued row this replaces.
-        // The echo carries no local path; keep ours so a recording still
-        // plays offline.
-        final kept = await box.get(row.uid);
         await box.put(
           row.uid,
           MessageHive.fromModel(
-            found.copyWith(
-              localAttachmentPath: kept?.localAttachmentPath ?? '',
-              synced: true,
-            ),
+            found.copyWith(localAttachmentPath: keepLocal, synced: true),
           ),
         );
         return;
@@ -719,6 +746,7 @@ class ConversationCacheHelper {
         MessageHive.fromModel(
           cached.toModel().copyWith(
             status: MessageStatus.sent.value,
+            localAttachmentPath: keepLocal,
             lastUpdatedAt: syncTimestamp(),
             synced: true,
           ),
@@ -771,11 +799,14 @@ class ConversationCacheHelper {
     return await _guardLazy('markMessageFailed', (box) async {
       final cached = await box.get(messageUid);
       if (cached == null) return;
+      final model = cached.toModel();
+      await _deleteLocalVoice(model.localAttachmentPath);
       await box.put(
         messageUid,
         MessageHive.fromModel(
-          cached.toModel().copyWith(
+          model.copyWith(
             status: MessageStatus.failed.value,
+            localAttachmentPath: '',
             lastUpdatedAt: syncTimestamp(),
             synced: true,
           ),

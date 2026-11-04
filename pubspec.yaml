@@ -133,6 +133,7 @@ flutter:
     - assets/images/
     - assets/images/portraits/
     - assets/icons/
+    - assets/sounds/
     - fonts/NotoNaskhArabic-Regular.ttf
     - fonts/NotoNaskhArabic-Medium.ttf
     - fonts/NotoNaskhArabic-SemiBold.ttf
