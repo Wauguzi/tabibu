@@ -6,10 +6,10 @@
 | Title | The patient, doctor and pathologist screens: every designed screen whose backend exists |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-11-02 |
-| Date implemented | Pending — completed on `main` after the merge (CRQ-0038) |
+| Date implemented | Pending — completed on `main` after the merge (CRQ-0038). Counts below taken at `32260a5` on `feat/ui` |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/ui`: 625bc08 to a16f7a1 so far (the contracts, the widgets, the blocs, the screens); hashes for the rest and the PR link are added after the merge |
+| Commit(s) / PR | `feat/ui`: 625bc08 through `32260a5` (screens, live AI, demo seed and the post-implementation departures in §9); the PR link is added after the merge |
 
 ## 1. Description of change
 
@@ -19,11 +19,15 @@ changes; the app now calls what was built. The scope started as the demo
 spine (S-1) and was widened by S-3.
 
 1. **Contracts first** (625bc08, 89e9c12). Every bloc's events and states
-   and an empty bloc in `BlocsHelper`, reset on sign-out; typed routes (26 at the start)
-   carrying ids only (F-2); the shared widgets (headline, bars, carousel,
-   tiles, rows, cards, empty and loading states, options sheet and menu,
-   `AiDraftFrame`, `CheckRow`, `SignaturePad`, charts); the designer's icons
-   (b9af655).
+   and an empty bloc in `BlocsHelper`, reset on sign-out; typed routes
+   carrying ids only (F-2) — 26 at the start (89e9c12), **91**
+   `@TypedGoRoute` annotations in `lib/core/routing/app_routes.dart` at
+   `32260a5` (`grep -c '^@TypedGoRoute' lib/core/routing/app_routes.dart`);
+   **82** feature screens
+   (`rg -l 'class \w+Screen extends ' lib/features --glob '*.dart' | wc -l`);
+   the shared widgets (headline, bars, carousel, tiles, rows, cards, empty
+   and loading states, options sheet and menu, `AiDraftFrame`, `CheckRow`,
+   `SignaturePad`, charts); the designer's icons (b9af655).
 2. **Patient.** Home; find a doctor; the doctor's profile and booking
    against the server's slot rules (N-18); booked; appointments and one
    appointment; results, waiting, the shared result, and the explained
@@ -49,21 +53,30 @@ spine (S-1) and was widened by S-3.
    their own screen through one mapping (F-7); the profile tab, with rows
    that lead nowhere hidden and the Accept-cases and Health-notices
    switches written through `AuthBloc` (bundle 45).
-6. **S-3 additions** (rounds 5 and 6):
+6. **S-3 additions** (rounds 5 and 6, then the live-test fixes):
    - **Landed:** the profile switches (718f038); sharing a report, who can
      see it, shared reports and a doctor entering a code, with the share
-     error texts (f4445e0, 4cac1b5, c8f3c26); 402 strings for the rest of
-     the round (ef62efc, de3de32).
-   - **Landing:** slide upload for the order flow (bundles 54 and 55: a
-     bloc, a storage datasource and a Slides card on the last order step);
-     the calendar, cancel and reschedule.
-   - **Queued:** the consult team, appointment chat, profile details and
-     settings, privacy and help pages, case history, the app lock. Each is
-     added to §9 as it merges.
-7. **Demo data.** `make seed-cases` seeds ten backdated cases for the three
-   demo accounts through the real handlers (CRQ pending the seed's review):
-   slides from public data sets, and pre-reads stored as examples, never
-   live model output.
+     error texts (f4445e0, 4cac1b5, c8f3c26); calendar, cancel and
+     reschedule (f4ef46d); the consult team (b179160); appointment chat
+     (b3bffe6); profile details and settings (ea773f9, a6446f9); privacy,
+     help and case history (37bb67c); the app lock (1c06128); slide upload
+     on the order (891d1a6, 21252f9) and slides cards on the case and
+     workspace (ff3b89c); accept, decline, lapse and record-the-sample
+     (8f75032, 6f9f8ca, e1ea7d1); the template's own questions (8ee2c63);
+     the access-code chip on the inbox row (66b179f); high-priority
+     notifications (d65d76b); amend and addendum (bca2075); the judges'
+     web demo lines (04eb23e). Strings: **1,655** keys in each of
+     `app_en.arb` and `app_sw.arb` at `32260a5`
+     (`grep -c '^    "[a-z]' lib/l10n/arb/app_en.arb` and the same on
+     `app_sw.arb`).
+   - **Queued:** ordering a test for any patient the doctor has seen (a
+     Patient step on the home "+") has not landed when I wrote this; each
+     later screen is added to §9 as it merges.
+7. **Demo data.** `make seed-cases` seeds **fourteen** backdated cases for
+   the three demo accounts through the real handlers
+   (`rg -c "key: '" functions/src/seed-cases.ts` → 14 at `32260a5`; README
+   demo table): slides from public data sets, and pre-reads stored as
+   examples, never live model output.
 8. **Support.** Shared helpers every search screen uses (`closestMatch`,
    `isOrderNumber`); a demo directory of 22 doctors and pathologists and
    `make seed-directory`; `make verify-practitioner`, the stand-in for an
@@ -106,7 +119,7 @@ for its backend, is the only exclusion, and each group-D control is hidden
 | Security (rules, App Check, RASP, secrets) | None | A raw share code is held in memory once, never logged, cached or routed (bundle 47 rule 1). The signature is never stored on the phone (H-17). No credential added |
 | Data protection (PHI, de-identification, model endpoints) | None | No new field leaves a case. The PDF is shared from a temporary file |
 | Design system / UI consistency | Existing pattern reused | One `AiDraftFrame` for every unsigned AI output (H-1) and `SignedReportView` for signed text; status tones fixed (N-3) |
-| Localisation (en, sw) | Affected | Every string in both ARB files. Kiswahili is ours and is labelled so |
+| Localisation (en, sw) | Affected | Every string in both ARB files — **1,655** keys each at `32260a5` (`grep -c '^    "[a-z]' lib/l10n/arb/app_en.arb` and the same on `app_sw.arb`). Kiswahili is ours and is labelled so |
 | Existing data | None | — |
 
 **Clinical safety.** No AI output reaches a person without an approval,
@@ -137,9 +150,9 @@ except to the readers S-8 names, each labelled. How each path is held:
 
 **Risk level:** High. These are the screens where an unsigned AI output
 could be shown as signed, or a result shown early. The rules in
-`decisions.md` H-1 to H-21 are mapped to tests in each high-risk bundle's
-report, and I read each against the code line by line before it was
-committed.
+The H-1 to H-21 safety rules are mapped to tests in each high-risk
+bundle's report, and I read each against the code line by line before it
+was committed.
 
 **Rollback plan:** revert the merge commit; the app returns to the
 placeholder screens and every server-side gate is unchanged. A single
@@ -155,8 +168,8 @@ so there is no rules, functions or Remote Config step.
    screens, Cursor owns data, blocs and feature widgets. Neither commits.
 4. Each bundle reviewed by me, high-risk bundles against their numbered
    rules in the code, gated on its own files, and committed on its own.
-5. The decisions that depart from the designs recorded in `decisions.md`
-   and summarised in §9.
+5. The decisions that depart from the designs recorded on this branch and
+   summarised in §9.
 6. The device pass per role, then the pre-review, then the pull request.
 
 ## 7. Testing & verification evidence
@@ -164,7 +177,7 @@ so there is no rules, functions or Remote Config step.
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass at the last full gates (round 5); each later bundle gated on its own files. Full run with the pull request |
-| `make test` | Pass — 2,630 tests at the last full run, before bundles 42 to 44; later bundles gated on their own directories. Final count with the pull request |
+| `make test` / `flutter test` | Pass — **3,214** tests at `32260a5` (`flutter test` summary: `+3214: All tests passed!`). Earlier full run was 2,630 before bundles 42 to 44; later bundles gated on their own directories until this recount |
 | `make spell` | Full run with the pull request; every edited file checked as it was committed |
 | Rules tests | N/A — no rules change |
 | Model evaluation | N/A — no model, prompt or threshold change |
@@ -184,8 +197,8 @@ so there is no rules, functions or Remote Config step.
 
 ## 9. Post-implementation review
 
-Decisions that depart from the designs (the full text is in
-`.briefs/07/decisions.md`):
+Decisions that depart from the designs (S-1 to S-3, N-*, F-*, H-* as
+recorded on this branch and cited by commit below):
 
 - **S-1, S-2, S-3.** The scope began as the demo spine and was widened to
   every designed screen with a backend. The alert approver is a doctor
@@ -222,12 +235,56 @@ Decisions that depart from the designs (the full text is in
   notification route carries the share id only. The share button says
   "Share", not "Share with Face ID", until the app lock lands, because no
   Face ID check runs before then.
-- **Slides.** Slides are uploaded to Storage and never linked: the server
-  fetches no external URL. The doctor uploads between creating the order and
-  the pathologist's acceptance, the pathologist after; each slide needs a
-  pixel size the uploader supplies, with no default, because it sets the
-  physical size in every measurement. Order attachments (files and links)
-  stay out: `createOrder` has no field for them.
+- **Access code in the inbox row** (66b179f). The designs left the
+  four-digit code only inside the notification body. The server still puts
+  it on the recipient's own notification (T-18) and never returns a plain
+  code to the sender. I show that code as a chip on the inbox row so the
+  person can open a signed or shared report without digging through the
+  push text.
+- **Accept, Decline and the lapse** (8f75032, e1ea7d1 and the commits on
+  `lib/features/reports` before them). The designs assumed the pathologist
+  was already on the case. The server asks first (`PathologistRequested`),
+  takes a decline reason of 1 to 500 characters, and expires the request
+  after 24 hours. I built Accept and Decline with that reason, and a lapsed
+  request says so while Accept still sends.
+- **Record the sample** (8f75032, 6f9f8ca). The designs open the report as
+  soon as the case is taken. The server refuses `startReport` without a lab
+  accession number. I ask for it before the report starts, and prefill a
+  made-up accession shaped like the order number so the pathologist can
+  replace it when the lab gave another.
+- **The template's own questions** (8ee2c63). The designs showed free text
+  for diagnosis and comments. A cancer template also requires its own
+  questions (specimen description, microscopic description). The server
+  refuses to sign with `incomplete` when those are empty. I put each
+  question on the workspace as a field and keep Sign closed until the
+  starred ones are typed.
+- **Slides cards** (ff3b89c; upload 891d1a6, 21252f9). The rules already let the doctor and the
+  pathologist read the attached images. I show a thumbnail per slide and
+  plain pan-and-zoom on the doctor's case screen and the pathologist's
+  workspace, with no AI overlay.
+- **Slides (upload).** Slides are uploaded to Storage and never linked: the
+  server fetches no external URL. The doctor uploads between creating the
+  order and the pathologist's acceptance, the pathologist after; each slide
+  needs a pixel size the uploader supplies, with no default, because it sets
+  the physical size in every measurement. Order attachments (files and
+  links) stay out: `createOrder` has no field for them.
+- **High-priority notifications** (d65d76b). Every cloud notification is now delivered at high priority
+  with its title and text, and the notification service shows it where no
+  push can reach; Android channels are all `Importance.high`.
+- **After a decline or a lapse the doctor attaches another pathologist**
+  (e1ea7d1). The live test found `PathologistRejected` had no way forward
+  in the app. The server keeps declined pathologist uids so they are never
+  offered again. I let the doctor attach another pathologist from the case
+  after a decline or a lapse.
+- **Amend and add an addendum** (bca2075). The designs treated a signed
+  report as editable. The server never overwrites a signed version: an
+  Amendment needs a reason and signs a new version; an Addendum carries the
+  signed diagnosis and adds text. The patient keeps the last released
+  version until the doctor releases the new one. I built both sheets and
+  the workspace path with no AI on those kinds.
+- **The judges' web demo** (04eb23e). The designs assumed a phone. Where the
+  browser cannot push, unlock with biometrics or download a report, I show
+  a plain en/sw line instead of a dead control.
 - **Contact details.** The help and privacy pages carry one confirmed
   number; invented addresses, a short code and SMS and WhatsApp rows were
   removed (de3de32), and the copy no longer claims an SMS the server does
@@ -243,8 +300,9 @@ Follow-ups:
 
 - `notification_cache_helper_test` "watchInbox a failing merge is skipped"
   is flaky under parallel load; it passes alone.
-- Rounds 5 and 6 (bundles 45 to 53) are recorded here as they merge.
-- Greptile's rounds and the final test count, after the merge.
+- Ordering for any patient (home "+") is still queued; add it to this
+  section when it lands.
+- Greptile's rounds after the merge.
 
 ## 10. Related records
 
