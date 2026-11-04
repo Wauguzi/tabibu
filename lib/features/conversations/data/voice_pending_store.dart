@@ -42,4 +42,18 @@ class VoicePendingStore {
       file.deleteSync();
     }
   }
+
+  /// Wipes every queued recording. Best effort for sign-out / account change.
+  Future<void> clear() async {
+    try {
+      final injected = supportRoot?.call();
+      final base = injected ?? await getApplicationSupportDirectory();
+      final dir = Directory('${base.path}/voice_pending');
+      if (dir.existsSync()) {
+        dir.deleteSync(recursive: true);
+      }
+    } on Object catch (_) {
+      // Never block sign-out.
+    }
+  }
 }

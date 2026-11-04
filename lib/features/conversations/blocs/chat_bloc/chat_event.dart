@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:equatable/equatable.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 
 sealed class ChatEvent extends Equatable {
   const ChatEvent();
@@ -54,8 +55,8 @@ final class ChatMessageSendRequested extends ChatEvent {
   List<Object?> get props => [uid, conversationUid, text];
 }
 
-/// Send a voice note from a local AAC file. Droppable so a double tap sends
-/// once.
+/// Send a voice note from a local AAC file. Sequential so a retry while the
+/// first is in flight cannot mint a second message id.
 final class ChatVoiceNoteSendRequested extends ChatEvent {
   ChatVoiceNoteSendRequested({
     required this.uid,
@@ -64,8 +65,8 @@ final class ChatVoiceNoteSendRequested extends ChatEvent {
     required this.durationMs,
     required this.voicePeaks,
     this.contentType = 'audio/mp4',
-    Completer<bool>? result,
-  }) : result = result ?? Completer<bool>();
+    Completer<VoiceSendOutcome>? result,
+  }) : result = result ?? Completer<VoiceSendOutcome>();
 
   final String uid;
   final String conversationUid;
@@ -75,7 +76,7 @@ final class ChatVoiceNoteSendRequested extends ChatEvent {
   final String contentType;
 
   /// Completed by the bloc so a concurrent text write cannot clear the preview.
-  final Completer<bool> result;
+  final Completer<VoiceSendOutcome> result;
 
   @override
   List<Object?> get props => [

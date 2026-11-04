@@ -12,6 +12,7 @@ import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_styles.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
@@ -39,13 +40,14 @@ import 'package:tabibu/l10n/l10n.dart';
 /// planner days.
 class DoctorProfileScreen extends StatefulWidget {
   /// [now] pins the planner's clock; tests pass a fixed morning.
-  /// [recorder] and [cues] are injected in tests so getIt need not be
-  /// configured.
+  /// [recorder], [cues] and [analytics] are injected in tests so getIt need
+  /// not be configured.
   const DoctorProfileScreen({
     required this.doctorUid,
     this.now,
     this.recorder,
     this.cues,
+    this.analytics,
     super.key,
   });
 
@@ -53,6 +55,7 @@ class DoctorProfileScreen extends StatefulWidget {
   final DateTime? now;
   final AudioRecorderService? recorder;
   final RecordingCueService? cues;
+  final AnalyticsService? analytics;
 
   @override
   State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
@@ -99,6 +102,15 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       });
     }
   }
+
+  Widget _symptomsField(AppLocalizations l10n) => TabibuTextField(
+    label: l10n.doctorProfileSymptomsLabel,
+    hint: l10n.doctorProfileSymptomsHint,
+    controller: _symptoms,
+    maxLines: 5,
+    maxLength: 500,
+    keyboardType: .multiline,
+  );
 
   /// The month sheet picks onto the same planner days; a picked day moves
   /// the strip and clears the slot.
@@ -400,27 +412,22 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
           child: Column(
             crossAxisAlignment: .stretch,
             children: [
-              TabibuTextField(
-                label: l10n.doctorProfileSymptomsLabel,
-                hint: l10n.doctorProfileSymptomsHint,
-                controller: _symptoms,
-                maxLines: 5,
-                maxLength: 500,
-                keyboardType: .multiline,
-              ),
-              if (_showAiNotice) ...[
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  l10n.symptomVoiceAiNotice,
-                  style: Theme.of(context).textTheme.bodySmall,
-                ),
-              ],
+              // AI-prepared text sits in the frame with its label; typed
+              // text stays bare.
+              if (_showAiNotice)
+                AiDraftFrame(
+                  label: l10n.symptomVoiceAiNotice,
+                  child: _symptomsField(l10n),
+                )
+              else
+                _symptomsField(l10n),
               const SizedBox(height: AppSpacing.sm),
               SymptomVoiceControls(
                 patientUid: _patientUid,
                 symptoms: _symptoms,
                 offline: offline,
                 recorder: widget.recorder,
+                analytics: widget.analytics,
                 cues: widget.cues,
                 onTranscriptionUid: (uid) => setState(() {
                   _transcriptionUid = uid;

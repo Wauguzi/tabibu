@@ -2,6 +2,7 @@ import 'dart:async';
 import 'dart:io';
 import 'dart:typed_data';
 
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:injectable/injectable.dart';
 import 'package:just_audio/just_audio.dart';
 import 'package:path_provider/path_provider.dart';
@@ -51,6 +52,12 @@ class JustAudioPlayerPlatform implements AudioPlayerPlatform {
   @override
   Future<Duration?> setBytes(Uint8List bytes) async {
     await _deleteTemp();
+    // Web cannot write a temp file; a data URI loads in the browser player.
+    if (kIsWeb) {
+      return await _player.setAudioSource(
+        AudioSource.uri(Uri.dataFromBytes(bytes, mimeType: 'audio/mp4')),
+      );
+    }
     final dir = await getTemporaryDirectory();
     final path =
         '${dir.path}${Platform.pathSeparator}'
@@ -59,6 +66,10 @@ class JustAudioPlayerPlatform implements AudioPlayerPlatform {
     _tempPath = path;
     return await _player.setFilePath(path);
   }
+
+  /// Builds the web byte source without touching `dart:io` (unit-tested).
+  static Uri webByteUri(Uint8List bytes, {String mimeType = 'audio/mp4'}) =>
+      Uri.dataFromBytes(bytes, mimeType: mimeType);
 
   @override
   Future<Duration?> setUrl(String url) async {
@@ -166,6 +177,15 @@ class DeviceAudioPlayerService implements AudioPlayerService {
     _duration = Duration.zero;
     final duration = await load();
     if (duration != null) _duration = duration;
+    _playing = true;
+    _emit(id: id, playing: true, completed: false);
+    await _platform.play();
+  }
+
+  @override
+  Future<void> resume() async {
+    final id = _currentId;
+    if (id == null) return;
     _playing = true;
     _emit(id: id, playing: true, completed: false);
     await _platform.play();

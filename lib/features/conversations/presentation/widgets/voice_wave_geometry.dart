@@ -5,6 +5,7 @@
 /// no peaks yet.
 abstract final class VoiceWaveGeometry {
   static const double boxWidth = 108;
+  static const double minBoxWidth = 48;
   static const double boxHeight = 24;
   static const int barCount = 16;
   static const double barWidth = 3;

@@ -12,6 +12,7 @@ import 'package:tabibu/features/conversations/data/cache/conversation_cache_help
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 
 typedef _Thread = ({List<MessageModel> messages, bool offline});
 
@@ -34,7 +35,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatOpened>(_onOpened, transformer: sequential());
     on<ChatRefreshed>(_onRefreshed, transformer: droppable());
     on<ChatMessageSendRequested>(_onSend, transformer: sequential());
-    on<ChatVoiceNoteSendRequested>(_onVoiceSend, transformer: droppable());
+    on<ChatVoiceNoteSendRequested>(_onVoiceSend, transformer: sequential());
     on<ChatCloseRequested>(_onClose, transformer: sequential());
     on<ChatReset>(_onReset);
   }
@@ -109,6 +110,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         throw offline ? AppError.noInternet : AppError.dataNotFound;
       }
 
+      if (!offline) {
+        await _replayPending(event.uid);
+      }
       final thread = await _thread(event.uid, conversation.uid);
       emit(
         ChatLoadSuccess(
@@ -148,6 +152,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
       if (row.uid.isEmpty) throw AppError.dataNotFound;
 
+      if (!offline) {
+        await _replayPending(event.uid);
+      }
       final thread = await _thread(event.uid, event.conversationUid);
       emit(
         ChatLoadSuccess(
@@ -245,10 +252,16 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           messages: state.conversation.uid == event.conversationUid
               ? [sent, ...state.messages]
               : state.messages,
-          offline: state.offline,
+          offline: state.offline || sent.statusValue == MessageStatus.pending,
         ),
       );
-      if (!event.result.isCompleted) event.result.complete(true);
+      if (!event.result.isCompleted) {
+        event.result.complete(
+          sent.statusValue == MessageStatus.pending
+              ? VoiceSendOutcome.queued
+              : VoiceSendOutcome.sent,
+        );
+      }
     } on Object catch (e) {
       emit(
         ChatWriteFailure(
@@ -258,7 +271,18 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
           offline: state.offline,
         ),
       );
-      if (!event.result.isCompleted) event.result.complete(false);
+      if (!event.result.isCompleted) {
+        event.result.complete(VoiceSendOutcome.refused);
+      }
+    }
+  }
+
+  /// Flushes text and voice queues after open / reconnect. Best effort.
+  Future<void> _replayPending(String uid) async {
+    try {
+      await _cache.replayPendingMessages(uid);
+    } on Object catch (_) {
+      // Next refresh retries; the open still shows the thread.
     }
   }
 

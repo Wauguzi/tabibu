@@ -113,4 +113,26 @@ void main() {
     expect(events.where((e) => e.id == 'clip' && !e.playing), isNotEmpty);
     await sub.cancel();
   });
+
+  test('resume continues without a second load', () async {
+    final events = <AudioPlayback>[];
+    final sub = service.playback.listen(events.add);
+
+    await service.playBytes(Uint8List(8), id: 'clip');
+    platform.positionController.add(const Duration(seconds: 3));
+    await Future<void>.delayed(Duration.zero);
+    await service.pause();
+    final loadsBefore = platform.played.length;
+    await service.resume();
+    await Future<void>.delayed(Duration.zero);
+
+    expect(platform.played.length, loadsBefore);
+    expect(
+      events.where(
+        (e) => e.id == 'clip' && e.playing && e.position.inSeconds == 3,
+      ),
+      isNotEmpty,
+    );
+    await sub.cancel();
+  });
 }

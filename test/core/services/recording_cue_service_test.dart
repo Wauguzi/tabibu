@@ -3,6 +3,7 @@ import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
 import 'package:tabibu/core/services/recording_cue_service.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 
 import '../../helpers/helpers.dart';
 
@@ -58,6 +59,22 @@ void main() {
     loadThrows = true;
     await expectLater(cues.started(), completes);
     await expectLater(cues.finished(), completes);
+  });
+
+  test('started and finished load the generated sound paths', () async {
+    final loaded = <String>[];
+    final probe = DeviceRecordingCueService(
+      player,
+      vibrate: () async {},
+      loadAsset: (asset) async {
+        loaded.add(asset);
+        return Uint8List.fromList([1, 2, 3]);
+      },
+      cuesDisabled: () => false,
+    );
+    await probe.started();
+    await probe.finished();
+    expect(loaded, [Assets.sounds.recordStart, Assets.sounds.recordStop]);
   });
 
   test('skips cues when reduce-motion quiet check is on', () async {

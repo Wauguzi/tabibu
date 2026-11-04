@@ -9,6 +9,7 @@ class VoiceNoteWave extends StatelessWidget {
     required this.foreground,
     required this.playedFraction,
     this.active = false,
+    this.width,
     super.key,
   });
 
@@ -19,6 +20,9 @@ class VoiceNoteWave extends StatelessWidget {
   /// True while playing, paused mid-clip, or otherwise part-played.
   final bool active;
 
+  /// Defaults to the designer's 108 dp; shrinks first in a tight bubble.
+  final double? width;
+
   @override
   Widget build(BuildContext context) {
     final heights = VoiceWaveGeometry.heightsFromPeaks(peaks);
@@ -26,14 +30,19 @@ class VoiceNoteWave extends StatelessWidget {
       playedFraction,
       active: active,
     );
+    final w = (width ?? VoiceWaveGeometry.boxWidth).clamp(
+      VoiceWaveGeometry.minBoxWidth,
+      VoiceWaveGeometry.boxWidth,
+    );
     return SizedBox(
-      width: VoiceWaveGeometry.boxWidth,
+      width: w,
       height: VoiceWaveGeometry.boxHeight,
       child: CustomPaint(
         painter: VoiceNoteWavePainter(
           heights: heights,
           opacities: opacities,
           color: foreground,
+          boxWidth: w,
         ),
       ),
     );
@@ -46,24 +55,30 @@ class VoiceNoteWavePainter extends CustomPainter {
     required this.heights,
     required this.opacities,
     required this.color,
+    this.boxWidth = VoiceWaveGeometry.boxWidth,
   });
 
   final List<double> heights;
   final List<double> opacities;
   final Color color;
+  final double boxWidth;
 
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..style = .fill;
+    final scale = boxWidth / VoiceWaveGeometry.boxWidth;
+    final barW = VoiceWaveGeometry.barWidth * scale;
+    final gap = VoiceWaveGeometry.barGap * scale;
+    final radius = VoiceWaveGeometry.barRadius * scale;
     for (var i = 0; i < VoiceWaveGeometry.barCount; i++) {
       final height = heights[i];
-      final x = i * (VoiceWaveGeometry.barWidth + VoiceWaveGeometry.barGap);
+      final x = i * (barW + gap);
       final top = (VoiceWaveGeometry.boxHeight - height) / 2;
       paint.color = color.withValues(alpha: opacities[i]);
       canvas.drawRRect(
         RRect.fromRectAndRadius(
-          Rect.fromLTRB(x, top, x + VoiceWaveGeometry.barWidth, top + height),
-          const Radius.circular(VoiceWaveGeometry.barRadius),
+          Rect.fromLTRB(x, top, x + barW, top + height),
+          Radius.circular(radius),
         ),
         paint,
       );
@@ -73,6 +88,7 @@ class VoiceNoteWavePainter extends CustomPainter {
   @override
   bool shouldRepaint(covariant VoiceNoteWavePainter oldDelegate) =>
       oldDelegate.color != color ||
+      oldDelegate.boxWidth != boxWidth ||
       !listEquals(oldDelegate.heights, heights) ||
       !listEquals(oldDelegate.opacities, opacities);
 }

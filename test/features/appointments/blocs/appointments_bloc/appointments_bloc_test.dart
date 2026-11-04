@@ -935,11 +935,16 @@ void main() {
         },
         build: build,
         seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
-        act: (bloc) =>
-            bloc.add(SymptomsTranscribeRequested(uid: 'p1', audio: audio)),
+        act: (bloc) => bloc.add(
+          SymptomsTranscribeRequested(uid: 'p1', audio: audio, requestId: 'r1'),
+        ),
         expect: () => [
-          SymptomsTranscribeInProgress(appointments: [_appt('a0')]),
+          SymptomsTranscribeInProgress(
+            requestId: 'r1',
+            appointments: [_appt('a0')],
+          ),
           SymptomsTranscribeSuccess(
+            requestId: 'r1',
             transcript: 'Fever for two days',
             transcriptionUid: 't1',
             detectedLanguage: 'en',
@@ -962,11 +967,16 @@ void main() {
         },
         build: build,
         seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
-        act: (bloc) =>
-            bloc.add(SymptomsTranscribeRequested(uid: 'p1', audio: audio)),
+        act: (bloc) => bloc.add(
+          SymptomsTranscribeRequested(uid: 'p1', audio: audio, requestId: 'r1'),
+        ),
         expect: () => [
-          SymptomsTranscribeInProgress(appointments: [_appt('a0')]),
+          SymptomsTranscribeInProgress(
+            requestId: 'r1',
+            appointments: [_appt('a0')],
+          ),
           SymptomsTranscribeFailure(
+            requestId: 'r1',
             error: AppError.unknown,
             appointments: [_appt('a0')],
           ),
@@ -980,10 +990,12 @@ void main() {
         },
         build: build,
         seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
-        act: (bloc) =>
-            bloc.add(SymptomsTranscribeRequested(uid: 'p1', audio: audio)),
+        act: (bloc) => bloc.add(
+          SymptomsTranscribeRequested(uid: 'p1', audio: audio, requestId: 'r1'),
+        ),
         expect: () => [
           SymptomsTranscribeFailure(
+            requestId: 'r1',
             error: AppError.noInternet,
             appointments: [_appt('a0')],
             offline: true,
@@ -1029,8 +1041,20 @@ void main() {
         build: build,
         act: (bloc) async {
           bloc
-            ..add(SymptomsTranscribeRequested(uid: 'p1', audio: audio))
-            ..add(SymptomsTranscribeRequested(uid: 'p1', audio: audio));
+            ..add(
+              SymptomsTranscribeRequested(
+                uid: 'p1',
+                audio: audio,
+                requestId: 'r1',
+              ),
+            )
+            ..add(
+              SymptomsTranscribeRequested(
+                uid: 'p1',
+                audio: audio,
+                requestId: 'r2',
+              ),
+            );
         },
         wait: const Duration(milliseconds: 50),
         verify: (_) {

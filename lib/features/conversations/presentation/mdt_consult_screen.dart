@@ -23,6 +23,7 @@ import 'package:tabibu/features/conversations/data/models/conversation_member_mo
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
 import 'package:tabibu/features/conversations/data/voice_pending_store.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_labels.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_routes.dart';
 import 'package:tabibu/features/conversations/presentation/widgets/mdt_composer.dart';
@@ -220,12 +221,11 @@ class _MdtConsultScreenState extends State<MdtConsultScreen> {
       contentType: audio.contentType,
     );
     bloc.add(event);
-    final ok = await event.result.future.timeout(
-      const Duration(seconds: 60),
-      onTimeout: () => false,
+    return await settleVoiceSend(
+      result: event.result,
+      path: path,
+      delete: _voiceStore.delete,
     );
-    if (!ok) await _voiceStore.delete(path);
-    return ok;
   }
 
   Future<Uint8List> _loadVoice(MessageModel message) =>
@@ -293,6 +293,7 @@ class _MdtConsultScreenState extends State<MdtConsultScreen> {
       }
       widgets.add(
         MdtMessageBubble(
+          key: ValueKey<String>(m.uid),
           message: m,
           mine: m.senderUid == _uid,
           sender:

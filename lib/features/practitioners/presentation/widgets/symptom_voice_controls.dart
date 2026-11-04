@@ -8,6 +8,7 @@ import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -17,6 +18,7 @@ import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointment
 import 'package:tabibu/features/reports/presentation/widgets/settled_sheet.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
+import 'package:uuid/uuid.dart';
 
 /// Mic, level meter and transcribe controls beside the booking symptoms field.
 ///
@@ -29,6 +31,7 @@ class SymptomVoiceControls extends StatefulWidget {
     required this.onTranscriptionUid,
     required this.showAiNotice,
     this.recorder,
+    this.analytics,
     this.cues,
     this.preferences,
     this.voiceInputEnabled,
@@ -43,6 +46,7 @@ class SymptomVoiceControls extends StatefulWidget {
   final ValueChanged<String?> onTranscriptionUid;
   final ValueChanged<bool> showAiNotice;
   final AudioRecorderService? recorder;
+  final AnalyticsService? analytics;
   final RecordingCueService? cues;
   final Future<SharedPreferences> Function()? preferences;
 
@@ -75,10 +79,18 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   RecordedAudio? _pending;
   var _recording = false;
   var _stopping = false;
+
+  /// A start is in flight or has opened the mic but is not owned by
+  /// [_recording] yet; dispose cancels while this is true.
+  var _starting = false;
   var _seconds = 0;
   var _level = 0.0;
   var _status = '';
   var _consentShown = false;
+
+  /// The Transcribe press this form is waiting on; results for any other
+  /// form's request are ignored.
+  String? _requestId;
 
   /// In-memory only: a refuse or a false client flag hides mic until relaunch.
   var _voiceUnavailable = false;
@@ -87,6 +99,12 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   /// never need getIt for cues.
   RecordingCueService get _cues =>
       _cuesOrNull ??= widget.cues ?? getIt<RecordingCueService>();
+
+  AnalyticsService? _analyticsOrNull;
+
+  /// Same lazy rule as cues: recording is the first point that needs it.
+  AnalyticsService get _analytics =>
+      _analyticsOrNull ??= widget.analytics ?? getIt<AnalyticsService>();
 
   @override
   void initState() {
@@ -117,7 +135,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   void dispose() {
     _tick?.cancel();
     unawaited(_levelsSub?.cancel());
-    if (_recording) unawaited(_recorder.cancel());
+    if (_recording || _starting) unawaited(_recorder.cancel());
     super.dispose();
   }
 
@@ -171,21 +189,35 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     } on Object catch (_) {
       // Cue is best-effort; recording still opens.
     }
+    // Left during the cue: the mic never opened, nothing to cancel.
+    if (!mounted) return;
+    _starting = true;
     try {
       await _recorder.start(format: SymptomVoiceControls.recordFormat);
     } on Object catch (_) {
+      _starting = false;
       if (!mounted) return;
       setState(() => _status = l10n.symptomVoiceStartFailed);
       return;
     }
+    // Left while the mic opened: dispose already cancelled the in-flight
+    // start, so this only returns. Cleared after the check so dispose sees
+    // a start that finished between the open and this line.
     if (!mounted) return;
+    _starting = false;
+    if (_pending != null) {
+      // A take that never reached Transcribe is dropped for the new one.
+      unawaited(_analytics.logVoiceRecordingDiscarded(surface: 'symptom'));
+    }
+    unawaited(_analytics.logVoiceRecordingStarted(surface: 'symptom'));
+    // A new take keeps the existing transcript's link and notice: clearing
+    // them here would submit surviving text as Typed when the take fails.
+    // The link drops when its text is cleared, or a replacement lands.
     setState(() {
       _recording = true;
       _seconds = 0;
       _pending = null;
       _status = '';
-      widget.onTranscriptionUid(null);
-      widget.showAiNotice(false);
     });
     _levelsSub = _recorder.levels.listen((level) {
       if (mounted) setState(() => _level = level);
@@ -236,8 +268,14 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
       }
       return;
     }
+    final requestId = const Uuid().v4();
+    _requestId = requestId;
     context.read<AppointmentsBloc>().add(
-      SymptomsTranscribeRequested(uid: widget.patientUid, audio: clip),
+      SymptomsTranscribeRequested(
+        uid: widget.patientUid,
+        audio: clip,
+        requestId: requestId,
+      ),
     );
   }
 
@@ -280,6 +318,14 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
           current is SymptomsTranscribeSuccess ||
           current is SymptomsTranscribeFailure,
       listener: (context, state) {
+        final requestId = switch (state) {
+          SymptomsTranscribeSuccess(:final requestId) => requestId,
+          SymptomsTranscribeFailure(:final requestId) => requestId,
+          _ => null,
+        };
+        if (requestId == null || requestId != _requestId) return;
+        // Consumed once: a replayed result must not append twice.
+        _requestId = null;
         switch (state) {
           case SymptomsTranscribeSuccess(
             :final transcript,

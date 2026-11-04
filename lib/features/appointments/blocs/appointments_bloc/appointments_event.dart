@@ -68,13 +68,21 @@ final class AppointmentBookRequested extends AppointmentsEvent {
 
 /// Upload symptom audio and run `transcribeSymptoms` (droppable).
 final class SymptomsTranscribeRequested extends AppointmentsEvent {
-  const SymptomsTranscribeRequested({required this.uid, required this.audio});
+  const SymptomsTranscribeRequested({
+    required this.uid,
+    required this.audio,
+    required this.requestId,
+  });
 
   final String uid;
   final RecordedAudio audio;
 
+  /// Fresh id per Transcribe press; the result carries it back so only the
+  /// form that issued it applies it.
+  final String requestId;
+
   @override
-  List<Object?> get props => [uid, audio];
+  List<Object?> get props => [uid, audio, requestId];
 }
 
 final class AppointmentDecisionRequested extends AppointmentsEvent {

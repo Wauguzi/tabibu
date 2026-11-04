@@ -146,6 +146,28 @@ class AnalyticsService {
     ),
   );
 
+  /// Voice recording lifecycle carries the surface only ('chat', 'mdt' or
+  /// 'symptom') — never audio, transcript, ids or paths.
+  Future<void> logVoiceRecordingStarted({required String surface}) => _guard(
+    () => _analytics.logEvent(
+      name: 'voice_recording_started',
+      parameters: {'surface': surface},
+    ),
+  );
+
+  Future<void> logVoiceRecordingDiscarded({required String surface}) => _guard(
+    () => _analytics.logEvent(
+      name: 'voice_recording_discarded',
+      parameters: {'surface': surface},
+    ),
+  );
+
+  Future<void> logVoicePlaybackStarted() =>
+      _guard(() => _analytics.logEvent(name: 'voice_playback_started'));
+
+  Future<void> logVoicePlaybackPaused() =>
+      _guard(() => _analytics.logEvent(name: 'voice_playback_paused'));
+
   Future<void> logChatClosed() =>
       _guard(() => _analytics.logEvent(name: 'chat_closed'));
 

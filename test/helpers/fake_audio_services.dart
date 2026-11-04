@@ -11,6 +11,7 @@ class FakeAudioRecorderService implements AudioRecorderService {
     this.recorded,
     this.levelValues = const [0.2, 0.5, 0.8],
     this.startError,
+    this.startDelay = Duration.zero,
     this.stopDelay = Duration.zero,
   });
 
@@ -22,6 +23,9 @@ class FakeAudioRecorderService implements AudioRecorderService {
   /// When set, [start] throws this instead of opening the mic.
   Error? startError;
 
+  /// Holds [start] open so dispose can cancel mid-open.
+  Duration startDelay;
+
   /// Holds [stop] open so a second stop can race the first.
   Duration stopDelay;
 
@@ -31,6 +35,7 @@ class FakeAudioRecorderService implements AudioRecorderService {
   int disposeCount = 0;
   AudioFormat? lastFormat;
   bool _recording = false;
+  var _epoch = 0;
   StreamController<double>? _levels;
 
   @override
@@ -55,6 +60,12 @@ class FakeAudioRecorderService implements AudioRecorderService {
     }
     final error = startError;
     if (error != null) throw error;
+    final epoch = _epoch;
+    if (startDelay > Duration.zero) {
+      await Future<void>.delayed(startDelay);
+    }
+    // A dispose cancel may have landed while we waited.
+    if (epoch != _epoch) return;
     startCount += 1;
     lastFormat = format;
     _recording = true;
@@ -93,6 +104,7 @@ class FakeAudioRecorderService implements AudioRecorderService {
   @override
   Future<void> cancel() async {
     cancelCount += 1;
+    _epoch += 1;
     _recording = false;
     _closeLevels();
   }
@@ -123,8 +135,11 @@ class FakeAudioPlayerService implements AudioPlayerService {
   final playBytesCalls = <Uint8List>[];
   String? currentId;
   int pauseCount = 0;
+  int resumeCount = 0;
   int stopCount = 0;
   int disposeCount = 0;
+  Duration position = Duration.zero;
+  Duration duration = const Duration(seconds: 1);
 
   @override
   Stream<AudioPlayback> get playback => _controller.stream;
@@ -145,19 +160,53 @@ class FakeAudioPlayerService implements AudioPlayerService {
           id: currentId!,
           playing: false,
           position: Duration.zero,
-          duration: const Duration(seconds: 1),
+          duration: duration,
           completed: false,
         ),
       );
     }
     currentId = id;
     playedIds.add(id);
+    position = Duration.zero;
     _controller.add(
       AudioPlayback(
         id: id,
         playing: true,
-        position: Duration.zero,
-        duration: const Duration(seconds: 1),
+        position: position,
+        duration: duration,
+        completed: false,
+      ),
+    );
+  }
+
+  /// Test hook: place the playhead without loading again.
+  void seekTo(Duration at, {bool? playing}) {
+    position = at;
+    final id = currentId;
+    if (id == null) return;
+    final isPlaying = playing ?? false;
+    _controller.add(
+      AudioPlayback(
+        id: id,
+        playing: isPlaying,
+        position: position,
+        duration: duration,
+        completed: false,
+      ),
+    );
+  }
+
+  @override
+  Future<void> resume() async {
+    resumeCount += 1;
+    final id = currentId;
+    if (id == null) return;
+    _controller.add(
+      AudioPlayback(
+        id: id,
+        playing: true,
+        position: position,
+        duration: duration,
         completed: false,
       ),
     );
@@ -187,8 +236,8 @@ class FakeAudioPlayerService implements AudioPlayerService {
       AudioPlayback(
         id: id,
         playing: false,
-        position: Duration.zero,
-        duration: const Duration(seconds: 1),
+        position: position,
+        duration: duration,
         completed: false,
       ),
     );

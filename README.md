@@ -92,7 +92,7 @@ Indie developer track, "Build for Your World" theme. The hackathon's inference p
 
 | | Role | What Tabibu uses |
 |---|---|---|
-| Meta | Host | Two Muse models through the Meta Model API: `muse-voice-transcribe-1.0` for speech to text on a symptom recording (English only, off until its first live call), and `muse-spark-1.3` for the order risk check, the symptom summary, tile labelling for the pathology pre-read, the plain-language explanation of a signed report, and the outbreak alert draft. The hackathon's API credits, and Muse Code, the coding agent Tabibu is built with. **Not used:** SAM 3.1, Muse Spark Open and Muse Voice Transcribe |
+| Meta | Host | Two Muse models through the Meta Model API: `muse-voice-transcribe-1.0` for speech to text on a symptom recording (English only, off until its first live call), and `muse-spark-1.3` for the order risk check, the symptom summary, tile labelling for the pathology pre-read, the plain-language explanation of a signed report, and the outbreak alert draft. The hackathon's API credits, and Muse Code, the coding agent Tabibu is built with. **Not used:** SAM 3.1 and Muse Spark Open |
 | Cerebral Valley | Host | The hackathon itself: the event, its schedule and its submission |
 | Baseten | Inference partner | Not used by Tabibu. The Meta Model API serves the one model, so there is nothing to serve elsewhere |
 | Modal | Inference partner | Not used by Tabibu, for the same reason |

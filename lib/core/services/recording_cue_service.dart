@@ -5,6 +5,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter/widgets.dart';
 import 'package:injectable/injectable.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 import 'package:vibration/vibration.dart';
 
 /// Short vibration + beep so the user knows the mic opened or closed.
@@ -31,8 +32,11 @@ class DeviceRecordingCueService implements RecordingCueService {
        _loadAsset = loadAsset ?? _bundleLoad,
        _cuesDisabled = cuesDisabled ?? _platformQuiet;
 
-  static const startAsset = 'assets/sounds/record_start.wav';
-  static const stopAsset = 'assets/sounds/record_stop.wav';
+  /// Generated paths, so a sound rename breaks the build instead of
+  /// failing silently at runtime. Loaded through the bundle (full path),
+  /// not `AssetSource`, so no prefix is stripped.
+  static String get startAsset => Assets.sounds.recordStart;
+  static String get stopAsset => Assets.sounds.recordStop;
   static const cueId = 'recording-cue';
   static const beepHold = Duration(milliseconds: 120);
   static const vibrateMs = 40;

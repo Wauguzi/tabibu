@@ -26,6 +26,7 @@ import 'package:tabibu/features/conversations/data/models/conversation_member_mo
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
 import 'package:tabibu/features/conversations/data/voice_pending_store.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_labels.dart';
 import 'package:tabibu/features/conversations/presentation/widgets/mdt_composer.dart';
 import 'package:tabibu/features/conversations/presentation/widgets/mdt_message_bubble.dart';
@@ -119,14 +120,11 @@ class _AppointmentChatScreenState extends State<AppointmentChatScreen> {
       contentType: audio.contentType,
     );
     bloc.add(event);
-    final ok = await event.result.future.timeout(
-      const Duration(seconds: 60),
-      onTimeout: () => false,
+    return await settleVoiceSend(
+      result: event.result,
+      path: path,
+      delete: _voiceStore.delete,
     );
-    // Permanent refuse: drop the pending file. Offline queue keeps it until
-    // upload; a successful upload deletes it in the cache.
-    if (!ok) await _voiceStore.delete(path);
-    return ok;
   }
 
   Future<Uint8List> _loadVoice(MessageModel message) =>
@@ -196,6 +194,7 @@ class _AppointmentChatScreenState extends State<AppointmentChatScreen> {
     return [
       for (final m in shown.reversed)
         MdtMessageBubble(
+          key: ValueKey<String>(m.uid),
           message: m,
           mine: m.senderUid == _uid,
           sender:
@@ -390,6 +389,7 @@ class _AppointmentChatScreenState extends State<AppointmentChatScreen> {
             recorder: widget.recorder,
             player: widget.player,
             cues: widget.cues,
+            voiceSurface: 'chat',
           ),
       ],
     );

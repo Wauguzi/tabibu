@@ -6,6 +6,7 @@ import 'package:permission_handler/permission_handler.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -37,6 +38,8 @@ class MdtComposer extends StatefulWidget {
     this.recorder,
     this.player,
     this.cues,
+    this.analytics,
+    this.voiceSurface = 'mdt',
     this.voiceEnabled = true,
     super.key,
   });
@@ -50,6 +53,10 @@ class MdtComposer extends StatefulWidget {
   final AudioRecorderService? recorder;
   final AudioPlayerService? player;
   final RecordingCueService? cues;
+  final AnalyticsService? analytics;
+
+  /// Analytics surface: `'chat'` or `'mdt'` — never audio, ids or paths.
+  final String voiceSurface;
 
   /// When false, hide the mic (closed threads).
   final bool voiceEnabled;
@@ -63,16 +70,19 @@ class _MdtComposerState extends State<MdtComposer> {
   late final AudioRecorderService _recorder;
   late final AudioPlayerService _player;
   late final RecordingCueService _cues;
+  AnalyticsService? _analyticsOrNull;
   StreamSubscription<double>? _levelsSub;
   Timer? _tick;
   RecordedAudio? _preview;
   var _recording = false;
+  var _starting = false;
   var _stopping = false;
   var _sendingVoice = false;
   var _seconds = 0;
   var _level = 0.0;
   _ComposerVoiceStatus _status = _ComposerVoiceStatus.none;
   var _previewPlaying = false;
+  var _previewLoaded = false;
 
   static const _maxSeconds = 120;
 
@@ -82,14 +92,27 @@ class _MdtComposerState extends State<MdtComposer> {
     _recorder = widget.recorder ?? getIt<AudioRecorderService>();
     _player = widget.player ?? getIt<AudioPlayerService>();
     _cues = widget.cues ?? getIt<RecordingCueService>();
+    _analyticsOrNull = widget.analytics;
     _controller.addListener(() => setState(() {}));
+  }
+
+  AnalyticsService? get _analytics {
+    final cached = _analyticsOrNull;
+    if (cached != null) return cached;
+    if (widget.analytics != null) return widget.analytics;
+    if (getIt.isRegistered<AnalyticsService>()) {
+      return _analyticsOrNull = getIt<AnalyticsService>();
+    }
+    return null;
   }
 
   @override
   void dispose() {
     _tick?.cancel();
     unawaited(_levelsSub?.cancel());
-    if (_recording) unawaited(_recorder.cancel());
+    // Cancel an open or in-flight start so the mic does not stay hot after
+    // the person leaves the thread.
+    if (_recording || _starting) unawaited(_recorder.cancel());
     _controller.dispose();
     super.dispose();
   }
@@ -124,25 +147,42 @@ class _MdtComposerState extends State<MdtComposer> {
       setState(() => _status = .permissionDenied);
       return;
     }
+    _starting = true;
     try {
       await _cues.started();
     } on Object catch (_) {
       // Cue is best-effort; recording still opens.
     }
+    if (!mounted) {
+      _starting = false;
+      unawaited(_recorder.cancel());
+      return;
+    }
     try {
       await _recorder.start();
     } on Object catch (_) {
-      if (!mounted) return;
+      _starting = false;
+      if (!mounted) {
+        unawaited(_recorder.cancel());
+        return;
+      }
       setState(() => _status = .startFailed);
       return;
     }
-    if (!mounted) return;
+    _starting = false;
+    if (!mounted) {
+      unawaited(_recorder.cancel());
+      return;
+    }
     setState(() {
       _recording = true;
       _seconds = 0;
       _status = .none;
       _preview = null;
     });
+    unawaited(
+      _analytics?.logVoiceRecordingStarted(surface: widget.voiceSurface),
+    );
     _levelsSub = _recorder.levels.listen((level) {
       if (mounted) setState(() => _level = level);
     });
@@ -184,9 +224,13 @@ class _MdtComposerState extends State<MdtComposer> {
 
   Future<void> _cancelPreview() async {
     await _recorder.cancel();
+    unawaited(
+      _analytics?.logVoiceRecordingDiscarded(surface: widget.voiceSurface),
+    );
     setState(() {
       _preview = null;
       _previewPlaying = false;
+      _previewLoaded = false;
       _status = .none;
     });
   }
@@ -196,10 +240,17 @@ class _MdtComposerState extends State<MdtComposer> {
     if (clip == null) return;
     if (_previewPlaying) {
       await _player.pause();
+      unawaited(_analytics?.logVoicePlaybackPaused());
       setState(() => _previewPlaying = false);
       return;
     }
-    await _player.playBytes(clip.bytes, id: 'composer-preview');
+    if (_previewLoaded) {
+      await _player.resume();
+    } else {
+      await _player.playBytes(clip.bytes, id: 'composer-preview');
+      _previewLoaded = true;
+    }
+    unawaited(_analytics?.logVoicePlaybackStarted());
     if (mounted) setState(() => _previewPlaying = true);
   }
 
@@ -215,6 +266,7 @@ class _MdtComposerState extends State<MdtComposer> {
       if (ok) {
         _preview = null;
         _previewPlaying = false;
+        _previewLoaded = false;
         _status = .none;
       } else {
         _status = .sendFailed;

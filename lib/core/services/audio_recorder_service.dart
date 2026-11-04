@@ -33,6 +33,10 @@ class DeviceAudioRecorderService implements AudioRecorderService {
   var _recording = false;
   var _stopping = false;
 
+  /// Bumped by [cancel] and [stop] so a late [start] that outlives them does
+  /// not mark itself recording or arm the limit timer with no owner.
+  var _startGeneration = 0;
+
   /// The recording the length limit ended: the next [stop] hands it over, so
   /// a note that ran to the limit is not lost.
   Future<RecordedAudio?>? _limitStopped;
@@ -54,7 +58,9 @@ class DeviceAudioRecorderService implements AudioRecorderService {
     if (_recording) throw StateError('already recording');
     if (!isSupported) throw StateError('recorder unsupported');
 
+    final generation = _startGeneration;
     final permission = await ensurePermission();
+    if (generation != _startGeneration) return;
     if (permission != .granted) {
       throw StateError('microphone permission $permission');
     }
@@ -62,12 +68,23 @@ class DeviceAudioRecorderService implements AudioRecorderService {
     _limitStopped = null;
     _levelSamples.clear();
     _format = format;
-    _path = await _platform.createTempPath(format: format);
+    final path = await _platform.createTempPath(format: format);
+    if (generation != _startGeneration) {
+      await _platform.delete(path);
+      return;
+    }
+    _path = path;
     _startedAt = _clock();
     // Subscribe before start so the first amplitude burst is not dropped.
     await _levelSub?.cancel();
     _levelSub = _platform.levels.listen(_levelSamples.add);
-    await _platform.start(_path!, format: format);
+    await _platform.start(path, format: format);
+    // cancel()/stop() won the race during the platform start: drop the mic
+    // and the file, and do not arm the limit timer.
+    if (generation != _startGeneration) {
+      await _abandonStart(path);
+      return;
+    }
     _recording = true;
     _maxTimer?.cancel();
     _maxTimer = _timerFactory(format.maxDuration, () {
@@ -77,8 +94,25 @@ class DeviceAudioRecorderService implements AudioRecorderService {
     });
   }
 
+  /// Tears down a start that finished after [cancel] or [stop] already ran.
+  Future<void> _abandonStart(String path) async {
+    await _levelSub?.cancel();
+    _levelSub = null;
+    if (_path == path) {
+      _path = null;
+      _startedAt = null;
+    }
+    try {
+      await _platform.cancel();
+    } on Object catch (_) {
+      // Still delete the path we opened.
+    }
+    await _platform.delete(path);
+  }
+
   @override
   Future<RecordedAudio?> stop() async {
+    _startGeneration += 1;
     if (!_recording) {
       final held = _limitStopped;
       _limitStopped = null;
@@ -141,6 +175,7 @@ class DeviceAudioRecorderService implements AudioRecorderService {
 
   @override
   Future<void> cancel() async {
+    _startGeneration += 1;
     _limitStopped = null;
     _maxTimer?.cancel();
     _maxTimer = null;

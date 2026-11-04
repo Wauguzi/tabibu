@@ -14,6 +14,7 @@ import 'package:tabibu/features/conversations/data/models/case_summary_model.dar
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_preview_model.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 import 'package:uuid/uuid.dart';
 
 typedef _Listing = ({
@@ -53,7 +54,7 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
     on<MdtLeaveRequested>(_onLeave, transformer: sequential());
     on<MdtRemoveRequested>(_onRemove, transformer: sequential());
     on<MdtMessageSendRequested>(_onSend, transformer: sequential());
-    on<MdtVoiceNoteSendRequested>(_onVoiceSend, transformer: droppable());
+    on<MdtVoiceNoteSendRequested>(_onVoiceSend, transformer: sequential());
     on<MdtReset>(_onReset);
   }
 
@@ -151,6 +152,9 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
     emit(_loading());
     try {
       final listing = await _listing(uid);
+      if (!listing.offline) {
+        await _replayPending(uid);
+      }
       emit(
         MdtLoadSuccess(
           conversations: listing.conversations,
@@ -213,6 +217,9 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
         return;
       }
 
+      if (!offline) {
+        await _replayPending(event.uid);
+      }
       List<MessageModel> messages;
       try {
         messages = await _cache.syncMessages(event.uid, event.conversationUid);
@@ -240,6 +247,14 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
           offline: _offline.contains(err),
         ),
       );
+    }
+  }
+
+  Future<void> _replayPending(String uid) async {
+    try {
+      await _cache.replayPendingMessages(uid);
+    } on Object catch (_) {
+      // Next refresh retries.
     }
   }
 
@@ -451,13 +466,21 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
               ? [sent, ...state.messages]
               : state.messages,
           inviteOnly: state.inviteOnly,
-          offline: state.offline,
+          offline: state.offline || sent.statusValue == MessageStatus.pending,
         ),
       );
-      if (!event.result.isCompleted) event.result.complete(true);
+      if (!event.result.isCompleted) {
+        event.result.complete(
+          sent.statusValue == MessageStatus.pending
+              ? VoiceSendOutcome.queued
+              : VoiceSendOutcome.sent,
+        );
+      }
     } on Object catch (e) {
       emit(_writeFailure(e));
-      if (!event.result.isCompleted) event.result.complete(false);
+      if (!event.result.isCompleted) {
+        event.result.complete(VoiceSendOutcome.refused);
+      }
     }
   }
 

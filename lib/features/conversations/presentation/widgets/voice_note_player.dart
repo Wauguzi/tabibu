@@ -5,6 +5,7 @@ import 'package:flutter/semantics.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
@@ -21,6 +22,7 @@ class VoiceNotePlayer extends StatefulWidget {
     required this.foreground,
     required this.loadBytes,
     this.player,
+    this.analytics,
     super.key,
   });
 
@@ -28,6 +30,7 @@ class VoiceNotePlayer extends StatefulWidget {
   final Color foreground;
   final Future<Uint8List> Function(MessageModel message) loadBytes;
   final AudioPlayerService? player;
+  final AnalyticsService? analytics;
 
   @override
   State<VoiceNotePlayer> createState() => _VoiceNotePlayerState();
@@ -36,6 +39,7 @@ class VoiceNotePlayer extends StatefulWidget {
 class _VoiceNotePlayerState extends State<VoiceNotePlayer>
     with SingleTickerProviderStateMixin {
   late final AudioPlayerService _player;
+  AnalyticsService? _analyticsOrNull;
   StreamSubscription<AudioPlayback>? _sub;
   AnimationController? _fill;
   var _playing = false;
@@ -55,6 +59,7 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer>
   void initState() {
     super.initState();
     _player = widget.player ?? getIt<AudioPlayerService>();
+    _analyticsOrNull = widget.analytics;
     _duration = Duration(milliseconds: widget.message.voiceDurationMs);
     _sub = _player.playback.listen(_onPlayback);
     _fill =
@@ -64,6 +69,25 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer>
         )..addListener(() {
           if (mounted) setState(() => _fraction = _fill!.value);
         });
+  }
+
+  @override
+  void didUpdateWidget(covariant VoiceNotePlayer oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.message.uid == widget.message.uid) return;
+    // Element reuse with a new message: drop the previous clip's cache.
+    _cachedBytes = null;
+    _playing = false;
+    _active = false;
+    _wasPlaying = false;
+    _error = false;
+    _loading = false;
+    _position = Duration.zero;
+    _duration = Duration(milliseconds: widget.message.voiceDurationMs);
+    _lastAnnouncedSec = -1;
+    _resetHold?.cancel();
+    _announceTick?.cancel();
+    _setFraction(0, animate: false);
   }
 
   @override
@@ -161,10 +185,27 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer>
     fill.animateTo(value, duration: const Duration(milliseconds: 100));
   }
 
+  AnalyticsService? get _analytics {
+    final cached = _analyticsOrNull;
+    if (cached != null) return cached;
+    if (widget.analytics != null) return widget.analytics;
+    if (getIt.isRegistered<AnalyticsService>()) {
+      return _analyticsOrNull = getIt<AnalyticsService>();
+    }
+    return null;
+  }
+
   Future<void> _toggle() async {
     if (_loading) return;
     if (_playing) {
       await _player.pause();
+      unawaited(_analytics?.logVoicePlaybackPaused());
+      return;
+    }
+    // Same clip paused: keep the load and playhead.
+    if (_active && _cachedBytes != null) {
+      await _player.resume();
+      unawaited(_analytics?.logVoicePlaybackStarted());
       return;
     }
     setState(() {
@@ -176,6 +217,7 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer>
       _cachedBytes = bytes;
       if (!mounted) return;
       await _player.playBytes(bytes, id: widget.message.uid);
+      unawaited(_analytics?.logVoicePlaybackStarted());
     } on Object catch (_) {
       if (mounted) setState(() => _error = true);
     } finally {
@@ -209,22 +251,38 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer>
               onCard: true,
             ),
             const SizedBox(width: AppSpacing.xs),
-            ExcludeSemantics(
-              child: VoiceNoteWave(
-                peaks: widget.message.voicePeaks,
-                foreground: widget.foreground,
-                playedFraction: _fraction,
-                active: _active,
+            Flexible(
+              child: LayoutBuilder(
+                builder: (context, constraints) => ExcludeSemantics(
+                  child: VoiceNoteWave(
+                    peaks: widget.message.voicePeaks,
+                    foreground: widget.foreground,
+                    playedFraction: _fraction,
+                    active: _active,
+                    width: constraints.maxWidth,
+                  ),
+                ),
               ),
             ),
             const SizedBox(width: AppSpacing.xs),
-            Semantics(
-              liveRegion: false,
-              label: l10n.chatVoiceProgress(_format(_position), _format(total)),
-              child: Text(
-                '${_format(elapsed)} / ${_format(total)}',
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                  color: widget.foreground.withValues(alpha: 0.85),
+            Flexible(
+              child: Semantics(
+                liveRegion: false,
+                label: l10n.chatVoiceProgress(
+                  _format(_position),
+                  _format(total),
+                ),
+                child: FittedBox(
+                  fit: .scaleDown,
+                  alignment: .centerLeft,
+                  child: Text(
+                    '${_format(elapsed)} / ${_format(total)}',
+                    maxLines: 1,
+                    softWrap: false,
+                    style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                      color: widget.foreground.withValues(alpha: 0.85),
+                    ),
+                  ),
                 ),
               ),
             ),

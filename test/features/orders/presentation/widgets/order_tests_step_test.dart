@@ -22,9 +22,9 @@ OrderEditing _catalogue() => OrderEditing(
       ('haem', 'Haematology'),
       ('chem', 'Clinical chemistry'),
       ('micro', 'Microbiology'),
-      ('histo', 'Histopathology'),
-      ('cyto', 'Cytopathology'),
-      ('immuno', 'Immunology and serology'),
+      ('histopathology', 'Histopathology'),
+      ('cytopathology', 'Cytopathology'),
+      ('immunology', 'Immunology and serology'),
     ])
       LabTestTypeModel.empty().copyWith(testTypeId: id, name: name),
   ],
@@ -33,9 +33,9 @@ OrderEditing _catalogue() => OrderEditing(
       ('t1', 'haem', 'Haematology'),
       ('t2', 'chem', 'Clinical chemistry'),
       ('t3', 'micro', 'Microbiology'),
-      ('t4', 'histo', 'Histopathology'),
-      ('t5', 'cyto', 'Cytopathology'),
-      ('t6', 'immuno', 'Immunology and serology'),
+      ('t4', 'histopathology', 'Histopathology'),
+      ('t5', 'cytopathology', 'Cytopathology'),
+      ('t6', 'immunology', 'Immunology and serology'),
     ])
       LabTestModel.empty().copyWith(
         labTestId: id,

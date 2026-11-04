@@ -15,6 +15,7 @@ import 'package:tabibu/features/conversations/data/cache/conversation_cache_help
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 
 class _MockCache extends Mock implements ConversationCacheHelper {}
 
@@ -135,6 +136,7 @@ void main() {
         contentType: any(named: 'contentType'),
       ),
     ).thenAnswer((_) async => voiceQueued);
+    when(() => cache.replayPendingMessages(any())).thenAnswer((_) async {});
   });
 
   group('ChatBloc', () {
@@ -154,6 +156,7 @@ void main() {
           ChatLoadSuccess(conversation: thread(), messages: const [history]),
         ],
         verify: (bloc) {
+          verify(() => cache.replayPendingMessages('me')).called(1);
           verify(
             () => remote.openDirectConversation(
               resourceType: 'Appointment',
@@ -555,6 +558,7 @@ void main() {
           ChatWriteSuccess(
             conversation: thread(),
             messages: const [voiceQueued, history],
+            offline: true,
           ),
         ],
         verify: (_) {
@@ -587,12 +591,15 @@ void main() {
             voicePeaks: const [10, 40, 70],
           );
           bloc.add(event);
-          await expectLater(event.result.future, completion(isTrue));
+          await expectLater(
+            event.result.future,
+            completion(VoiceSendOutcome.queued),
+          );
         },
       );
 
       blocTest<ChatBloc, ChatState>(
-        'a double voice send is droppable',
+        'sequential voice sends each mint once, in order',
         build: build,
         seed: () =>
             ChatLoadSuccess(conversation: thread(), messages: const [history]),
@@ -627,7 +634,7 @@ void main() {
               voicePeaks: any(named: 'voicePeaks'),
               contentType: any(named: 'contentType'),
             ),
-          ).called(1);
+          ).called(2);
         },
       );
 
@@ -657,7 +664,10 @@ void main() {
             voicePeaks: const [10, 40, 70],
           );
           bloc.add(event);
-          await expectLater(event.result.future, completion(isFalse));
+          await expectLater(
+            event.result.future,
+            completion(VoiceSendOutcome.refused),
+          );
         },
         expect: () => [
           ChatWriteFailure(

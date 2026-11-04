@@ -454,5 +454,57 @@ void main() {
         await helper().clearOnSignOut();
       });
     });
+
+    group('voice pending', () {
+      const channel = MethodChannel('plugins.flutter.io/path_provider');
+      late Directory fakeSupport;
+
+      setUp(() {
+        fakeSupport = Directory.systemTemp.createTempSync('tabibu_support_');
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, (call) async {
+              if (call.method == 'getApplicationSupportDirectory') {
+                return fakeSupport.path;
+              }
+              if (call.method == 'getApplicationCacheDirectory') {
+                return fakeSupport.path;
+              }
+              return null;
+            });
+      });
+
+      tearDown(() {
+        TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+            .setMockMethodCallHandler(channel, null);
+        if (fakeSupport.existsSync()) {
+          fakeSupport.deleteSync(recursive: true);
+        }
+      });
+
+      test('clearOnSignOut wipes voice_pending', () async {
+        final pending = Directory('${fakeSupport.path}/voice_pending')
+          ..createSync(recursive: true);
+        File('${pending.path}/voice_1.m4a').writeAsStringSync('bytes');
+
+        await helper().initBoxes();
+        await helper().clearOnSignOut();
+
+        expect(pending.existsSync(), isFalse);
+      });
+
+      test('scopeTo another uid also wipes voice_pending', () async {
+        await helper().initBoxes();
+        await helper().scopeTo('u1');
+        final pending = Directory('${fakeSupport.path}/voice_pending')
+          ..createSync(recursive: true);
+        File('${pending.path}/voice_2.m4a').writeAsStringSync('bytes');
+        await helper().scopeTo('u2');
+
+        expect(
+          Directory('${fakeSupport.path}/voice_pending').existsSync(),
+          isFalse,
+        );
+      });
+    });
   });
 }

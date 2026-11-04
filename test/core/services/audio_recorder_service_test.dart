@@ -21,6 +21,10 @@ class _FakePlatform implements AudioRecorderPlatform {
   bool cancelled = false;
   bool disposed = false;
 
+  /// When set, [start] waits on this before marking itself started so a
+  /// cancel can race the await.
+  Completer<void>? startGate;
+
   @override
   bool get isSupported => supported;
 
@@ -37,6 +41,8 @@ class _FakePlatform implements AudioRecorderPlatform {
 
   @override
   Future<void> start(String path, {required AudioFormat format}) async {
+    final gate = startGate;
+    if (gate != null) await gate.future;
     started = true;
     activePath = path;
     lastFormat = format;
@@ -290,6 +296,32 @@ void main() {
       expect(platform.deleted, contains(path));
       expect(service.isRecording, isFalse);
     });
+
+    test(
+      'cancel during a delayed platform start leaves no recording or timer',
+      () async {
+        platform.startGate = Completer<void>();
+        final service = build();
+        final starting = service.start();
+        // Wait until start is blocked inside the platform start await.
+        while (platform.activePath == null) {
+          await Future<void>.delayed(Duration.zero);
+        }
+        expect(service.isRecording, isFalse);
+        expect(pending, isNull);
+
+        final path = platform.activePath;
+        await service.cancel();
+        platform.startGate!.complete();
+        await starting;
+
+        expect(service.isRecording, isFalse);
+        expect(pending, isNull);
+        expect(platform.cancelled, isTrue);
+        expect(platform.deleted, contains(path));
+        expect(platform.started, isFalse);
+      },
+    );
 
     test('dispose deletes and tears the platform down', () async {
       final service = build();

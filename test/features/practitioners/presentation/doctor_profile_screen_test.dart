@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,7 +7,9 @@ import 'package:go_router/go_router.dart';
 import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -23,9 +27,12 @@ import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_eve
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_state.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
 import 'package:tabibu/features/practitioners/presentation/doctor_profile_screen.dart';
+import 'package:tabibu/features/practitioners/presentation/widgets/symptom_voice_controls.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 import '../../../helpers/helpers.dart';
+
+class _MockAnalyticsService extends Mock implements AnalyticsService {}
 
 /// Phone-width, very tall surface so the sliver list mounts every row.
 void _useTallSurface(WidgetTester tester) {
@@ -65,6 +72,10 @@ void main() {
     late MockAppointmentsBloc appointments;
     late MockAuthBloc authBloc;
     late PractitionerModel doctor;
+
+    setUpAll(() {
+      registerFallbackValue(const AppointmentsReset());
+    });
 
     setUp(() {
       doctor = PractitionerModel(
@@ -146,6 +157,68 @@ void main() {
       );
       addTearDown(routes.dispose);
       return routes;
+    }
+
+    Future<
+      ({
+        StreamController<AppointmentsState> states,
+        FakeAudioRecorderService recorder,
+        AppLocalizations l10n,
+      })
+    >
+    pumpVoiceScreen(
+      WidgetTester tester, {
+      Locale locale = const Locale('en'),
+      double textScale = 1,
+    }) async {
+      _useTallSurface(tester);
+      SharedPreferences.setMockInitialValues({
+        SymptomVoiceControls.consentKey: true,
+      });
+      tester.platformDispatcher.textScaleFactorTestValue = textScale;
+      addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+      final states = StreamController<AppointmentsState>();
+      addTearDown(states.close);
+      whenListen(
+        appointments,
+        states.stream,
+        initialState: const AppointmentsLoadSuccess(),
+      );
+      final recorder = FakeAudioRecorderService(recorded: fakeRecordedAudio());
+      final analytics = _MockAnalyticsService();
+      when(
+        () =>
+            analytics.logVoiceRecordingStarted(surface: any(named: 'surface')),
+      ).thenAnswer((_) async {});
+      when(
+        () => analytics.logVoiceRecordingDiscarded(
+          surface: any(named: 'surface'),
+        ),
+      ).thenAnswer((_) async {});
+      await tester.pumpApp(
+        MultiBlocProvider(
+          providers: [
+            BlocProvider<AuthBloc>.value(value: authBloc),
+            BlocProvider<DirectoryBloc>.value(value: directory),
+            BlocProvider<AppointmentsBloc>.value(value: appointments),
+          ],
+          child: DoctorProfileScreen(
+            doctorUid: 'd1',
+            now: _fixedNow,
+            recorder: recorder,
+            cues: FakeRecordingCueService(),
+            analytics: analytics,
+          ),
+        ),
+        locale: locale,
+      );
+      await tester.pump();
+      await tester.pump();
+      return (
+        states: states,
+        recorder: recorder,
+        l10n: lookupAppLocalizations(locale),
+      );
     }
 
     /// The first day with both a taken and a free slot; the busy cover above
@@ -315,6 +388,191 @@ void main() {
           ),
         ),
       ).called(1);
+    });
+
+    testWidgets('a failed second take keeps the first transcript on booking', (
+      tester,
+    ) async {
+      final voice = await pumpVoiceScreen(tester);
+      final states = voice.states;
+      final recorder = voice.recorder;
+      final l10n = voice.l10n;
+
+      // Take one, transcribed.
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+      await tester.pump();
+      await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
+      await tester.pump();
+      final request =
+          verify(() => appointments.add(captureAny())).captured.single
+              as SymptomsTranscribeRequested;
+      states.add(
+        SymptomsTranscribeSuccess(
+          requestId: request.requestId,
+          transcript: 'A lump for two weeks',
+          transcriptionUid: 't9',
+          detectedLanguage: 'en',
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // Take two, failed at stop: the first link must survive it.
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      recorder.recorded = null;
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+      await tester.pump();
+
+      final days = const SlotPlanner().days(doctor, _fixedNow);
+      final dayIndex = mixedDay();
+      await selectDay(tester, dayIndex);
+      final free = days[dayIndex].slots.firstWhere((s) => !s.taken);
+      await selectSlot(tester, _timeOf(free.start));
+      final bookLabel =
+          'Book ${DateFormat('EEE d MMM', 'en').format(days[dayIndex].date)}, '
+          '${_timeOf(free.start)}';
+      await tester.tap(find.text(bookLabel));
+      await tester.pump();
+
+      final booked =
+          verify(() => appointments.add(captureAny())).captured.last
+              as AppointmentBookRequested;
+      expect(booked.inputMode, 'Voice');
+      expect(booked.transcriptionUid, 't9');
+      expect(booked.symptomText, contains('A lump for two weeks'));
+    });
+
+    testWidgets('clearing a transcript books as typed', (tester) async {
+      final voice = await pumpVoiceScreen(tester);
+      final states = voice.states;
+      final l10n = voice.l10n;
+
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+      await tester.pump();
+      await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
+      await tester.pump();
+      final request =
+          verify(() => appointments.add(captureAny())).captured.single
+              as SymptomsTranscribeRequested;
+      states.add(
+        SymptomsTranscribeSuccess(
+          requestId: request.requestId,
+          transcript: 'A lump for two weeks',
+          transcriptionUid: 't9',
+          detectedLanguage: 'en',
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // Cleared and rewritten by hand: the voice link is gone.
+      await tester.enterText(find.byType(EditableText), '');
+      await tester.pump();
+      await tester.enterText(find.byType(EditableText), 'Typed fresh');
+      await tester.pump();
+
+      final days = const SlotPlanner().days(doctor, _fixedNow);
+      final dayIndex = mixedDay();
+      await selectDay(tester, dayIndex);
+      final free = days[dayIndex].slots.firstWhere((s) => !s.taken);
+      await selectSlot(tester, _timeOf(free.start));
+      final bookLabel =
+          'Book ${DateFormat('EEE d MMM', 'en').format(days[dayIndex].date)}, '
+          '${_timeOf(free.start)}';
+      await tester.tap(find.text(bookLabel));
+      await tester.pump();
+
+      final booked =
+          verify(() => appointments.add(captureAny())).captured.last
+              as AppointmentBookRequested;
+      expect(booked.inputMode, 'Typed');
+      expect(booked.transcriptionUid, '');
+      expect(booked.symptomText, 'Typed fresh');
+    });
+
+    // 1.3x is this screen's supported ceiling (its own overflow test);
+    // the day strip overflows at 2.0x, pre-existing and out of scope.
+    Future<void> frameCase(
+      WidgetTester tester,
+      Locale locale,
+      double scale,
+    ) async {
+      final voice = await pumpVoiceScreen(
+        tester,
+        locale: locale,
+        textScale: scale,
+      );
+      final states = voice.states;
+      final l10n = voice.l10n;
+
+      // Typed text stays bare.
+      expect(find.byType(AiDraftFrame), findsNothing);
+
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 50));
+      await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+      await tester.pump();
+      await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
+      await tester.pump();
+      final request =
+          verify(() => appointments.add(captureAny())).captured.single
+              as SymptomsTranscribeRequested;
+      states.add(
+        SymptomsTranscribeSuccess(
+          requestId: request.requestId,
+          transcript: 'A lump for two weeks',
+          transcriptionUid: 't9',
+          detectedLanguage: 'en',
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+
+      // The transcript is framed with its label beside it.
+      expect(find.byType(AiDraftFrame), findsOneWidget);
+      expect(find.text(l10n.symptomVoiceAiNotice), findsOneWidget);
+      expect(tester.takeException(), isNull);
+
+      // Cleared and rewritten by hand: bare again.
+      await tester.enterText(find.byType(EditableText), '');
+      await tester.pump();
+      await tester.enterText(find.byType(EditableText), 'Typed fresh');
+      await tester.pump();
+      expect(find.byType(AiDraftFrame), findsNothing);
+      expect(tester.takeException(), isNull);
+    }
+
+    testWidgets('the transcript sits in the AI frame (en 1.0x)', (
+      tester,
+    ) async {
+      await frameCase(tester, const Locale('en'), 1);
+    });
+
+    testWidgets('the transcript sits in the AI frame (en 1.3x)', (
+      tester,
+    ) async {
+      await frameCase(tester, const Locale('en'), 1.3);
+    });
+
+    testWidgets('the transcript sits in the AI frame (sw 1.0x)', (
+      tester,
+    ) async {
+      await frameCase(tester, const Locale('sw'), 1);
+    });
+
+    testWidgets('the transcript sits in the AI frame (sw 1.3x)', (
+      tester,
+    ) async {
+      await frameCase(tester, const Locale('sw'), 1.3);
     });
 
     testWidgets('booking success replaces with Booked', (tester) async {

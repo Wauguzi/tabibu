@@ -97,6 +97,9 @@ abstract class AudioPlayerService {
   Stream<AudioPlayback> get playback;
   Future<void> playBytes(Uint8List bytes, {required String id});
   Future<void> playUrl(Uri url, {required String id});
+
+  /// Continues the loaded clip from its current position (no second load).
+  Future<void> resume();
   Future<void> pause();
   Future<void> stop();
   Future<void> dispose();

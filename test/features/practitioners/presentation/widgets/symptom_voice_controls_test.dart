@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -5,6 +7,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -19,10 +22,13 @@ class _MockAppointmentsBloc
     extends MockBloc<AppointmentsEvent, AppointmentsState>
     implements AppointmentsBloc {}
 
+class _MockAnalyticsService extends Mock implements AnalyticsService {}
+
 void main() {
   late FakeAudioRecorderService recorder;
   late FakeRecordingCueService cues;
   late _MockAppointmentsBloc appointments;
+  late _MockAnalyticsService analytics;
   late TextEditingController symptoms;
   final l10n = lookupAppLocalizations(const Locale('en'));
 
@@ -33,6 +39,14 @@ void main() {
     recorder = FakeAudioRecorderService(recorded: fakeRecordedAudio());
     cues = FakeRecordingCueService();
     appointments = _MockAppointmentsBloc();
+    analytics = _MockAnalyticsService();
+    when(
+      () => analytics.logVoiceRecordingStarted(surface: any(named: 'surface')),
+    ).thenAnswer((_) async {});
+    when(
+      () =>
+          analytics.logVoiceRecordingDiscarded(surface: any(named: 'surface')),
+    ).thenAnswer((_) async {});
     whenListen(
       appointments,
       const Stream<AppointmentsState>.empty(),
@@ -43,9 +57,24 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(
-      SymptomsTranscribeRequested(uid: 'p1', audio: fakeRecordedAudio()),
+      SymptomsTranscribeRequested(
+        uid: 'p1',
+        audio: fakeRecordedAudio(),
+        requestId: 'r1',
+      ),
     );
   });
+
+  /// The mock bloc only records the event; the id comes back out for the
+  /// test to emit the matching result with.
+  Future<String> transcribeAndCaptureId(WidgetTester tester) async {
+    await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
+    await tester.pump();
+    final event =
+        verify(() => appointments.add(captureAny())).captured.single
+            as SymptomsTranscribeRequested;
+    return event.requestId;
+  }
 
   tearDown(() {
     symptoms.dispose();
@@ -70,6 +99,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          analytics: analytics,
           cues: cues,
           offline: offline,
           voiceInputEnabled: () => voiceInputEnabled,
@@ -101,11 +131,11 @@ void main() {
   testWidgets(
     'voiceUnavailable replaces buttons with the line and drops the clip',
     (tester) async {
+      final states = StreamController<AppointmentsState>();
+      addTearDown(states.close);
       whenListen(
         appointments,
-        Stream.fromIterable([
-          const SymptomsTranscribeFailure(error: AppError.voiceUnavailable),
-        ]),
+        states.stream,
         initialState: const AppointmentsInitial(),
       );
       await tester.pumpApp(
@@ -115,6 +145,7 @@ void main() {
             patientUid: 'p1',
             symptoms: symptoms,
             recorder: recorder,
+            analytics: analytics,
             cues: cues,
             voiceInputEnabled: () => true,
             preferences: SharedPreferences.getInstance,
@@ -122,6 +153,14 @@ void main() {
             onTranscriptionUid: (_) {},
             showAiNotice: (_) {},
           ),
+        ),
+      );
+      await tester.pump();
+      final requestId = await transcribeAndCaptureId(tester);
+      states.add(
+        SymptomsTranscribeFailure(
+          requestId: requestId,
+          error: AppError.voiceUnavailable,
         ),
       );
       await tester.pump();
@@ -136,11 +175,11 @@ void main() {
   testWidgets('offline failure keeps the record and transcribe buttons', (
     tester,
   ) async {
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
     whenListen(
       appointments,
-      Stream.fromIterable([
-        const SymptomsTranscribeFailure(error: AppError.noInternet),
-      ]),
+      states.stream,
       initialState: const AppointmentsInitial(),
     );
     await tester.pumpApp(
@@ -150,6 +189,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          analytics: analytics,
           cues: cues,
           voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
@@ -157,6 +197,14 @@ void main() {
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},
         ),
+      ),
+    );
+    await tester.pump();
+    final requestId = await transcribeAndCaptureId(tester);
+    states.add(
+      SymptomsTranscribeFailure(
+        requestId: requestId,
+        error: AppError.noInternet,
       ),
     );
     await tester.pump();
@@ -207,6 +255,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          analytics: analytics,
           cues: cues,
           voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
@@ -259,15 +308,11 @@ void main() {
   ) async {
     String? uid;
     var notice = false;
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
     whenListen(
       appointments,
-      Stream.fromIterable([
-        const SymptomsTranscribeSuccess(
-          transcript: 'Headache',
-          transcriptionUid: 't9',
-          detectedLanguage: 'en',
-        ),
-      ]),
+      states.stream,
       initialState: const AppointmentsInitial(),
     );
     await tester.pumpApp(
@@ -277,12 +322,24 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          analytics: analytics,
           cues: cues,
           voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
           onTranscriptionUid: (value) => uid = value,
           showAiNotice: (value) => notice = value,
         ),
+      ),
+    );
+    await tester.pump();
+    final requestId = await transcribeAndCaptureId(tester);
+    states.add(
+      SymptomsTranscribeSuccess(
+        requestId: requestId,
+        transcript: 'Headache',
+        transcriptionUid: 't9',
+        detectedLanguage: 'en',
       ),
     );
     await tester.pump();
@@ -296,15 +353,11 @@ void main() {
     tester,
   ) async {
     symptoms.text = 'Fever for two days';
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
     whenListen(
       appointments,
-      Stream.fromIterable([
-        const SymptomsTranscribeSuccess(
-          transcript: 'Also a dry cough',
-          transcriptionUid: 't2',
-          detectedLanguage: 'en',
-        ),
-      ]),
+      states.stream,
       initialState: const AppointmentsInitial(),
     );
     await tester.pumpApp(
@@ -314,12 +367,24 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          analytics: analytics,
           cues: cues,
           voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},
         ),
+      ),
+    );
+    await tester.pump();
+    final requestId = await transcribeAndCaptureId(tester);
+    states.add(
+      SymptomsTranscribeSuccess(
+        requestId: requestId,
+        transcript: 'Also a dry cough',
+        transcriptionUid: 't2',
+        detectedLanguage: 'en',
       ),
     );
     await tester.pump();
@@ -332,15 +397,11 @@ void main() {
     tester,
   ) async {
     final long = 'a' * 600;
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
     whenListen(
       appointments,
-      Stream.fromIterable([
-        SymptomsTranscribeSuccess(
-          transcript: long,
-          transcriptionUid: 't3',
-          detectedLanguage: 'en',
-        ),
-      ]),
+      states.stream,
       initialState: const AppointmentsInitial(),
     );
     await tester.pumpApp(
@@ -350,12 +411,24 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          analytics: analytics,
           cues: cues,
           voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},
         ),
+      ),
+    );
+    await tester.pump();
+    final requestId = await transcribeAndCaptureId(tester);
+    states.add(
+      SymptomsTranscribeSuccess(
+        requestId: requestId,
+        transcript: long,
+        transcriptionUid: 't3',
+        detectedLanguage: 'en',
       ),
     );
     await tester.pump();
@@ -408,5 +481,172 @@ void main() {
         expect(tester.takeException(), isNull);
       }
     }
+  });
+
+  testWidgets('a started take logs its surface', (tester) async {
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    verify(
+      () => analytics.logVoiceRecordingStarted(surface: 'symptom'),
+    ).called(1);
+    verifyNever(
+      () =>
+          analytics.logVoiceRecordingDiscarded(surface: any(named: 'surface')),
+    );
+  });
+
+  testWidgets('re-recording a pending take logs its discard', (tester) async {
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: SymptomVoiceControls(
+          patientUid: 'p1',
+          symptoms: symptoms,
+          recorder: recorder,
+          analytics: analytics,
+          cues: cues,
+          voiceInputEnabled: () => true,
+          preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
+          onTranscriptionUid: (_) {},
+          showAiNotice: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    verify(
+      () => analytics.logVoiceRecordingDiscarded(surface: 'symptom'),
+    ).called(1);
+    verify(
+      () => analytics.logVoiceRecordingStarted(surface: 'symptom'),
+    ).called(1);
+  });
+
+  testWidgets('a result fills only the form that issued its request', (
+    tester,
+  ) async {
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
+    whenListen(
+      appointments,
+      states.stream,
+      initialState: const AppointmentsInitial(),
+    );
+    final otherSymptoms = TextEditingController();
+    addTearDown(otherSymptoms.dispose);
+    Widget form(TextEditingController controller) => SymptomVoiceControls(
+      patientUid: 'p1',
+      symptoms: controller,
+      recorder: recorder,
+      analytics: analytics,
+      cues: cues,
+      voiceInputEnabled: () => true,
+      preferences: SharedPreferences.getInstance,
+      initialClip: fakeRecordedAudio(),
+      onTranscriptionUid: (_) {},
+      showAiNotice: (_) {},
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: Column(children: [form(symptoms), form(otherSymptoms)]),
+      ),
+    );
+    await tester.pump();
+
+    // The first form transcribes; the second never presses.
+    await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel).first);
+    await tester.pump();
+    final request =
+        verify(() => appointments.add(captureAny())).captured.single
+            as SymptomsTranscribeRequested;
+
+    // A foreign failure touches neither form.
+    states.add(
+      const SymptomsTranscribeFailure(
+        requestId: 'someone-else',
+        error: AppError.unknown,
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(l10n.symptomVoiceFailed), findsNothing);
+
+    // The first form's result fills only its field.
+    states.add(
+      SymptomsTranscribeSuccess(
+        requestId: request.requestId,
+        transcript: 'Headache',
+        transcriptionUid: 't9',
+        detectedLanguage: 'en',
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text, 'Headache');
+    expect(otherSymptoms.text, isEmpty);
+  });
+
+  testWidgets('a replayed result applies once', (tester) async {
+    final states = StreamController<AppointmentsState>();
+    addTearDown(states.close);
+    whenListen(
+      appointments,
+      states.stream,
+      initialState: const AppointmentsInitial(),
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: SymptomVoiceControls(
+          patientUid: 'p1',
+          symptoms: symptoms,
+          recorder: recorder,
+          analytics: analytics,
+          cues: cues,
+          voiceInputEnabled: () => true,
+          preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
+          onTranscriptionUid: (_) {},
+          showAiNotice: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    final requestId = await transcribeAndCaptureId(tester);
+    final result = SymptomsTranscribeSuccess(
+      requestId: requestId,
+      transcript: 'Headache',
+      transcriptionUid: 't9',
+      detectedLanguage: 'en',
+    );
+    states.add(result);
+    await tester.pump();
+    await tester.pump();
+    states.add(result);
+    await tester.pump();
+    await tester.pump();
+    expect(symptoms.text, 'Headache');
+  });
+
+  testWidgets('dispose during an unfinished start cancels the recorder', (
+    tester,
+  ) async {
+    recorder.startDelay = const Duration(milliseconds: 100);
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 10));
+    expect(recorder.startCount, 0);
+    // Leaving while the mic is still opening must close it.
+    await tester.pumpWidget(const SizedBox());
+    await tester.pump(const Duration(milliseconds: 150));
+    expect(recorder.cancelCount, 1);
+    expect(recorder.isRecording, isFalse);
   });
 }

@@ -36,4 +36,12 @@ void main() {
   test('delete is a no-op when the file is already gone', () async {
     await expectLater(store.delete('${root.path}/missing.m4a'), completes);
   });
+
+  test('clear removes every pending file under the support root', () async {
+    final path = await store.write(Uint8List.fromList([1, 2, 3]));
+    expect(File(path).existsSync(), isTrue);
+    await store.clear();
+    expect(File(path).existsSync(), isFalse);
+    expect(Directory('${root.path}/voice_pending').existsSync(), isFalse);
+  });
 }

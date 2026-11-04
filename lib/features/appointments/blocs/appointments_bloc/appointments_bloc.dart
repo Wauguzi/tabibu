@@ -218,6 +218,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     if (!await _internet.check()) {
       emit(
         SymptomsTranscribeFailure(
+          requestId: event.requestId,
           error: AppError.noInternet,
           appointments: state.appointments,
           offline: true,
@@ -227,6 +228,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     }
     emit(
       SymptomsTranscribeInProgress(
+        requestId: event.requestId,
         appointments: state.appointments,
         offline: state.offline,
       ),
@@ -243,6 +245,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
       if (transcript.isEmpty || result.transcriptionUid.isEmpty) {
         emit(
           SymptomsTranscribeFailure(
+            requestId: event.requestId,
             error: AppError.unknown,
             appointments: state.appointments,
             offline: state.offline,
@@ -263,6 +266,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
       );
       emit(
         SymptomsTranscribeSuccess(
+          requestId: event.requestId,
           transcript: transcript,
           transcriptionUid: result.transcriptionUid,
           detectedLanguage: result.detectedLanguage,
@@ -273,6 +277,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     } on Object catch (e) {
       emit(
         SymptomsTranscribeFailure(
+          requestId: event.requestId,
           error: _toAppError(e),
           appointments: state.appointments,
           offline: state.offline,
