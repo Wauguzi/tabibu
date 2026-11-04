@@ -106,6 +106,13 @@ class OrderDraft extends Equatable {
         }
       : {'method': 'Cash'};
 
+  /// Anything of one patient's would be wrong on another's order.
+  bool get hasContent =>
+      testIds.isNotEmpty ||
+      specimen.trim().isNotEmpty ||
+      clinicalNotes.trim().isNotEmpty ||
+      pathologistUid.isNotEmpty;
+
   OrderDraft copyWith({
     List<String>? testIds,
     Urgency? priority,

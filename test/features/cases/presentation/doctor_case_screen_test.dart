@@ -255,9 +255,9 @@ void main() {
             ),
           ),
           GoRoute(
-            path: '/doctor/appointment/:appointmentUid/order',
+            path: '/doctor/order',
             builder: (_, state) => Text(
-              'stub order ${state.pathParameters['appointmentUid']} '
+              'stub order ${state.uri.queryParameters['appointment-uid']} '
               '${state.uri.queryParameters['case-uid']}',
             ),
           ),
@@ -313,9 +313,9 @@ void main() {
                 ),
               ),
               GoRoute(
-                path: '/doctor/appointment/:appointmentUid/order',
+                path: '/doctor/order',
                 builder: (_, state) => Text(
-                  'stub order ${state.pathParameters['appointmentUid']} '
+                  'stub order ${state.uri.queryParameters['appointment-uid']} '
                   '${state.uri.queryParameters['case-uid']}',
                 ),
               ),

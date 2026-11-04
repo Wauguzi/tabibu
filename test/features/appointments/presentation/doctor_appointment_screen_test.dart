@@ -186,17 +186,6 @@ void main() {
                 ),
                 routes: [
                   GoRoute(
-                    path: 'order',
-                    builder: (_, state) => Scaffold(
-                      body: Column(
-                        children: [
-                          const Text('order-stub'),
-                          Text('case ${state.uri.queryParameters['case-uid']}'),
-                        ],
-                      ),
-                    ),
-                  ),
-                  GoRoute(
                     path: 'chat',
                     builder: (_, _) => const Scaffold(body: Text('chat-stub')),
                   ),
@@ -207,6 +196,20 @@ void main() {
           GoRoute(
             path: '/doctor/calendar',
             builder: (_, _) => const Scaffold(body: Text('calendar-stub')),
+          ),
+          GoRoute(
+            path: '/doctor/order',
+            builder: (_, state) => Scaffold(
+              body: Column(
+                children: [
+                  const Text('order-stub'),
+                  Text(
+                    'visit ${state.uri.queryParameters['appointment-uid']} '
+                    'case ${state.uri.queryParameters['case-uid']}',
+                  ),
+                ],
+              ),
+            ),
           ),
         ],
       );
@@ -581,7 +584,7 @@ void main() {
         await tester.pumpAndSettle();
 
         expect(find.text('order-stub'), findsOneWidget);
-        expect(find.text('case case-1'), findsOneWidget);
+        expect(find.text('visit a1 case case-1'), findsOneWidget);
       });
 
       testWidgets('a refused case at this visit reopens the order', (
@@ -613,7 +616,7 @@ void main() {
             await tester.pumpAndSettle();
 
             expect(find.text('order-stub'), findsOneWidget);
-            expect(find.text('case case-1'), findsOneWidget);
+            expect(find.text('visit a1 case case-1'), findsOneWidget);
           }
         }
       });

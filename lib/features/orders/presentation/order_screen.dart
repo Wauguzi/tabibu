@@ -9,6 +9,7 @@ import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
+import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
@@ -16,21 +17,20 @@ import 'package:tabibu/features/orders/blocs/order_bloc/order_bloc.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_event.dart';
 import 'package:tabibu/features/orders/blocs/order_bloc/order_state.dart';
 import 'package:tabibu/features/orders/presentation/widgets/order_details_step.dart';
+import 'package:tabibu/features/orders/presentation/widgets/order_patient_step.dart';
 import 'package:tabibu/features/orders/presentation/widgets/order_send_step.dart';
 import 'package:tabibu/features/orders/presentation/widgets/order_tests_step.dart';
+import 'package:tabibu/features/reports/presentation/widgets/settled_sheet.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 /// D-ORDER-CATALOGUE to D-ORDER-PATHOLOGIST (F-12): tests, details, then the
 /// risk check and the pathologist. Once the case is created the first two
 /// steps are closed: back from the last step leaves the wizard, and the
-/// draft waits in [OrderBloc] for the doctor to come back to it.
+/// draft waits in [OrderBloc] for the doctor to come back to it. Opened
+/// with no appointment (the home "+"), a Patient step comes first.
 class OrderScreen extends StatefulWidget {
-  const OrderScreen({
-    required this.appointmentUid,
-    this.caseUid = '',
-    super.key,
-  });
+  const OrderScreen({this.appointmentUid = '', this.caseUid = '', super.key});
 
   final String appointmentUid;
   final String caseUid;
@@ -40,9 +40,24 @@ class OrderScreen extends StatefulWidget {
 }
 
 class _OrderScreenState extends State<OrderScreen> {
-  static const _total = 3;
   int _step = 0;
   bool _started = false;
+  String _chosenUid = '';
+
+  /// The "+" path: no visit fixed, so the wizard starts at Patient.
+  bool get _pickPatient =>
+      widget.appointmentUid.isEmpty && widget.caseUid.isEmpty;
+
+  int get _total => _pickPatient ? 4 : 3;
+
+  /// The visit the draft hangs off: the route's, or the picked patient's.
+  String get _effectiveUid =>
+      widget.appointmentUid.isEmpty ? _chosenUid : widget.appointmentUid;
+
+  String get _doctorUid => switch (context.read<AuthBloc>().state.session) {
+    PractitionerSession(:final doctor) => doctor.uid,
+    _ => '',
+  };
 
   @override
   void initState() {
@@ -54,20 +69,17 @@ class _OrderScreenState extends State<OrderScreen> {
   /// case already exists opens on its last step.
   void _start() {
     if (_started) return;
-    final doctorUid = switch (context.read<AuthBloc>().state.session) {
-      PractitionerSession(:final doctor) => doctor.uid,
-      _ => '',
-    };
+    final doctorUid = _doctorUid;
     final appointment = context
         .read<AppointmentsBloc>()
         .state
         .appointments
-        .firstWhereOrNull((a) => a.uid == widget.appointmentUid);
+        .firstWhereOrNull((a) => a.uid == _effectiveUid);
     if (appointment == null || doctorUid.isEmpty) return;
     _started = true;
     final order = context.read<OrderBloc>();
     if (widget.caseUid.isNotEmpty ||
-        (order.state.draft.appointmentUid == widget.appointmentUid &&
+        (order.state.draft.appointmentUid == _effectiveUid &&
             order.state.draft.created)) {
       _step = _total - 1;
     }
@@ -91,6 +103,46 @@ class _OrderScreenState extends State<OrderScreen> {
         declinedPathologistUids: declined,
       ),
     );
+  }
+
+  /// A patient picked on the first step: the same visit just advances;
+  /// another visit restarts, confirming first when the draft has content.
+  Future<void> _choose(AppointmentModel appointment) async {
+    final order = context.read<OrderBloc>();
+    if (order.state.draft.appointmentUid == appointment.uid) {
+      setState(() {
+        _chosenUid = appointment.uid;
+        _step = order.state.draft.created ? _total - 1 : 1;
+      });
+      return;
+    }
+    if (order.state.draft.hasContent) {
+      final l10n = context.l10n;
+      final confirmed = await showSettledSheet<bool>(
+        context,
+        title: l10n.orderPatientChangeTitle(appointment.patientName),
+        subtitle: l10n.orderPatientChangeBody,
+        cancelLabel: l10n.commonCancel,
+        builder: (sheet) => TabibuButton.primary(
+          label: l10n.orderPatientChangeConfirm,
+          onTap: () => Navigator.of(sheet).pop(true),
+        ),
+      );
+      if (confirmed != true || !mounted) return;
+    }
+    _started = true;
+    order.add(
+      OrderStarted(
+        appointmentUid: appointment.uid,
+        patientId: appointment.patientId,
+        patientName: appointment.patientName,
+        doctorUid: _doctorUid,
+      ),
+    );
+    setState(() {
+      _chosenUid = appointment.uid;
+      _step = 1;
+    });
   }
 
   void _back() {
@@ -133,11 +185,11 @@ class _OrderScreenState extends State<OrderScreen> {
       listener: (_, _) => _start(),
       child: BlocConsumer<OrderBloc, OrderState>(
         listenWhen: (previous, current) =>
-            current.draft.appointmentUid == widget.appointmentUid &&
+            current.draft.appointmentUid == _effectiveUid &&
             previous.runtimeType != current.runtimeType,
         listener: _onState,
         builder: (context, state) {
-          final mine = state.draft.appointmentUid == widget.appointmentUid;
+          final mine = state.draft.appointmentUid == _effectiveUid;
           final loading =
               !mine || state is OrderInitial || state is OrderLoadInProgress;
           return PopScope(
@@ -174,9 +226,20 @@ class _OrderScreenState extends State<OrderScreen> {
                         ),
                       ),
                       Expanded(
-                        child: loading
+                        child: _pickPatient && _step == 0
+                            ? OrderPatientStep(
+                                appointments: context
+                                    .watch<AppointmentsBloc>()
+                                    .state
+                                    .appointments,
+                                doctorUid: _doctorUid,
+                                now: DateTime.now(),
+                                selectedAppointmentUid: _effectiveUid,
+                                onPick: (a) => unawaited(_choose(a)),
+                              )
+                            : loading
                             ? _waiting(context)
-                            : switch (_step) {
+                            : switch (_pickPatient ? _step - 1 : _step) {
                                 0 => OrderTestsStep(
                                   state: state,
                                   onNext: _next,
@@ -203,7 +266,7 @@ class _OrderScreenState extends State<OrderScreen> {
     final appointments = context.watch<AppointmentsBloc>().state;
     final missing =
         appointments is AppointmentsLoadSuccess &&
-        appointments.appointments.none((a) => a.uid == widget.appointmentUid);
+        appointments.appointments.none((a) => a.uid == _effectiveUid);
     if (missing) {
       return Padding(
         padding: const EdgeInsets.all(AppSpacing.screenMargin),

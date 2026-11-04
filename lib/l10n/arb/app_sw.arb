@@ -1735,5 +1735,12 @@
     "signedCaseVersionAddendum": "Kiambatisho · {date}",
     "signedCaseAddendumEntry": "Kiambatisho · {date}",
     "workspaceAmendmentReason": "Sababu ya urekebishaji",
-    "workspaceAddendumText": "Kiambatisho"
+    "workspaceAddendumText": "Kiambatisho",
+    "orderPatientTitle": "Chagua mgonjwa",
+    "orderPatientSearchHint": "Tafuta wagonjwa",
+    "orderPatientEmptyTitle": "Hakuna wagonjwa wa kuagizia vipimo bado.",
+    "orderPatientEmptyBody": "Kipimo kinaagizwa kutoka kwenye miadi iliyokubaliwa au iliyokamilika.",
+    "orderPatientChangeTitle": "Kuagizia {name} badala yake?",
+    "orderPatientChangeBody": "Hii itafuta vipimo, maelezo na mtaalamu walioteuliwa tayari.",
+    "orderPatientChangeConfirm": "Futa na uendelee"
 }

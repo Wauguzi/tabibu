@@ -1022,12 +1022,11 @@ class DoctorHelpRoute extends GoRouteData with $DoctorHelpRoute {
 }
 
 /// D-ORDER-CATALOGUE to D-ORDER-PATHOLOGIST.
-@TypedGoRoute<OrderRoute>(
-  path: '${RoutePaths.doctor}/appointment/:appointmentUid/order',
-)
+@TypedGoRoute<OrderRoute>(path: '${RoutePaths.doctor}/order')
 class OrderRoute extends GoRouteData with $OrderRoute {
-  const OrderRoute({required this.appointmentUid, this.caseUid = ''});
+  const OrderRoute({this.appointmentUid = '', this.caseUid = ''});
 
+  /// Empty when the wizard opens on the Patient step (the home "+").
   final String appointmentUid;
 
   /// Reopens an order already created, on its pathologist step.

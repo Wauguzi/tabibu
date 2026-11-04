@@ -5,6 +5,8 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
+import 'package:intl/date_symbol_data_local.dart';
+import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
@@ -88,10 +90,13 @@ OrderDraft _draft({
   bool created = false,
   String pathologistUid = '',
   bool protocolConfirmed = false,
+  String appointmentUid = 'appt-1',
+  String patientId = 'pat-1',
+  String patientName = 'Amina Wambui',
 }) => OrderDraft(
-  appointmentUid: 'appt-1',
-  patientId: 'pat-1',
-  patientName: 'Amina Wambui',
+  appointmentUid: appointmentUid,
+  patientId: patientId,
+  patientName: patientName,
   doctorUid: 'doc-1',
   caseUid: 'case-1',
   testIds: testIds,
@@ -126,11 +131,30 @@ void _useTextScale(WidgetTester tester, double scale) {
   addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
 }
 
+AppointmentModel _visit({
+  required String uid,
+  required String patientId,
+  required String patientName,
+  String status = 'Accepted',
+  String doctorUid = 'doc-1',
+  String start = '',
+  String end = '',
+}) => AppointmentModel(
+  uid: uid,
+  status: status,
+  patientId: patientId,
+  patientName: patientName,
+  doctorUid: doctorUid,
+  scheduledStart: start,
+  scheduledEnd: end,
+);
+
 void main() {
-  setUpAll(() {
+  setUpAll(() async {
     registerFallbackValue(const OrderReset());
     registerFallbackValue(const SlideUploadReset());
     registerFallbackValue(const CasesRefreshed(uid: '', role: .doctor));
+    await initializeDateFormatting('sw');
   });
 
   group('OrderScreen', () {
@@ -169,6 +193,7 @@ void main() {
 
     Future<void> pumpScreen(
       WidgetTester tester, {
+      String appointmentUid = 'appt-1',
       String caseUid = '',
       Locale? locale,
     }) async {
@@ -176,7 +201,9 @@ void main() {
       tester.view.devicePixelRatio = 3;
       addTearDown(tester.view.reset);
       await tester.pumpApp(
-        providers(OrderScreen(appointmentUid: 'appt-1', caseUid: caseUid)),
+        providers(
+          OrderScreen(appointmentUid: appointmentUid, caseUid: caseUid),
+        ),
         locale: locale,
       );
       await tester.pump();
@@ -238,6 +265,356 @@ void main() {
 
       expect(find.text(_en.orderAppointmentMissing), findsOneWidget);
       verifyNever(() => blocs.order.add(any()));
+    });
+
+    group('patient step', () {
+      void visits(List<AppointmentModel> list) {
+        when(
+          () => blocs.appointments.state,
+        ).thenReturn(AppointmentsLoadSuccess(appointments: list));
+      }
+
+      List<AppointmentModel> mixed() => [
+        _visit(
+          uid: 'a-accepted',
+          patientId: 'pat-1',
+          patientName: 'Amina Wambui',
+          start: '2030-06-01T09:00:00Z',
+        ),
+        _visit(
+          uid: 'a-done',
+          status: 'Completed',
+          patientId: 'pat-2',
+          patientName: 'Brian Otieno',
+          start: '2030-05-01T09:00:00Z',
+        ),
+        _visit(
+          uid: 'a-asked',
+          status: 'Requested',
+          patientId: 'pat-3',
+          patientName: 'Cynthia Njeri',
+        ),
+        _visit(
+          uid: 'a-no',
+          status: 'Declined',
+          patientId: 'pat-4',
+          patientName: 'David Kamau',
+        ),
+        _visit(
+          uid: 'a-gone',
+          status: 'Cancelled',
+          patientId: 'pat-5',
+          patientName: 'Faith Achieng',
+        ),
+        _visit(
+          uid: 'a-theirs',
+          patientId: 'pat-6',
+          patientName: 'Edith Wanjiru',
+          doctorUid: 'doc-9',
+        ),
+      ];
+
+      testWidgets('lists only orderable patients of this doctor', (
+        tester,
+      ) async {
+        order(const OrderInitial());
+        visits(mixed());
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            await pumpScreen(tester, appointmentUid: '', locale: locale);
+
+            expect(find.text(l10n.orderPatientTitle), findsOneWidget);
+            expect(find.text('Amina Wambui'), findsOneWidget);
+            expect(find.text('Brian Otieno'), findsOneWidget);
+            expect(find.text('Cynthia Njeri'), findsNothing);
+            expect(find.text('David Kamau'), findsNothing);
+            expect(find.text('Faith Achieng'), findsNothing);
+            expect(find.text('Edith Wanjiru'), findsNothing);
+          }
+        }
+      });
+
+      testWidgets('each row hangs off the right visit', (tester) async {
+        order(const OrderInitial());
+        visits([
+          _visit(
+            uid: 'a-old',
+            status: 'Completed',
+            patientId: 'pat-1',
+            patientName: 'Amina Wambui',
+            start: '2020-01-01T09:00:00Z',
+          ),
+          _visit(
+            uid: 'a-now',
+            patientId: 'pat-1',
+            patientName: 'Amina Wambui',
+            start: '2020-06-01T09:00:00Z',
+            end: '2030-06-01T09:00:00Z',
+          ),
+          _visit(
+            uid: 'a-later',
+            patientId: 'pat-1',
+            patientName: 'Amina Wambui',
+            start: '2025-01-01T09:00:00Z',
+          ),
+          _visit(
+            uid: 'b-old',
+            status: 'Completed',
+            patientId: 'pat-2',
+            patientName: 'Brian Otieno',
+            start: '2020-01-01T09:00:00Z',
+          ),
+          _visit(
+            uid: 'b-latest',
+            status: 'Completed',
+            patientId: 'pat-2',
+            patientName: 'Brian Otieno',
+            start: '2021-03-04T09:00:00Z',
+          ),
+        ]);
+        await pumpScreen(tester, appointmentUid: '');
+
+        // One row per patient, on the latest visit date.
+        expect(find.text('Amina Wambui'), findsOneWidget);
+        expect(find.text('Brian Otieno'), findsOneWidget);
+        expect(
+          find.text(
+            DateFormat(
+              'EEE d MMM',
+              'en',
+            ).format(DateTime.parse('2021-03-04T09:00:00Z')),
+          ),
+          findsOneWidget,
+        );
+
+        // The visit under way wins over the later one.
+        await tester.tap(find.text('Amina Wambui'));
+        await tester.pump();
+        final picked =
+            verify(() => blocs.order.add(captureAny())).captured.single
+                as OrderStarted;
+        expect(picked.appointmentUid, 'a-now');
+        expect(picked.patientId, 'pat-1');
+        expect(picked.patientName, 'Amina Wambui');
+        expect(picked.doctorUid, 'doc-1');
+      });
+
+      testWidgets('search filters the rows', (tester) async {
+        order(const OrderInitial());
+        visits(mixed());
+        await pumpScreen(tester, appointmentUid: '');
+
+        await tester.enterText(find.byType(TextField), 'brian');
+        await tester.pump();
+
+        expect(find.text('Brian Otieno'), findsOneWidget);
+        expect(find.text('Amina Wambui'), findsNothing);
+      });
+
+      testWidgets('picking moves to the tests as step 2 of 4', (tester) async {
+        final semantics = tester.ensureSemantics();
+        final editing = _editing(_draft(appointmentUid: 'a-accepted'));
+        order(const OrderInitial(), [editing]);
+        visits(mixed());
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            // Unmount first: taps move the wizard's step.
+            await tester.pumpWidget(const SizedBox());
+            await pumpScreen(tester, appointmentUid: '', locale: locale);
+
+            expect(
+              find.bySemanticsLabel(l10n.orderStepProgress(1, 4)),
+              findsOneWidget,
+            );
+            await tester.tap(find.text('Amina Wambui'));
+            await tester.pump();
+
+            expect(
+              find.bySemanticsLabel(l10n.orderStepProgress(2, 4)),
+              findsOneWidget,
+            );
+            expect(find.text(l10n.orderTestsTitle), findsOneWidget);
+            expect(find.text(l10n.orderPatientTitle), findsNothing);
+          }
+        }
+        semantics.dispose();
+      });
+
+      testWidgets('no visits shows the empty state, not a crash', (
+        tester,
+      ) async {
+        order(const OrderInitial());
+        visits([]);
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            await pumpScreen(tester, appointmentUid: '', locale: locale);
+
+            expect(find.text(l10n.orderPatientEmptyTitle), findsOneWidget);
+            expect(find.text(l10n.orderPatientEmptyBody), findsOneWidget);
+          }
+        }
+      });
+
+      testWidgets('opened from a visit skips the patient step', (tester) async {
+        final semantics = tester.ensureSemantics();
+        order(_editing(_draft()));
+        visits(mixed());
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            await pumpScreen(tester, locale: locale);
+
+            expect(
+              find.bySemanticsLabel(l10n.orderStepProgress(1, 3)),
+              findsOneWidget,
+            );
+            expect(find.text(l10n.orderTestsTitle), findsOneWidget);
+            expect(find.text(l10n.orderPatientTitle), findsNothing);
+          }
+        }
+        semantics.dispose();
+      });
+
+      testWidgets('switching patients with content confirms first', (
+        tester,
+      ) async {
+        order(_editing(_draft(testIds: ['t1'], appointmentUid: 'a-accepted')));
+        visits(mixed());
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            // Unmount first: taps move the wizard's step.
+            await tester.pumpWidget(const SizedBox());
+            await pumpScreen(tester, appointmentUid: '', locale: locale);
+
+            await tester.tap(find.text('Brian Otieno'));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 600));
+
+            expect(
+              find.text(l10n.orderPatientChangeTitle('Brian Otieno')),
+              findsOneWidget,
+            );
+            await tester.tap(find.text(l10n.orderPatientChangeConfirm));
+            await tester.pump();
+            await tester.pump(const Duration(milliseconds: 600));
+
+            final picked =
+                verify(() => blocs.order.add(captureAny())).captured.last
+                    as OrderStarted;
+            expect(picked.appointmentUid, 'a-done');
+            expect(picked.patientId, 'pat-2');
+          }
+        }
+      });
+
+      testWidgets('cancelling the switch stays on the patient', (tester) async {
+        order(_editing(_draft(testIds: ['t1'], appointmentUid: 'a-accepted')));
+        visits(mixed());
+        await pumpScreen(tester, appointmentUid: '');
+
+        await tester.tap(find.text('Brian Otieno'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+        await tester.tap(find.text(_en.commonCancel));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 600));
+
+        verifyNever(() => blocs.order.add(any()));
+        expect(find.text(_en.orderPatientTitle), findsOneWidget);
+      });
+
+      testWidgets('switching patients without content asks nothing', (
+        tester,
+      ) async {
+        order(_editing(_draft(appointmentUid: 'a-accepted')));
+        visits(mixed());
+        await pumpScreen(tester, appointmentUid: '');
+
+        await tester.tap(find.text('Brian Otieno'));
+        await tester.pump();
+
+        expect(find.text(_en.orderPatientChangeBody), findsNothing);
+        final picked =
+            verify(() => blocs.order.add(captureAny())).captured.single
+                as OrderStarted;
+        expect(picked.appointmentUid, 'a-done');
+      });
+
+      testWidgets('back from the patient step leaves the wizard', (
+        tester,
+      ) async {
+        order(const OrderInitial());
+        visits(mixed());
+        final router = GoRouter(
+          initialLocation: '/',
+          routes: [
+            GoRoute(path: '/', builder: (_, _) => const Text('home-stub')),
+            GoRoute(
+              path: '/doctor/order',
+              builder: (_, _) => providers(const OrderScreen()),
+            ),
+          ],
+        );
+        addTearDown(router.dispose);
+        await tester.pumpRouterApp(router);
+        unawaited(router.push('/doctor/order'));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.text(_en.orderPatientTitle), findsOneWidget);
+        await tester.binding.handlePopRoute();
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.text('home-stub'), findsOneWidget);
+      });
+
+      testWidgets('a refused create shows the plain line', (tester) async {
+        for (final error in [AppError.notInCare, AppError.invalidAppointment]) {
+          final failed = OrderWriteFailure(
+            error: error,
+            draft: _draft(testIds: ['t1']),
+          );
+          order(_editing(_draft(testIds: ['t1'])), [failed]);
+          await tester.pumpWidget(const SizedBox());
+          await pumpScreen(tester);
+          await tester.pump(const Duration(milliseconds: 400));
+
+          expect(find.text(error.description(_en)), findsOneWidget);
+          await tester.pump(const Duration(seconds: 5));
+        }
+      });
+
+      testWidgets('the same visit just advances', (tester) async {
+        final semantics = tester.ensureSemantics();
+        order(_editing(_draft(testIds: ['t1'], appointmentUid: 'a-accepted')));
+        visits(mixed());
+        await pumpScreen(tester, appointmentUid: '');
+
+        await tester.tap(find.text('Amina Wambui'));
+        await tester.pump();
+
+        verifyNever(() => blocs.order.add(any()));
+        expect(
+          find.bySemanticsLabel(_en.orderStepProgress(2, 4)),
+          findsOneWidget,
+        );
+        semantics.dispose();
+      });
     });
 
     group('tests step', () {
@@ -736,12 +1113,16 @@ void main() {
         ),
       ]);
       final router = GoRouter(
-        initialLocation: '/doctor/appointment/appt-1/order',
+        initialLocation: '/doctor/order?appointment-uid=appt-1',
         routes: [
           GoRoute(
-            path: '/doctor/appointment/:a/order',
-            builder: (_, _) =>
-                providers(const OrderScreen(appointmentUid: 'appt-1')),
+            path: '/doctor/order',
+            builder: (_, state) => providers(
+              OrderScreen(
+                appointmentUid:
+                    state.uri.queryParameters['appointment-uid'] ?? '',
+              ),
+            ),
           ),
           GoRoute(
             path: '/doctor/case/:caseUid/sent',

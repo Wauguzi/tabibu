@@ -189,6 +189,48 @@ void main() {
       await bloc.close();
     });
 
+    test(
+      'choosing another patient clears notes, specimen, pathologist',
+      () async {
+        final bloc = await ready()
+          ..add(
+            const OrderDetailsChanged(
+              specimen: 'Bone marrow',
+              clinicalNotes: 'Fever for a week',
+            ),
+          )
+          ..add(const OrderPathologistSelected(pathologistUid: 'path-a'));
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<OrderEditing>().having(
+              (s) => s.draft.pathologistUid,
+              'pathologist',
+              'path-a',
+            ),
+          ),
+        );
+
+        bloc.add(
+          const OrderStarted(
+            appointmentUid: 'appt-2',
+            patientId: 'pat-2',
+            patientName: 'Mary Njeri',
+            doctorUid: 'doc-1',
+          ),
+        );
+        final next = await bloc.stream.firstWhere((s) => s is OrderEditing);
+
+        expect(next.draft.appointmentUid, 'appt-2');
+        expect(next.draft.patientId, 'pat-2');
+        expect(next.draft.testIds, isEmpty);
+        expect(next.draft.specimen, isEmpty);
+        expect(next.draft.clinicalNotes, isEmpty);
+        expect(next.draft.pathologistUid, isEmpty);
+        await bloc.close();
+      },
+    );
+
     test('a case uid reopens that order on its risk check', () async {
       when(
         () => cases.fetchRiskCheck('case-9'),
@@ -411,6 +453,52 @@ void main() {
       await bloc.close();
     });
 
+    test('a refused create keeps the draft and names the refusal', () async {
+      for (final error in [AppError.notInCare, AppError.invalidAppointment]) {
+        when(
+          () => cases.createOrder(
+            caseUid: any(named: 'caseUid'),
+            appointmentUid: any(named: 'appointmentUid'),
+            patientId: any(named: 'patientId'),
+            labTestIds: any(named: 'labTestIds'),
+            priority: any(named: 'priority'),
+            sampleCollectedAt: any(named: 'sampleCollectedAt'),
+            payment: any(named: 'payment'),
+            clinicalNotes: any(named: 'clinicalNotes'),
+            sampleNotes: any(named: 'sampleNotes'),
+          ),
+        ).thenThrow(error);
+        final bloc = await ready()
+          ..add(
+            const OrderDetailsChanged(
+              specimen: 'Bone marrow',
+              clinicalNotes: 'Fever for a week',
+            ),
+          );
+        await expectLater(
+          bloc.stream,
+          emitsThrough(
+            isA<OrderEditing>().having(
+              (s) => s.draft.specimen,
+              'specimen',
+              'Bone marrow',
+            ),
+          ),
+        );
+        bloc.add(const OrderCreateRequested());
+        final failed =
+            await bloc.stream.firstWhere((s) => s is OrderWriteFailure)
+                as OrderWriteFailure;
+
+        expect(failed.error, error);
+        expect(failed.draft.testIds, ['t1']);
+        expect(failed.draft.specimen, 'Bone marrow');
+        expect(failed.draft.clinicalNotes, 'Fever for a week');
+        expect(failed.draft.created, isFalse);
+        await bloc.close();
+      }
+    });
+
     test('gives up waiting after the poll window, and may send', () async {
       when(
         () => cases.fetchRiskCheck(any()),
@@ -536,6 +624,29 @@ void main() {
     expect(bloc.state, isA<OrderInitial>());
     expect(calls, greaterThan(0));
     await bloc.close();
+  });
+
+  group('OrderDraft.hasContent', () {
+    test('empty except identity and case', () {
+      expect(
+        const OrderDraft(
+          appointmentUid: 'appt-1',
+          patientId: 'pat-1',
+          patientName: 'Amina Wambui',
+          doctorUid: 'doc-1',
+          caseUid: 'case-1',
+        ).hasContent,
+        isFalse,
+      );
+    });
+
+    test('tests, specimen, notes or pathologist count', () {
+      expect(const OrderDraft(testIds: ['t1']).hasContent, isTrue);
+      expect(const OrderDraft(specimen: 'x').hasContent, isTrue);
+      expect(const OrderDraft(clinicalNotes: 'x').hasContent, isTrue);
+      expect(const OrderDraft(pathologistUid: 'p').hasContent, isTrue);
+      expect(const OrderDraft(specimen: '  ').hasContent, isFalse);
+    });
   });
 
   group('OrderDraft.issues', () {

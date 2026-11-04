@@ -193,9 +193,10 @@ void main() {
             ),
           ),
           GoRoute(
-            path: '/doctor/appointment/:appointmentUid/order',
-            builder: (_, state) =>
-                Text('stub order ${state.pathParameters['appointmentUid']}'),
+            path: '/doctor/order',
+            builder: (_, state) => Text(
+              'stub order [${state.uri.queryParameters['appointment-uid']}]',
+            ),
           ),
           GoRoute(
             path: '/doctor/alert/:alertUid',
@@ -327,9 +328,7 @@ void main() {
       expect(find.byType(SheetIllustration), findsOneWidget);
     });
 
-    testWidgets('the plus orders a test for the visit under way', (
-      tester,
-    ) async {
+    testWidgets('the plus opens the order with no visit fixed', (tester) async {
       if (!_dayHasRoom()) return;
       _useTallSurface(tester);
       final base = _base();
@@ -339,7 +338,7 @@ void main() {
       await tester.tap(find.byType(Fab));
       await tester.pumpAndSettle();
 
-      expect(find.text('stub order a-now'), findsOneWidget);
+      expect(find.text('stub order [null]'), findsOneWidget);
     });
 
     testWidgets('the plus is a fifth smaller than the usual button', (
@@ -365,12 +364,18 @@ void main() {
       expect(screen.height - fab.bottom, greaterThanOrEqualTo(96));
     });
 
-    testWidgets('no plus when there is no visit to order for', (tester) async {
+    testWidgets('the plus shows with no visits and opens the order', (
+      tester,
+    ) async {
       _useTallSurface(tester);
       stub();
       await pumpScreen(tester);
 
-      expect(find.byType(Fab), findsNothing);
+      expect(find.byType(Fab), findsOneWidget);
+      await tester.tap(find.byType(Fab));
+      await tester.pumpAndSettle();
+
+      expect(find.text('stub order [null]'), findsOneWidget);
     });
 
     testWidgets('the now card names the appointment under way', (tester) async {
@@ -718,6 +723,7 @@ void main() {
       stub();
       await pumpScreen(tester);
 
+      expect(find.byType(Fab), findsOneWidget);
       expect(find.byType(EmptyState), findsOneWidget);
       expect(find.text('No appointments yet'), findsOneWidget);
       expect(
@@ -729,7 +735,6 @@ void main() {
       );
       expect(find.byType(TwoToneHeadline), findsNothing);
       expect(find.byType(ShortcutTile), findsNothing);
-      expect(find.byType(Fab), findsNothing);
       expect(find.text('Hi, Dr. Kamau'), findsOneWidget);
     });
 

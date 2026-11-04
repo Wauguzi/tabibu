@@ -2110,14 +2110,14 @@ mixin $DoctorHelpRoute on GoRouteData {
 }
 
 RouteBase get $orderRoute => GoRouteData.$route(
-  path: '/doctor/appointment/:appointmentUid/order',
+  path: '/doctor/order',
   hasOverriddenOnExit: false,
   factory: $OrderRoute._fromState,
 );
 
 mixin $OrderRoute on GoRouteData {
   static OrderRoute _fromState(GoRouterState state) => OrderRoute(
-    appointmentUid: state.pathParameters['appointmentUid']!,
+    appointmentUid: state.uri.queryParameters['appointment-uid'] ?? '',
     caseUid: state.uri.queryParameters['case-uid'] ?? '',
   );
 
@@ -2125,8 +2125,11 @@ mixin $OrderRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location(
-    '/doctor/appointment/${Uri.encodeComponent(_self.appointmentUid)}/order',
-    queryParams: {if (_self.caseUid != '') 'case-uid': _self.caseUid},
+    '/doctor/order',
+    queryParams: {
+      if (_self.appointmentUid != '') 'appointment-uid': _self.appointmentUid,
+      if (_self.caseUid != '') 'case-uid': _self.caseUid,
+    },
   );
 
   @override

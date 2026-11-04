@@ -8277,5 +8277,38 @@
     "workspaceAddendumText": "Addendum",
     "@workspaceAddendumText": {
         "description": "Pathologist workspace: addendum text field on an Addendum draft"
+    },
+    "orderPatientTitle": "Choose a patient",
+    "@orderPatientTitle": {
+        "description": "Order wizard patient step: title"
+    },
+    "orderPatientSearchHint": "Search patients",
+    "@orderPatientSearchHint": {
+        "description": "Order wizard patient step: search field hint"
+    },
+    "orderPatientEmptyTitle": "No patients to order for yet.",
+    "@orderPatientEmptyTitle": {
+        "description": "Order wizard patient step: empty state title"
+    },
+    "orderPatientEmptyBody": "A test is ordered from an accepted or finished visit.",
+    "@orderPatientEmptyBody": {
+        "description": "Order wizard patient step: empty state body"
+    },
+    "orderPatientChangeTitle": "Order for {name} instead?",
+    "@orderPatientChangeTitle": {
+        "description": "Order wizard: confirm switching patients after the draft has content",
+        "placeholders": {
+            "name": {
+                "type": "String"
+            }
+        }
+    },
+    "orderPatientChangeBody": "This clears the tests, notes and pathologist already chosen.",
+    "@orderPatientChangeBody": {
+        "description": "Order wizard: what switching patients discards"
+    },
+    "orderPatientChangeConfirm": "Clear and continue",
+    "@orderPatientChangeConfirm": {
+        "description": "Order wizard: confirm switching patients"
     }
 }
