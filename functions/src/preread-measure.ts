@@ -23,6 +23,59 @@ export interface GridSpec {
   tilePx: number;
 }
 
+/** One slide's labelled tiles with the grid and scale they were measured on. */
+export interface ImageGrid extends GridSpec {
+  tiles: Tile[];
+  micronsPerPixel: number;
+}
+
+/**
+ * A run's histology measurements from per-slide grids: counts and areas add, the
+ * largest focus is the largest single-slide focus. A focus never joins tiles from
+ * two slides, and each slide keeps its own resize scale.
+ */
+export function combineHistologyMeasurements(images: ImageGrid[]): Record<string, number> {
+  let tumour = 0;
+  let normal = 0;
+  let unknown = 0;
+  let focus = 0;
+  for (const image of images) {
+    const m = histologyMeasurements(
+      image.tiles,
+      { rows: image.rows, cols: image.cols, tilePx: image.tilePx },
+      image.micronsPerPixel,
+    );
+    tumour += m.tumourTiles;
+    normal += m.normalTiles;
+    unknown += m.unknownTiles;
+    focus = Math.max(focus, m.largestFocusMm);
+  }
+  const total = tumour + normal + unknown;
+  return {
+    tumourTiles: tumour,
+    normalTiles: normal,
+    unknownTiles: unknown,
+    tumourAreaPercent: round2((100 * tumour) / Math.max(1, total)),
+    largestFocusMm: round2(focus),
+  };
+}
+
+/** A run's malaria measurements from per-slide grids: cell counts add, the rate is recomputed. */
+export function combineMalariaMeasurements(images: ImageGrid[]): Record<string, number> {
+  let cells = 0;
+  let parasitized = 0;
+  for (const image of images) {
+    const m = malariaMeasurements(image.tiles);
+    cells += m.cellsCounted;
+    parasitized += m.parasitizedCells;
+  }
+  return {
+    cellsCounted: cells,
+    parasitizedCells: parasitized,
+    parasitaemiaPercent: round2((100 * parasitized) / Math.max(1, cells)),
+  };
+}
+
 export type Urgency = 'Routine' | 'Priority' | 'Urgent';
 
 export interface PrereadDraft {

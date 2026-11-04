@@ -1,8 +1,11 @@
 import assert from 'node:assert/strict';
 
 import {
+  combineHistologyMeasurements,
+  combineMalariaMeasurements,
   histologyDraft,
   histologyMeasurements,
+  type ImageGrid,
   type Tile,
 } from './preread-measure';
 
@@ -90,5 +93,61 @@ describe('preread-measure unknown tiles', () => {
     });
     const draft = histologyDraft(clean, before);
     assert.match(draft.impression, /^Tumour suspected in the section/);
+  });
+});
+
+describe('preread-measure per-slide combine', () => {
+  function grid(labels: string[], micronsPerPixel: number): ImageGrid {
+    const cols = labels.length;
+    return {
+      tiles: labels.map((label, i) => tile(i, label)),
+      rows: 1,
+      cols,
+      tilePx: 96,
+      micronsPerPixel,
+    };
+  }
+
+  it('counts add and the focus is the largest single-slide focus', () => {
+    // Two adjacent tumour tiles on slide one, one lone tile on slide two.
+    const m = combineHistologyMeasurements([
+      grid(['Tumour', 'Tumour', 'Normal'], 0.25),
+      grid(['Tumour', 'Normal'], 0.25),
+    ]);
+    assert.equal(m.tumourTiles, 3);
+    assert.equal(m.normalTiles, 2);
+    assert.equal(m.unknownTiles, 0);
+    assert.equal(m.tumourAreaPercent, 60);
+    // Slide one: two tiles at 0.25 mpp; never joined with slide two's tile.
+    assert.equal(m.largestFocusMm, 0.05);
+  });
+
+  it('each slide keeps its own scale and the focus is the max, not the last', () => {
+    const m = combineHistologyMeasurements([
+      grid(['Tumour', 'Tumour', 'Tumour'], 0.25),
+      grid(['Tumour'], 0.5),
+    ]);
+    assert.equal(m.tumourTiles, 4);
+    // Three tiles at 0.25 mpp beats one tile at 0.5 mpp.
+    assert.equal(m.largestFocusMm, 0.07);
+  });
+
+  it('a single slide combines to its own measurements', () => {
+    const tiles = tilesOf(['Tumour', 'Normal', 'Normal']);
+    const direct = histologyMeasurements(tiles, GRID, 0.25);
+    const combined = combineHistologyMeasurements([
+      { tiles, rows: 10, cols: 10, tilePx: 96, micronsPerPixel: 0.25 },
+    ]);
+    assert.deepEqual(combined, direct);
+  });
+
+  it('malaria cell counts add and the rate is recomputed', () => {
+    const m = combineMalariaMeasurements([
+      grid(['Parasitized', 'Parasitized', 'Uninfected'], 0.25),
+      grid(['Parasitized', 'Uninfected', 'Uninfected', 'Uninfected'], 0.25),
+    ]);
+    assert.equal(m.cellsCounted, 7);
+    assert.equal(m.parasitizedCells, 3);
+    assert.equal(m.parasitaemiaPercent, 42.86);
   });
 });

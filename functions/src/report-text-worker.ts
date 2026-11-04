@@ -106,6 +106,8 @@ export interface ReportSourceFields {
   measurements: Record<string, number>;
   /** Signed template answers; empty when the report has none. */
   responses: ReportResponseRow[];
+  /** Signed addendum texts, oldest first; an Addendum keeps the original diagnosis. */
+  addenda: string[];
 }
 
 function defaultLog(entry: ReportTextFailureLog): void {
@@ -179,12 +181,21 @@ export function sourceFieldsOf(report: DocumentData): ReportSourceFields {
       if (key) measurements[key] = value;
     }
   }
+  const addenda: string[] = [];
+  if (Array.isArray(report.addenda)) {
+    for (const row of report.addenda) {
+      if (!row || typeof row !== 'object') continue;
+      const text = str((row as { text?: unknown }).text);
+      if (text !== '') addenda.push(text);
+    }
+  }
   return {
     title: str(report.title),
     diagnosis: str(report.diagnosis),
     comments: str(report.comments),
     measurements,
     responses: responsesOf(report),
+    addenda,
   };
 }
 
@@ -228,7 +239,8 @@ export function numbersInText(text: string): string[] {
 export function sourceNumberSet(source: ReportSourceFields): Set<string> {
   const allowed = new Set<string>();
   const answerBlob = source.responses.map((r) => r.answer).join('\n');
-  const blob = `${source.title}\n${source.diagnosis}\n${source.comments}\n${answerBlob}`;
+  const addendumBlob = source.addenda.join('\n');
+  const blob = `${source.title}\n${source.diagnosis}\n${source.comments}\n${answerBlob}\n${addendumBlob}`;
   for (const n of numbersInText(blob)) allowed.add(n);
   for (const v of Object.values(source.measurements)) {
     allowed.add(String(v));
@@ -422,6 +434,7 @@ async function runReportText(
     comments: deidentify(source.comments, subject),
     measurements: source.measurements,
     responses: safeResponses,
+    addenda: source.addenda.map((text) => deidentify(text, subject)),
   };
 
   const generated = options.generate
@@ -539,12 +552,14 @@ async function metaGenerate(args: {
   const answerLines = args.source.responses
     .map((r) => `${r.section}/${r.question}: ${r.answer}`)
     .join('\n');
+  const addendumLines = args.source.addenda.join('\n');
   const input = [
     'REPORT_BEGIN',
     `title: ${args.source.title}`,
     `diagnosis: ${args.source.diagnosis}`,
     `comments: ${args.source.comments}`,
     answerLines ? `answers:\n${answerLines}` : 'answers: (none)',
+    addendumLines ? `addenda:\n${addendumLines}` : 'addenda: (none)',
     measurementLines ? `measurements:\n${measurementLines}` : 'measurements: (none)',
     'REPORT_END',
   ].join('\n');

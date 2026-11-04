@@ -84,6 +84,20 @@ function fakeVision(label = 'Normal'): PrereadVision {
   };
 }
 
+/** Labels chosen tiles by crop id (`img0-tile-0-0`); everything else is Normal. */
+function visionById(tumourIds: string[]): PrereadVision {
+  const set = new Set(tumourIds);
+  return {
+    async classify(crops: TileCrop[]): Promise<ClassifiedTile[]> {
+      return crops.map((c) => ({
+        id: c.id,
+        label: set.has(c.id) ? 'Tumour' : 'Normal',
+        probability: 0.91,
+      }));
+    },
+  };
+}
+
 describe('preread-measure', () => {
   it('rule 2: draft numbers equal the measurement record', () => {
     const tiles: Tile[] = [
@@ -188,21 +202,27 @@ describe('processQueuedPreread', () => {
     cache?: PrereadCache;
     /** Default: small PNG (192×96 → two tiles). */
     slide?: { bytes: Buffer; contentType: string; name: string; width: number; height: number };
+    /** Two or more slides; overrides `slide` when present. */
+    slides?: { bytes: Buffer; contentType: string; name: string }[];
     micronsPerPixel?: number;
   }): Promise<{ caseUid: string; runUid: string }> {
     const caseUid = randomUUID();
     const runUid = randomUUID();
-    const slide =
-      opts?.slide ??
-      {
+    const slides = opts?.slides ?? [
+      opts?.slide ?? {
         bytes: solidPng(192, 96, [200, 180, 160]),
         contentType: 'image/png',
         name: 'slide-0.png',
         width: 192,
         height: 96,
-      };
-    const imagePath = `cases/${caseUid}/slides/${slide.name}`;
-    await saveObject(BUCKET, imagePath, slide.bytes, slide.contentType);
+      },
+    ];
+    const imagePaths: string[] = [];
+    for (const slide of slides) {
+      const imagePath = `cases/${caseUid}/slides/${slide.name}`;
+      await saveObject(BUCKET, imagePath, slide.bytes, slide.contentType);
+      imagePaths.push(imagePath);
+    }
     await w.deps.db.collection('cases').doc(caseUid).set({
       uid: caseUid,
       currentStage: 'PrereadQueued',
@@ -220,7 +240,7 @@ describe('processQueuedPreread', () => {
         caseUid,
         profile: 'Cancer',
         status: 'Queued',
-        imagePaths: [imagePath],
+        imagePaths,
         micronsPerPixel: opts?.micronsPerPixel ?? 0.25,
         segmentationPath: '',
         labelsPath: '',
@@ -281,6 +301,154 @@ describe('processQueuedPreread', () => {
       draftNumbersMatch(run?.draft, run?.measurements as Record<string, number>, 2),
       true,
     );
+  });
+
+  it('bundle 83: a focus never joins tiles from two slides', async () => {
+    // Different bytes per slide: identical slides share a cache key.
+    const slide = (name: string, shade: number) => ({
+      bytes: solidPng(192, 96, [200, 180, shade]),
+      contentType: 'image/png',
+      name,
+    });
+    // Merged, (0,1) and (0,0) touch; measured per slide they are two lone tiles.
+    const { caseUid, runUid } = await queuedRun({
+      vision: visionById(['img0-tile-0-1', 'img1-tile-0-0']),
+      slides: [slide('slide-0.png', 160), slide('slide-1.png', 161)],
+    });
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    assert.equal(run?.status, 'Ready');
+    assert.equal(run?.measurements?.tumourTiles, 2);
+    assert.equal(run?.measurements?.largestFocusMm, 0.02);
+  });
+
+  it('bundle 83: each slide keeps its own resize scale', async () => {
+    const { caseUid, runUid } = await queuedRun({
+      vision: visionById(['img0-tile-0-0', 'img0-tile-0-1', 'img1-tile-0-0']),
+      slides: [
+        { bytes: solidPng(192, 96, [200, 180, 160]), contentType: 'image/png', name: 'slide-0.png' },
+        { bytes: solidPng(768, 768, [200, 180, 160]), contentType: 'image/png', name: 'slide-1.png' },
+      ],
+    });
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    assert.equal(run?.status, 'Ready');
+    // Slide 0: two tiles at mpp 0.25 → 0.05; slide 1: one tile at mpp 0.5 → 0.05.
+    // At the merged scale both slides would measure 0.1.
+    assert.equal(run?.measurements?.largestFocusMm, 0.05);
+    assert.equal(run?.measurements?.tumourTiles, 3);
+  });
+
+  it('bundle 83: one slide measures exactly as before', async () => {
+    const { caseUid, runUid } = await queuedRun({ vision: fakeVision('Tumour') });
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    assert.equal(run?.status, 'Ready');
+    assert.deepEqual(run?.measurements, {
+      tumourTiles: 2,
+      normalTiles: 0,
+      unknownTiles: 0,
+      tumourAreaPercent: 100,
+      largestFocusMm: 0.05,
+    });
+  });
+
+  it('bundle 83: a full first slide leaves room for the second', async () => {
+    // 768×768 wants all 64 tiles at full size; the share drops it to 16, and the
+    // second slide still completes.
+    const { caseUid, runUid } = await queuedRun({
+      vision: fakeVision('Normal'),
+      slides: [
+        { bytes: solidPng(768, 768, [200, 180, 160]), contentType: 'image/png', name: 'slide-0.png' },
+        { bytes: solidPng(192, 96, [200, 180, 160]), contentType: 'image/png', name: 'slide-1.png' },
+      ],
+    });
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    assert.equal(run?.status, 'Ready');
+    assert.equal(run?.labelCounts?.Normal, 18);
+  });
+
+  it('bundle 83: the heatmap is the first slide, the one the viewer shows', async () => {
+    const { caseUid, runUid } = await queuedRun({
+      vision: fakeVision('Normal'),
+      slides: [
+        { bytes: solidPng(192, 96, [200, 180, 160]), contentType: 'image/png', name: 'slide-0.png' },
+        { bytes: solidPng(384, 288, [200, 180, 160]), contentType: 'image/png', name: 'slide-1.png' },
+      ],
+    });
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    const png = await readObject(BUCKET, String(run?.segmentationPath));
+    assert.ok(png);
+    // PNG header: width and height are the 4-byte values at offsets 16 and 20.
+    assert.equal(png.readUInt32BE(16), 192);
+    assert.equal(png.readUInt32BE(20), 96);
+  });
+
+  it('bundle 83: an impossible set fails before any model call', async () => {
+    const caseUid = randomUUID();
+    const runUid = randomUUID();
+    const imagePaths = Array.from({ length: 65 }, (_, i) => `cases/${caseUid}/slides/fake-${i}.png`);
+    await w.deps.db.collection('cases').doc(caseUid).set({
+      uid: caseUid,
+      currentStage: 'PrereadQueued',
+      prereadRunUid: runUid,
+      pathologistUid: w.pathologist.uid,
+      participantUids: [w.pathologist.uid],
+    });
+    await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).set({
+      uid: runUid,
+      caseUid,
+      profile: 'Cancer',
+      status: 'Queued',
+      imagePaths,
+      micronsPerPixel: 0.25,
+      segmentationPath: '',
+      labelsPath: '',
+      labelCounts: {},
+      measurements: {},
+      draft: {
+        findings: [],
+        impression: '',
+        confidence: 0,
+        confidenceBand: '',
+        urgency: '',
+        nextSteps: [],
+      },
+      models: {},
+      inputLanguage: 'en',
+      failureReason: '',
+      requestedAt: '2026-11-03T00:00:00.000Z',
+      startedAt: '',
+      readyAt: '',
+      lastUpdatedAt: '2026-11-03T00:00:00.000Z',
+    });
+    let fetches = 0;
+    await processQueuedPreread(
+      { ...w.deps, bucket: BUCKET, config: { enabled: () => true } },
+      caseUid,
+      runUid,
+      {
+        enabled: true,
+        apiKey: 'test-key',
+        fetch: (async () => {
+          fetches += 1;
+          throw new Error('must not fetch');
+        }) as unknown as FetchLike,
+      },
+    );
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    assert.equal(run?.status, 'Failed');
+    assert.equal(run?.failureReason, 'OffSchema');
+    assert.equal(fetches, 0);
   });
 
   it('rule 7: a label outside the allowed set becomes Unknown', async () => {

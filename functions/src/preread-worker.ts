@@ -33,17 +33,18 @@ import {
   applyModelConfidenceCap,
   cropTilePng,
   decodeImage,
+  combineHistologyMeasurements,
+  combineMalariaMeasurements,
   downscaleByFactor,
   draftNumbersMatch,
   encodePng,
   heatmapPng,
   histologyDraft,
-  histologyMeasurements,
   malariaDraft,
-  malariaMeasurements,
   sha256Hex,
   tileBudgetFactor,
   upscaleNearest,
+  type ImageGrid,
   type PrereadDraft,
   type Tile,
 } from './preread-measure';
@@ -318,9 +319,15 @@ async function runPreread(
   let height = 0;
   const tilePx = PREREAD_TILE_PX;
   const storedMpp = num(run.micronsPerPixel);
-  // Images in one run share the 64-tile budget; mpp scales with the largest whole factor.
+  // Every image needs at least one tile: refuse before any model call when the run cannot fit.
+  if (imagePaths.length > PREREAD_MAX_TILES) throw new AiError('OffSchema');
+  // Images in one run share the 64-tile budget; each takes an even share of what
+  // remains, so one slide cannot starve the rest. Each slide keeps its own grid and
+  // resize scale for measurement; only the heatmap canvas stays merged.
   let remainingTiles = PREREAD_MAX_TILES;
   let tileScale = 1;
+  const grids: ImageGrid[] = [];
+  const sizes: { width: number; height: number }[] = [];
 
   for (let i = 0; i < imagePaths.length; i++) {
     if (remainingTiles < 1) throw new AiError('OffSchema');
@@ -333,7 +340,9 @@ async function runPreread(
     } catch {
       throw new AiError('OffSchema');
     }
-    const factor = tileBudgetFactor(raster.width, raster.height, tilePx, remainingTiles);
+    const imagesLeft = imagePaths.length - i;
+    const share = Math.max(1, Math.floor(remainingTiles / imagesLeft));
+    const factor = tileBudgetFactor(raster.width, raster.height, tilePx, share);
     if (factor > 1) {
       raster = downscaleByFactor(raster, factor);
       tileScale = Math.max(tileScale, factor);
@@ -369,6 +378,7 @@ async function runPreread(
 
     const byId = new Map(classified.map((c) => [c.id, c]));
     const allowed = profile === 'Cancer' ? CANCER_LABELS : MALARIA_LABELS;
+    const imageTiles: Tile[] = [];
     for (const crop of crops) {
       const hit = byId.get(crop.id);
       let label = hit?.label ?? 'Unknown';
@@ -379,7 +389,7 @@ async function runPreread(
         probability = 0;
       }
       probability = Math.min(1, Math.max(0, probability));
-      allTiles.push({
+      const tile: Tile = {
         id: crop.id,
         imageUid: path,
         label,
@@ -387,11 +397,23 @@ async function runPreread(
         row: crop.row,
         col: crop.col,
         source: path,
-      });
+      };
+      imageTiles.push(tile);
+      allTiles.push(tile);
     }
+    sizes.push({ width: raster.width, height: raster.height });
+    grids.push({
+      tiles: imageTiles,
+      rows,
+      cols,
+      tilePx,
+      micronsPerPixel: storedMpp * factor,
+    });
   }
 
   // One output pixel spans `tileScale` source pixels on a side; sizes stay code-honest (S-6).
+  // The merged grid below feeds the labels file and the heatmap canvas only: measurement
+  // runs per slide in `combineHistologyMeasurements` / `combineMalariaMeasurements`.
   const effectiveMpp = storedMpp * tileScale;
   const grid = {
     rows: Math.max(1, Math.floor(height / tilePx)),
@@ -402,9 +424,7 @@ async function runPreread(
     sourceMicronsPerPixel: storedMpp,
   };
   const measurements =
-    profile === 'Cancer'
-      ? histologyMeasurements(allTiles, grid, effectiveMpp)
-      : malariaMeasurements(allTiles);
+    profile === 'Cancer' ? combineHistologyMeasurements(grids) : combineMalariaMeasurements(grids);
   // Cap High → Moderate on model runs until stated probabilities are calibrated (bundle 64).
   const draft = applyModelConfidenceCap(
     profile === 'Cancer' ? histologyDraft(allTiles, measurements) : malariaDraft(allTiles, measurements),
@@ -436,7 +456,9 @@ async function runPreread(
   await saveObject(
     deps.bucket,
     segmentationPath,
-    heatmapPng(allTiles, width, height, tilePx, positive),
+    // The viewer lays the heatmap over the first slide, so it paints that slide's tiles on that
+    // slide's own size; other slides' cells share row and column numbers and would overwrite it.
+    heatmapPng(grids[0].tiles, sizes[0].width, sizes[0].height, tilePx, positive),
     'image/png',
   );
 

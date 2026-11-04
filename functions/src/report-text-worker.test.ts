@@ -28,6 +28,7 @@ const SOURCE: ReportSourceFields = {
   comments: 'Largest deposit 1.2 mm.',
   measurements: { largestFocusMm: 1.2, tumourTiles: 2 },
   responses: [],
+  addenda: [],
 };
 
 describe('report-text validation', () => {
@@ -575,6 +576,103 @@ describe('processQueuedReportText', () => {
     }
   });
 
+  const ADDENDUM = 'Amina Wambui returned for review; 3 further nodes sampled.';
+
+  function withAddendum(text: string = ADDENDUM): SeedDocsOpts {
+    return {
+      mutateReport: (r) => {
+        r.addenda = [{ uid: 'ad1', text, reportVersion: 1, signedByUid: 'p1', signedByName: 'Dr. O', signedAt: 't' }];
+      },
+    };
+  }
+
+  it('an addendum reaches the model input de-identified', async () => {
+    const { caseUid, textUid } = await seedDocs(withAddendum());
+    const spy = fetchSpy(
+      'The signed report finds metastatic carcinoma in 2 of 5 nodes. The largest deposit measures 1.2 mm.',
+    );
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      { enabled: true, apiKey: 'test-key', fetch: spy.fetch },
+    );
+    const doc = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('reportTexts').doc(textUid).get()
+    ).data();
+    assert.equal(doc?.status, 'Ready');
+    assert.ok(spy.sentInput().includes('addenda:'), 'serialised input names the addenda block');
+    assert.ok(spy.sentInput().includes('3 further nodes sampled.'), 'addendum text reaches the model');
+    for (const leak of ['Amina', 'Wambui']) {
+      assert.ok(!spy.sentInput().includes(leak), `"${leak}" reached the model`);
+    }
+  });
+
+  it('a number only in an addendum passes the number check', async () => {
+    const { caseUid, textUid } = await seedDocs(withAddendum());
+    const spy = fetchSpy(
+      'The signed report finds metastatic carcinoma in 2 of 5 nodes with 3 further nodes sampled. The largest deposit measures 1.2 mm.',
+    );
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      { enabled: true, apiKey: 'test-key', fetch: spy.fetch },
+    );
+    const doc = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('reportTexts').doc(textUid).get()
+    ).data();
+    assert.equal(doc?.status, 'Ready');
+    assert.equal(doc?.failureReason, '');
+  });
+
+  it('a number in none of the fields fails the number check', async () => {
+    const { caseUid, textUid } = await seedDocs(withAddendum());
+    const spy = fetchSpy(
+      'The signed report finds metastatic carcinoma in 2 of 5 nodes with 9 further nodes sampled. The largest deposit measures 1.2 mm.',
+    );
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      { enabled: true, apiKey: 'test-key', fetch: spy.fetch },
+    );
+    const doc = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('reportTexts').doc(textUid).get()
+    ).data();
+    assert.equal(doc?.status, 'Failed');
+    assert.equal(doc?.failureReason, 'NumberCheck');
+  });
+
+  it('a changed addendum after signing fails the content-hash check', async () => {
+    const { caseUid, textUid, reportUid } = await seedQueued(withAddendum());
+    await w.deps.db.collection('cases').doc(caseUid).collection('reports').doc(reportUid).update({
+      addenda: [{ uid: 'ad1', text: '4 further nodes sampled.', reportVersion: 1 }],
+    });
+    await w.deps.db.collection('cases').doc(caseUid).collection('reportTexts').doc(textUid).update({
+      status: 'Queued',
+      failureReason: '',
+      machineText: {},
+      readyAt: '',
+    });
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      {
+        enabled: true,
+        generate: async () => {
+          throw new Error('must not call');
+        },
+      },
+    );
+    const doc = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('reportTexts').doc(textUid).get()
+    ).data();
+    assert.equal(doc?.status, 'Failed');
+    assert.equal(doc?.failureReason, 'Stale');
+  });
+
   it('a changed answer after signing fails the content-hash check', async () => {
     const { caseUid, textUid, reportUid } = await seedQueued({
       mutateReport: (r) => {
@@ -755,7 +853,22 @@ describe('processQueuedReportText', () => {
       responses: [
         { section: 'Specimen', question: 'description', answer: 'Right breast.', order: 0 },
       ],
+      addenda: [],
     });
+  });
+
+  it('sourceFieldsOf keeps addendum texts in order and drops malformed rows', () => {
+    const fields = sourceFieldsOf({
+      diagnosis: 'D',
+      addenda: [
+        { uid: 'ad1', text: 'First addendum.' },
+        'not a row',
+        null,
+        { uid: 'ad2', text: '' },
+        { uid: 'ad3', text: 'Second addendum.' },
+      ],
+    });
+    assert.deepEqual(fields.addenda, ['First addendum.', 'Second addendum.']);
   });
 
   it('OffSchema from the model becomes Failed without leaking content', async () => {
