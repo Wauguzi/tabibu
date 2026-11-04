@@ -35,8 +35,8 @@ export const MUSE_VOICE_TRANSCRIBE_MODEL = 'muse-voice-transcribe-1.0';
 /** The endpoint takes RIFF/WAVE mono PCM only; anything else is refused before fetch (S-5). */
 export const ASR_AUDIO_TYPE = 'audio/wav';
 
-/** Matches the handler caps (512 KB); the client re-checks so a bypass never calls. */
-export const ASR_MAX_BYTES = 512 * 1024;
+/** Matches the symptom cap (1.5 MB); the client re-checks so a bypass never calls. */
+export const ASR_MAX_BYTES = 1536 * 1024;
 
 /** A transcript past this is a failed call, not a truncation. */
 export const ASR_MAX_TRANSCRIPT_CHARS = 4000;

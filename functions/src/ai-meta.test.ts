@@ -608,6 +608,13 @@ describe('ai-meta', () => {
         client.transcribeAudio!({ bytes: Buffer.alloc(ASR_MAX_BYTES + 1), contentType: WAV_TYPE }),
         (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
       );
+      // Absolute pins: a 45 s symptom clip (1.4 MB) calls; 1.6 MB never does.
+      await client.transcribeAudio!({ bytes: Buffer.alloc(1400000), contentType: WAV_TYPE });
+      await assert.rejects(
+        client.transcribeAudio!({ bytes: Buffer.alloc(1600000), contentType: WAV_TYPE }),
+        (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+      );
+      assert.equal(cap.calls.length, 1);
       // A boundary inside user bytes would split the body and smuggle a second part.
       const smuggled = Buffer.concat([
         Buffer.from('RIFF....WAVE'),
@@ -619,7 +626,7 @@ describe('ai-meta', () => {
         client.transcribeAudio!({ bytes: smuggled, contentType: WAV_TYPE }),
         (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
       );
-      assert.equal(cap.calls.length, 0);
+      assert.equal(cap.calls.length, 1);
     });
 
     it('the key never appears in an error message', async () => {

@@ -32,6 +32,8 @@ const image = new Uint8Array([0xff, 0xd8, 0xff]);
 const png = new Uint8Array([0x89, 0x50, 0x4e]);
 const audio = new Uint8Array(100);
 const bigVoice = new Uint8Array(512 * 1024 + 1);
+const wav14 = new Uint8Array(1400000);
+const wav16 = new Uint8Array(1600000);
 const over20 = new Uint8Array(20 * 1024 * 1024 + 1);
 const over3 = new Uint8Array(3 * 1024 * 1024);
 
@@ -166,18 +168,20 @@ describe('storage conversation media and speech', () => {
     await assertFails(meta('stranger', DOCTOR, `conversations/conv1/images/${MSG_IMAGE}/image.jpg`));
   });
 
-  it('RT-167 speechAudio owner write allowed', async () => {
+  it('RT-167 speechAudio owner WAV write allowed', async () => {
     await assertSucceeds(
-      put('amina', PATIENT, 'speechAudio/amina/a1.m4a', audio, 'audio/mp4'),
+      put('amina', PATIENT, 'speechAudio/amina/a1.wav', wav14, 'audio/wav'),
     );
   });
 
-  it("RT-168 another uid's write, any read, and wrong type or size denied", async () => {
-    await assertFails(put('amina', PATIENT, 'speechAudio/juma/a1.m4a', audio, 'audio/mp4'));
-    await seedBytes('speechAudio/amina/a1.m4a', audio, 'audio/mp4');
-    await assertFails(meta('amina', PATIENT, 'speechAudio/amina/a1.m4a'));
-    await assertFails(put('amina', PATIENT, 'speechAudio/amina/a2.m4a', audio, 'text/plain'));
-    await assertFails(put('amina', PATIENT, 'speechAudio/amina/a3.m4a', bigVoice, 'audio/mp4'));
+  it("RT-168 another uid's write, any read, m4a, and wrong type or size denied", async () => {
+    await assertFails(put('amina', PATIENT, 'speechAudio/juma/a1.wav', wav14, 'audio/wav'));
+    await seedBytes('speechAudio/amina/a1.wav', wav14, 'audio/wav');
+    await assertFails(meta('amina', PATIENT, 'speechAudio/amina/a1.wav'));
+    await assertFails(put('amina', PATIENT, 'speechAudio/amina/a2.wav', audio, 'audio/mp4'));
+    await assertFails(put('amina', PATIENT, 'speechAudio/amina/a2.m4a', audio, 'audio/wav'));
+    await assertFails(put('amina', PATIENT, 'speechAudio/amina/a3.wav', wav16, 'audio/wav'));
+    await assertFails(put('amina', {}, 'speechAudio/amina/a4.wav', audio, 'audio/wav'));
   });
 
   it('RT-169 a voice note uploaded by a participant before its message', async () => {
@@ -243,8 +247,9 @@ describe('storage conversation media and speech', () => {
   });
 
   it("RT-195 a doctor's speechAudio write is denied (F-35)", async () => {
+    // WAV shape throughout, so only the role check fails.
     await assertFails(
-      put('drOdhiambo', DOCTOR, 'speechAudio/drOdhiambo/a1.m4a', audio, 'audio/mp4'),
+      put('drOdhiambo', DOCTOR, 'speechAudio/drOdhiambo/a1.wav', audio, 'audio/wav'),
     );
   });
 });

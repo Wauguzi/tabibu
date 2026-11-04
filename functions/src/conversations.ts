@@ -1093,15 +1093,23 @@ async function transcribeVoiceNote(
   let language = '';
   let models: Record<string, string> = {};
   let failed = false;
-  try {
-    if (!deps.ai?.transcribeAudio) throw new Error('unavailable');
-    const result = await withTimeout(deps.ai.transcribeAudio({ bytes: voice.bytes, contentType: voice.contentType }));
-    transcript = sanitize(result.transcript, 2000);
-    language = languageOf(result.language);
-    models = result.models;
-    failed = transcript === '';
-  } catch {
+  let failureReason = '';
+  // Chat notes stay AAC in m4a and the speech API takes WAV only: fail the transcript
+  // without a model call the API would refuse.
+  if (voice.contentType !== 'audio/wav') {
     failed = true;
+    failureReason = 'UnsupportedFormat';
+  } else {
+    try {
+      if (!deps.ai?.transcribeAudio) throw new Error('unavailable');
+      const result = await withTimeout(deps.ai.transcribeAudio({ bytes: voice.bytes, contentType: voice.contentType }));
+      transcript = sanitize(result.transcript, 2000);
+      language = languageOf(result.language);
+      models = result.models;
+      failed = transcript === '';
+    } catch {
+      failed = true;
+    }
   }
 
   await db.runTransaction(async (tx) => {
@@ -1126,7 +1134,11 @@ async function transcribeVoiceNote(
     }
     const at = timestamp(now);
     if (failed) {
-      tx.update(messageRef, { transcriptStatus: 'Failed', lastUpdatedAt: at });
+      tx.update(messageRef, {
+        transcriptStatus: 'Failed',
+        ...(failureReason ? { failureReason } : {}),
+        lastUpdatedAt: at,
+      });
     } else {
       tx.set(messageRef.collection('transcript').doc('machine'), {
         uid: 'machine',

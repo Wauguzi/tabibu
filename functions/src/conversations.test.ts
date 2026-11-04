@@ -183,6 +183,29 @@ describe('conversations', () => {
     return runtime(w, { ai: { ...deps.ai!, transcribeAudio } });
   }
 
+  /** A machine transcript as the trigger would have written it, for share/withdraw tests. */
+  async function seedMachine(conversationUid: string, messageUid: string): Promise<void> {
+    const doc = await message(conversationUid, messageUid);
+    await w.deps.db.doc(`conversations/${conversationUid}/messages/${messageUid}/transcript/machine`).set({
+      uid: 'machine',
+      conversationUid,
+      messageUid,
+      senderUid: String(doc?.senderUid ?? ''),
+      text: MACHINE_TEXT,
+      language: 'sw',
+      acceptedUnchanged: false,
+      editDistance: 0,
+      models: {},
+      sharedAt: '',
+      lastUpdatedAt: NOW,
+    });
+    await w.deps.db.doc(`conversations/${conversationUid}/messages/${messageUid}`).update({
+      transcriptStatus: 'Ready',
+      transcriptLanguage: 'sw',
+      lastUpdatedAt: NOW,
+    });
+  }
+
   describe('openDirectConversation', () => {
     it('opens an appointment thread between the patient and the doctor', async () => {
       const uid = await direct();
@@ -740,25 +763,21 @@ describe('conversations', () => {
     });
 
     describe('voice notes', () => {
-      it('measures, delivers and writes the machine transcript beside the message', async () => {
+      it('measures and delivers an m4a note but fails its transcript as an unsupported format', async () => {
         const c = await direct();
         const m = await deliverVoice(c, { claimedMs: 5_000 });
         const doc = await message(c, m);
         assert.equal(doc?.status, 'Delivered');
         assert.equal(doc?.voiceDurationMs, 30_000);
-        assert.equal(doc?.transcriptStatus, 'Ready');
-        assert.equal(doc?.transcriptLanguage, 'sw');
+        assert.equal(doc?.transcriptStatus, 'Failed');
+        assert.equal(doc?.failureReason, 'UnsupportedFormat');
+        assert.equal(doc?.transcriptLanguage, undefined);
         assert.equal(doc?.identifierFlagged, false);
         assert.equal(doc?.text, '');
-        const machine = await transcript(c, m, 'machine');
-        assert.equal(machine?.text, MACHINE_TEXT);
-        assert.equal(machine?.language, 'sw');
-        assert.equal(machine?.senderUid, w.doctor.uid);
-        assert.equal(machine?.acceptedUnchanged, false);
-        assert.equal(machine?.sharedAt, '');
-        assert.deepEqual(machine?.models, { stub: 'fixture' });
+        assert.equal(await transcript(c, m, 'machine'), undefined);
         assert.equal(await transcript(c, m, 'shared'), undefined);
-        assert.equal(await signal('voiceTranscriptReady'), 1);
+        assert.equal(await signal('voiceTranscriptFailed'), 1);
+        assert.equal(await signal('voiceTranscriptReady'), undefined);
         const q = await quota(w.doctor.uid);
         assert.equal(q?.voiceHourCount, 1);
         assert.equal(q?.voiceDayMs, 30_000);
@@ -766,19 +785,21 @@ describe('conversations', () => {
         assert.equal(((await conv(c))?.lastMessage as Row).hasAttachment, true);
       });
 
-      it('sends the model the audio and nothing else', async () => {
+      it('never calls the client for an m4a note', async () => {
         const c = await direct();
-        let seen: unknown;
-        const spying = ai((req) => {
-          seen = req;
+        let calls = 0;
+        const counting = ai(() => {
+          calls += 1;
           return Promise.resolve({ transcript: 'ok', language: 'en', models: {} });
         });
         const m = await postVoice(c);
-        await onMessageCreatedHandler(spying, c, m);
-        assert.deepEqual(Object.keys(seen as object).sort(), ['bytes', 'contentType']);
+        await onMessageCreatedHandler(counting, c, m);
+        assert.equal(calls, 0);
+        assert.equal((await message(c, m))?.transcriptStatus, 'Failed');
+        assert.equal((await message(c, m))?.failureReason, 'UnsupportedFormat');
       });
 
-      it('transcribes once, however often the trigger fires', async () => {
+      it('fails an m4a note once, however often the trigger fires', async () => {
         const c = await direct();
         let calls = 0;
         const counting = ai(() => {
@@ -788,18 +809,20 @@ describe('conversations', () => {
         const m = await postVoice(c);
         await onMessageCreatedHandler(counting, c, m);
         await onMessageCreatedHandler(counting, c, m);
-        assert.equal(calls, 1);
+        assert.equal(calls, 0);
+        assert.equal((await message(c, m))?.transcriptStatus, 'Failed');
         assert.equal((await quota(w.doctor.uid))?.voiceHourCount, 1);
       });
 
-      it('finishes the transcript of a note a retry finds delivered but still queued', async () => {
+      it('fails the transcript of a note a retry finds delivered but still queued', async () => {
         const c = await direct();
         const m = await postVoice(c, { extra: { status: 'Delivered', deliveredAt: NOW } });
         await onMessageCreatedHandler(deps, c, m);
         const doc = await message(c, m);
-        assert.equal(doc?.transcriptStatus, 'Ready');
+        assert.equal(doc?.transcriptStatus, 'Failed');
+        assert.equal(doc?.failureReason, 'UnsupportedFormat');
         assert.equal(doc?.status, 'Delivered');
-        assert.equal((await transcript(c, m, 'machine'))?.text, MACHINE_TEXT);
+        assert.equal(await transcript(c, m, 'machine'), undefined);
         // Phase 1 did not run again: no quota was spent and nobody was told twice.
         assert.equal(await quota(w.doctor.uid), undefined);
       });
@@ -933,57 +956,54 @@ describe('conversations', () => {
         assert.equal(await transcript(c, m, 'machine'), undefined);
       });
 
-      it('marks the transcript Failed, and still delivers, when the model fails or says nothing', async () => {
+      it('fails every m4a note as an unsupported format without a model call', async () => {
         const c = await direct();
-        const failing = ai(() => Promise.reject(new Error('down')));
-        const first = await postVoice(c);
-        await onMessageCreatedHandler(failing, c, first);
-        assert.equal((await message(c, first))?.status, 'Delivered');
-        assert.equal((await message(c, first))?.transcriptStatus, 'Failed');
-        assert.equal(await transcript(c, first, 'machine'), undefined);
-        const silent = ai(() => Promise.resolve({ transcript: '   ', language: 'en', models: {} }));
-        const second = await postVoice(c);
-        await onMessageCreatedHandler(silent, c, second);
-        assert.equal((await message(c, second))?.transcriptStatus, 'Failed');
-        const missing = runtime(w, { ai: { ...deps.ai!, transcribeAudio: undefined } });
-        const third = await postVoice(c);
-        await onMessageCreatedHandler(missing, c, third);
-        assert.equal((await message(c, third))?.transcriptStatus, 'Failed');
+        let calls = 0;
+        const counting = ai(() => {
+          calls += 1;
+          return Promise.resolve({ transcript: 'ok', language: 'en', models: {} });
+        });
+        for (let i = 0; i < 3; i++) {
+          const m = await postVoice(c);
+          await onMessageCreatedHandler(counting, c, m);
+          assert.equal((await message(c, m))?.status, 'Delivered');
+          assert.equal((await message(c, m))?.transcriptStatus, 'Failed');
+          assert.equal((await message(c, m))?.failureReason, 'UnsupportedFormat');
+          assert.equal(await transcript(c, m, 'machine'), undefined);
+        }
+        assert.equal(calls, 0);
         assert.equal(await signal('voiceTranscriptFailed'), 3);
         assert.equal(await signal('voiceTranscriptReady'), undefined);
       });
 
-      it('keeps only a known language', async () => {
+      it('writes no language for a note that is never transcribed', async () => {
         const c = await direct();
-        const odd = ai(() => Promise.resolve({ transcript: 'bonjour', language: 'fr', models: {} }));
         const m = await postVoice(c);
-        await onMessageCreatedHandler(odd, c, m);
-        assert.equal((await transcript(c, m, 'machine'))?.language, '');
-        assert.equal((await message(c, m))?.transcriptLanguage, '');
+        await onMessageCreatedHandler(deps, c, m);
+        assert.equal(await transcript(c, m, 'machine'), undefined);
+        assert.equal((await message(c, m))?.transcriptLanguage, undefined);
       });
 
       it('does not bring a withdrawn message’s transcript back', async () => {
         const c = await direct();
-        const m = await postVoice(c);
-        const racing = ai(async () => {
-          await withdrawMessageHandler(deps, w.doctor, { conversationUid: c, messageUid: m });
-          return { transcript: MACHINE_TEXT, language: 'sw', models: {} };
-        });
-        await onMessageCreatedHandler(racing, c, m);
+        const m = await deliverVoice(c);
+        await withdrawMessageHandler(deps, w.doctor, { conversationUid: c, messageUid: m });
+        await onMessageCreatedHandler(deps, c, m);
         assert.equal((await message(c, m))?.withheldReason, 'withdrawn');
         assert.equal(await transcript(c, m, 'machine'), undefined);
       });
     });
 
     describe('transcripts and the patient', () => {
-      it('writes only the machine document, and nothing a patient can read, when a doctor sends a note', async () => {
+      it('writes no transcript for an m4a note, and nothing a patient can read', async () => {
         const c = await direct();
         const m = await deliverVoice(c);
         const written = await w.deps.db.collection(`conversations/${c}/messages/${m}/transcript`).get();
         assert.deepEqual(
           written.docs.map((d) => d.id),
-          ['machine'],
+          [],
         );
+        assert.equal((await message(c, m))?.transcriptStatus, 'Failed');
         assert.ok(!JSON.stringify(await message(c, m)).includes(MACHINE_TEXT));
         assert.ok(!JSON.stringify(await conv(c)).includes(MACHINE_TEXT));
         const rows = await w.deps.db.collection('notifications').where('recipientUid', '==', w.patient.uid).get();
@@ -994,6 +1014,7 @@ describe('conversations', () => {
       it('cannot be shared by a patient, even the sender of the note', async () => {
         const c = await direct();
         const m = await deliverVoice(c, { sender: w.patient.uid });
+        await seedMachine(c, m);
         assert.equal((await transcript(c, m, 'machine'))?.senderUid, w.patient.uid);
         await refusedWith(
           shareTranscriptHandler(deps, w.patient, { conversationUid: c, messageUid: m, decision: 'Approve' }),
@@ -1005,38 +1026,25 @@ describe('conversations', () => {
     });
 
     describe('identifier flag in a group', () => {
-      it('flags a transcript that names the patient and leaves a clean one unflagged', async () => {
+      it('flags nothing on a note that is never transcribed', async () => {
         const { conversationUid: c } = await acceptedMdt();
-        const named = ai(() =>
-          Promise.resolve({ transcript: 'This is Amina Otieno, call +254712345678.', language: 'en', models: {} }),
-        );
-        const flagged = await postVoice(c);
-        await onMessageCreatedHandler(named, c, flagged);
-        assert.equal((await message(c, flagged))?.identifierFlagged, true);
-        assert.equal((await message(c, flagged))?.transcriptStatus, 'Ready');
-        const clean = await deliverVoice(c);
-        assert.equal((await message(c, clean))?.identifierFlagged, false);
+        const m = await deliverVoice(c);
+        assert.equal((await message(c, m))?.identifierFlagged, false);
+        assert.equal((await message(c, m))?.transcriptStatus, 'Failed');
       });
 
-      it('flags a transcript that carries a date, which can identify when someone was seen', async () => {
+      it('flags nothing on a note whose audio names a date', async () => {
         const { conversationUid: c } = await acceptedMdt();
-        const dated = ai(() =>
-          Promise.resolve({ transcript: 'The biopsy was taken on 14 May 2026.', language: 'en', models: {} }),
-        );
         const m = await postVoice(c);
-        await onMessageCreatedHandler(dated, c, m);
-        assert.equal((await message(c, m))?.identifierFlagged, true);
-        const iso = ai(() => Promise.resolve({ transcript: 'Seen on 2026-05-14.', language: 'en', models: {} }));
-        const n = await postVoice(c);
-        await onMessageCreatedHandler(iso, c, n);
-        assert.equal((await message(c, n))?.identifierFlagged, true);
+        await onMessageCreatedHandler(deps, c, m);
+        assert.equal((await message(c, m))?.identifierFlagged, false);
+        assert.equal((await message(c, m))?.transcriptStatus, 'Failed');
       });
 
       it('does not look for the patient in a direct thread', async () => {
         const c = await direct();
-        const named = ai(() => Promise.resolve({ transcript: 'Amina Otieno', language: 'en', models: {} }));
         const m = await postVoice(c);
-        await onMessageCreatedHandler(named, c, m);
+        await onMessageCreatedHandler(deps, c, m);
         assert.equal((await message(c, m))?.identifierFlagged, false);
       });
     });
@@ -1046,7 +1054,21 @@ describe('conversations', () => {
     it('deletes the object and both transcripts and clears the thread’s last message', async () => {
       const c = await direct();
       const m = await deliverVoice(c);
-      await shareTranscriptHandler(deps, w.doctor, { conversationUid: c, messageUid: m, decision: 'Approve' });
+      await seedMachine(c, m);
+      await w.deps.db.doc(`conversations/${c}/messages/${m}/transcript/shared`).set({
+        uid: 'shared',
+        conversationUid: c,
+        messageUid: m,
+        senderUid: w.doctor.uid,
+        text: MACHINE_TEXT,
+        language: 'sw',
+        acceptedUnchanged: true,
+        editDistance: 0,
+        models: {},
+        sharedAt: NOW,
+        lastUpdatedAt: NOW,
+      });
+      await w.deps.db.doc(`conversations/${c}/messages/${m}`).update({ transcriptShared: true });
       const path = `conversations/${c}/voice/${m}.m4a`;
       assert.ok(await objectExists(path));
       assert.ok(await transcript(c, m, 'machine'));
@@ -1106,6 +1128,7 @@ describe('conversations', () => {
     it('stops, and keeps the message, when the object cannot be deleted', async () => {
       const c = await direct();
       const m = await deliverVoice(c);
+      await seedMachine(c, m);
       const broken = {
         bucket: () => ({ file: () => ({ delete: () => Promise.reject(new Error('storage down')) }) }),
       } as unknown as StorageLike;
@@ -1134,6 +1157,7 @@ describe('conversations', () => {
     it('shares the machine text unchanged and records acceptedUnchanged', async () => {
       const c = await direct();
       const m = await deliverVoice(c);
+      await seedMachine(c, m);
       assert.deepEqual(await share(c, m), { status: 'Shared' });
       const shared = await transcript(c, m, 'shared');
       assert.equal(shared?.text, MACHINE_TEXT);
@@ -1152,6 +1176,7 @@ describe('conversations', () => {
     it('shares an edit with its distance and no unchanged signal', async () => {
       const c = await direct();
       const m = await deliverVoice(c);
+      await seedMachine(c, m);
       await share(c, m, { decision: 'ApproveEdited', text: 'Nina maumivu makali ya kichwa.' });
       const shared = await transcript(c, m, 'shared');
       assert.equal(shared?.text, 'Nina maumivu makali ya kichwa.');
@@ -1165,6 +1190,7 @@ describe('conversations', () => {
     it('shares once: a second call changes nothing and counts nothing', async () => {
       const c = await direct();
       const m = await deliverVoice(c);
+      await seedMachine(c, m);
       await share(c, m);
       assert.deepEqual(await share(c, m, { decision: 'ApproveEdited', text: 'Different.' }), { status: 'Shared' });
       assert.equal((await transcript(c, m, 'shared'))?.text, MACHINE_TEXT);
@@ -1174,6 +1200,7 @@ describe('conversations', () => {
     it('works inside a group for a practitioner sender', async () => {
       const { conversationUid: c } = await acceptedMdt();
       const m = await deliverVoice(c, { sender: w.colleague.uid });
+      await seedMachine(c, m);
       await share(c, m, {}, w.colleague);
       assert.equal((await transcript(c, m, 'shared'))?.senderUid, w.colleague.uid);
     });

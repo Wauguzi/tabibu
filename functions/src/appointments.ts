@@ -71,13 +71,13 @@ export const MAX_PENDING = 5;
 export const INTAKE_STALE_MS = 30 * MINUTE_MS;
 export const SPEECH_AUDIO_MAX_AGE_MS = HOUR_MS;
 export const TRANSCRIBE_PER_DAY = 20;
-export const SPEECH_MAX_BYTES = 512 * 1024;
+export const SPEECH_MAX_BYTES = 1536 * 1024;
 export const SPEECH_PAGE = 500;
 
 const SLOT_MS = SLOT_MINUTES * MINUTE_MS;
 const SWEEP_LIMIT = 100;
 const SIBLING_LIMIT = 20;
-const AUDIO_TYPES = ['audio/mp4', 'audio/aac'];
+const AUDIO_TYPES = ['audio/wav'];
 const APPOINTMENT_TYPES = ['Consultation', 'CaseDiscussion'] as const;
 const DECLINE_REASONS = ['SlotUnavailable', 'OutsidePractice', 'ReferredElsewhere', 'Other'] as const;
 
@@ -665,6 +665,80 @@ export interface TranscriptionResult {
   models: Record<string, string>;
 }
 
+/** Sample rates the speech API takes, in Hz. */
+const WAV_RATES = [16000, 24000];
+
+/**
+ * Parses a symptom recording and rebuilds what the speech API takes: a plain 44-byte
+ * RIFF/WAVE header (PCM, mono, 16-bit, 16 or 24 kHz) plus the `data` bytes. Tolerates what a
+ * real recorder may add — unknown chunks anywhere, trailing chunks after `data`, placeholder
+ * sizes (0 or 0xFFFFFFFF) taken from the file length — and refuses anything else: a `data`
+ * size past the bytes present, anything outside mono 16-bit PCM at 16 or 24 kHz, anything
+ * outside 1 s to 46 s. Null when refused.
+ */
+function canonicalSymptomWav(bytes: Buffer): { wav: Buffer; durationMs: number } | null {
+  if (bytes.length < 44) return null;
+  if (bytes.toString('latin1', 0, 4) !== 'RIFF') return null;
+  if (bytes.toString('latin1', 8, 12) !== 'WAVE') return null;
+  const riffSize = bytes.readUInt32LE(4);
+  if (riffSize !== 0 && riffSize !== 0xffffffff && riffSize !== bytes.length - 8) return null;
+  let channels = 0;
+  let rate = 0;
+  let byteRate = 0;
+  let bits = 0;
+  let dataStart = -1;
+  let dataSize = -1;
+  let offset = 12;
+  while (offset + 8 <= bytes.length) {
+    const id = bytes.toString('latin1', offset, offset + 4);
+    const size = bytes.readUInt32LE(offset + 4);
+    const payload = offset + 8;
+    let consumed = size;
+    if (id === 'fmt ') {
+      if (size < 16 || payload + size > bytes.length) return null;
+      if (bytes.readUInt16LE(payload) !== 1) return null;
+      channels = bytes.readUInt16LE(payload + 2);
+      rate = bytes.readUInt32LE(payload + 4);
+      byteRate = bytes.readUInt32LE(payload + 8);
+      bits = bytes.readUInt16LE(payload + 14);
+    } else if (id === 'data') {
+      if (dataSize !== -1) return null;
+      if (size === 0 || size === 0xffffffff) {
+        consumed = bytes.length - payload;
+      } else if (payload + size > bytes.length) {
+        return null;
+      }
+      dataStart = payload;
+      dataSize = consumed;
+    } else if (payload + size > bytes.length) {
+      return null;
+    }
+    offset = payload + consumed + (consumed % 2);
+  }
+  if (channels !== 1 || bits !== 16 || !WAV_RATES.includes(rate)) return null;
+  if (byteRate !== (rate * bits * channels) / 8) return null;
+  if (dataSize < 0) return null;
+  if (dataSize < byteRate || dataSize > byteRate * 46) return null;
+  const header = Buffer.alloc(44);
+  header.write('RIFF', 0);
+  header.writeUInt32LE(36 + dataSize, 4);
+  header.write('WAVE', 8);
+  header.write('fmt ', 12);
+  header.writeUInt32LE(16, 16);
+  header.writeUInt16LE(1, 20);
+  header.writeUInt16LE(1, 22);
+  header.writeUInt32LE(rate, 24);
+  header.writeUInt32LE(byteRate, 28);
+  header.writeUInt16LE(2, 32);
+  header.writeUInt16LE(16, 34);
+  header.write('data', 36);
+  header.writeUInt32LE(dataSize, 40);
+  return {
+    wav: Buffer.concat([header, bytes.subarray(dataStart, dataStart + dataSize)]),
+    durationMs: Math.floor((dataSize * 1000) / byteRate),
+  };
+}
+
 /**
  * Symptom dictation is transcribe-and-discard: the audio goes to the speech model and nowhere
  * else, and the object is deleted in `finally` on every path after the id is known, a refusal
@@ -681,7 +755,7 @@ export async function transcribeSymptomsHandler(
   if (audioUid === '') throw refuse('invalid-argument', 'invalidAudio');
   const now = nowOf(deps);
   const { db } = deps;
-  const file = storageOf(deps).bucket(deps.bucket).file(`speechAudio/${c.uid}/${audioUid}.m4a`);
+  const file = storageOf(deps).bucket(deps.bucket).file(`speechAudio/${c.uid}/${audioUid}.wav`);
 
   try {
     if (!isEnabled(deps.config, 'voice_input_enabled')) throw refuse('failed-precondition', 'voiceDisabled');
@@ -698,13 +772,15 @@ export async function transcribeSymptomsHandler(
     if (!AUDIO_TYPES.includes(str(meta.contentType))) throw refuse('invalid-argument', 'invalidAudio');
     if (Number(meta.size) > SPEECH_MAX_BYTES) throw refuse('invalid-argument', 'audioTooLarge');
     const [bytes] = await file.download();
+    const canonical = canonicalSymptomWav(bytes);
+    if (canonical === null) throw refuse('invalid-argument', 'invalidAudio');
     const ai = deps.ai;
     if (!ai?.transcribeAudio) throw refuse('unavailable', 'transcriptionFailed');
     let transcript: string;
     let language: string;
     let models: Record<string, string>;
     try {
-      const result = await withTimeout(ai.transcribeAudio({ bytes, contentType: str(meta.contentType) }));
+      const result = await withTimeout(ai.transcribeAudio({ bytes: canonical.wav, contentType: str(meta.contentType) }));
       transcript = sanitize(result.transcript, 2000);
       language = ['en', 'sw', 'mixed'].includes(result.language) ? result.language : '';
       models = result.models;

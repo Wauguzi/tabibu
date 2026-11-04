@@ -2,8 +2,8 @@ rules_version = '2';
 
 // Storage paths (architecture §6.1 / §11, threat model T-8, CRQ-0016, CRQ-0026,
 // the feat/infra CRQs). Pictures JPEG/PNG under 3 MB; licences JPEG/PNG/PDF
-// under 10 MB; slides ≤ 20 MB; conversation images < 3 MB; voice notes and
-// speechAudio ≤ 512 KB.
+// under 10 MB; slides ≤ 20 MB; conversation images < 3 MB; voice notes
+// ≤ 512 KB; speechAudio ≤ 1.5 MB, WAV.
 // get() budget: slides 1; preread 1; signature 1; conversation image/voice 2
 // (conversation get + message exists). Emulator check: architecture / U-1.
 // Orphan conversation uploads (fresh mid, no message) are not capped here
@@ -33,6 +33,10 @@ service firebase.storage {
       return request.resource.size <= 512 * 1024;
     }
 
+    function under1536KB() {
+      return request.resource.size <= 1536 * 1024;
+    }
+
     function under20MB() {
       return request.resource.size <= 20 * 1024 * 1024;
     }
@@ -48,6 +52,10 @@ service firebase.storage {
 
     function audioTyped() {
       return request.resource.contentType in ['audio/mp4', 'audio/aac'];
+    }
+
+    function wavTyped() {
+      return request.resource.contentType == 'audio/wav';
     }
 
     function confirmedSelf(owner) {
@@ -230,16 +238,16 @@ service firebase.storage {
       allow update, delete: if false;
     }
 
-    // ── speechAudio/{uid}/{audioUid}.m4a ────────────────────────────────────
+    // ── speechAudio/{uid}/{audioUid}.wav ────────────────────────────────────
 
     match /speechAudio/{u}/{file} {
       allow read: if false;
       allow create: if signedIn()
           && u == request.auth.uid
           && role() == 'patient'
-          && file.matches('^[A-Za-z0-9_-]+[.]m4a$')
-          && audioTyped()
-          && under512KB();
+          && file.matches('^[A-Za-z0-9_-]+[.]wav$')
+          && wavTyped()
+          && under1536KB();
       allow update, delete: if false;
     }
 
