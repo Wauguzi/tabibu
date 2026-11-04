@@ -55,6 +55,14 @@ export const PREREAD_PROMPT_VERSION_V3 = 'preread-classify-v3';
 export const PREREAD_TILE_PX = 96;
 /** Many tiles per request; the Model API caps images per call at 50. */
 export const PREREAD_TILES_PER_REQUEST = 16;
+/** Model API hard cap on images in one Responses call. */
+export const PREREAD_MAX_IMAGES_PER_REQUEST = 50;
+/**
+ * When true, each classify request prepends the four committed CC0 few-shot
+ * examples (bundle 73). Off until the batch-of-16 evaluation shows the gain on the
+ * path production uses; false restores the no-example request body byte-for-byte.
+ */
+export const PREREAD_FEW_SHOT = false;
 /** Parallel classify batches (bundle 59). */
 export const PREREAD_BATCH_CONCURRENCY = 4;
 /** Whole-run budget inside the 300 s Cloud Function (bundle 59). */
@@ -181,6 +189,8 @@ export interface PrereadWorkerOptions {
   fetchTimeoutMs?: number;
   /** Structured failure log (tests inject a spy). */
   log?: PrereadLog;
+  /** Override live few-shot fixtures (tests). `false` forces none. */
+  fewShot?: readonly FewShotTile[] | false;
 }
 
 /**
@@ -296,6 +306,7 @@ async function runPreread(
       apiKey,
       fetch: options.fetch,
       fetchTimeoutMs: options.fetchTimeoutMs ?? PREREAD_FETCH_TIMEOUT_MS,
+      fewShot: options.fewShot,
     });
   const cache = options.cache ?? memoryCache();
 
@@ -346,7 +357,7 @@ async function runPreread(
     }
 
     const imageHash = sha256Hex(bytes);
-    const cacheKey = `${MUSE_SPARK_MODEL}|${PREREAD_PROMPT_VERSION}|u${TILE_UPSCALE_FACTOR}|${imageHash}|f${factor}`;
+    const cacheKey = `${MUSE_SPARK_MODEL}|${PREREAD_PROMPT_VERSION}|u${TILE_UPSCALE_FACTOR}|fs${PREREAD_FEW_SHOT ? 1 : 0}|${imageHash}|f${factor}`;
     let classified = await cache.get(cacheKey);
     if (!classified) {
       classified = await classifyInBatches(vision, crops, profile);
@@ -454,13 +465,13 @@ export function upscaleTilePng(png: Buffer, factor: number): Buffer {
   return encodePng(upscaleNearest(decodeImage(png), factor));
 }
 
-interface FewShotTile {
+export interface FewShotTile {
   id: string;
   label: 'Tumour' | 'Normal';
   png: Buffer;
 }
 
-/** Committed CC0 PCam examples for few-shot eval variants (bundle 64). */
+/** Committed CC0 PCam examples (bundle 64 fixtures; live worker uses them when PREREAD_FEW_SHOT). */
 export function loadFewShotFixtures(): FewShotTile[] {
   const root = join(__dirname, '..', 'data', 'pcam_fewshot');
   try {
@@ -475,6 +486,156 @@ export function loadFewShotFixtures(): FewShotTile[] {
   } catch {
     return [];
   }
+}
+
+/** Extra system line when examples are present (calibration only, not the case). */
+export const PREREAD_FEW_SHOT_INSTRUCTION =
+  'The labelled examples before the case tiles are for calibration only and are not part of the case. Return labels only for the case tile ids listed in the request; never echo an example id.';
+
+/**
+ * User content for one classify call. Examples (if any) come first, each with its
+ * label in text, then the case tiles. With an empty few-shot list the payload matches
+ * the pre-bundle-73 shape.
+ */
+export function buildClassifyUserContent(
+  crops: TileCrop[],
+  fewShot: readonly FewShotTile[] = [],
+): unknown[] {
+  const content: unknown[] = [];
+  if (fewShot.length > 0) {
+    content.push({
+      type: 'input_text',
+      text: 'The next images are labelled examples for calibration only. They are not part of this case.',
+    });
+    for (const ex of fewShot) {
+      content.push({
+        type: 'input_text',
+        text: `example label=${ex.label} id=${ex.id}`,
+      });
+      content.push({
+        type: 'input_image',
+        image_url: `data:image/png;base64,${ex.png.toString('base64')}`,
+      });
+    }
+  }
+  content.push({
+    type: 'input_text',
+    text: `Classify these ${crops.length} tiles. ids=${JSON.stringify(crops.map((c) => c.id))}`,
+  });
+  for (const crop of crops) {
+    content.push({
+      type: 'input_text',
+      text: `tile id=${crop.id}`,
+    });
+    content.push({
+      type: 'input_image',
+      image_url: `data:image/png;base64,${crop.png.toString('base64')}`,
+    });
+  }
+  return content;
+}
+
+export function countClassifyImages(content: unknown[]): number {
+  return content.filter(
+    (part) =>
+      !!part &&
+      typeof part === 'object' &&
+      (part as { type?: unknown }).type === 'input_image',
+  ).length;
+}
+
+/** Full Responses body for one classify call (shared by the worker and eval). */
+export function buildClassifyRequestBody(args: {
+  crops: TileCrop[];
+  profile: PrereadProfile;
+  fewShot?: readonly FewShotTile[];
+  effort?: ReasoningEffort;
+  instructions?: string;
+}): {
+  body: Record<string, unknown>;
+  content: unknown[];
+  exampleIds: Set<string>;
+  cropIds: Set<string>;
+} {
+  const fewShot = args.fewShot ?? [];
+  const imageCount = fewShot.length + args.crops.length;
+  if (imageCount > PREREAD_MAX_IMAGES_PER_REQUEST) {
+    throw new PrereadCallError('OffSchema', 'none');
+  }
+  if (args.crops.length > PREREAD_TILES_PER_REQUEST) {
+    throw new PrereadCallError('OffSchema', 'none');
+  }
+  const content = buildClassifyUserContent(args.crops, fewShot);
+  let instructions = args.instructions ?? buildClassifyInstructions(args.profile);
+  if (fewShot.length > 0 && !instructions.includes(PREREAD_FEW_SHOT_INSTRUCTION)) {
+    instructions = `${instructions} ${PREREAD_FEW_SHOT_INSTRUCTION}`;
+  }
+  const body = {
+    model: MUSE_SPARK_MODEL,
+    store: false,
+    reasoning: { effort: args.effort ?? TILE_REASONING_EFFORT },
+    instructions,
+    input: [{ type: 'message', role: 'user', content }],
+    text: {
+      format: {
+        type: 'json_schema',
+        name: 'tile_labels',
+        strict: true,
+        schema: {
+          type: 'object',
+          additionalProperties: false,
+          required: ['tiles'],
+          properties: {
+            tiles: {
+              type: 'array',
+              items: {
+                type: 'object',
+                additionalProperties: false,
+                required: ['id', 'label', 'probability'],
+                properties: {
+                  id: { type: 'string' },
+                  label: { type: 'string' },
+                  probability: { type: 'number' },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+  return {
+    body,
+    content,
+    exampleIds: new Set(fewShot.map((f) => f.id)),
+    cropIds: new Set(args.crops.map((c) => c.id)),
+  };
+}
+
+/**
+ * Parse model tiles. An output row whose id is an example id is refused (OffSchema).
+ */
+export function parseClassifyTiles(
+  tiles: unknown,
+  opts: { exampleIds: Set<string>; statusClass?: HttpStatusClass },
+): ClassifiedTile[] {
+  if (!Array.isArray(tiles)) {
+    throw new PrereadCallError('OffSchema', opts.statusClass ?? 'none');
+  }
+  return tiles.map((t) => {
+    const row = t as { id?: unknown; label?: unknown; probability?: unknown };
+    if (typeof row.id !== 'string' || typeof row.label !== 'string') {
+      throw new PrereadCallError('OffSchema', opts.statusClass ?? 'none');
+    }
+    if (opts.exampleIds.has(row.id)) {
+      throw new PrereadCallError('OffSchema', opts.statusClass ?? 'none');
+    }
+    return {
+      id: row.id,
+      label: row.label,
+      probability: typeof row.probability === 'number' ? row.probability : 0,
+    };
+  });
 }
 
 export function assertPathsUnder(caseUid: string, runUid: string, paths: string[]): void {
@@ -565,64 +726,29 @@ function metaVision(args: {
   apiKey: string;
   fetch?: FetchLike;
   fetchTimeoutMs?: number;
+  /** Override live few-shot (tests). Default follows PREREAD_FEW_SHOT. */
+  fewShot?: readonly FewShotTile[] | false;
 }): PrereadVision {
   const doFetch = args.fetch ?? globalThis.fetch;
   const fetchTimeoutMs = args.fetchTimeoutMs ?? PREREAD_FETCH_TIMEOUT_MS;
   return {
     async classify(crops, profile) {
       if (!args.apiKey) throw new PrereadCallError('ServiceError', 'none');
-      const instructions = buildClassifyInstructions(profile);
-      const content: unknown[] = [
-        {
-          type: 'input_text',
-          text: `Classify these ${crops.length} tiles. ids=${JSON.stringify(crops.map((c) => c.id))}`,
-        },
-      ];
-      for (const crop of crops) {
-        content.push({
-          type: 'input_text',
-          text: `tile id=${crop.id}`,
-        });
-        content.push({
-          type: 'input_image',
-          image_url: `data:image/png;base64,${crop.png.toString('base64')}`,
-        });
-      }
-      // max_output_tokens omitted: not confirmed on the Responses docs we have.
-      const body = {
-        model: MUSE_SPARK_MODEL,
-        store: false,
-        reasoning: { effort: TILE_REASONING_EFFORT },
-        instructions,
-        input: [{ type: 'message', role: 'user', content }],
-        text: {
-          format: {
-            type: 'json_schema',
-            name: 'tile_labels',
-            strict: true,
-            schema: {
-              type: 'object',
-              additionalProperties: false,
-              required: ['tiles'],
-              properties: {
-                tiles: {
-                  type: 'array',
-                  items: {
-                    type: 'object',
-                    additionalProperties: false,
-                    required: ['id', 'label', 'probability'],
-                    properties: {
-                      id: { type: 'string' },
-                      label: { type: 'string' },
-                      probability: { type: 'number' },
-                    },
-                  },
-                },
-              },
-            },
-          },
-        },
-      };
+      if (crops.length === 0) return [];
+      const fewShot =
+        args.fewShot === false
+          ? []
+          : args.fewShot !== undefined
+            ? args.fewShot
+            : PREREAD_FEW_SHOT
+              ? loadFewShotFixtures()
+              : [];
+      // Shared with eval --batch-size so production and measurement share one body.
+      const built = buildClassifyRequestBody({
+        crops,
+        profile,
+        fewShot,
+      });
       let response: Response;
       try {
         response = await withTimeout(
@@ -632,7 +758,7 @@ function metaVision(args: {
               Authorization: `Bearer ${args.apiKey}`,
               'Content-Type': 'application/json',
             },
-            body: JSON.stringify(body),
+            body: JSON.stringify(built.body),
           }),
           fetchTimeoutMs,
         );
@@ -663,18 +789,10 @@ function metaVision(args: {
       if (!structured || typeof structured !== 'object') {
         throw new PrereadCallError('OffSchema', statusClass);
       }
-      const tiles = (structured as { tiles?: unknown }).tiles;
-      if (!Array.isArray(tiles)) throw new PrereadCallError('OffSchema', statusClass);
-      return tiles.map((t) => {
-        const row = t as { id?: unknown; label?: unknown; probability?: unknown };
-        if (typeof row.id !== 'string' || typeof row.label !== 'string') {
-          throw new PrereadCallError('OffSchema', statusClass);
-        }
-        return {
-          id: row.id,
-          label: row.label,
-          probability: typeof row.probability === 'number' ? row.probability : 0,
-        };
+      // A tile the model leaves out stays Unknown downstream, as before; only an echoed example id fails.
+      return parseClassifyTiles((structured as { tiles?: unknown }).tiles, {
+        exampleIds: built.exampleIds,
+        statusClass,
       });
     },
   };

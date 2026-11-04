@@ -19,10 +19,15 @@
  *   npx ts-node scripts/eval-preread.ts --live --demo-mosaics
  *   npx ts-node scripts/eval-preread.ts --live
  *   npx ts-node scripts/eval-preread.ts --live --held-out-variant v3_fewshot_minimal
+ *   npx ts-node scripts/eval-preread.ts --live --tune --variants v3_minimal,v3_fewshot_minimal --batch-size 16
  *
  * `--held-out-variant <id>` scores one variant, chosen on the tuning set beforehand, on the
  * held-out tiles once, and writes `eval-held-out-variant-results.json` so the baseline held-out
  * results are kept.
+ *
+ * `--few-shot` scores the live configuration (held-out baseline, demo mosaics) with the examples on.
+ * `--batch-size 16` sends up to 16 tiles per request via the worker's request builder (production
+ * path). Default remains 1 tile per request for continuity with earlier single-tile numbers.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
@@ -35,6 +40,7 @@ import {
 } from '../src/ai-meta';
 import { falsePositiveRate, loadDemoMosaicTiles } from '../src/pcam-demo-mosaics';
 import {
+  PREREAD_FEW_SHOT,
   PREREAD_IMAGE_TEXT_RULE,
   PREREAD_PCAM_LABEL_RULE,
   PREREAD_PROMPT_VERSION,
@@ -44,8 +50,12 @@ import {
   TILE_REASONING_EFFORT,
   TILE_UPSCALE_FACTOR,
   buildClassifyInstructions,
+  buildClassifyRequestBody,
   loadFewShotFixtures,
+  parseClassifyTiles,
   upscaleTilePng,
+  type FewShotTile,
+  type TileCrop,
 } from '../src/preread-worker';
 
 const LIVE = process.argv.includes('--live');
@@ -91,6 +101,25 @@ function optionValue(name: string): string | null {
 const VARIANT_FILTER = parseVariantsFilter(process.argv);
 const VARIANTS = VARIANT_FILTER !== null;
 
+function parseBatchSize(argv: string[]): number {
+  const eq = argv.find((a) => a.startsWith('--batch-size='));
+  if (eq) {
+    const n = Number(eq.slice('--batch-size='.length));
+    return Number.isFinite(n) && n >= 1 ? Math.min(Math.floor(n), PREREAD_TILES_PER_REQUEST) : 1;
+  }
+  const v = optionValue('--batch-size');
+  if (v) {
+    const n = Number(v);
+    return Number.isFinite(n) && n >= 1 ? Math.min(Math.floor(n), PREREAD_TILES_PER_REQUEST) : 1;
+  }
+  return 1;
+}
+
+const BATCH_SIZE = parseBatchSize(process.argv);
+
+/** The live worker's setting, or `--few-shot` to measure the live configuration with the examples on. */
+const LIVE_FEW_SHOT = PREREAD_FEW_SHOT || process.argv.includes('--few-shot');
+
 interface Sample {
   id: string;
   label: 'Tumour' | 'Normal';
@@ -127,6 +156,7 @@ interface Metrics {
   upscale: number;
   effort: ReasoningEffort;
   fewShot: boolean;
+  batchSize: number;
 }
 
 interface VariantSpec {
@@ -242,6 +272,7 @@ function metricsOf(
     upscale: spec.upscale,
     effort: spec.effort,
     fewShot: spec.fewShot,
+    batchSize: BATCH_SIZE,
   };
 }
 
@@ -342,12 +373,48 @@ function variantGrid(): VariantSpec[] {
   return picked;
 }
 
+function usageTokens(parsed: {
+  usage?: { total_tokens?: number; input_tokens?: number; output_tokens?: number };
+}): number {
+  if (typeof parsed.usage?.total_tokens === 'number') return parsed.usage.total_tokens;
+  return (parsed.usage?.input_tokens ?? 0) + (parsed.usage?.output_tokens ?? 0);
+}
+
+function extractOutputText(parsed: {
+  output?: { content?: { type?: string; text?: string }[] }[];
+  output_text?: string;
+}): string {
+  let jsonText = typeof parsed.output_text === 'string' ? parsed.output_text : '';
+  if (!jsonText && Array.isArray(parsed.output)) {
+    for (const item of parsed.output) {
+      for (const part of item.content ?? []) {
+        if (part.type === 'output_text' && typeof part.text === 'string') jsonText += part.text;
+      }
+    }
+  }
+  return jsonText;
+}
+
+function prepareFewShot(fewShot: FewShotTile[], upscale: number): FewShotTile[] {
+  return fewShot.map((ex) => ({
+    ...ex,
+    png: upscale > 1 ? Buffer.from(upscaleTilePng(ex.png, upscale)) : ex.png,
+  }));
+}
+
+function sampleToCrop(sample: Sample, upscale: number): TileCrop {
+  let bytes: Buffer = readFileSync(sample.path);
+  if (upscale > 1) bytes = Buffer.from(upscaleTilePng(bytes, upscale));
+  return { id: sample.id, row: 0, col: 0, png: bytes };
+}
+
+/** One tile per request (historical eval path; not the production batch shape). */
 async function classifyOne(
   sample: Sample,
   spec: VariantSpec,
   apiKey: string,
   doFetch: FetchLike,
-  fewShot: { id: string; label: string; png: Buffer }[],
+  fewShot: FewShotTile[],
 ): Promise<{ pred: string; ms: number; tokens: number; probability: number }> {
   let bytes: Buffer = readFileSync(sample.path);
   if (spec.upscale > 1) bytes = Buffer.from(upscaleTilePng(bytes, spec.upscale));
@@ -424,53 +491,133 @@ async function classifyOne(
     output_text?: string;
     usage?: { total_tokens?: number; input_tokens?: number; output_tokens?: number };
   };
-  let jsonText = typeof parsed.output_text === 'string' ? parsed.output_text : '';
-  if (!jsonText && Array.isArray(parsed.output)) {
-    for (const item of parsed.output) {
-      for (const part of item.content ?? []) {
-        if (part.type === 'output_text' && typeof part.text === 'string') jsonText += part.text;
-      }
-    }
-  }
-  const structured = JSON.parse(jsonText) as {
+  const structured = JSON.parse(extractOutputText(parsed)) as {
     tiles?: { id?: string; label?: string; probability?: number }[];
   };
   const tile = structured.tiles?.[0];
   const pred = tile?.label === 'Tumour' ? 'Tumour' : 'Normal';
   const probability = typeof tile?.probability === 'number' ? tile.probability : 0;
-  const tokens =
-    typeof parsed.usage?.total_tokens === 'number'
-      ? parsed.usage.total_tokens
-      : (parsed.usage?.input_tokens ?? 0) + (parsed.usage?.output_tokens ?? 0);
-  return { pred, ms: Date.now() - started, tokens, probability };
+  return { pred, ms: Date.now() - started, tokens: usageTokens(parsed), probability };
+}
+
+/**
+ * Production-shaped classify: worker request builder, up to BATCH_SIZE crops, shared few-shot.
+ * Latency and tokens are split evenly across tiles in the response for per-tile metrics.
+ */
+async function classifyBatch(
+  samples: Sample[],
+  spec: VariantSpec,
+  apiKey: string,
+  doFetch: FetchLike,
+  fewShot: FewShotTile[],
+): Promise<Map<string, { pred: string; ms: number; tokens: number; probability: number }>> {
+  const crops = samples.map((s) => sampleToCrop(s, spec.upscale));
+  const examples =
+    spec.fewShot && fewShot.length > 0 ? prepareFewShot(fewShot, spec.upscale) : [];
+  const built = buildClassifyRequestBody({
+    crops,
+    profile: 'Cancer',
+    fewShot: examples,
+    effort: spec.effort,
+    instructions: spec.instructions,
+  });
+  const started = Date.now();
+  const response = await doFetch(META_RESPONSES_URL, {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${apiKey}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(built.body),
+  });
+  if (!response.ok) {
+    throw new Error(`classify failed statusClass=${response.status >= 500 ? '5xx' : '4xx'}`);
+  }
+  const text = await response.text();
+  const parsed = JSON.parse(text) as {
+    output?: { content?: { type?: string; text?: string }[] }[];
+    output_text?: string;
+    usage?: { total_tokens?: number; input_tokens?: number; output_tokens?: number };
+  };
+  const structured = JSON.parse(extractOutputText(parsed)) as { tiles?: unknown };
+  const tiles = parseClassifyTiles(structured.tiles, { exampleIds: built.exampleIds });
+  const elapsed = Date.now() - started;
+  const tokens = usageTokens(parsed);
+  const n = Math.max(1, samples.length);
+  const out = new Map<string, { pred: string; ms: number; tokens: number; probability: number }>();
+  for (const sample of samples) {
+    const hit = tiles.find((t) => t.id === sample.id);
+    if (!hit) {
+      throw new Error(`classify batch missing tile id=${sample.id}`);
+    }
+    out.set(sample.id, {
+      pred: hit.label === 'Tumour' ? 'Tumour' : 'Normal',
+      ms: elapsed / n,
+      tokens: tokens / n,
+      probability: hit.probability,
+    });
+  }
+  return out;
 }
 
 async function scoreVariant(
   samples: Sample[],
   spec: VariantSpec,
   apiKey: string,
-  fewShot: { id: string; label: string; png: Buffer }[],
+  fewShot: FewShotTile[],
   resume?: ResumeStore,
 ): Promise<Metrics> {
   const rows: { truth: string; pred: string; ms: number; tokens: number; probability: number }[] =
     [];
-  for (const sample of samples) {
-    const key = resumeKey(spec.id, sample.id);
-    const cached = resume?.byKey[key];
-    if (RESUME && cached) {
-      rows.push(cached);
-      continue;
+  if (BATCH_SIZE <= 1) {
+    for (const sample of samples) {
+      const key = resumeKey(spec.id, sample.id);
+      const cached = resume?.byKey[key];
+      if (RESUME && cached) {
+        rows.push(cached);
+        continue;
+      }
+      const hit = await classifyOne(sample, spec, apiKey, globalThis.fetch, fewShot);
+      const row = {
+        truth: sample.label,
+        pred: hit.pred,
+        ms: hit.ms,
+        tokens: hit.tokens,
+        probability: hit.probability,
+      };
+      rows.push(row);
+      if (resume) resume.byKey[key] = row;
     }
-    const hit = await classifyOne(sample, spec, apiKey, globalThis.fetch, fewShot);
-    const row = {
-      truth: sample.label,
-      pred: hit.pred,
-      ms: hit.ms,
-      tokens: hit.tokens,
-      probability: hit.probability,
-    };
-    rows.push(row);
-    if (resume) resume.byKey[key] = row;
+    return metricsOf(spec, rows);
+  }
+
+  for (let i = 0; i < samples.length; i += BATCH_SIZE) {
+    const chunk = samples.slice(i, i + BATCH_SIZE);
+    const pending: Sample[] = [];
+    for (const sample of chunk) {
+      const key = resumeKey(spec.id, sample.id);
+      const cached = resume?.byKey[key];
+      if (RESUME && cached) {
+        rows.push(cached);
+      } else {
+        pending.push(sample);
+      }
+    }
+    if (pending.length === 0) continue;
+    const hits = await classifyBatch(pending, spec, apiKey, globalThis.fetch, fewShot);
+    for (const sample of pending) {
+      const hit = hits.get(sample.id);
+      if (!hit) throw new Error(`classify batch missing tile id=${sample.id}`);
+      const row = {
+        truth: sample.label,
+        pred: hit.pred,
+        ms: hit.ms,
+        tokens: hit.tokens,
+        probability: hit.probability,
+      };
+      rows.push(row);
+      if (resume) resume.byKey[resumeKey(spec.id, sample.id)] = row;
+    }
   }
   return metricsOf(spec, rows);
 }
@@ -521,14 +668,22 @@ async function runDemoMosaics(apiKey: string): Promise<void> {
     }),
   );
   assertSpend(tiles.length);
+  const fewShot = LIVE_FEW_SHOT ? loadFewShotFixtures() : [];
   const spec: VariantSpec = {
     id: 'demo_mosaics_live',
     promptVersion: PREREAD_PROMPT_VERSION,
     instructions: instructionsV3(),
     effort: TILE_REASONING_EFFORT,
     upscale: TILE_UPSCALE_FACTOR,
-    fewShot: false,
+    fewShot: LIVE_FEW_SHOT,
   };
+  const tmpDir = join(ROOT, 'data', 'tmp_demo_mosaic');
+  mkdirSync(tmpDir, { recursive: true });
+  const samples: Sample[] = tiles.map((tile) => {
+    const path = join(tmpDir, `${tile.id}.png`);
+    writeFileSync(path, tile.png);
+    return { id: tile.id, label: tile.label, path };
+  });
   const rows: {
     id: string;
     slide: string;
@@ -539,27 +694,20 @@ async function runDemoMosaics(apiKey: string): Promise<void> {
     tokens: number;
     probability: number;
   }[] = [];
+  const resume: ResumeStore = { byKey: {} };
+  await scoreVariant(samples, spec, apiKey, fewShot, resume);
   for (const tile of tiles) {
-    const tmpDir = join(ROOT, 'data', 'tmp_demo_mosaic');
-    mkdirSync(tmpDir, { recursive: true });
-    const path = join(tmpDir, `${tile.id}.png`);
-    writeFileSync(path, tile.png);
-    const hit = await classifyOne(
-      { id: tile.id, label: tile.label, path },
-      spec,
-      apiKey,
-      globalThis.fetch,
-      [],
-    );
+    const cached = resume.byKey[resumeKey(spec.id, tile.id)];
+    if (!cached) throw new Error(`demo mosaic missing result id=${tile.id}`);
     rows.push({
       id: tile.id,
       slide: tile.slide,
       truth: tile.label,
-      pred: hit.pred === 'Tumour' ? 'Tumour' : 'Normal',
+      pred: cached.pred === 'Tumour' ? 'Tumour' : 'Normal',
       source: tile.source,
-      ms: hit.ms,
-      tokens: hit.tokens,
-      probability: hit.probability,
+      ms: cached.ms,
+      tokens: cached.tokens,
+      probability: cached.probability,
     });
   }
   const fp = falsePositiveRate(rows);
@@ -570,6 +718,8 @@ async function runDemoMosaics(apiKey: string): Promise<void> {
     promptVersion: PREREAD_PROMPT_VERSION,
     tileUpscale: TILE_UPSCALE_FACTOR,
     effort: TILE_REASONING_EFFORT,
+    batchSize: BATCH_SIZE,
+    fewShot: LIVE_FEW_SHOT,
     n: rows.length,
     nNormal: fp.normalN,
     nTumour: tumours.length,
@@ -626,6 +776,8 @@ async function main(): Promise<void> {
         tileEffortLive: TILE_REASONING_EFFORT,
         pcamRule: PREREAD_PCAM_LABEL_RULE.slice(0, 80) + '…',
         tilesPerRequest: PREREAD_TILES_PER_REQUEST,
+        batchSize: BATCH_SIZE,
+        liveFewShot: LIVE_FEW_SHOT,
         heldOutCount: heldOut.length,
         tuneManifestCount: tune.length,
         fewShotFixtures: fixtures.length,
@@ -716,6 +868,7 @@ async function main(): Promise<void> {
         set: 'tune-variants',
         note: 'Quoted only from this run. Held-out tiles were not used for tuning.',
         model: MUSE_SPARK_MODEL,
+        batchSize: BATCH_SIZE,
         chosenVariant: winner.variant,
         byVariant: results,
         resume: resume.byKey,
@@ -798,6 +951,7 @@ async function main(): Promise<void> {
       set: 'held-out',
       note: 'One variant, chosen on the tuning set beforehand, scored once here. The held-out tiles were also scored for the live configuration; they are not used to choose between variants.',
       model: MUSE_SPARK_MODEL,
+      batchSize: BATCH_SIZE,
       byVariant: [scored],
     };
     writeFileSync(HELD_OUT_VARIANT_OUT, JSON.stringify(variantReport, null, 2));
@@ -811,9 +965,14 @@ async function main(): Promise<void> {
     instructions: instructionsV3(),
     effort: TILE_REASONING_EFFORT,
     upscale: TILE_UPSCALE_FACTOR,
-    fewShot: false,
+    fewShot: LIVE_FEW_SHOT,
   };
-  const current = await scoreVariant(heldOut, heldSpec, apiKey, []);
+  const current = await scoreVariant(
+    heldOut,
+    heldSpec,
+    apiKey,
+    LIVE_FEW_SHOT ? loadFewShotFixtures() : [],
+  );
   if (current.smallSample) {
     console.log(
       JSON.stringify({
@@ -827,6 +986,7 @@ async function main(): Promise<void> {
     set: 'held-out',
     note: 'Quoted only from this run. Never tune the prompt on these tiles.',
     model: MUSE_SPARK_MODEL,
+    batchSize: BATCH_SIZE,
     byPromptVersion: [current],
   };
   writeFileSync(OUT, JSON.stringify(report, null, 2));

@@ -31,7 +31,9 @@ import {
 } from './ai-meta';
 import {
   PREREAD_BATCH_CONCURRENCY,
+  PREREAD_FEW_SHOT_INSTRUCTION,
   PREREAD_IMAGE_TEXT_RULE,
+  PREREAD_MAX_IMAGES_PER_REQUEST,
   PREREAD_PCAM_LABEL_RULE,
   PREREAD_PROMPT_VERSION,
   PREREAD_TILES_PER_REQUEST,
@@ -41,11 +43,15 @@ import {
   TILE_UPSCALE_FACTOR,
   assertPathsUnder,
   buildClassifyInstructions,
+  buildClassifyRequestBody,
+  buildClassifyUserContent,
   classifyInBatches,
   commitIfStillRunning,
+  countClassifyImages,
   failureReasonOf,
   httpStatusClass,
   loadFewShotFixtures,
+  parseClassifyTiles,
   processQueuedPreread,
   upscaleTilePng,
   type ClassifiedTile,
@@ -53,6 +59,7 @@ import {
   type PrereadFailureLog,
   type PrereadVision,
   type TileCrop,
+  PrereadCallError,
 } from './preread-worker';
 
 function solidRaster(width: number, height: number, rgb: [number, number, number]) {
@@ -847,6 +854,209 @@ describe('bundle 59: guarded write, log, seed race', () => {
     assert.equal(final?.models?.provenance, PROVENANCE);
     assert.equal(final?.draft?.impression, 'Stored demo impression.');
     assert.equal(final?.failureReason, '');
+  });
+});
+
+describe('bundle 73: few-shot classify request', () => {
+  const crop = (id: string): TileCrop => ({
+    id,
+    row: 0,
+    col: 0,
+    png: Buffer.from(`png-${id}`),
+  });
+
+  it('prepends the four labelled fixtures before case tiles', () => {
+    const fixtures = loadFewShotFixtures();
+    assert.equal(fixtures.length, 4);
+    const crops = [crop('case-a'), crop('case-b')];
+    const content = buildClassifyUserContent(crops, fixtures);
+    const texts = content
+      .filter((p) => (p as { type?: string }).type === 'input_text')
+      .map((p) => (p as { text: string }).text);
+    assert.ok(texts[0]?.includes('calibration only'));
+    assert.equal(texts[1], `example label=${fixtures[0].label} id=${fixtures[0].id}`);
+    assert.equal(texts[2], `example label=${fixtures[1].label} id=${fixtures[1].id}`);
+    assert.equal(texts[3], `example label=${fixtures[2].label} id=${fixtures[2].id}`);
+    assert.equal(texts[4], `example label=${fixtures[3].label} id=${fixtures[3].id}`);
+    assert.ok(texts[5]?.startsWith('Classify these 2 tiles.'));
+    assert.equal(countClassifyImages(content), 6);
+    const built = buildClassifyRequestBody({
+      crops,
+      profile: 'Cancer',
+      fewShot: fixtures,
+    });
+    assert.ok(String(built.body.instructions).includes(PREREAD_FEW_SHOT_INSTRUCTION));
+  });
+
+  it('with no few-shot is byte-identical to the pre-few-shot content shape', () => {
+    const crops = [crop('t0'), crop('t1')];
+    const expected: unknown[] = [
+      {
+        type: 'input_text',
+        text: `Classify these ${crops.length} tiles. ids=${JSON.stringify(crops.map((c) => c.id))}`,
+      },
+      { type: 'input_text', text: 'tile id=t0' },
+      {
+        type: 'input_image',
+        image_url: `data:image/png;base64,${crops[0].png.toString('base64')}`,
+      },
+      { type: 'input_text', text: 'tile id=t1' },
+      {
+        type: 'input_image',
+        image_url: `data:image/png;base64,${crops[1].png.toString('base64')}`,
+      },
+    ];
+    assert.equal(
+      JSON.stringify(buildClassifyUserContent(crops, [])),
+      JSON.stringify(expected),
+    );
+    const built = buildClassifyRequestBody({
+      crops,
+      profile: 'Cancer',
+      fewShot: [],
+    });
+    assert.equal(built.body.instructions, buildClassifyInstructions('Cancer'));
+    assert.equal(built.exampleIds.size, 0);
+  });
+
+  it('refuses an output row whose id is an example id', () => {
+    const exampleIds = new Set(['train-1', 'train-2']);
+    assert.throws(
+      () =>
+        parseClassifyTiles(
+          [
+            { id: 'case-a', label: 'Normal', probability: 0.9 },
+            { id: 'train-1', label: 'Tumour', probability: 0.99 },
+          ],
+          { exampleIds },
+        ),
+      (e: unknown) => e instanceof PrereadCallError && e.reason === 'OffSchema',
+    );
+  });
+
+  it('keeps image count under the API cap with 16 tiles plus four examples', () => {
+    const fixtures = loadFewShotFixtures();
+    const crops = Array.from({ length: PREREAD_TILES_PER_REQUEST }, (_, i) => crop(`c${i}`));
+    const content = buildClassifyUserContent(crops, fixtures);
+    const images = countClassifyImages(content);
+    assert.equal(images, PREREAD_TILES_PER_REQUEST + fixtures.length);
+    assert.ok(images <= PREREAD_MAX_IMAGES_PER_REQUEST);
+    assert.doesNotThrow(() =>
+      buildClassifyRequestBody({ crops, profile: 'Cancer', fewShot: fixtures }),
+    );
+  });
+
+  it('rejects more than 16 case tiles even without examples', () => {
+    const crops = Array.from({ length: PREREAD_TILES_PER_REQUEST + 1 }, (_, i) => crop(`c${i}`));
+    assert.throws(
+      () => buildClassifyRequestBody({ crops, profile: 'Cancer', fewShot: [] }),
+      (e: unknown) => e instanceof PrereadCallError && e.reason === 'OffSchema',
+    );
+  });
+
+  it('metaVision fetch body carries fixtures when few-shot is on', async () => {
+    await resetEmulators();
+    const w = await seedWorld();
+    const fixtures = loadFewShotFixtures();
+    assert.ok(fixtures.length >= 4);
+    const bodies: unknown[] = [];
+    const fetch: FetchLike = async (url, init) => {
+      assert.equal(String(url), META_RESPONSES_URL);
+      const body = JSON.parse(String(init?.body)) as {
+        instructions?: string;
+        input?: { content?: { type?: string; text?: string }[] }[];
+      };
+      bodies.push(body);
+      const ids: string[] = [];
+      for (const msg of body.input ?? []) {
+        for (const part of msg.content ?? []) {
+          if (part.type === 'input_text' && typeof part.text === 'string') {
+            const m = /tile id=(\S+)/.exec(part.text);
+            if (m) ids.push(m[1]);
+          }
+        }
+      }
+      return new Response(
+        JSON.stringify({
+          output: [
+            {
+              type: 'message',
+              role: 'assistant',
+              content: [
+                {
+                  type: 'output_text',
+                  text: JSON.stringify({
+                    tiles: ids.map((id) => ({ id, label: 'Normal', probability: 0.9 })),
+                  }),
+                },
+              ],
+            },
+          ],
+        }),
+        { status: 200, headers: { 'Content-Type': 'application/json' } },
+      );
+    };
+    const caseUid = randomUUID();
+    const runUid = randomUUID();
+    const imagePath = `cases/${caseUid}/slides/slide-0.png`;
+    await saveObject(BUCKET, imagePath, solidPng(192, 96, [4, 5, 6]), 'image/png');
+    await w.deps.db.collection('cases').doc(caseUid).set({
+      uid: caseUid,
+      currentStage: 'PrereadQueued',
+      prereadRunUid: runUid,
+      pathologistUid: w.pathologist.uid,
+      participantUids: [w.pathologist.uid],
+    });
+    await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).set({
+      uid: runUid,
+      caseUid,
+      profile: 'Cancer',
+      status: 'Queued',
+      imagePaths: [imagePath],
+      micronsPerPixel: 0.25,
+      segmentationPath: '',
+      labelsPath: '',
+      labelCounts: {},
+      measurements: {},
+      draft: {
+        findings: [],
+        impression: '',
+        confidence: 0,
+        confidenceBand: '',
+        urgency: '',
+        nextSteps: [],
+      },
+      models: {},
+      inputLanguage: 'en',
+      failureReason: '',
+      requestedAt: '2026-11-04T00:00:00.000Z',
+      startedAt: '',
+      readyAt: '',
+      lastUpdatedAt: '2026-11-04T00:00:00.000Z',
+    });
+    await processQueuedPreread(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      runUid,
+      { enabled: true, fetch, apiKey: 'test-key-not-real', fewShot: fixtures },
+    );
+    assert.ok(bodies.length >= 1);
+    const body = bodies[0] as {
+      instructions: string;
+      input: { content: { type: string; text?: string }[] }[];
+    };
+    assert.ok(body.instructions.includes(PREREAD_FEW_SHOT_INSTRUCTION));
+    const content = body.input[0].content;
+    const texts = content.filter((c) => c.type === 'input_text').map((c) => c.text ?? '');
+    assert.ok(texts[0]?.includes('calibration only'));
+    assert.ok(
+      texts.some((t) => t.includes(`example label=${fixtures[0].label} id=${fixtures[0].id}`)),
+    );
+    assert.ok(content.filter((c) => c.type === 'input_image').length >= 5);
+    const run = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('preread').doc(runUid).get()
+    ).data();
+    assert.equal(run?.status, 'Ready');
   });
 });
 
