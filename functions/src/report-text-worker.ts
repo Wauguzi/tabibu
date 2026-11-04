@@ -19,7 +19,7 @@ import { isEnabled } from './config';
 import { deidentify, type DeidentifySubject } from './deidentify';
 import { nowOf, num, sha256, str, type Deps } from './case-support';
 
-export const REPORT_TEXT_PROMPT_VERSION = 'report-text-v1';
+export const REPORT_TEXT_PROMPT_VERSION = 'report-text-v2';
 export const REPORT_TEXT_WORKER_TIMEOUT_MS = 120_000;
 export const REPORT_TEXT_FETCH_TIMEOUT_MS = AI_TIMEOUT_MS;
 
@@ -28,8 +28,17 @@ export const REPORT_TEXT_MIN_CHARS = 40;
 export const REPORT_TEXT_MAX_CHARS = 4000;
 
 /**
+ * Soft cap on signed answer characters sent to the model. Longest answers drop first;
+ * nothing is said to the model about what was dropped.
+ */
+export const REPORT_TEXT_ANSWERS_MAX_CHARS = 6000;
+
+/**
  * Phrases that must never appear in a patient-facing draft (en + sw). Advice / prognosis /
- * treatment are out of scope for an explanation of a signed report.
+ * treatment are out of scope for an explanation of a signed report. Pre-read jargon
+ * (tile / heatmap / AI draft) is barred so a patient never sees machine vocabulary.
+ * Swahili equivalents for "tile" were not added: the existing list has no tile/jargon
+ * pairing to mirror, so English only for those.
  */
 export const REPORT_TEXT_DENY_PHRASES: readonly string[] = [
   'you should',
@@ -82,11 +91,21 @@ export interface ReportTextWorkerOptions {
   }) => Promise<{ text: string; models: Record<string, string> }>;
 }
 
+/** One signed template answer row (section / question / answer). */
+export interface ReportResponseRow {
+  section: string;
+  question: string;
+  answer: string;
+  order: number;
+}
+
 export interface ReportSourceFields {
   title: string;
   diagnosis: string;
   comments: string;
   measurements: Record<string, number>;
+  /** Signed template answers; empty when the report has none. */
+  responses: ReportResponseRow[];
 }
 
 function defaultLog(entry: ReportTextFailureLog): void {
@@ -102,6 +121,46 @@ function httpStatusClass(status: number | undefined): ReportTextFailureLog['stat
   if (status >= 400 && status < 500) return '4xx';
   if (status >= 500 && status < 600) return '5xx';
   return 'none';
+}
+
+/** Signed template answers from the report, in order. Empty when missing or malformed. */
+export function responsesOf(report: DocumentData): ReportResponseRow[] {
+  const raw = report.responses;
+  if (!Array.isArray(raw)) return [];
+  const rows: ReportResponseRow[] = [];
+  for (const row of raw) {
+    if (!row || typeof row !== 'object') continue;
+    const section = str((row as { section?: unknown }).section);
+    const question = str((row as { question?: unknown }).question);
+    const answer = str((row as { answer?: unknown }).answer);
+    const order = Math.trunc(num((row as { order?: unknown }).order));
+    if (!section || !question || answer === '') continue;
+    rows.push({ section, question, answer, order });
+  }
+  return rows.sort((a, b) => a.order - b.order || a.question.localeCompare(b.question));
+}
+
+/**
+ * Drop the longest answers first until the sum of answer lengths fits under
+ * [REPORT_TEXT_ANSWERS_MAX_CHARS]. Remaining rows keep their signed order.
+ */
+export function capAnswers(
+  responses: ReportResponseRow[],
+  maxChars: number = REPORT_TEXT_ANSWERS_MAX_CHARS,
+): ReportResponseRow[] {
+  const total = responses.reduce((sum, r) => sum + r.answer.length, 0);
+  if (total <= maxChars) return responses;
+  const byLength = [...responses].sort(
+    (a, b) => b.answer.length - a.answer.length || a.order - b.order,
+  );
+  const drop = new Set<string>();
+  let remaining = total;
+  for (const r of byLength) {
+    if (remaining <= maxChars) break;
+    drop.add(`${r.order}\0${r.section}\0${r.question}`);
+    remaining -= r.answer.length;
+  }
+  return responses.filter((r) => !drop.has(`${r.order}\0${r.section}\0${r.question}`));
 }
 
 /** Fields sent to the model: signed clinical text only, de-identified (S-5). */
@@ -125,6 +184,7 @@ export function sourceFieldsOf(report: DocumentData): ReportSourceFields {
     diagnosis: str(report.diagnosis),
     comments: str(report.comments),
     measurements,
+    responses: responsesOf(report),
   };
 }
 
@@ -167,7 +227,8 @@ export function numbersInText(text: string): string[] {
 
 export function sourceNumberSet(source: ReportSourceFields): Set<string> {
   const allowed = new Set<string>();
-  const blob = `${source.title}\n${source.diagnosis}\n${source.comments}`;
+  const answerBlob = source.responses.map((r) => r.answer).join('\n');
+  const blob = `${source.title}\n${source.diagnosis}\n${source.comments}\n${answerBlob}`;
   for (const n of numbersInText(blob)) allowed.add(n);
   for (const v of Object.values(source.measurements)) {
     allowed.add(String(v));
@@ -176,12 +237,15 @@ export function sourceNumberSet(source: ReportSourceFields): Set<string> {
   return allowed;
 }
 
+/** Whole words only, so "fertile" and "hostile" are not mistaken for "tile". */
+const PREREAD_JARGON = /\b(tiles?|heatmaps?|pre-reads?|ai drafts?)\b/i;
+
 export function containsDenyPhrase(text: string): string | null {
   const lower = text.toLowerCase();
   for (const phrase of REPORT_TEXT_DENY_PHRASES) {
     if (lower.includes(phrase.toLowerCase())) return phrase;
   }
-  return null;
+  return PREREAD_JARGON.exec(text)?.[0].toLowerCase() ?? null;
 }
 
 /** Cheap language hint: Swahili function words vs English. */
@@ -344,12 +408,20 @@ async function runReportText(
   const source = sourceFieldsOf(report);
   // S-5: strip the patient's and the clinicians' names, the facility, the order and the ids before
   // the model sees the text, from what the case itself holds (as the order's risk check does).
+  // Template answers are de-identified the same way as diagnosis and comments.
   const subject = await subjectOfCase(deps, caseUid, report);
+  const safeResponses = capAnswers(
+    source.responses.map((r) => ({
+      ...r,
+      answer: deidentify(r.answer, subject),
+    })),
+  );
   const safe: ReportSourceFields = {
     title: deidentify(source.title, subject),
     diagnosis: deidentify(source.diagnosis, subject),
     comments: deidentify(source.comments, subject),
     measurements: source.measurements,
+    responses: safeResponses,
   };
 
   const generated = options.generate
@@ -447,11 +519,15 @@ async function metaGenerate(args: {
   const measurementLines = Object.entries(args.source.measurements)
     .map(([k, v]) => `${k}=${v}`)
     .join('\n');
+  const answerLines = args.source.responses
+    .map((r) => `${r.section}/${r.question}: ${r.answer}`)
+    .join('\n');
   const input = [
     'REPORT_BEGIN',
     `title: ${args.source.title}`,
     `diagnosis: ${args.source.diagnosis}`,
     `comments: ${args.source.comments}`,
+    answerLines ? `answers:\n${answerLines}` : 'answers: (none)',
     measurementLines ? `measurements:\n${measurementLines}` : 'measurements: (none)',
     'REPORT_END',
   ].join('\n');
