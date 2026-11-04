@@ -8,6 +8,7 @@ import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
+import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
@@ -18,7 +19,8 @@ import 'package:tabibu/l10n/l10n.dart';
 
 /// Mic, level meter and transcribe controls beside the booking symptoms field.
 ///
-/// Caps a take at 60 s (symptoms, not chat). Typing always stays available.
+/// Caps a take at 45 s as WAV 16 kHz (symptoms, not chat). Voice recognition is
+/// English only; typing always stays available in both languages.
 class SymptomVoiceControls extends StatefulWidget {
   const SymptomVoiceControls({
     required this.patientUid,
@@ -26,6 +28,7 @@ class SymptomVoiceControls extends StatefulWidget {
     required this.onTranscriptionUid,
     required this.showAiNotice,
     this.recorder,
+    this.cues,
     this.preferences,
     this.offline = false,
     this.initialClip,
@@ -38,6 +41,7 @@ class SymptomVoiceControls extends StatefulWidget {
   final ValueChanged<String?> onTranscriptionUid;
   final ValueChanged<bool> showAiNotice;
   final AudioRecorderService? recorder;
+  final RecordingCueService? cues;
   final Future<SharedPreferences> Function()? preferences;
   final bool offline;
 
@@ -47,9 +51,10 @@ class SymptomVoiceControls extends StatefulWidget {
   /// Cap for a symptoms take; tests may lower it to fire the auto-stop.
   final int maxSeconds;
 
-  static const defaultMaxSeconds = 60;
+  static const defaultMaxSeconds = 45;
   static const symptomsMaxLength = 500;
   static const consentKey = 'symptom_voice_consent_v1';
+  static const AudioFormat recordFormat = .wav16k;
 
   @override
   State<SymptomVoiceControls> createState() => _SymptomVoiceControlsState();
@@ -57,6 +62,7 @@ class SymptomVoiceControls extends StatefulWidget {
 
 class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   late final AudioRecorderService _recorder;
+  late final RecordingCueService _cues;
   StreamSubscription<double>? _levelsSub;
   Timer? _tick;
   RecordedAudio? _pending;
@@ -71,6 +77,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   void initState() {
     super.initState();
     _recorder = widget.recorder ?? getIt<AudioRecorderService>();
+    _cues = widget.cues ?? getIt<RecordingCueService>();
     _pending = widget.initialClip;
   }
 
@@ -127,7 +134,12 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     }
 
     try {
-      await _recorder.start();
+      await _cues.started();
+    } on Object catch (_) {
+      // Cue is best-effort; recording still opens.
+    }
+    try {
+      await _recorder.start(format: SymptomVoiceControls.recordFormat);
     } on Object catch (_) {
       if (!mounted) return;
       setState(() => _status = l10n.symptomVoiceStartFailed);
@@ -163,6 +175,11 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     _levelsSub = null;
     unawaited(levels?.cancel());
     final clip = await _recorder.stop();
+    try {
+      await _cues.finished();
+    } on Object catch (_) {
+      // Cue is best-effort.
+    }
     if (!mounted) {
       _stopping = false;
       return;
@@ -287,6 +304,13 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
                       ),
               ),
             ],
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            l10n.symptomVoiceEnglishOnly,
+            style: textTheme.bodySmall?.copyWith(
+              color: scheme.onSurfaceVariant,
+            ),
           ),
           if (_status.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),

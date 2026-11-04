@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
@@ -19,6 +20,7 @@ class _MockAppointmentsBloc
 
 void main() {
   late FakeAudioRecorderService recorder;
+  late FakeRecordingCueService cues;
   late _MockAppointmentsBloc appointments;
   late TextEditingController symptoms;
   final l10n = lookupAppLocalizations(const Locale('en'));
@@ -28,6 +30,7 @@ void main() {
       SymptomVoiceControls.consentKey: true,
     });
     recorder = FakeAudioRecorderService(recorded: fakeRecordedAudio());
+    cues = FakeRecordingCueService();
     appointments = _MockAppointmentsBloc();
     whenListen(
       appointments,
@@ -65,6 +68,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          cues: cues,
           offline: offline,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (_) {},
@@ -81,6 +85,31 @@ void main() {
     await pumpControls(tester);
     expect(find.text(l10n.symptomVoiceUnsupported), findsOneWidget);
     expect(find.byType(CircleIconButton), findsNothing);
+    expect(cues.calls, isEmpty);
+  });
+
+  testWidgets('started completes before the recorder opens', (tester) async {
+    cues.startedDelay = const Duration(milliseconds: 40);
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 10));
+    expect(cues.calls, isEmpty);
+    expect(recorder.startCount, 0);
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(cues.calls, ['started']);
+    expect(recorder.startCount, 1);
+  });
+
+  testWidgets('finished runs after stop returns', (tester) async {
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 20));
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+    await tester.pump();
+    expect(recorder.stopCount, 1);
+    expect(cues.calls, ['started', 'finished']);
   });
 
   testWidgets('transcribe fires the bloc event for a finished clip', (
@@ -93,6 +122,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          cues: cues,
           preferences: SharedPreferences.getInstance,
           initialClip: fakeRecordedAudio(),
           onTranscriptionUid: (_) {},
@@ -108,13 +138,34 @@ void main() {
     ).called(1);
   });
 
-  testWidgets('mic starts the fake recorder', (tester) async {
+  testWidgets('mic starts the fake recorder as WAV 16 kHz', (tester) async {
     await pumpControls(tester);
+    expect(find.text(l10n.symptomVoiceEnglishOnly), findsOneWidget);
     await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
     await tester.pump();
     await tester.pump(const Duration(milliseconds: 50));
     expect(recorder.startCount, 1);
+    expect(recorder.lastFormat, AudioFormat.wav16k);
     expect(recorder.isRecording, isTrue);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceStopLabel));
+    await tester.pump();
+    await tester.tap(find.text(l10n.symptomVoiceTranscribeLabel));
+    await tester.pump();
+    final captured = verify(
+      () => appointments.add(captureAny()),
+    ).captured.single;
+    expect(captured, isA<SymptomsTranscribeRequested>());
+    expect(
+      (captured as SymptomsTranscribeRequested).audio.contentType,
+      'audio/wav',
+    );
+  });
+
+  testWidgets('English-only line shows in sw', (tester) async {
+    final sw = lookupAppLocalizations(const Locale('sw'));
+    await pumpControls(tester, locale: const Locale('sw'));
+    expect(find.text(sw.symptomVoiceEnglishOnly), findsOneWidget);
+    expect(sw.symptomVoiceEnglishOnly, isNot(contains('Swahili recognition')));
   });
 
   testWidgets('success fills the field and shows the AI notice path', (
@@ -140,6 +191,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          cues: cues,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (value) => uid = value,
           showAiNotice: (value) => notice = value,
@@ -175,6 +227,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          cues: cues,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},
@@ -209,6 +262,7 @@ void main() {
           patientUid: 'p1',
           symptoms: symptoms,
           recorder: recorder,
+          cues: cues,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},

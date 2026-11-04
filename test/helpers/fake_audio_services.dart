@@ -29,6 +29,7 @@ class FakeAudioRecorderService implements AudioRecorderService {
   int stopCount = 0;
   int cancelCount = 0;
   int disposeCount = 0;
+  AudioFormat? lastFormat;
   bool _recording = false;
   StreamController<double>? _levels;
 
@@ -45,7 +46,7 @@ class FakeAudioRecorderService implements AudioRecorderService {
   Stream<double> get levels => _levels?.stream ?? const Stream<double>.empty();
 
   @override
-  Future<void> start() async {
+  Future<void> start({AudioFormat format = .aacM4a}) async {
     if (!supported) {
       throw StateError('recorder unsupported');
     }
@@ -55,6 +56,7 @@ class FakeAudioRecorderService implements AudioRecorderService {
     final error = startError;
     if (error != null) throw error;
     startCount += 1;
+    lastFormat = format;
     _recording = true;
     final levels = StreamController<double>.broadcast();
     _levels = levels;
@@ -73,7 +75,19 @@ class FakeAudioRecorderService implements AudioRecorderService {
     }
     _recording = false;
     _closeLevels();
-    return recorded;
+    final clip = recorded;
+    if (clip == null) return null;
+    final format = lastFormat;
+    if (format == null || clip.contentType == format.contentType) {
+      return clip;
+    }
+    // Stamp the requested format, as the device service stamps the take's.
+    return RecordedAudio(
+      bytes: clip.bytes,
+      durationMs: clip.durationMs,
+      peaks: clip.peaks,
+      contentType: format.contentType,
+    );
   }
 
   @override
@@ -106,6 +120,7 @@ class FakeAudioPlayerService implements AudioPlayerService {
 
   final _controller = StreamController<AudioPlayback>.broadcast();
   final playedIds = <String>[];
+  final playBytesCalls = <Uint8List>[];
   String? currentId;
   int pauseCount = 0;
   int stopCount = 0;
@@ -115,7 +130,10 @@ class FakeAudioPlayerService implements AudioPlayerService {
   Stream<AudioPlayback> get playback => _controller.stream;
 
   @override
-  Future<void> playBytes(Uint8List bytes, {required String id}) => _play(id);
+  Future<void> playBytes(Uint8List bytes, {required String id}) {
+    playBytesCalls.add(bytes);
+    return _play(id);
+  }
 
   @override
   Future<void> playUrl(Uri url, {required String id}) => _play(id);
@@ -201,13 +219,15 @@ class FakeAudioPlayerService implements AudioPlayerService {
   }
 }
 
-/// Tiny AAC-shaped fixture for previews and uploads in tests.
+/// Tiny fixture for previews and uploads in tests.
 RecordedAudio fakeRecordedAudio({
   int durationMs = 1500,
   int byteLength = 2048,
   List<int> peaks = const [10, 40, 70, 40, 10],
+  String contentType = 'audio/mp4',
 }) => RecordedAudio(
   bytes: Uint8List(byteLength),
   durationMs: durationMs,
   peaks: peaks,
+  contentType: contentType,
 );

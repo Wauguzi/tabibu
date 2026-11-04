@@ -14,9 +14,9 @@ abstract class AudioRecorderPlatform {
 
   Future<MicPermission> ensurePermission();
 
-  Future<String> createTempPath();
+  Future<String> createTempPath({required AudioFormat format});
 
-  Future<void> start(String path);
+  Future<void> start(String path, {required AudioFormat format});
 
   /// 0..1 while recording.
   Stream<double> get levels;
@@ -34,7 +34,8 @@ abstract class AudioRecorderPlatform {
   Future<void> dispose();
 }
 
-/// Device-backed recorder: AAC-LC mono at 16 kHz / 32 kbps (≈ 240 KB/min).
+/// Device-backed recorder: AAC-LC mono at 16 kHz / 32 kbps (≈ 240 KB/min),
+/// or PCM16 mono at 16 kHz for symptom speech.
 class DeviceAudioRecorderPlatform implements AudioRecorderPlatform {
   DeviceAudioRecorderPlatform({AudioRecorder? recorder})
     : _recorder = recorder ?? AudioRecorder();
@@ -46,6 +47,13 @@ class DeviceAudioRecorderPlatform implements AudioRecorderPlatform {
   /// AAC-LC, mono, 16 kHz, 32 kbps — one minute stays well under 512 KB.
   static const config = RecordConfig(
     bitRate: 32000,
+    sampleRate: 16000,
+    numChannels: 1,
+  );
+
+  /// PCM16 with headers, mono, 16 kHz — what the speech API takes.
+  static const wavConfig = RecordConfig(
+    encoder: AudioEncoder.wav,
     sampleRate: 16000,
     numChannels: 1,
   );
@@ -65,16 +73,17 @@ class DeviceAudioRecorderPlatform implements AudioRecorderPlatform {
   }
 
   @override
-  Future<String> createTempPath() async {
+  Future<String> createTempPath({required AudioFormat format}) async {
     final dir = await getTemporaryDirectory();
-    final name = 'tabibu_voice_${DateTime.now().microsecondsSinceEpoch}.m4a';
+    final ext = format == .wav16k ? 'wav' : 'm4a';
+    final name = 'tabibu_voice_${DateTime.now().microsecondsSinceEpoch}.$ext';
     return '${dir.path}${Platform.pathSeparator}$name';
   }
 
   @override
-  Future<void> start(String path) async {
+  Future<void> start(String path, {required AudioFormat format}) async {
     await _ampSub?.cancel();
-    await _recorder.start(config, path: path);
+    await _recorder.start(format == .wav16k ? wavConfig : config, path: path);
     _ampSub = _recorder
         .onAmplitudeChanged(const Duration(milliseconds: 100))
         .listen((amp) {

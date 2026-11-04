@@ -8480,7 +8480,7 @@
     },
     "symptomVoiceRecordLabel": "Speak your symptoms",
     "@symptomVoiceRecordLabel": {
-        "description": "Booking: start recording symptoms (up to 60 s)"
+        "description": "Booking: start recording symptoms (up to 45 s, WAV)"
     },
     "symptomVoiceStopLabel": "Stop recording",
     "@symptomVoiceStopLabel": {
@@ -8536,5 +8536,95 @@
     "symptomVoiceStartFailed": "We could not start recording. Type your symptoms, or try again.",
     "@symptomVoiceStartFailed": {
         "description": "Booking: mic start failed for a reason other than permission"
+    },
+    "symptomVoiceEnglishOnly": "Voice works in English. You can always type, in English or Kiswahili.",
+    "@symptomVoiceEnglishOnly": {
+        "description": "Booking: speech recognition is English only; typing stays bilingual"
+    },
+    "chatVoiceRecordLabel": "Record a voice note",
+    "@chatVoiceRecordLabel": {
+        "description": "Chat: start recording a voice note (up to 120 s)"
+    },
+    "chatVoiceStopLabel": "Stop recording",
+    "@chatVoiceStopLabel": {
+        "description": "Chat: stop the voice note recording"
+    },
+    "chatVoiceCancelLabel": "Discard",
+    "@chatVoiceCancelLabel": {
+        "description": "Chat: cancel an in-progress voice recording"
+    },
+    "chatVoiceDiscardLabel": "Discard",
+    "@chatVoiceDiscardLabel": {
+        "description": "Chat: discard a finished voice preview"
+    },
+    "chatVoiceSendLabel": "Send",
+    "@chatVoiceSendLabel": {
+        "description": "Chat: send the voice note preview"
+    },
+    "chatVoicePlayLabel": "Play voice note",
+    "@chatVoicePlayLabel": {
+        "description": "Chat: play a voice note"
+    },
+    "chatVoicePauseLabel": "Pause voice note",
+    "@chatVoicePauseLabel": {
+        "description": "Chat: pause a voice note"
+    },
+    "chatVoiceRecording": "Recording… {seconds}s",
+    "@chatVoiceRecording": {
+        "description": "Chat: live timer while recording a voice note",
+        "placeholders": {
+            "seconds": { "type": "int" }
+        }
+    },
+    "chatVoicePreview": "Voice note · {seconds}s",
+    "@chatVoicePreview": {
+        "description": "Chat: preview line for a finished voice note",
+        "placeholders": {
+            "seconds": { "type": "int" }
+        }
+    },
+    "chatVoiceProgress": "{played} of {total}",
+    "@chatVoiceProgress": {
+        "description": "Chat: semantics for voice note progress",
+        "placeholders": {
+            "played": { "type": "String" },
+            "total": { "type": "String" }
+        }
+    },
+    "chatVoiceUnsupported": "Voice notes are not available in this browser. You can still type.",
+    "@chatVoiceUnsupported": {
+        "description": "Chat: web demo has no microphone"
+    },
+    "chatVoicePermissionDenied": "Microphone access is off. You can type, or turn the microphone on in Settings.",
+    "@chatVoicePermissionDenied": {
+        "description": "Chat: mic permission denied"
+    },
+    "chatVoicePermissionPermanent": "Microphone access is blocked. Open Settings to turn it on, or type instead.",
+    "@chatVoicePermissionPermanent": {
+        "description": "Chat: mic permanently denied"
+    },
+    "chatVoiceOpenSettings": "Open Settings",
+    "@chatVoiceOpenSettings": {
+        "description": "Chat: deep link to system settings for the mic"
+    },
+    "chatVoiceStartFailed": "We could not start recording. Type a message, or try again.",
+    "@chatVoiceStartFailed": {
+        "description": "Chat: mic start failed"
+    },
+    "chatVoiceRecordFailed": "That recording was too short or could not be saved. Try again, or type.",
+    "@chatVoiceRecordFailed": {
+        "description": "Chat: stop returned no clip"
+    },
+    "chatVoiceSendFailed": "We could not send that voice note. The preview is still here — try again, or discard it.",
+    "@chatVoiceSendFailed": {
+        "description": "Chat: voice upload failed; preview kept"
+    },
+    "chatVoicePlayFailed": "We could not play that voice note.",
+    "@chatVoicePlayFailed": {
+        "description": "Chat: playback fetch or decode failed"
+    },
+    "chatVoiceTranscriptUnavailable": "Transcript not available for voice notes.",
+    "@chatVoiceTranscriptUnavailable": {
+        "description": "Chat: plain line under a voice note; no ASR for m4a"
     }
 }

@@ -211,7 +211,7 @@ class AppointmentCacheHelper {
     required String uid,
     required String audioUid,
     required Uint8List bytes,
-    String contentType = 'audio/mp4',
+    String contentType = 'audio/wav',
   }) => _remote.transcribeSymptoms(
     uid: uid,
     audioUid: audioUid,

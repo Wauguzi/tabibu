@@ -16,6 +16,7 @@ class _FakePlatform implements AudioRecorderPlatform {
   final _levels = StreamController<double>.broadcast();
   int pathCount = 0;
   String? activePath;
+  AudioFormat? lastFormat;
   bool started = false;
   bool cancelled = false;
   bool disposed = false;
@@ -27,16 +28,18 @@ class _FakePlatform implements AudioRecorderPlatform {
   Future<MicPermission> ensurePermission() async => permission;
 
   @override
-  Future<String> createTempPath() async {
+  Future<String> createTempPath({required AudioFormat format}) async {
     pathCount += 1;
-    activePath = 'tmp/voice_$pathCount.m4a';
+    final ext = format == .wav16k ? 'wav' : 'm4a';
+    activePath = 'tmp/voice_$pathCount.$ext';
     return activePath!;
   }
 
   @override
-  Future<void> start(String path) async {
+  Future<void> start(String path, {required AudioFormat format}) async {
     started = true;
     activePath = path;
+    lastFormat = format;
     _levels
       ..add(0.25)
       ..add(0.75);
@@ -198,6 +201,83 @@ void main() {
         expect(await service.stop(), isNull);
       },
     );
+  });
+
+  group('wav16k', () {
+    test(
+      'a WAV take opens WAV, stamps audio/wav and deletes the file',
+      () async {
+        final service = build();
+        await service.start(format: .wav16k);
+        expect(platform.lastFormat, AudioFormat.wav16k);
+        expect(platform.activePath, endsWith('.wav'));
+        now = now.add(const Duration(seconds: 2));
+        final clip = await service.stop();
+        expect(clip, isNotNull);
+        expect(clip!.contentType, 'audio/wav');
+        expect(clip.durationMs, 2000);
+        expect(platform.deleted, contains(platform.activePath));
+      },
+    );
+
+    test('an AAC take still opens AAC and stamps audio/mp4', () async {
+      final service = build();
+      await service.start();
+      expect(platform.lastFormat, AudioFormat.aacM4a);
+      expect(platform.activePath, endsWith('.m4a'));
+      now = now.add(const Duration(seconds: 2));
+      final clip = await service.stop();
+      expect(clip!.contentType, 'audio/mp4');
+    });
+
+    test(
+      'a WAV take over 1,572,864 bytes is null and deletes the file',
+      () async {
+        platform.byteCapOverride = 1572864 + 1;
+        final service = build();
+        await service.start(format: .wav16k);
+        now = now.add(const Duration(seconds: 2));
+        expect(await service.stop(), isNull);
+        expect(platform.deleted, isNotEmpty);
+      },
+    );
+
+    test('a WAV take at exactly the cap is kept', () async {
+      platform.byteCapOverride = 1572864;
+      final service = build();
+      await service.start(format: .wav16k);
+      now = now.add(const Duration(seconds: 2));
+      expect(await service.stop(), isNotNull);
+    });
+
+    test('auto-stop fires at 45 s for WAV and 120 s for AAC', () async {
+      final durations = <Duration>[];
+      DeviceAudioRecorderService timed() => DeviceAudioRecorderService(
+        platform: platform,
+        clock: () => now,
+        timerFactory: (duration, callback) {
+          durations.add(duration);
+          pending = _ControllableTimer(callback);
+          return pending!;
+        },
+      );
+      final service = timed();
+      await service.start(format: .wav16k);
+      await service.cancel();
+      await service.start();
+      expect(durations, [
+        const Duration(seconds: 45),
+        const Duration(seconds: 120),
+      ]);
+    });
+
+    test('under 1 s of WAV is null and deletes the file', () async {
+      final service = build();
+      await service.start(format: .wav16k);
+      now = now.add(const Duration(milliseconds: 500));
+      expect(await service.stop(), isNull);
+      expect(platform.deleted, isNotEmpty);
+    });
   });
 
   group('cancel and dispose', () {

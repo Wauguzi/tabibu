@@ -5,8 +5,9 @@ import 'package:tabibu/core/services/audio_peaks.dart';
 import 'package:tabibu/core/services/audio_recorder_platform.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
 
-/// Production [AudioRecorderService]: AAC-LC `.m4a`, auto-stop at 120 s,
-/// null under 1 s or over 512 KB, temp file always deleted.
+/// Production [AudioRecorderService]: AAC-LC `.m4a` for notes, PCM16 `.wav`
+/// for symptom speech; auto-stop at the format's limit, null under 1 s or
+/// over the format's byte cap, temp file always deleted.
 @LazySingleton(as: AudioRecorderService)
 class DeviceAudioRecorderService implements AudioRecorderService {
   DeviceAudioRecorderService({
@@ -28,6 +29,7 @@ class DeviceAudioRecorderService implements AudioRecorderService {
   Timer? _maxTimer;
   String? _path;
   DateTime? _startedAt;
+  AudioFormat _format = .aacM4a;
   var _recording = false;
   var _stopping = false;
 
@@ -48,7 +50,7 @@ class DeviceAudioRecorderService implements AudioRecorderService {
   Future<MicPermission> ensurePermission() => _platform.ensurePermission();
 
   @override
-  Future<void> start() async {
+  Future<void> start({AudioFormat format = .aacM4a}) async {
     if (_recording) throw StateError('already recording');
     if (!isSupported) throw StateError('recorder unsupported');
 
@@ -59,15 +61,16 @@ class DeviceAudioRecorderService implements AudioRecorderService {
 
     _limitStopped = null;
     _levelSamples.clear();
-    _path = await _platform.createTempPath();
+    _format = format;
+    _path = await _platform.createTempPath(format: format);
     _startedAt = _clock();
     // Subscribe before start so the first amplitude burst is not dropped.
     await _levelSub?.cancel();
     _levelSub = _platform.levels.listen(_levelSamples.add);
-    await _platform.start(_path!);
+    await _platform.start(_path!, format: format);
     _recording = true;
     _maxTimer?.cancel();
-    _maxTimer = _timerFactory(AudioRecorderService.maxDuration, () {
+    _maxTimer = _timerFactory(format.maxDuration, () {
       if (_recording && !_stopping) {
         _limitStopped = stop();
       }
@@ -90,6 +93,7 @@ class DeviceAudioRecorderService implements AudioRecorderService {
 
     final path = _path;
     final started = _startedAt;
+    final format = _format;
     _path = null;
     _startedAt = null;
     _recording = false;
@@ -116,7 +120,7 @@ class DeviceAudioRecorderService implements AudioRecorderService {
         return null;
       }
       final length = await _platform.byteLength(stoppedPath);
-      if (length <= 0 || length > AudioRecorderService.maxBytes) {
+      if (length <= 0 || length > format.maxBytes) {
         await _platform.delete(stoppedPath);
         return null;
       }
@@ -127,6 +131,7 @@ class DeviceAudioRecorderService implements AudioRecorderService {
         bytes: bytes,
         durationMs: durationMs,
         peaks: downsamplePeaks(_levelSamples),
+        contentType: format.contentType,
       );
     } finally {
       _stopping = false;

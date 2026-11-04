@@ -22,7 +22,8 @@ class AppointmentFirebase {
   final FirebaseStorage _storage;
   final Logger _logger = Logger();
 
-  static const int maxSpeechBytes = 512 * 1024;
+  /// WAV PCM16 mono 16 kHz cap (1.5 MiB) for symptom speech uploads.
+  static const int maxSpeechBytes = 1572864;
 
   AppError _toAppError(Object e) => switch (e) {
     AppError() => e,
@@ -93,16 +94,16 @@ class AppointmentFirebase {
     ];
   });
 
-  /// Uploads symptom audio to `speechAudio/{uid}/{audioUid}.m4a`, then calls
+  /// Uploads symptom audio to `speechAudio/{uid}/{audioUid}.wav`, then calls
   /// `transcribeSymptoms`. The server deletes the object in `finally`.
   Future<TranscriptionResultModel> transcribeSymptoms({
     required String uid,
     required String audioUid,
     required Uint8List bytes,
-    String contentType = 'audio/mp4',
+    String contentType = 'audio/wav',
   }) => _guard('Transcribe symptoms', () async {
     if (bytes.length > maxSpeechBytes) throw AppError.fileTooLarge;
-    final path = 'speechAudio/$uid/$audioUid.m4a';
+    final path = 'speechAudio/$uid/$audioUid.wav';
     await _storage
         .ref(path)
         .putData(bytes, SettableMetadata(contentType: contentType));
