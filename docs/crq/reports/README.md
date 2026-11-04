@@ -58,6 +58,7 @@ patient reads, or the alert path.
 | [CRQ-0049](./CRQ-0049-outbreak-alerts.md) | Outbreak alerts | 2026-11-01 | Implemented — detector and delivery built (`d05d289`), not deployed; source urls to re-verify |
 | [CRQ-0050](./CRQ-0050-role-screens-and-flows.md) | The patient, doctor and pathologist screens: every designed screen whose backend exists | 2026-11-02 | Implemented — merged in [#19](https://github.com/Wauguzi/tabibu/pull/19) (4 Nov 2026) after two Greptile rounds; §9 records the departures from the designs and the review |
 | [CRQ-0051](./CRQ-0051-live-ai-on-the-meta-model-api.md) | Live AI on the Meta Model API: the risk check, the symptom summary, the pre-read, the explanation and the alert draft | 2026-11-03 | Implemented — merged in [#19](https://github.com/Wauguzi/tabibu/pull/19) (4 Nov 2026); §7 holds the evaluation, §9 the review |
+| [CRQ-0052](./CRQ-0052-voice-input-and-voice-notes.md) | Voice: speak your symptoms (English) through the Meta speech model, and voice notes in the chats | 2026-11-04 | In progress — `feat/voice`; the live call and a device check to be recorded |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.
