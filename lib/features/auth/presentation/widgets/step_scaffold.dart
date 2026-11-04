@@ -86,12 +86,14 @@ class StepScaffold extends StatelessWidget {
               Expanded(
                 child: child != null
                     ? SingleChildScrollView(
+                        keyboardDismissBehavior: .onDrag,
                         child: Column(
                           crossAxisAlignment: .start,
                           children: [...header, child],
                         ),
                       )
                     : CustomScrollView(
+                        keyboardDismissBehavior: .onDrag,
                         slivers: [
                           SliverToBoxAdapter(
                             child: Column(

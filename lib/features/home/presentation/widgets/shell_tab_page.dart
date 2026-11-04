@@ -40,6 +40,7 @@ class ShellTabPage extends StatelessWidget {
     );
     Widget scroll = CustomScrollView(
       physics: const AlwaysScrollableScrollPhysics(),
+      keyboardDismissBehavior: .onDrag,
       slivers: [
         SliverPadding(
           padding: padding,
