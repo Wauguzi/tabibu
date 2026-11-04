@@ -1193,6 +1193,53 @@ void main() {
         );
       });
 
+      testWidgets('typing not yet saved survives a later draft change', (
+        tester,
+      ) async {
+        await pumpScreen(tester, _signable());
+
+        await tester.enterText(
+          find.widgetWithText(TextField, _ownDiagnosis),
+          'Typed, not saved yet',
+        );
+        await tester.pump();
+
+        // A tick or a pre-read arriving changes the draft, not the diagnosis.
+        states.add(
+          _loaded(
+            draft: _draft(
+              diagnosis: _ownDiagnosis,
+              comments: _ownComments,
+              run: '',
+            ).copyWith(isCritical: true),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('Typed, not saved yet'), findsOneWidget);
+        expect(find.text(_ownDiagnosis), findsNothing);
+      });
+
+      testWidgets('a field nobody typed in follows the saved draft', (
+        tester,
+      ) async {
+        await pumpScreen(tester, _signable());
+
+        states.add(
+          _loaded(
+            draft: _draft(
+              diagnosis: 'Saved elsewhere',
+              comments: _ownComments,
+              run: '',
+            ),
+          ),
+        );
+        await tester.pump();
+
+        expect(find.text('Saved elsewhere'), findsOneWidget);
+        expect(find.text(_ownDiagnosis), findsNothing);
+      });
+
       testWidgets('rule 5: ticking sends the disease with alertRequested '
           'false', (tester) async {
         await pumpScreen(tester, _signable());

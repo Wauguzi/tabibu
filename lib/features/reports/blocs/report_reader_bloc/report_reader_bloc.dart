@@ -93,10 +93,15 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         for (final language in _languages) {
           final id = reportTextId(report.uid, .explanation, language);
           if (event.role == .doctor && !offline) {
-            final draft = await _remote.fetchReportText(
-              caseUid: event.caseUid,
-              textUid: id,
-            );
+            ReportTextModel? draft;
+            try {
+              draft = await _remote.fetchReportText(
+                caseUid: event.caseUid,
+                textUid: id,
+              );
+            } on Object catch (_) {
+              // The signed report still opens: no draft to read.
+            }
             // A text still queued or running has nothing to read yet.
             if (draft != null && draft.statusValue == .ready) {
               explanations[language] = draft;

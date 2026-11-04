@@ -149,6 +149,30 @@ void main() {
     );
 
     blocTest<ReportReaderBloc, ReportReaderState>(
+      'a draft that cannot be fetched does not stop the signed report opening',
+      setUp: () {
+        when(
+          () => reports.syncReports('d1', role: Role.doctor),
+        ).thenAnswer((_) async => [_report(released: true)]);
+        when(
+          () => remote.fetchReportText(
+            caseUid: _case,
+            textUid: 'v1_Explanation_en',
+          ),
+        ).thenThrow(AppError.permissionDenied);
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const ReportReaderOpened(uid: 'd1', role: Role.doctor, caseUid: _case),
+      ),
+      verify: (bloc) {
+        expect(bloc.state, isA<ReportReaderLoadSuccess>());
+        expect(bloc.state.report, isNotNull);
+        expect(bloc.state.explanations, isEmpty);
+      },
+    );
+
+    blocTest<ReportReaderBloc, ReportReaderState>(
       'a draft still queued has nothing to read, so it is left out',
       setUp: () {
         when(

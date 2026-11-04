@@ -734,6 +734,29 @@ void main() {
         await tester.pump();
       }
 
+      testWidgets('two tests each get a remove control of at least 48 dp', (
+        tester,
+      ) async {
+        order(_editing(_draft(testIds: ['t1', 't2'])));
+        await pumpScreen(tester);
+        await tester.tap(find.text(_en.orderContinueTests(2)));
+        await tester.pump();
+
+        expect(tester.takeException(), isNull);
+        final removes = find.byWidgetPredicate(
+          (w) =>
+              w is CircleIconButton &&
+              w.semanticLabel.startsWith(_en.orderRemoveTest('')),
+        );
+        expect(removes, findsNWidgets(2));
+        for (final remove in removes.evaluate()) {
+          expect(
+            tester.getSize(find.byWidget(remove.widget)).shortestSide,
+            greaterThanOrEqualTo(48),
+          );
+        }
+      });
+
       testWidgets('creates a valid order', (tester) async {
         await openDetails(tester, _draft(testIds: ['t1']));
 

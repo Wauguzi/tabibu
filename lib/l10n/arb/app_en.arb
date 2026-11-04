@@ -4898,7 +4898,7 @@
     "@orderRiskClear": {
         "description": "Risk check result: nothing flagged"
     },
-    "orderRiskClearBody": "Nothing in the notes points to a disease that needs a protocol.",
+    "orderRiskClearBody": "The AI check found nothing in the notes that needs a protocol. This is not a clearance.",
     "@orderRiskClearBody": {
         "description": "Risk check result body: nothing flagged"
     },

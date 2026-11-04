@@ -412,7 +412,6 @@ class _TestRow extends StatelessWidget {
               semanticLabel: removeLabel,
               onTap: onRemove,
               onCard: true,
-              diameter: 40,
             ),
         ],
       ),

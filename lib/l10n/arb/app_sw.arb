@@ -982,7 +982,7 @@
     "orderRiskAiLabel": "Ukaguzi wa hatari wa AI",
     "orderRiskRunning": "Ukaguzi wa hatari unasoma maelezo.",
     "orderRiskClear": "Hakuna tahadhari",
-    "orderRiskClearBody": "Hakuna kitu katika maelezo kinachoashiria ugonjwa unaohitaji itifaki.",
+    "orderRiskClearBody": "Ukaguzi wa AI haukuona kitu katika maelezo kinachohitaji itifaki. Hii haimaanishi kwamba hakuna ugonjwa.",
     "orderRiskFailed": "Ukaguzi wa hatari haukufanyika. Agiza kama kawaida.",
     "orderRiskTimedOut": "Ukaguzi wa hatari unachukua muda kuliko kawaida. Unaweza kutuma agizo sasa.",
     "orderRiskDisclaimer": "Ukaguzi wa hatari unatoa ushauri tu. Haudhibitishi wala haukatai ugonjwa.",

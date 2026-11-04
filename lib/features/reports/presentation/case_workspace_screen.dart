@@ -140,20 +140,34 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
     super.dispose();
   }
 
+  /// What each field last took from the saved draft. A field that has moved
+  /// on from it holds typing not yet saved, which a later draft change (a
+  /// tick, a pre-read arriving) must not replace.
+  final _synced = <String, String>{};
+
+  void _syncField(String key, TextEditingController controller, String saved) {
+    final last = _synced[key];
+    final typedSince = last != null && controller.text != last;
+    if (controller.text == saved) {
+      _synced[key] = saved;
+      return;
+    }
+    if (typedSince) return;
+    controller.text = saved;
+    _synced[key] = saved;
+  }
+
   void _syncFields(ReportDraftModel? draft) {
     if (draft == null) return;
-    if (_diagnosis.text != draft.diagnosis) {
-      _diagnosis.text = draft.diagnosis;
-    }
-    if (_comments.text != draft.comments) {
-      _comments.text = draft.comments;
-    }
-    if (_addendum.text != draft.addendumText) {
-      _addendum.text = draft.addendumText;
-    }
+    _syncField('diagnosis', _diagnosis, draft.diagnosis);
+    _syncField('comments', _comments, draft.comments);
+    _syncField('addendum', _addendum, draft.addendumText);
     for (final entry in _answers.entries) {
-      final saved = _answerIn(draft, entry.key);
-      if (entry.value.text != saved) entry.value.text = saved;
+      _syncField(
+        'answer:${entry.key}',
+        entry.value,
+        _answerIn(draft, entry.key),
+      );
     }
   }
 
