@@ -10,8 +10,51 @@
 
 </div>
 
-Tabibu connects patients, doctors and pathologists in Nairobi, in English and Kiswahili. AI
-prepares a pathology pre-read and an outbreak alert draft; a qualified person always decides.
+<div align="center">
+
+<sub><i>"It is difficult to get the news from poems yet men die miserably every day for lack of what is found there."</i><br>
+William Carlos Williams, physician and poet, in
+<a href="https://poets.org/anthology/flowers-0">Asphodel, That Greeny Flower</a> (excerpt)</sub>
+
+</div>
+
+A biopsy is a few cells on a glass slide, and the news is in them. Someone has to be able to read it.
+In Kenya that someone is scarce: [Brand and colleagues](https://pmc.ncbi.nlm.nih.gov/articles/PMC6180785)
+(*Journal of Global Oncology*) report earlier studies putting the country at one pathologist for more
+than 725,000 people, and, among the public hospitals they surveyed that could do histology, a median
+wait of about 14 days for a result, with none inside the five days they call suggested. The reading
+is only one stretch of that wait. The others are the order, the hand-off to a pathologist, the
+report and its explanation, and those are the ones software can shorten.
+
+Tabibu is my answer. It connects patients, doctors and
+pathologists in Nairobi, in English and Kiswahili, and one record carries a person from booking to
+result. AI prepares the pathologist's first read, the plain-language explanation and an outbreak
+alert draft. A qualified person always decides: the pathologist signs, the doctor approves what the
+patient reads, and an approver releases an alert.
+
+**What I claim, and what I do not.** I claim the path: one order that becomes one case, a pathologist
+who gets a pre-read to check instead of a blank page, and a patient who reads a signed result only
+once their doctor has talked it through. I do not claim the AI reads slides well. On 200 held-out
+tiles the pre-read was right 72% of the time at best, and it still missed about half of the tumour
+tiles, so it is shown as a prompt, its confidence is capped at Low, and nothing reaches a person
+without a human decision. The numbers, with their intervals, are in
+[CRQ-0051](./docs/crq/reports/CRQ-0051-live-ai-on-the-meta-model-api.md).
+
+### The story in five beats
+
+The three-minute demo walks the same path, one role at a time. Sign in with the accounts under
+[Trying it](#trying-it) and follow along.
+
+| Beat | Who | What to watch for |
+|---|---|---|
+| 1. A question | Patient | Books a doctor near them and types what is wrong; the doctor receives it in two languages |
+| 2. An order | Doctor | Accepts, orders a test, and asks a pathologist; the AI risk check advises and never clears |
+| 3. The read | Pathologist | A desk of cases, a pre-read labelled as AI, scored by the pathologist before they write a word, then signed |
+| 4. The news | Doctor, then patient | The doctor discusses the result and approves the explanation; only then does the patient see it, in Kiswahili if they choose |
+| 5. The county | Approver | A confirmed finding becomes an anonymous count; an alert draft waits for a person to release it |
+
+
+Each role, in a line:
 
 - **Patients** book doctors near them and read their results once their doctor has discussed
   them.
@@ -40,10 +83,11 @@ Indie developer track, "Build for Your World" theme. The hackathon's inference p
 
 > [!NOTE]
 > The models run in Cloud Functions, never in the app, each behind its own Remote Config switch.
-> Live: the risk check, the symptom summary, the pathology pre-read and the explanation drafts. The
-> alert draft is built and off: alerts use their fixed template, which an approver reviews either
-> way. Every AI output is a draft: a pathologist signs the report, the doctor approves the patient's
-> explanation, and an approver releases an alert. What was measured, and what was not, is in
+> Live: the risk check, the symptom summary, the pathology pre-read, the explanation drafts and the
+> alert draft (which falls back to a fixed template whenever a check fails). Built but off: the
+> report translation, and speech to text for symptoms and voice notes. Every AI output is a draft:
+> a pathologist signs the report, the doctor approves the patient's explanation, and an approver
+> releases an alert. What was measured, and what was not, is in
 > [CRQ-0051](./docs/crq/reports/CRQ-0051-live-ai-on-the-meta-model-api.md).
 
 ## How it works
@@ -53,14 +97,14 @@ person. The order **is** the case, so one record carries a patient from booking 
 
 | Step | What happens | AI |
 |---|---|---|
-| 1. Book | A patient books a doctor and types or speaks their symptoms. | Speech to text, which the patient checks before sending; the audio is then deleted. A symptom summary in English and Kiswahili for the doctor |
+| 1. Book | A patient books a doctor and types their symptoms (speech to text is built and off). | A symptom summary in English and Kiswahili for the doctor |
 | 2. Accept | The doctor accepts, and the slot shows as busy on their public profile. | None |
 | 3. Order | The doctor orders tests. The order gets an `ODR-…` number, and the payment method (cash, or an insurer and policy number) is recorded. Tabibu takes no money. | A risk check suggests tests and, from a fixed template, a protocol advisory. The doctor's notes are translated for the pathologist |
 | 4. Assign | The doctor requests a pathologist, who has 24 hours to accept. | None |
-| 5. Pre-read | For an image-bearing test, slides go up; the pathologist's desk ranks every case. | The pre-read: masks, labels, measurements in code and a draft report, readable **only by the case's pathologist** (S-1) |
+| 5. Pre-read | For an image-bearing test, slides go up; the pathologist's desk ranks every case. | The pre-read: a label per tile, a heatmap and measurements built in code, and a draft report, readable **only by the case's pathologist** (S-1) |
 | 6. Score and sign | The pathologist scores the pre-read, then edits and signs the report. The doctor opens it with a code from their inbox, behind the device's biometrics. | The pathologist approves the report's translation in one tap |
 | 7. Release | The patient books a discussion. Only when the doctor marks it discussed does the patient see the result (S-3). | A plain-language explanation, which the doctor approves in one tap before the patient sees it |
-| 8. Talk | Direct threads and MDT discussions carry text, images and voice notes. | Voice notes are transcribed for clinicians; a patient reads a clinician's transcript only once the sender shares it |
+| 8. Talk | Direct threads and MDT discussions carry text, images and voice notes. | None live (voice-note transcription is built and off) |
 | 9. Alert | A pathologist's confirmed notifiable finding becomes an anonymous count. When a county's count calls for it, an alert is drafted. | An English and Kiswahili draft, grounded in bundled Ministry of Health and WHO guidance. It reaches clinicians, then patients in that county, **only after an authorised clinician approves it** |
 
 ```mermaid
@@ -71,8 +115,8 @@ sequenceDiagram
     participant F as Firebase (rules and functions)
     participant AI as AI service
 
-    P->>F: Book, with symptoms typed or spoken
-    F->>AI: Transcribe and summarise (English, Kiswahili)
+    P->>F: Book, with symptoms typed
+    F->>AI: Summarise (English, Kiswahili)
     AI-->>F: Summary for the doctor
     D->>F: Accept, then order tests
     F->>AI: Risk check on the new order
@@ -98,8 +142,8 @@ The details are in the [architecture](docs/architecture/reports/mobile_architect
 [AI service](docs/architecture/reports/ai_preread_service.md), the
 [notifications engine](docs/architecture/reports/notifications_engine.md), the
 [outbreak alert engine](docs/architecture/reports/outbreak_alert_engine.md) and the
-[threat model](docs/security/reports/firebase_and_ai_service_threat_model.md). The data layer for
-these steps is being built on `feat/infra`; the architecture's §16 says what exists today.
+[threat model](docs/security/reports/firebase_and_ai_service_threat_model.md). The
+architecture's §16 says what is live and what is not.
 
 ## Running it
 
