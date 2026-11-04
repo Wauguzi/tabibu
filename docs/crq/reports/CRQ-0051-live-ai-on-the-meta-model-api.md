@@ -205,10 +205,17 @@ original release.
   request once, and takes about four times as long per case (roughly 35 s for
   36 tiles in place of 10 s). The model still misses about half the tumour
   tiles, so none of this changes what the pre-read is for.
+- A local review before the pull request (CRQ-0050 §9) found four gaps in the workers, each fixed with a test shown failing without it. The
+  alert draft's headline and any sentence with a placeholder were not grounded, and a sentence that mentioned the guidance could carry a
+  claim of its own: a draft now keeps only an exact guidance bullet or one of the template's own sentences, so a model draft is rarely
+  kept and the template stands in, which is the safe direction. The explanation job ran on near-raw text when the case or patient could
+  not be read: it now fails before any model call, and both facility names and the national id are removed. A pre-read counted tiles the
+  model could not label as Normal, so a section it could not read said "No tumour suspected": unlabelled tiles are counted apart, and
+  more than a tenth of them, or none usable, says the pre-read could not label enough. A case reassigned after its sample was recorded
+  could not continue: the new pathologist can now receive the sample.
 - Known limits: an explanation left `Running` by a crash is not reclaimed (the
   doctor writes their own); the no-advice list matches word fragments (the pre-read words match whole words only); the
-  language check is cheap; the alert framing check accepts a sentence that
-  mentions the guidance, so the approver's review is the real gate.
+  language check is cheap; the approver's review stays the real gate for an alert.
 
 ## 10. Related records
 

@@ -304,6 +304,38 @@ Follow-ups:
   section when it lands.
 - Greptile's rounds after the merge.
 
+### Local review before the pull request (4 November)
+
+Before opening the pull request I read the whole branch against `.greptile/rules.md` and the catalogue of defects Greptile has flagged
+before, in three slices (the server and rules; identity and the code around the case; the case screens and shared widgets), and had each
+slice read by an agent that changed nothing. I then checked every finding against the code myself. 35 findings; the ones that were certain
+and reachable are fixed, each with a test shown failing without its fix:
+
+- **The workspace lost typing.** Unsaved diagnosis, comments and template answers were replaced by the saved draft whenever the draft
+  changed (a tick, the pre-read arriving). A field the pathologist has typed in is now left alone (721f6d0).
+- **The cold-start lock failed open.** If the secure-storage read threw at launch the app opened unlocked. It now stays covered, with
+  retry and sign-out (a7111a7). "Forgot PIN" opened its sheet from a context above the navigator and could not appear; it now uses the
+  router's navigator (a7111a7).
+- **Alert topics.** Patients joined their area topic only when they changed a setting, never at sign-in, and never left it at sign-out
+  (a7111a7).
+- **An approved alert could read as failed** when the re-fetch after approval failed; the two are now separate (a7111a7).
+- **The doctor's reader failed to open a signed report** when the explanation draft could not be fetched (721f6d0).
+- **The shared tap widget**: a 48 dp floor, a label and keyboard activation at the widget and at the sites that lacked them; my first
+  version wrapped children in intrinsic-size widgets and would have thrown on a `LayoutBuilder` child, so it keeps layout as it was
+  (c1a7c0b).
+- **Pasted text** in the report, addendum, amendment, decline and order fields is cleaned, and a paste cut at a field's limit now says so
+  instead of dropping the end without a word (9f8b5f6).
+- The order's remove-test control was 40 dp against a 48 dp assertion; the risk check's no-flags text now says it is not a clearance
+  (721f6d0); mark-all-read continues past a failed row; the explanation review says why there is no draft; empty dates no longer leave
+  "on ." in patient result strings; the heatmap legend carries the AI label (c1a7c0b).
+
+Left for after the merge, each a known limit and none on the demo path: a clinician page of an alert in delivery does not re-read a
+retraction between pages; the push claim checks status and expiry on the row it read before the claim; cancelling or reassigning a case
+leaves its queued pre-read run to finish; a reschedule that books the new visit but fails to cancel the old one reports a failure while
+both exist; profile writes can land after a sign-out; a share code created on a retry mints a new id; the doctor's "request another
+explanation" is not wired to the `requestReportText` callable; a typed-name alternative to the drawn signature; the `verify-practitioner`
+Makefile target points at a script path that does not exist. The `TZ=UTC` run of the appointment tests did not finish locally.
+
 ## 10. Related records
 
 - Data layer: [CRQ-0039](./CRQ-0039-data-layer-models-and-reference-data.md), [CRQ-0040](./CRQ-0040-encrypted-cache-boxes-and-helpers.md)
