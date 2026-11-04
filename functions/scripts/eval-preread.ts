@@ -26,8 +26,7 @@
  * results are kept.
  *
  * `--few-shot` scores the live configuration (held-out baseline, demo mosaics) with the examples on.
- * `--batch-size 16` sends up to 16 tiles per request via the worker's request builder (production
- * path). Default remains 1 tile per request for continuity with earlier single-tile numbers.
+ * `--batch-size 16` sends up to 16 tiles per request via the worker's request builder (capped at PREREAD_TILES_PER_REQUEST, now 1). Default remains 1 tile per request for continuity with earlier single-tile numbers.
  */
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';

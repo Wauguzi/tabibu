@@ -53,16 +53,19 @@ export const PREREAD_PROMPT_VERSION = 'preread-classify-v4';
 export const PREREAD_PROMPT_VERSION_V2 = 'preread-classify-v2';
 export const PREREAD_PROMPT_VERSION_V3 = 'preread-classify-v3';
 export const PREREAD_TILE_PX = 96;
-/** Many tiles per request; the Model API caps images per call at 50. */
-export const PREREAD_TILES_PER_REQUEST = 16;
+/**
+ * One tile per request. Measured on 200 held-out tiles with the examples: 72% one tile at a time, 62%
+ * at 16 per request (51.5% at 16 without the examples). The Model API caps images per call at 50.
+ */
+export const PREREAD_TILES_PER_REQUEST = 1;
 /** Model API hard cap on images in one Responses call. */
 export const PREREAD_MAX_IMAGES_PER_REQUEST = 50;
 /**
- * When true, each classify request prepends the four committed CC0 few-shot
- * examples (bundle 73). Off until the batch-of-16 evaluation shows the gain on the
- * path production uses; false restores the no-example request body byte-for-byte.
+ * Each classify request prepends the four committed CC0 few-shot examples (bundle 73). Measured
+ * with one tile per request: held-out accuracy 63% without, 72% with; false tumours 30 to 10.
+ * False restores the no-example request body byte-for-byte.
  */
-export const PREREAD_FEW_SHOT = false;
+export const PREREAD_FEW_SHOT = true;
 /** Parallel classify batches (bundle 59). */
 export const PREREAD_BATCH_CONCURRENCY = 4;
 /** Whole-run budget inside the 300 s Cloud Function (bundle 59). */
@@ -647,6 +650,21 @@ export function assertPathsUnder(caseUid: string, runUid: string, paths: string[
   }
 }
 
+/** One more try for a request that failed in transit; a malformed answer is not retried. */
+async function classifyWithRetry(
+  vision: PrereadVision,
+  batch: TileCrop[],
+  profile: PrereadProfile,
+): Promise<ClassifiedTile[]> {
+  try {
+    return await vision.classify(batch, profile);
+  } catch (e) {
+    const reason = failureReasonOf(e);
+    if (reason !== 'Timeout' && reason !== 'ServiceError') throw e;
+    return vision.classify(batch, profile);
+  }
+}
+
 /**
  * Run tile batches with a small concurrency. Results stay in crop order; the first error fails
  * the run. Exported for the timing test.
@@ -674,7 +692,7 @@ export async function classifyInBatches(
       next += 1;
       if (index >= batches.length) return;
       try {
-        results[index] = await vision.classify(batches[index], profile);
+        results[index] = await classifyWithRetry(vision, batches[index], profile);
       } catch (e) {
         const statusClass = e instanceof PrereadCallError ? e.statusClass : 'none';
         const reason = failureReasonOf(e);

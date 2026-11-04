@@ -314,7 +314,8 @@ describe('processQueuedPreread', () => {
       },
     };
     const first = await queuedRun({ vision, cache });
-    assert.equal(calls, 1);
+    const firstCalls = calls;
+    assert.ok(firstCalls >= 1);
     // Reset the run to Queued and process again with the same cache.
     await w.deps.db
       .collection('cases')
@@ -328,7 +329,7 @@ describe('processQueuedPreread', () => {
       first.runUid,
       { enabled: true, vision, cache },
     );
-    assert.equal(calls, 1, 'cache must prevent a second model call');
+    assert.equal(calls, firstCalls, 'cache must prevent a second model call');
     const run = (
       await w.deps.db
         .collection('cases')
@@ -563,11 +564,11 @@ describe('bundle 59: parallel batches and reasoning', () => {
     assert.equal(labels.length, 36);
     assert.equal(labels[0].id, 'tile-0');
     assert.equal(labels[35].id, 'tile-35');
-    assert.equal(Math.ceil(36 / PREREAD_TILES_PER_REQUEST), 3);
     assert.ok(maxInFlight <= PREREAD_BATCH_CONCURRENCY);
     assert.ok(maxInFlight >= 2, 'batches should overlap');
-    // Three serial delays would be ~240 ms; three parallel finish near one delay.
-    assert.ok(elapsed < delayMs * 2.5, `expected ~1 delay, got ${elapsed}ms`);
+    // Serial would take one delay per request; four at a time finishes in about a quarter of that.
+    const requests = Math.ceil(36 / PREREAD_TILES_PER_REQUEST);
+    assert.ok(elapsed < delayMs * requests * 0.5, `expected overlap, got ${elapsed}ms`);
   });
 
   it('worker budget is 240 s and tile reasoning effort is minimal', () => {
@@ -881,7 +882,7 @@ describe('bundle 73: few-shot classify request', () => {
     assert.ok(texts[5]?.startsWith('Classify these 2 tiles.'));
     assert.equal(countClassifyImages(content), 6);
     const built = buildClassifyRequestBody({
-      crops,
+      crops: crops.slice(0, PREREAD_TILES_PER_REQUEST),
       profile: 'Cancer',
       fewShot: fixtures,
     });
@@ -911,7 +912,7 @@ describe('bundle 73: few-shot classify request', () => {
       JSON.stringify(expected),
     );
     const built = buildClassifyRequestBody({
-      crops,
+      crops: crops.slice(0, PREREAD_TILES_PER_REQUEST),
       profile: 'Cancer',
       fewShot: [],
     });
