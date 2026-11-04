@@ -190,6 +190,21 @@ class AnalyticsService {
   Future<void> logAppointmentRequested() =>
       _guard(() => _analytics.logEvent(name: 'appointment_requested'));
 
+  /// Symptom voice transcription succeeded. Duration bucket and language
+  /// flag only — never audio, transcript or paths.
+  Future<void> logSymptomVoiceTranscribed({
+    required String durationBucket,
+    required bool englishOrSwahili,
+  }) => _guard(
+    () => _analytics.logEvent(
+      name: 'symptom_voice_transcribed',
+      parameters: {
+        'duration_bucket': durationBucket,
+        'en_or_sw': englishOrSwahili ? 1 : 0,
+      },
+    ),
+  );
+
   Future<void> logAppointmentResponded({required bool accepted}) => _guard(
     () => _analytics.logEvent(
       name: 'appointment_responded',

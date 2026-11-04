@@ -12,6 +12,7 @@ import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_styles.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
+import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -28,6 +29,7 @@ import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_blo
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_event.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_state.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
+import 'package:tabibu/features/practitioners/presentation/widgets/symptom_voice_controls.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -36,10 +38,17 @@ import 'package:tabibu/l10n/l10n.dart';
 /// planner days.
 class DoctorProfileScreen extends StatefulWidget {
   /// [now] pins the planner's clock; tests pass a fixed morning.
-  const DoctorProfileScreen({required this.doctorUid, this.now, super.key});
+  /// [recorder] is injected in tests so getIt need not be configured.
+  const DoctorProfileScreen({
+    required this.doctorUid,
+    this.now,
+    this.recorder,
+    super.key,
+  });
 
   final String doctorUid;
   final DateTime? now;
+  final AudioRecorderService? recorder;
 
   @override
   State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
@@ -51,6 +60,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   int _dayIndex = 0;
   int? _slotIndex;
   bool _bioExpanded = false;
+  String? _transcriptionUid;
+  var _showAiNotice = false;
 
   @override
   void initState() {
@@ -59,6 +70,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       PatientSession(:final patient) => patient.uid,
       _ => '',
     };
+    _symptoms.addListener(_onSymptomsEdited);
     final directory = context.read<DirectoryBloc>().state;
     if (directory.all.firstWhereOrNull((d) => d.uid == widget.doctorUid) ==
         null) {
@@ -68,8 +80,20 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
   @override
   void dispose() {
-    _symptoms.dispose();
+    _symptoms
+      ..removeListener(_onSymptomsEdited)
+      ..dispose();
     super.dispose();
+  }
+
+  /// Clearing the field drops the voice id so a typed rewrite is `Typed`.
+  void _onSymptomsEdited() {
+    if (_symptoms.text.isEmpty && _transcriptionUid != null) {
+      setState(() {
+        _transcriptionUid = null;
+        _showAiNotice = false;
+      });
+    }
   }
 
   /// The month sheet picks onto the same planner days; a picked day moves
@@ -368,13 +392,38 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       SliverPadding(
         padding: sides,
         sliver: SliverToBoxAdapter(
-          child: TabibuTextField(
-            label: l10n.doctorProfileSymptomsLabel,
-            hint: l10n.doctorProfileSymptomsHint,
-            controller: _symptoms,
-            maxLines: 5,
-            maxLength: 500,
-            keyboardType: .multiline,
+          child: Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              TabibuTextField(
+                label: l10n.doctorProfileSymptomsLabel,
+                hint: l10n.doctorProfileSymptomsHint,
+                controller: _symptoms,
+                maxLines: 5,
+                maxLength: 500,
+                keyboardType: .multiline,
+              ),
+              if (_showAiNotice) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.symptomVoiceAiNotice,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+              const SizedBox(height: AppSpacing.sm),
+              SymptomVoiceControls(
+                patientUid: _patientUid,
+                symptoms: _symptoms,
+                offline: offline,
+                recorder: widget.recorder,
+                onTranscriptionUid: (uid) => setState(() {
+                  _transcriptionUid = uid;
+                }),
+                showAiNotice: (show) => setState(() {
+                  _showAiNotice = show;
+                }),
+              ),
+            ],
           ),
         ),
       ),
@@ -413,15 +462,22 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   ),
             onTap: chosen == null || offline || booking
                 ? null
-                : () => context.read<AppointmentsBloc>().add(
-                    AppointmentBookRequested(
-                      uid: _patientUid,
-                      doctorUid: doctor.uid,
-                      type: AppointmentType.consultation.value,
-                      start: chosen.start,
-                      symptomText: _symptoms.text,
-                    ),
-                  ),
+                : () {
+                    final text = _symptoms.text;
+                    final voice =
+                        _transcriptionUid != null && text.trim().isNotEmpty;
+                    context.read<AppointmentsBloc>().add(
+                      AppointmentBookRequested(
+                        uid: _patientUid,
+                        doctorUid: doctor.uid,
+                        type: AppointmentType.consultation.value,
+                        start: chosen.start,
+                        symptomText: text,
+                        inputMode: voice ? 'Voice' : 'Typed',
+                        transcriptionUid: voice ? _transcriptionUid! : '',
+                      ),
+                    );
+                  },
             isLoading: booking,
           ),
         ),

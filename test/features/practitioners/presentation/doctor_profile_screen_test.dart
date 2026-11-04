@@ -117,7 +117,12 @@ void main() {
         BlocProvider<DirectoryBloc>.value(value: directory),
         BlocProvider<AppointmentsBloc>.value(value: appointments),
       ],
-      child: DoctorProfileScreen(doctorUid: 'd1', now: _fixedNow),
+      child: DoctorProfileScreen(
+        doctorUid: 'd1',
+        now: _fixedNow,
+        // Unsupported: booking tests stay on typing; voice has its own suite.
+        recorder: FakeAudioRecorderService(supported: false),
+      ),
     );
 
     GoRouter router() {

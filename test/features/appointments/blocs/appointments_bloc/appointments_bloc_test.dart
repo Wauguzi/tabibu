@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
@@ -9,6 +11,9 @@ import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointment
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
 import 'package:tabibu/features/appointments/data/cache/appointment_cache_helper.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
+import 'package:tabibu/features/appointments/data/models/transcription_result_model.dart';
+
+import '../../../../helpers/helpers.dart';
 
 class _MockCache extends Mock implements AppointmentCacheHelper {}
 
@@ -37,6 +42,7 @@ void main() {
 
   setUpAll(() {
     registerFallbackValue(DateTime.utc(2026));
+    registerFallbackValue(Uint8List(0));
   });
 
   setUp(() {
@@ -213,6 +219,8 @@ void main() {
               start: any(named: 'start'),
               type: any(named: 'type'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
           );
           verifyNever(() => analytics.logAppointmentRequested());
@@ -230,6 +238,8 @@ void main() {
               start: any(named: 'start'),
               type: any(named: 'type'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
           ).thenAnswer((_) async => _appt('a-new'));
           when(
@@ -270,6 +280,8 @@ void main() {
               start: any(named: 'start'),
               type: any(named: 'type'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
           ).thenThrow(AppError.requestTimeout);
         },
@@ -308,6 +320,8 @@ void main() {
               start: any(named: 'start'),
               type: any(named: 'type'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
           ).thenAnswer((invocation) async {
             uids.add(invocation.namedArguments[#appointmentUid]! as String);
@@ -735,6 +749,8 @@ void main() {
               type: 'Consultation',
               caseUid: any(named: 'caseUid'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
           ).thenAnswer((_) async => _appt('a2'));
           when(
@@ -779,6 +795,8 @@ void main() {
               type: 'Consultation',
               caseUid: any(named: 'caseUid'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
             () => cache.cancelAppointment(
               appointmentUid: 'a1',
@@ -804,6 +822,8 @@ void main() {
               type: any(named: 'type'),
               caseUid: any(named: 'caseUid'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
           ).thenThrow(AppError.unknown);
         },
@@ -871,6 +891,8 @@ void main() {
               type: any(named: 'type'),
               caseUid: any(named: 'caseUid'),
               symptomText: any(named: 'symptomText'),
+              inputMode: any(named: 'inputMode'),
+              transcriptionUid: any(named: 'transcriptionUid'),
             ),
           );
           verifyNever(
@@ -880,6 +902,146 @@ void main() {
               cancelNote: any(named: 'cancelNote'),
             ),
           );
+        },
+      );
+    });
+
+    group('SymptomsTranscribeRequested', () {
+      final audio = fakeRecordedAudio(durationMs: 2500);
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'success fills transcript and keeps the transcription id',
+        setUp: () {
+          when(
+            () => cache.transcribeSymptoms(
+              uid: any(named: 'uid'),
+              audioUid: any(named: 'audioUid'),
+              bytes: any(named: 'bytes'),
+              contentType: any(named: 'contentType'),
+            ),
+          ).thenAnswer(
+            (_) async => const TranscriptionResultModel(
+              transcriptionUid: 't1',
+              transcript: 'Fever for two days',
+              detectedLanguage: 'en',
+            ),
+          );
+          when(
+            () => analytics.logSymptomVoiceTranscribed(
+              durationBucket: any(named: 'durationBucket'),
+              englishOrSwahili: any(named: 'englishOrSwahili'),
+            ),
+          ).thenAnswer((_) async {});
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
+        act: (bloc) =>
+            bloc.add(SymptomsTranscribeRequested(uid: 'p1', audio: audio)),
+        expect: () => [
+          SymptomsTranscribeInProgress(appointments: [_appt('a0')]),
+          SymptomsTranscribeSuccess(
+            transcript: 'Fever for two days',
+            transcriptionUid: 't1',
+            detectedLanguage: 'en',
+            appointments: [_appt('a0')],
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'failure leaves appointments and reports the error',
+        setUp: () {
+          when(
+            () => cache.transcribeSymptoms(
+              uid: any(named: 'uid'),
+              audioUid: any(named: 'audioUid'),
+              bytes: any(named: 'bytes'),
+              contentType: any(named: 'contentType'),
+            ),
+          ).thenThrow(AppError.unknown);
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
+        act: (bloc) =>
+            bloc.add(SymptomsTranscribeRequested(uid: 'p1', audio: audio)),
+        expect: () => [
+          SymptomsTranscribeInProgress(appointments: [_appt('a0')]),
+          SymptomsTranscribeFailure(
+            error: AppError.unknown,
+            appointments: [_appt('a0')],
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'offline does not call the cache',
+        setUp: () {
+          when(() => internet.check()).thenAnswer((_) async => false);
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
+        act: (bloc) =>
+            bloc.add(SymptomsTranscribeRequested(uid: 'p1', audio: audio)),
+        expect: () => [
+          SymptomsTranscribeFailure(
+            error: AppError.noInternet,
+            appointments: [_appt('a0')],
+            offline: true,
+          ),
+        ],
+        verify: (_) {
+          verifyNever(
+            () => cache.transcribeSymptoms(
+              uid: any(named: 'uid'),
+              audioUid: any(named: 'audioUid'),
+              bytes: any(named: 'bytes'),
+              contentType: any(named: 'contentType'),
+            ),
+          );
+        },
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
+        'double tap transcribes once (droppable)',
+        setUp: () {
+          when(
+            () => cache.transcribeSymptoms(
+              uid: any(named: 'uid'),
+              audioUid: any(named: 'audioUid'),
+              bytes: any(named: 'bytes'),
+              contentType: any(named: 'contentType'),
+            ),
+          ).thenAnswer((_) async {
+            await Future<void>.delayed(const Duration(milliseconds: 20));
+            return const TranscriptionResultModel(
+              transcriptionUid: 't1',
+              transcript: 'ok',
+              detectedLanguage: 'sw',
+            );
+          });
+          when(
+            () => analytics.logSymptomVoiceTranscribed(
+              durationBucket: any(named: 'durationBucket'),
+              englishOrSwahili: any(named: 'englishOrSwahili'),
+            ),
+          ).thenAnswer((_) async {});
+        },
+        build: build,
+        act: (bloc) async {
+          bloc
+            ..add(SymptomsTranscribeRequested(uid: 'p1', audio: audio))
+            ..add(SymptomsTranscribeRequested(uid: 'p1', audio: audio));
+        },
+        wait: const Duration(milliseconds: 50),
+        verify: (_) {
+          verify(
+            () => cache.transcribeSymptoms(
+              uid: any(named: 'uid'),
+              audioUid: any(named: 'audioUid'),
+              bytes: any(named: 'bytes'),
+              contentType: any(named: 'contentType'),
+            ),
+          ).called(1);
         },
       );
     });

@@ -1772,5 +1772,18 @@
     "resultsRowSharedByBare": "Imeshirikiwa na daktari wako",
     "resultsRowOrderedByNoDoctor": "Iliyoagizwa na daktari wako · inasubiri {item}",
     "resultsUpdateReviewNotice": "Daktari wako anakagua sasisho la matokeo haya. Unasoma toleo lililotolewa tarehe {date}.",
-    "resultsUpdateReviewNoticeNoDate": "Daktari wako anakagua sasisho la matokeo haya. Unasoma toleo la mwisho lililotolewa kwako."
+    "resultsUpdateReviewNoticeNoDate": "Daktari wako anakagua sasisho la matokeo haya. Unasoma toleo la mwisho lililotolewa kwako.",
+    "symptomVoiceRecordLabel": "Sema dalili zako",
+    "symptomVoiceStopLabel": "Simamisha kurekodi",
+    "symptomVoiceTranscribeLabel": "Geuza kuwa maandishi",
+    "symptomVoiceRecording": "Inarekodi… sekunde {seconds}",
+    "symptomVoiceAiNotice": "Imeandaliwa na AI kutoka sauti yako. Ihakiki kabla ya kutuma.",
+    "symptomVoiceDeletedNotice": "Rekodi yako inafutwa baada ya kugeuzwa kuwa maandishi.",
+    "symptomVoiceConsentTitle": "Sema dalili zako",
+    "symptomVoiceConsentBody": "Sauti yako inatumwa mara moja kwa huduma ya unukuzi, kisha inafutwa. Daktari anaona tu maandishi unayohakiki na kutuma. Unaweza kuandika kila wakati.",
+    "symptomVoiceConsentContinue": "Endelea",
+    "symptomVoiceUnsupported": "Kusema dalili hakupatikani kwenye kivinjari hiki. Tafadhali ziandike.",
+    "symptomVoicePermissionDenied": "Kibali cha maikrofoni kimezimwa. Unaweza kuandika dalili, au kuwasha maikrofoni katika Mipangilio.",
+    "symptomVoiceOffline": "Hauna mtandao. Andika dalili zako, au jaribu tena utakaporudi mtandaoni.",
+    "symptomVoiceFailed": "Hatukuweza kugeuza rekodi hiyo kuwa maandishi. Sehemu haijabadilika — andika dalili, au jaribu tena."
 }

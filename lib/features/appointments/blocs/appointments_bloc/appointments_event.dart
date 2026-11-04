@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/audio_service_contract.dart';
 
 sealed class AppointmentsEvent extends Equatable {
   const AppointmentsEvent();
@@ -37,6 +38,8 @@ final class AppointmentBookRequested extends AppointmentsEvent {
     required this.type,
     required this.start,
     required this.symptomText,
+    this.inputMode = 'Typed',
+    this.transcriptionUid = '',
   });
 
   /// The patient booking, whose appointments are synced after the request.
@@ -46,8 +49,32 @@ final class AppointmentBookRequested extends AppointmentsEvent {
   final DateTime start;
   final String symptomText;
 
+  /// `Typed` or `Voice`. Voice only when [transcriptionUid] is set and the
+  /// sent text came from a transcript the patient checked.
+  final String inputMode;
+  final String transcriptionUid;
+
   @override
-  List<Object?> get props => [uid, doctorUid, type, start, symptomText];
+  List<Object?> get props => [
+    uid,
+    doctorUid,
+    type,
+    start,
+    symptomText,
+    inputMode,
+    transcriptionUid,
+  ];
+}
+
+/// Upload symptom audio and run `transcribeSymptoms` (droppable).
+final class SymptomsTranscribeRequested extends AppointmentsEvent {
+  const SymptomsTranscribeRequested({required this.uid, required this.audio});
+
+  final String uid;
+  final RecordedAudio audio;
+
+  @override
+  List<Object?> get props => [uid, audio];
 }
 
 final class AppointmentDecisionRequested extends AppointmentsEvent {

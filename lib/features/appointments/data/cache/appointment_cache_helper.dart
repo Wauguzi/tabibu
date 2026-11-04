@@ -11,6 +11,7 @@ import 'package:tabibu/features/appointments/data/models/appointment_hive.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_intake_hive.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_intake_model.dart';
 import 'package:tabibu/features/appointments/data/models/appointment_model.dart';
+import 'package:tabibu/features/appointments/data/models/transcription_result_model.dart';
 
 /// Cached appointments and intake summaries: the layer the blocs call.
 @lazySingleton
@@ -204,6 +205,20 @@ class AppointmentCacheHelper {
     return row.toModel();
   }
 
+  /// Online only: uploads symptom audio and returns the transcript. The
+  /// server deletes the object; nothing is cached locally.
+  Future<TranscriptionResultModel> transcribeSymptoms({
+    required String uid,
+    required String audioUid,
+    required Uint8List bytes,
+    String contentType = 'audio/mp4',
+  }) => _remote.transcribeSymptoms(
+    uid: uid,
+    audioUid: audioUid,
+    bytes: bytes,
+    contentType: contentType,
+  );
+
   /// Online only: requests the slot, then syncs and returns the new row.
   Future<AppointmentModel> bookAppointment({
     required String patientUid,
@@ -213,6 +228,8 @@ class AppointmentCacheHelper {
     String type = 'Consultation',
     String caseUid = '',
     String symptomText = '',
+    String inputMode = 'Typed',
+    String transcriptionUid = '',
   }) async {
     await _remote.requestAppointment(
       appointmentUid: appointmentUid,
@@ -221,6 +238,8 @@ class AppointmentCacheHelper {
       doctorUid: doctorUid,
       caseUid: caseUid,
       symptomText: symptomText,
+      inputMode: inputMode,
+      transcriptionUid: transcriptionUid.isEmpty ? null : transcriptionUid,
     );
     List<AppointmentModel> rows;
     try {

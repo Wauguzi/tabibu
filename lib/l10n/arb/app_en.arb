@@ -8477,5 +8477,60 @@
     "resultsUpdateReviewNoticeNoDate": "Your doctor is reviewing an update to this result. You are reading the last version that was released to you.",
     "@resultsUpdateReviewNoticeNoDate": {
         "description": "Patient result: update waiting; release date unknown"
+    },
+    "symptomVoiceRecordLabel": "Speak your symptoms",
+    "@symptomVoiceRecordLabel": {
+        "description": "Booking: start recording symptoms (up to 60 s)"
+    },
+    "symptomVoiceStopLabel": "Stop recording",
+    "@symptomVoiceStopLabel": {
+        "description": "Booking: stop the symptom recording"
+    },
+    "symptomVoiceTranscribeLabel": "Turn into text",
+    "@symptomVoiceTranscribeLabel": {
+        "description": "Booking: send the recording for transcription"
+    },
+    "symptomVoiceRecording": "Recording… {seconds}s",
+    "@symptomVoiceRecording": {
+        "description": "Booking: live timer while recording symptoms",
+        "placeholders": {
+            "seconds": { "type": "int" }
+        }
+    },
+    "symptomVoiceAiNotice": "Prepared with AI from your voice. Check it before you send.",
+    "@symptomVoiceAiNotice": {
+        "description": "Booking: notice above a transcript filled into the symptoms field"
+    },
+    "symptomVoiceDeletedNotice": "Your recording is deleted after it is turned into text.",
+    "@symptomVoiceDeletedNotice": {
+        "description": "Booking: reassure the patient the audio is not kept"
+    },
+    "symptomVoiceConsentTitle": "Speak your symptoms",
+    "@symptomVoiceConsentTitle": {
+        "description": "Booking: first-time consent title for symptom voice"
+    },
+    "symptomVoiceConsentBody": "Your voice is sent once to a transcription service, then deleted. The doctor sees only the text you check and send. You can always type instead.",
+    "@symptomVoiceConsentBody": {
+        "description": "Booking: first-time consent body for symptom voice"
+    },
+    "symptomVoiceConsentContinue": "Continue",
+    "@symptomVoiceConsentContinue": {
+        "description": "Booking: accept symptom voice consent"
+    },
+    "symptomVoiceUnsupported": "Speaking symptoms is not available in this browser. Please type them instead.",
+    "@symptomVoiceUnsupported": {
+        "description": "Booking: web demo has no microphone"
+    },
+    "symptomVoicePermissionDenied": "Microphone access is off. You can type your symptoms, or turn the microphone on in Settings.",
+    "@symptomVoicePermissionDenied": {
+        "description": "Booking: mic permission denied"
+    },
+    "symptomVoiceOffline": "You are offline. Type your symptoms, or try speaking again when you are back online.",
+    "@symptomVoiceOffline": {
+        "description": "Booking: offline while trying to transcribe"
+    },
+    "symptomVoiceFailed": "We could not turn that recording into text. The field is unchanged — type your symptoms, or try again.",
+    "@symptomVoiceFailed": {
+        "description": "Booking: transcription failed or empty"
     }
 }
