@@ -56,8 +56,8 @@ patient reads, or the alert path.
 | [CRQ-0047](./CRQ-0047-model-performance-signals.md) | Model performance signals | 2026-11-01 | Implemented |
 | [CRQ-0048](./CRQ-0048-feature-data-sources-and-indexes.md) | Firebase feature data sources and the index check | 2026-11-01 | Implemented |
 | [CRQ-0049](./CRQ-0049-outbreak-alerts.md) | Outbreak alerts | 2026-11-01 | Implemented — detector and delivery built (`d05d289`), not deployed; source urls to re-verify |
-| [CRQ-0050](./CRQ-0050-role-screens-and-flows.md) | The patient, doctor and pathologist screens: every designed screen whose backend exists | 2026-11-02 | In progress — `feat/ui` through `32260a5`; §9 covers access-code chip, accept/decline/sample, template questions, slides, priority push, re-attach, amend/addendum and web degrade; ordering for any patient still queued |
-| [CRQ-0051](./CRQ-0051-live-ai-on-the-meta-model-api.md) | Live AI on the Meta Model API: the risk check, the symptom summary, the pre-read, the explanation and the alert draft | 2026-11-03 | In progress — `feat/ui`; the second evaluation's numbers to be filled |
+| [CRQ-0050](./CRQ-0050-role-screens-and-flows.md) | The patient, doctor and pathologist screens: every designed screen whose backend exists | 2026-11-02 | Implemented — merged in [#19](https://github.com/Wauguzi/tabibu/pull/19) (4 Nov 2026) after two Greptile rounds; §9 records the departures from the designs and the review |
+| [CRQ-0051](./CRQ-0051-live-ai-on-the-meta-model-api.md) | Live AI on the Meta Model API: the risk check, the symptom summary, the pre-read, the explanation and the alert draft | 2026-11-03 | Implemented — merged in [#19](https://github.com/Wauguzi/tabibu/pull/19) (4 Nov 2026); §7 holds the evaluation, §9 the review |
 
 Naming convention: `CRQ-<4-digit-number>-<short-slug>.md`, numbered
 sequentially from `0001`.

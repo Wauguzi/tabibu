@@ -6,10 +6,10 @@
 | Title | Live AI on the Meta Model API: the risk check, the symptom summary, the pre-read, the explanation and the alert draft |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-11-03 |
-| Date implemented | Pending — completed on `main` after the merge (CRQ-0038) |
+| Date implemented | 2026-11-04 |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/ui`: d8c2ce1, 3d67132, 1b5df57, 8fa2e4c, f7b61ae, 0f6028b, e5b9d85, 1cea586, da333dc, 0384bc9, e6da270, d65d76b; the PR link is added after the merge |
+| Commit(s) / PR | `feat/ui`: d8c2ce1, 3d67132, 1b5df57, 8fa2e4c, f7b61ae, 0f6028b, e5b9d85, 1cea586, da333dc, 0384bc9, e6da270, d65d76b, bd4cae1, fee2e7d, 517dc3c, 145c7b5, 3a9c95a; merged as `61b77b4` in [#19](https://github.com/Wauguzi/tabibu/pull/19) |
 
 ## 1. Description of change
 
@@ -180,7 +180,7 @@ original release.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-04 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | Pending — rounds recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-04 | Approved at 5/5 after two rounds; the three worker findings are in §9 |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Pending | — | The explanation's wording and its Kiswahili are read by a clinician after the demo build |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | One secret, three triggers; read line by line |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | De-identification tested; slides contain no identifiers beyond what a scanner embeds, which is not inspected |
@@ -213,6 +213,17 @@ original release.
   model could not label as Normal, so a section it could not read said "No tumour suspected": unlabelled tiles are counted apart, and
   more than a tenth of them, or none usable, says the pre-read could not label enough. A case reassigned after its sample was recorded
   could not continue: the new pathologist can now receive the sample.
+- Greptile's first round (0/5) found three flaws in the workers, all valid and
+  fixed in 3a9c95a. The explanation and translation ignored signed addenda, so an
+  addendum report was explained from its old content. A run over several slides
+  measured them as one grid, so tumour tiles from separate slides could join into
+  one focus and one resize factor applied to every slide. A first slide could use
+  the whole 64-tile budget and fail the second after its model calls were paid
+  for. Each slide now has its own grid and scale and a share of the budget, and
+  an impossible set fails before any call. The heatmap is the first slide's,
+  which is the one the viewer shows. A run of two byte-identical slides shares a
+  classification cache key and its second slide reads Unknown; I left that for
+  after the merge.
 - Known limits: an explanation left `Running` by a crash is not reclaimed (the
   doctor writes their own); the no-advice list matches word fragments (the pre-read words match whole words only); the
   language check is cheap; the approver's review stays the real gate for an alert.

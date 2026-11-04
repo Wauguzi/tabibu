@@ -6,10 +6,10 @@
 | Title | The patient, doctor and pathologist screens: every designed screen whose backend exists |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-11-02 |
-| Date implemented | Pending — completed on `main` after the merge (CRQ-0038). Counts below taken at `2d939e7` on `feat/ui` |
+| Date implemented | 2026-11-04. Counts below taken at `2d939e7` on `feat/ui`; the last two commits before the merge change only formatting and the version |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/ui`: 625bc08 through `2d939e7` (screens, live AI, demo seed and the post-implementation departures in §9); the PR link is added after the merge |
+| Commit(s) / PR | `feat/ui`: 625bc08 through `48f55a1` (screens, live AI, demo seed and the departures in §9), merged as `61b77b4` in [#19](https://github.com/Wauguzi/tabibu/pull/19) |
 
 ## 1. Description of change
 
@@ -69,9 +69,10 @@ spine (S-1) and was widened by S-3.
      `app_en.arb` and `app_sw.arb` at `2d939e7`
      (`grep -c '^    "[a-z]' lib/l10n/arb/app_en.arb` and the same on
      `app_sw.arb`).
-   - **Queued:** ordering a test for any patient the doctor has seen (a
-     Patient step on the home "+") has not landed when I wrote this; each
-     later screen is added to §9 as it merges.
+   - **Ordering for any patient** (8ef6cd8): the home "+" opens a Patient
+     step first, listing patients the doctor has an accepted or finished
+     visit with, because the server only takes an order that hangs off such a
+     visit; opened from a visit, the wizard starts where it always did.
 7. **Demo data.** `make seed-cases` seeds **fourteen** backdated cases for
    the three demo accounts through the real handlers
    (`rg -c "key: '" functions/src/seed-cases.ts` → 14 at `2d939e7`; README
@@ -189,7 +190,7 @@ so there is no rules, functions or Remote Config step.
 | Role | Required when | Name | Date | Decision |
 |---|---|---|---|---|
 | Author | Always | Theo | 2026-11-03 | — |
-| Engineering reviewer | Always, on the pull request | Greptile | — | Pending — rounds recorded on `main` after the merge (CRQ-0038) |
+| Engineering reviewer | Always, on the pull request | Greptile | 2026-11-04 | Approved at 5/5 after two rounds (§9) |
 | Clinical Reviewer | §4 flags clinical-safety impact or changes clinical wording | Pending | — | The Kiswahili copy and the clinical wording are read by a clinician after the demo build |
 | Security Analyst | §4 flags security impact | Covered by CTO | Pending | No rules or secrets change; share-code handling reviewed in bundle 47 |
 | Compliance Officer | §4 flags data protection impact | Covered by CTO | Pending | No new data leaves a case |
@@ -298,11 +299,44 @@ recorded on this branch and cited by commit below):
 
 Follow-ups:
 
-- `notification_cache_helper_test` "watchInbox a failing merge is skipped"
-  is flaky under parallel load; it passes alone.
-- Ordering for any patient (home "+") is still queued; add it to this
-  section when it lands.
-- Greptile's rounds after the merge.
+- Two `notification_cache_helper_test` cases waited a fixed number of event
+  turns and failed under parallel load; both now wait for the tick (b1a7a95,
+  4ddae5e).
+
+### Greptile on the pull request (4 November)
+
+Round 1 scored 0/5 with ten findings. I checked each against the code and
+all ten were valid; none was argued away. They are fixed in 4ddae5e, 3a9c95a
+and 2d939e7, each with a test, and every thread carries a reply naming its
+commit:
+
+- **Two cases could show each other's report** (the result page and the
+  results list matched a report by its id alone, and `v1` repeats under every
+  case), and **a patient lost a released result while an update waited with
+  the doctor**, which contradicted the rule stated in this record. A patient
+  now reads the current version if it is released, otherwise the latest
+  released one, with a notice (4ddae5e).
+- **The explanation ignored signed addenda**, **several slides were measured
+  as one grid**, and **a second slide could starve the first's tile budget**.
+  Each slide now has its own grid and scale, the budget is shared before it
+  is spent, and the explanation carries the addenda (3a9c95a). Fixing these I
+  found the heatmap painted every slide onto one canvas; it is now the first
+  slide's, which is the one the viewer shows (3a9c95a).
+- **Notification taps skipped code entry** on push and banner, and **the
+  share picker could not offer pathologists** (4ddae5e).
+- **Most blocs logged no analytics event**, against the architecture's rule
+  that every user-visible action logs one; 24 events now cover the case,
+  order, appointment, report, alert and lock blocs, with counts and kinds only
+  (2d939e7).
+- **A test that only searched source files for a word** stood in for a
+  behaviour test and was replaced, and a stub screen used raw spacing
+  (4ddae5e).
+
+The retrigger after those fixes scored 5/5 and the pull request was approved
+and merged with a merge commit (`61b77b4`). CI passed on its six checks. Two
+lessons went into my pre-review catalogue: I had read the rules file and not
+the architecture's numbered rules, and I had checked the lookups I knew
+rather than searching for the pattern.
 
 ### Local review before the pull request (4 November)
 
