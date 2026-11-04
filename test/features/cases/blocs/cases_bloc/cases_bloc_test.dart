@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
@@ -17,6 +18,8 @@ class _MockCases extends Mock implements CaseCacheHelper {}
 
 class _MockReports extends Mock implements ReportCacheHelper {}
 
+class _MockAnalytics extends Mock implements AnalyticsService {}
+
 CaseModel _case(String uid) => CaseModel.empty().copyWith(uid: uid);
 
 PathologyReportModel _report(String uid) =>
@@ -28,8 +31,10 @@ CaseLogEntryModel _log(String caseUid, int seq) =>
 void main() {
   late _MockCases cases;
   late _MockReports reports;
+  late _MockAnalytics analytics;
 
-  CasesBloc build() => CasesBloc(cases: cases, reports: reports);
+  CasesBloc build() =>
+      CasesBloc(cases: cases, reports: reports, analytics: analytics);
 
   setUpAll(() {
     registerFallbackValue(Role.patient);
@@ -38,6 +43,8 @@ void main() {
   setUp(() {
     cases = _MockCases();
     reports = _MockReports();
+    analytics = _MockAnalytics();
+    when(() => analytics.logCaseNotesSaved()).thenAnswer((_) async {});
   });
 
   group('CasesBloc', () {
@@ -383,6 +390,7 @@ void main() {
               clinicalNotes: 'Suspect TB.',
             ),
           ).called(1);
+          verify(() => analytics.logCaseNotesSaved()).called(1);
         },
       );
 
@@ -406,6 +414,7 @@ void main() {
               clinicalNotes: any(named: 'clinicalNotes'),
             ),
           );
+          verifyNever(() => analytics.logCaseNotesSaved());
         },
       );
 
@@ -458,6 +467,9 @@ void main() {
             cases: [_case('c1').copyWith(clinicalNotes: 'old')],
           ),
         ],
+        verify: (_) {
+          verifyNever(() => analytics.logCaseNotesSaved());
+        },
       );
 
       test('two saves in order both reach the helper in order', () async {

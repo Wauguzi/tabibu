@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/cases/data/cache/case_cache_helper.dart';
 import 'package:tabibu/features/cases/data/datasources/case_firebase.dart';
@@ -27,6 +28,8 @@ class _MockCases extends Mock implements CaseCacheHelper {}
 class _MockInternet extends Mock implements InternetService {}
 
 class _MockCaseRemote extends Mock implements CaseFirebase {}
+
+class _MockAnalytics extends Mock implements AnalyticsService {}
 
 const _case = 'c1';
 const _me = 'p1';
@@ -74,6 +77,7 @@ void main() {
   late _MockCases cases;
   late _MockInternet internet;
   late _MockCaseRemote caseRemote;
+  late _MockAnalytics analytics;
 
   CaseWorkspaceBloc build() => CaseWorkspaceBloc(
     reports: reports,
@@ -81,6 +85,7 @@ void main() {
     cases: cases,
     caseRemote: caseRemote,
     internet: internet,
+    analytics: analytics,
     now: () => _shown,
   );
 
@@ -111,7 +116,20 @@ void main() {
     cases = _MockCases();
     internet = _MockInternet();
     caseRemote = _MockCaseRemote();
+    analytics = _MockAnalytics();
     when(() => internet.check()).thenAnswer((_) async => true);
+    when(() => analytics.logCaseRequestAccepted()).thenAnswer((_) async {});
+    when(() => analytics.logCaseRequestDeclined()).thenAnswer((_) async {});
+    when(() => analytics.logSampleReceived()).thenAnswer((_) async {});
+    when(() => analytics.logDraftSaved()).thenAnswer((_) async {});
+    when(() => analytics.logScoreSubmitted()).thenAnswer((_) async {});
+    when(
+      () => analytics.logReportSigned(kind: any(named: 'kind')),
+    ).thenAnswer((_) async {});
+    when(
+      () => analytics.logRevisionStarted(kind: any(named: 'kind')),
+    ).thenAnswer((_) async {});
+    when(() => analytics.logRevisionDiscarded()).thenAnswer((_) async {});
     when(
       () => cases.getCases(_me),
     ).thenAnswer((_) async => [CaseModel.empty().copyWith(uid: _case)]);
@@ -211,6 +229,7 @@ void main() {
       verify: (_) {
         verify(() => caseRemote.acceptCase(caseUid: _case)).called(1);
         verify(() => cases.syncCases(_me)).called(greaterThanOrEqualTo(1));
+        verify(() => analytics.logCaseRequestAccepted()).called(1);
       },
       expect: () => [
         isA<CaseWorkspaceWriteInProgress>(),
@@ -239,6 +258,8 @@ void main() {
           AppError.permissionDenied,
         ),
       ],
+      verify: (_) =>
+          verifyNever(() => analytics.logCaseRequestAccepted()),
     );
 
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
@@ -261,6 +282,8 @@ void main() {
         isA<CaseWorkspaceWriteInProgress>(),
         isA<CaseRequestDeclineSuccess>(),
       ],
+      verify: (_) =>
+          verify(() => analytics.logCaseRequestDeclined()).called(1),
     );
 
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
@@ -276,12 +299,15 @@ void main() {
         ..add(CaseRequestDeclined(reason: 'x' * 501)),
       // Both are the same refusal, so the state changes once.
       expect: () => [isA<CaseWorkspaceWriteFailure>()],
-      verify: (_) => verifyNever(
-        () => caseRemote.rejectCase(
-          caseUid: any(named: 'caseUid'),
-          reason: any(named: 'reason'),
-        ),
-      ),
+      verify: (_) {
+        verifyNever(
+          () => caseRemote.rejectCase(
+            caseUid: any(named: 'caseUid'),
+            reason: any(named: 'reason'),
+          ),
+        );
+        verifyNever(() => analytics.logCaseRequestDeclined());
+      },
     );
   });
 
@@ -336,12 +362,15 @@ void main() {
       act: (bloc) => bloc.add(
         const CaseSampleReceived(labAccessionNo: ' LAB-AO-03112026-005 '),
       ),
-      verify: (_) => verify(
-        () => caseRemote.recordSampleReceived(
-          caseUid: _case,
-          labAccessionNo: 'LAB-AO-03112026-005',
-        ),
-      ).called(1),
+      verify: (_) {
+        verify(
+          () => caseRemote.recordSampleReceived(
+            caseUid: _case,
+            labAccessionNo: 'LAB-AO-03112026-005',
+          ),
+        ).called(1);
+        verify(() => analytics.logSampleReceived()).called(1);
+      },
       expect: () => [
         isA<CaseWorkspaceWriteInProgress>(),
         isA<CaseWorkspaceLoadInProgress>(),
@@ -361,12 +390,15 @@ void main() {
         ..add(const CaseSampleReceived(labAccessionNo: ''))
         ..add(const CaseSampleReceived(labAccessionNo: 'has space')),
       expect: () => [isA<CaseWorkspaceWriteFailure>()],
-      verify: (_) => verifyNever(
-        () => caseRemote.recordSampleReceived(
-          caseUid: any(named: 'caseUid'),
-          labAccessionNo: any(named: 'labAccessionNo'),
-        ),
-      ),
+      verify: (_) {
+        verifyNever(
+          () => caseRemote.recordSampleReceived(
+            caseUid: any(named: 'caseUid'),
+            labAccessionNo: any(named: 'labAccessionNo'),
+          ),
+        );
+        verifyNever(() => analytics.logSampleReceived());
+      },
     );
   });
 
@@ -636,6 +668,7 @@ void main() {
       verify: (bloc) {
         expect(bloc.state, isA<CaseDraftSaveSuccess>());
         expect(bloc.state.draft?.diagnosis, 'Metastatic carcinoma');
+        verify(() => analytics.logDraftSaved()).called(1);
       },
     );
 
@@ -659,6 +692,7 @@ void main() {
             fields: any(named: 'fields'),
           ),
         );
+        verifyNever(() => analytics.logDraftSaved());
       },
     );
 
@@ -866,7 +900,10 @@ void main() {
           segmentationVerdict: 'Good',
         ),
       ),
-      verify: (bloc) => expect(bloc.state, isA<CaseWorkspaceWriteFailure>()),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceWriteFailure>());
+        verifyNever(() => analytics.logScoreSubmitted());
+      },
     );
 
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
@@ -924,6 +961,7 @@ void main() {
             comment: 'One tile was stroma.',
           ),
         ).called(1);
+        verify(() => analytics.logScoreSubmitted()).called(1);
       },
     );
   });
@@ -936,7 +974,12 @@ void main() {
       act: (bloc) => bloc.add(
         const CaseSignRequested(signaturePng: 'iVBORw0KGgo=', attested: false),
       ),
-      verify: (_) => neverSigned(),
+      verify: (_) {
+        neverSigned();
+        verifyNever(
+          () => analytics.logReportSigned(kind: any(named: 'kind')),
+        );
+      },
     );
 
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
@@ -1034,6 +1077,9 @@ void main() {
             draftLastUpdatedAt: '2026-11-02T09:30:00.000Z',
           ),
         ).called(1);
+        verify(
+          () => analytics.logReportSigned(kind: 'initial'),
+        ).called(1);
       },
     );
   });
@@ -1114,6 +1160,9 @@ void main() {
             fields: {'amendmentReason': 'Typo in site'},
           ),
         ).called(1);
+        verify(
+          () => analytics.logRevisionStarted(kind: 'amendment'),
+        ).called(1);
       },
     );
 
@@ -1151,6 +1200,9 @@ void main() {
         verify(
           () => remote.startReport(caseUid: _case, kind: 'Addendum'),
         ).called(1);
+        verify(
+          () => analytics.logRevisionStarted(kind: 'addendum'),
+        ).called(1);
       },
     );
 
@@ -1167,6 +1219,9 @@ void main() {
             caseUid: any(named: 'caseUid'),
             kind: any(named: 'kind'),
           ),
+        );
+        verifyNever(
+          () => analytics.logRevisionStarted(kind: any(named: 'kind')),
         );
       },
     );
@@ -1360,6 +1415,7 @@ void main() {
             draftLastUpdatedAt: amendmentDraft.lastUpdatedAt,
           ),
         ).called(1);
+        verify(() => analytics.logRevisionDiscarded()).called(1);
       },
     );
 
@@ -1369,7 +1425,10 @@ void main() {
       seed: () => openRevision(draft: _draft),
       act: (bloc) => bloc.add(const CaseRevisionDiscarded()),
       expect: () => [isA<CaseWorkspaceWriteFailure>()],
-      verify: (_) => neverDiscarded(),
+      verify: (_) {
+        neverDiscarded();
+        verifyNever(() => analytics.logRevisionDiscarded());
+      },
     );
 
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(

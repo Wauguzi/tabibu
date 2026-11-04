@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:collection/collection.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/cases/data/cache/case_cache_helper.dart';
 import 'package:tabibu/features/cases/data/datasources/case_firebase.dart';
@@ -28,12 +31,14 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     CaseCacheHelper? cases,
     CaseFirebase? caseRemote,
     InternetService? internet,
+    AnalyticsService? analytics,
     DateTime Function()? now,
   }) : _reports = reports ?? getIt<ReportCacheHelper>(),
        _remote = remote ?? getIt<ReportFirebase>(),
        _cases = cases ?? getIt<CaseCacheHelper>(),
        _caseRemote = caseRemote ?? getIt<CaseFirebase>(),
        _internet = internet ?? getIt<InternetService>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
        _now = now ?? DateTime.now,
        super(const CaseWorkspaceInitial()) {
     // The last case opened is the one on screen.
@@ -64,6 +69,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
   final CaseCacheHelper _cases;
   final CaseFirebase _caseRemote;
   final InternetService _internet;
+  final AnalyticsService _analytics;
   final DateTime Function() _now;
 
   /// The server's limit on a decline reason.
@@ -306,6 +312,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
         pathologistUid: state.pathologistUid,
         fields: fields,
       );
+      unawaited(_analytics.logDraftSaved());
       emit(_with(CaseDraftSaveSuccess.new, draft: draft));
     } on Object catch (e) {
       emit(_failure(e));
@@ -370,6 +377,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
         runUid: runUid,
         pathologistUid: state.pathologistUid,
       );
+      unawaited(_analytics.logScoreSubmitted());
       emit(_with(CaseScoreSuccess.new, score: score));
     } on Object catch (e) {
       emit(_failure(e));
@@ -395,6 +403,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
       emit(_failure(e));
       return;
     }
+    unawaited(_analytics.logCaseRequestAccepted());
     // Now theirs: the workspace opens on the case as it always does.
     add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
   }
@@ -425,6 +434,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
       emit(_failure(e));
       return;
     }
+    unawaited(_analytics.logSampleReceived());
     add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
   }
 
@@ -447,6 +457,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     try {
       await _caseRemote.rejectCase(caseUid: state.caseUid, reason: reason);
       await _cases.syncCases(state.pathologistUid);
+      unawaited(_analytics.logCaseRequestDeclined());
       emit(_with(CaseRequestDeclineSuccess.new));
     } on Object catch (e) {
       emit(_failure(e));
@@ -503,6 +514,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
       emit(_failure(e));
       return;
     }
+    unawaited(_analytics.logRevisionStarted(kind: kind.name));
     add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
   }
 
@@ -538,6 +550,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
       emit(_failure(e));
       return;
     }
+    unawaited(_analytics.logRevisionDiscarded());
     add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
   }
 
@@ -592,6 +605,7 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
           .where((r) => r.caseUid == state.caseUid)
           .sortedBy((r) => r.signedAt)
           .lastOrNull;
+      unawaited(_analytics.logReportSigned(kind: draft.kindValue.name));
       emit(_with(CaseSignSuccess.new, draft: draft, signed: signed));
     } on Object catch (e) {
       emit(_failure(e));

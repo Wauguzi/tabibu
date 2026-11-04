@@ -5,6 +5,7 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:logger/logger.dart';
 import 'package:mocktail/mocktail.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_event.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_state.dart';
@@ -15,20 +16,36 @@ class _MockStorage extends Mock implements LockStorage {}
 
 class _MockBio extends Mock implements BiometricAuthenticator {}
 
+class _MockAnalytics extends Mock implements AnalyticsService {}
+
 void main() {
   late _MockStorage storage;
   late _MockBio bio;
+  late _MockAnalytics analytics;
   late DateTime clock;
 
-  LockBloc build() =>
-      LockBloc(storage: storage, biometrics: bio, now: () => clock);
+  LockBloc build() => LockBloc(
+    storage: storage,
+    biometrics: bio,
+    analytics: analytics,
+    now: () => clock,
+  );
 
   const secret = '4829';
 
   setUp(() {
     storage = _MockStorage();
     bio = _MockBio();
+    analytics = _MockAnalytics();
     clock = DateTime.utc(2026, 11, 3, 12);
+    when(() => analytics.logLockEnabled()).thenAnswer((_) async {});
+    when(() => analytics.logLockDisabled()).thenAnswer((_) async {});
+    when(
+      () => analytics.logLockBiometricsChanged(enabled: any(named: 'enabled')),
+    ).thenAnswer((_) async {});
+    when(
+      () => analytics.logLockTimeoutChanged(seconds: any(named: 'seconds')),
+    ).thenAnswer((_) async {});
     when(() => storage.isEnabled()).thenAnswer((_) async => false);
     when(() => storage.biometricsEnabled()).thenAnswer((_) async => false);
     when(() => storage.lockAfterSeconds()).thenAnswer((_) async => 0);
@@ -214,6 +231,9 @@ void main() {
           verify(() => storage.verifyPin(secret)).called(1);
           verify(() => storage.setBiometrics(enabled: true)).called(1);
           verify(() => bio.isAvailable()).called(1);
+          verify(
+            () => analytics.logLockBiometricsChanged(enabled: true),
+          ).called(1);
         },
       );
 
@@ -266,6 +286,18 @@ void main() {
           expect(bloc.state, isA<LockSignOutRequired>());
           expect(bloc.state.signOutRequired, isTrue);
           expect(bloc.state.locked, isTrue);
+          // Attempts never reach analytics, however they end.
+          verifyNever(() => analytics.logLockEnabled());
+          verifyNever(() => analytics.logLockDisabled());
+          verifyNever(
+            () => analytics.logLockBiometricsChanged(
+              enabled: any(named: 'enabled'),
+            ),
+          );
+          verifyNever(
+            () =>
+                analytics.logLockTimeoutChanged(seconds: any(named: 'seconds')),
+          );
         },
       );
     });
@@ -284,6 +316,7 @@ void main() {
         verify: (_) {
           verify(() => storage.verifyPin(secret)).called(1);
           verify(() => storage.clearAll()).called(1);
+          verify(() => analytics.logLockDisabled()).called(1);
         },
       );
 
@@ -311,6 +344,7 @@ void main() {
         verify: (_) {
           verify(() => storage.setPin(secret)).called(1);
           verify(() => storage.setBiometrics(enabled: false)).called(1);
+          verify(() => analytics.logLockEnabled()).called(1);
         },
       );
 
@@ -321,7 +355,60 @@ void main() {
           const LockPinCreateRequested(pin: secret, confirmPin: '0000'),
         ),
         expect: () => [isA<LockPinMismatch>()],
-        verify: (_) => verifyNever(() => storage.setPin(any())),
+        verify: (_) {
+          verifyNever(() => storage.setPin(any()));
+          verifyNever(() => analytics.logLockEnabled());
+        },
+      );
+
+      blocTest<LockBloc, LockState>(
+        'turning biometrics off needs no PIN',
+        build: build,
+        seed: () =>
+            const LockLoadSuccess(enabled: true, biometricsEnabled: true),
+        setUp: () {
+          when(() => storage.isEnabled()).thenAnswer((_) async => true);
+        },
+        act: (bloc) => bloc.add(
+          // The PIN rides along but is never checked on the way off.
+          const LockBiometricsToggleRequested(enable: false, pin: ''),
+        ),
+        verify: (_) {
+          verifyNever(() => storage.verifyPin(any()));
+          verify(() => storage.setBiometrics(enabled: false)).called(1);
+          verify(
+            () => analytics.logLockBiometricsChanged(enabled: false),
+          ).called(1);
+        },
+      );
+
+      blocTest<LockBloc, LockState>(
+        'a new auto-lock delay is saved',
+        build: build,
+        seed: () => const LockLoadSuccess(enabled: true),
+        setUp: () {
+          when(() => storage.isEnabled()).thenAnswer((_) async => true);
+          when(() => storage.lockAfterSeconds()).thenAnswer((_) async => 60);
+        },
+        act: (bloc) => bloc.add(const LockAfterChanged(seconds: 60)),
+        verify: (_) {
+          verify(() => storage.setLockAfter(60)).called(1);
+          verify(() => analytics.logLockTimeoutChanged(seconds: 60)).called(1);
+        },
+      );
+
+      blocTest<LockBloc, LockState>(
+        'an unknown delay is refused without writing',
+        build: build,
+        seed: () => const LockLoadSuccess(enabled: true),
+        act: (bloc) => bloc.add(const LockAfterChanged(seconds: 45)),
+        verify: (_) {
+          verifyNever(() => storage.setLockAfter(any()));
+          verifyNever(
+            () =>
+                analytics.logLockTimeoutChanged(seconds: any(named: 'seconds')),
+          );
+        },
       );
     });
 

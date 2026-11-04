@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
@@ -12,6 +13,8 @@ import 'package:tabibu/features/appointments/data/models/appointment_model.dart'
 class _MockCache extends Mock implements AppointmentCacheHelper {}
 
 class _MockInternet extends Mock implements InternetService {}
+
+class _MockAnalytics extends Mock implements AnalyticsService {}
 
 AppointmentModel _appt(
   String uid, {
@@ -27,9 +30,10 @@ AppointmentModel _appt(
 void main() {
   late _MockCache cache;
   late _MockInternet internet;
+  late _MockAnalytics analytics;
 
   AppointmentsBloc build() =>
-      AppointmentsBloc(cache: cache, internet: internet);
+      AppointmentsBloc(cache: cache, internet: internet, analytics: analytics);
 
   setUpAll(() {
     registerFallbackValue(DateTime.utc(2026));
@@ -38,7 +42,23 @@ void main() {
   setUp(() {
     cache = _MockCache();
     internet = _MockInternet();
+    analytics = _MockAnalytics();
     when(() => internet.check()).thenAnswer((_) async => true);
+    when(
+      () => analytics.logAppointmentRequested(),
+    ).thenAnswer((_) async {});
+    when(
+      () => analytics.logAppointmentResponded(accepted: any(named: 'accepted')),
+    ).thenAnswer((_) async {});
+    when(
+      () => analytics.logAppointmentCompleted(),
+    ).thenAnswer((_) async {});
+    when(
+      () => analytics.logAppointmentCancelled(),
+    ).thenAnswer((_) async {});
+    when(
+      () => analytics.logAppointmentRescheduled(),
+    ).thenAnswer((_) async {});
   });
 
   group('AppointmentsBloc', () {
@@ -203,6 +223,7 @@ void main() {
               symptomText: any(named: 'symptomText'),
             ),
           );
+          verifyNever(() => analytics.logAppointmentRequested());
         },
       );
 
@@ -241,6 +262,9 @@ void main() {
             appointments: [_appt('a0'), _appt('a-new')],
           ),
         ],
+        verify: (_) {
+          verify(() => analytics.logAppointmentRequested()).called(1);
+        },
       );
 
       blocTest<AppointmentsBloc, AppointmentsState>(
@@ -275,6 +299,9 @@ void main() {
             appointments: [_appt('a0')],
           ),
         ],
+        verify: (_) {
+          verifyNever(() => analytics.logAppointmentRequested());
+        },
       );
 
       test(
@@ -404,6 +431,9 @@ void main() {
               declineNote: 'busy',
             ),
           ).called(1);
+          verify(
+            () => analytics.logAppointmentResponded(accepted: false),
+          ).called(1);
         },
       );
 
@@ -436,6 +466,11 @@ void main() {
             ],
           ),
         ],
+        verify: (_) {
+          verify(
+            () => analytics.logAppointmentResponded(accepted: true),
+          ).called(1);
+        },
       );
     });
 
@@ -465,6 +500,9 @@ void main() {
             appointments: [_appt('a1', status: 'Completed')],
           ),
         ],
+        verify: (_) {
+          verify(() => analytics.logAppointmentCompleted()).called(1);
+        },
       );
     });
 
@@ -497,6 +535,9 @@ void main() {
             appointments: [_appt('a1', status: 'Cancelled')],
           ),
         ],
+        verify: (_) {
+          verify(() => analytics.logAppointmentCancelled()).called(1);
+        },
       );
 
       blocTest<AppointmentsBloc, AppointmentsState>(
@@ -611,13 +652,16 @@ void main() {
             appointments: [_appt('a1')],
           ),
         ],
-        verify: (_) => verifyNever(
-          () => cache.cancelAppointment(
-            appointmentUid: any(named: 'appointmentUid'),
-            cancelledByUid: any(named: 'cancelledByUid'),
-            cancelNote: any(named: 'cancelNote'),
-          ),
-        ),
+        verify: (_) {
+          verifyNever(
+            () => cache.cancelAppointment(
+              appointmentUid: any(named: 'appointmentUid'),
+              cancelledByUid: any(named: 'cancelledByUid'),
+              cancelNote: any(named: 'cancelNote'),
+            ),
+          );
+          verifyNever(() => analytics.logAppointmentCancelled());
+        },
       );
 
       blocTest<AppointmentsBloc, AppointmentsState>(
@@ -649,6 +693,9 @@ void main() {
             appointments: [_appt('a1')],
           ),
         ],
+        verify: (_) {
+          verifyNever(() => analytics.logAppointmentCancelled());
+        },
       );
 
       blocTest<AppointmentsBloc, AppointmentsState>(
@@ -747,6 +794,9 @@ void main() {
               cancelNote: 'Moved to a new time',
             ),
           ]);
+          verify(() => analytics.logAppointmentRescheduled()).called(1);
+          verifyNever(() => analytics.logAppointmentRequested());
+          verifyNever(() => analytics.logAppointmentCancelled());
         },
       );
 
@@ -784,13 +834,16 @@ void main() {
             appointments: [_appt('a1')],
           ),
         ],
-        verify: (_) => verifyNever(
-          () => cache.cancelAppointment(
-            appointmentUid: any(named: 'appointmentUid'),
-            cancelledByUid: any(named: 'cancelledByUid'),
-            cancelNote: any(named: 'cancelNote'),
-          ),
-        ),
+        verify: (_) {
+          verifyNever(
+            () => cache.cancelAppointment(
+              appointmentUid: any(named: 'appointmentUid'),
+              cancelledByUid: any(named: 'cancelledByUid'),
+              cancelNote: any(named: 'cancelNote'),
+            ),
+          );
+          verifyNever(() => analytics.logAppointmentRescheduled());
+        },
       );
 
       blocTest<AppointmentsBloc, AppointmentsState>(

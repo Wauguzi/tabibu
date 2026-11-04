@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:collection/collection.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_state.dart';
@@ -24,10 +27,12 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
     ReportCacheHelper? reports,
     ReportFirebase? remote,
     InternetService? internet,
+    AnalyticsService? analytics,
     Future<void> Function(Duration)? delay,
   }) : _reports = reports ?? getIt<ReportCacheHelper>(),
        _remote = remote ?? getIt<ReportFirebase>(),
        _internet = internet ?? getIt<InternetService>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
        _delay = delay ?? Future<void>.delayed,
        super(const ReportReaderInitial()) {
     // The last report opened is the one on screen.
@@ -41,6 +46,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
   final ReportCacheHelper _reports;
   final ReportFirebase _remote;
   final InternetService _internet;
+  final AnalyticsService _analytics;
   final Future<void> Function(Duration) _delay;
 
   /// After Mark as discussed the explanation drafts are written by a worker a
@@ -161,6 +167,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         caseUid: state.caseUid,
         reportUid: report.uid,
       );
+      unawaited(_analytics.logReportDiscussed());
       emit(
         _copy(
           ReportDiscussedSuccess.new,
@@ -270,6 +277,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         );
         if (text != null) approved[event.language] = text;
       }
+      unawaited(_analytics.logExplanationReviewed(approved: !event.reject));
       emit(
         _copy(
           ExplanationDecisionSuccess.new,

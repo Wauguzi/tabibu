@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:collection/collection.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_event.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_state.dart';
@@ -14,10 +17,14 @@ import 'package:tabibu/features/alerts/data/models/alert_text_model.dart';
 /// queue is live only (F-39), and a decision is never queued offline: an
 /// alert reaches people only through an approval the server accepted.
 class AlertReviewBloc extends Bloc<AlertReviewEvent, AlertReviewState> {
-  AlertReviewBloc({AlertFirebase? alerts, InternetService? internet})
-    : _alerts = alerts ?? getIt<AlertFirebase>(),
-      _internet = internet ?? getIt<InternetService>(),
-      super(const AlertReviewInitial()) {
+  AlertReviewBloc({
+    AlertFirebase? alerts,
+    InternetService? internet,
+    AnalyticsService? analytics,
+  }) : _alerts = alerts ?? getIt<AlertFirebase>(),
+       _internet = internet ?? getIt<InternetService>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
+       super(const AlertReviewInitial()) {
     // Reads are idempotent; a second open while loading is pointless.
     on<AlertQueueRequested>(_onQueue, transformer: droppable());
     // The last alert opened is the one under review.
@@ -30,6 +37,7 @@ class AlertReviewBloc extends Bloc<AlertReviewEvent, AlertReviewState> {
 
   final AlertFirebase _alerts;
   final InternetService _internet;
+  final AnalyticsService _analytics;
 
   static const _textEquality = MapEquality<String, AlertTextModel>();
 
@@ -152,6 +160,7 @@ class AlertReviewBloc extends Bloc<AlertReviewEvent, AlertReviewState> {
       emit(_decisionFailure(_toAppError(e)));
       return;
     }
+    unawaited(_analytics.logAlertReviewed(decision: decision));
     // Approval already landed: a re-fetch fault must not look like failure.
     final queue = [
       for (final alert in state.queue)

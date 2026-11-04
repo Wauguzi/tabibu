@@ -2,6 +2,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/reference_data_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/cases/data/datasources/case_firebase.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
@@ -20,6 +21,8 @@ class _MockPractitioners extends Mock implements PractitionerCacheHelper {}
 class _MockCases extends Mock implements CaseFirebase {}
 
 class _MockInternet extends Mock implements InternetService {}
+
+class _MockAnalytics extends Mock implements AnalyticsService {}
 
 final _now = DateTime.utc(2026, 11, 2, 9);
 
@@ -64,6 +67,7 @@ void main() {
   late _MockPractitioners practitioners;
   late _MockCases cases;
   late _MockInternet internet;
+  late _MockAnalytics analytics;
   late List<Duration> waits;
 
   setUp(() {
@@ -71,7 +75,14 @@ void main() {
     practitioners = _MockPractitioners();
     cases = _MockCases();
     internet = _MockInternet();
+    analytics = _MockAnalytics();
     waits = [];
+    when(
+      () => analytics.logOrderCreated(count: any(named: 'count')),
+    ).thenAnswer((_) async {});
+    when(
+      () => analytics.logPathologistRequested(),
+    ).thenAnswer((_) async {});
     when(
       () => referenceData.activeLabTests(),
     ).thenAnswer((_) async => [for (var i = 0; i < 12; i++) _test('t$i')]);
@@ -113,6 +124,7 @@ void main() {
     practitioners: practitioners,
     cases: cases,
     internet: internet,
+    analytics: analytics,
     delay: (d) async => waits.add(d),
     clock: () => _now,
   );
@@ -423,6 +435,7 @@ void main() {
         expect(settled.riskCheck?.statusValue, JobStatus.ready);
         expect(waits, everyElement(OrderBloc.pollEvery));
         expect(settled.canSend, isFalse, reason: 'no pathologist yet');
+        verify(() => analytics.logOrderCreated(count: 1)).called(1);
         await bloc.close();
       },
     );
@@ -450,6 +463,9 @@ void main() {
 
       expect(failed.draft.caseUid, uid);
       expect(failed.draft.created, isFalse);
+      verifyNever(
+        () => analytics.logOrderCreated(count: any(named: 'count')),
+      );
       await bloc.close();
     });
 
@@ -579,6 +595,7 @@ void main() {
           pathologistUid: 'path-a',
         ),
       ).called(1);
+      verify(() => analytics.logPathologistRequested()).called(1);
       await bloc.close();
     });
 
@@ -593,6 +610,7 @@ void main() {
           pathologistUid: any(named: 'pathologistUid'),
         ),
       );
+      verifyNever(() => analytics.logPathologistRequested());
       await bloc.close();
     });
 

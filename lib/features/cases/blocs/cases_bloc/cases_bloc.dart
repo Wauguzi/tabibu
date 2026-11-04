@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/cache/case_cache_helper.dart';
@@ -13,10 +16,14 @@ import 'package:tabibu/features/reports/data/models/pathology_report_model.dart'
 /// Cases and their signed reports for any role: a patient's results, a doctor's
 /// cases, a pathologist's signed work.
 class CasesBloc extends Bloc<CasesEvent, CasesState> {
-  CasesBloc({CaseCacheHelper? cases, ReportCacheHelper? reports})
-    : _cases = cases ?? getIt<CaseCacheHelper>(),
-      _reports = reports ?? getIt<ReportCacheHelper>(),
-      super(const CasesInitial()) {
+  CasesBloc({
+    CaseCacheHelper? cases,
+    ReportCacheHelper? reports,
+    AnalyticsService? analytics,
+  }) : _cases = cases ?? getIt<CaseCacheHelper>(),
+       _reports = reports ?? getIt<ReportCacheHelper>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
+       super(const CasesInitial()) {
     // Cache first, then a silent sync; a second open while loading is
     // pointless.
     on<CasesRequested>(_onRequested, transformer: droppable());
@@ -31,6 +38,7 @@ class CasesBloc extends Bloc<CasesEvent, CasesState> {
 
   final CaseCacheHelper _cases;
   final ReportCacheHelper _reports;
+  final AnalyticsService _analytics;
 
   static const Set<AppError> _offline = {
     .noInternet,
@@ -234,6 +242,7 @@ class CasesBloc extends Bloc<CasesEvent, CasesState> {
       final cases = next.any((c) => c.uid == event.caseUid)
           ? next
           : [...next, edited];
+      unawaited(_analytics.logCaseNotesSaved());
       emit(
         CaseNotesSaveSuccess(
           cases: cases,

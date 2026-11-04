@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_bloc.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_event.dart';
@@ -13,6 +14,8 @@ import 'package:tabibu/features/alerts/data/models/alert_text_model.dart';
 class _MockAlerts extends Mock implements AlertFirebase {}
 
 class _MockInternet extends Mock implements InternetService {}
+
+class _MockAnalytics extends Mock implements AnalyticsService {}
 
 const _text = {
   'patient_en': AlertTextModel(
@@ -45,9 +48,10 @@ AlertModel _alert(String uid, {int draft = 3, int evidence = 7}) =>
 void main() {
   late _MockAlerts alerts;
   late _MockInternet internet;
+  late _MockAnalytics analytics;
 
   AlertReviewBloc build() =>
-      AlertReviewBloc(alerts: alerts, internet: internet);
+      AlertReviewBloc(alerts: alerts, internet: internet, analytics: analytics);
 
   void stubApprove() => when(
     () => alerts.approveAlert(
@@ -61,10 +65,18 @@ void main() {
     ),
   ).thenAnswer((_) async => {'status': 'ok'});
 
+  setUpAll(() {
+    registerFallbackValue(ApprovalDecision.approve);
+  });
+
   setUp(() {
     alerts = _MockAlerts();
     internet = _MockInternet();
+    analytics = _MockAnalytics();
     when(() => internet.check()).thenAnswer((_) async => true);
+    when(
+      () => analytics.logAlertReviewed(decision: any(named: 'decision')),
+    ).thenAnswer((_) async {});
   });
 
   group('AlertReviewBloc', () {
@@ -132,14 +144,19 @@ void main() {
           current: _alert('a1', draft: 9, evidence: 9),
         ),
       ],
-      verify: (_) => verify(
-        () => alerts.approveAlert(
-          alertUid: 'a1',
-          decision: 'Approve',
-          draftRevision: 3,
-          evidenceRevision: 7,
-        ),
-      ).called(1),
+      verify: (_) {
+        verify(
+          () => alerts.approveAlert(
+            alertUid: 'a1',
+            decision: 'Approve',
+            draftRevision: 3,
+            evidenceRevision: 7,
+          ),
+        ).called(1);
+        verify(
+          () => analytics.logAlertReviewed(decision: ApprovalDecision.approve),
+        ).called(1);
+      },
     );
 
     blocTest<AlertReviewBloc, AlertReviewState>(
@@ -193,6 +210,11 @@ void main() {
           (sent['patient_en'] as Map<String, dynamic>)['headline'],
           'More malaria in Embakasi',
         );
+        verify(
+          () => analytics.logAlertReviewed(
+            decision: ApprovalDecision.approveEdited,
+          ),
+        ).called(1);
       },
     );
 
@@ -205,14 +227,19 @@ void main() {
       expect: () => [
         AlertDecisionFailure(error: AppError.noInternet, current: _alert('a1')),
       ],
-      verify: (_) => verifyNever(
-        () => alerts.approveAlert(
-          alertUid: any(named: 'alertUid'),
-          decision: any(named: 'decision'),
-          draftRevision: any(named: 'draftRevision'),
-          evidenceRevision: any(named: 'evidenceRevision'),
-        ),
-      ),
+      verify: (_) {
+        verifyNever(
+          () => alerts.approveAlert(
+            alertUid: any(named: 'alertUid'),
+            decision: any(named: 'decision'),
+            draftRevision: any(named: 'draftRevision'),
+            evidenceRevision: any(named: 'evidenceRevision'),
+          ),
+        );
+        verifyNever(
+          () => analytics.logAlertReviewed(decision: any(named: 'decision')),
+        );
+      },
     );
 
     blocTest<AlertReviewBloc, AlertReviewState>(
@@ -240,6 +267,9 @@ void main() {
           current: _alert('a1'),
         ),
       ],
+      verify: (_) => verifyNever(
+        () => analytics.logAlertReviewed(decision: any(named: 'decision')),
+      ),
     );
 
     blocTest<AlertReviewBloc, AlertReviewState>(
@@ -256,15 +286,20 @@ void main() {
           reason: ' Not enough cases ',
         ),
       ),
-      verify: (_) => verify(
-        () => alerts.approveAlert(
-          alertUid: 'a1',
-          decision: 'Reject',
-          draftRevision: 3,
-          evidenceRevision: 7,
-          reason: 'Not enough cases',
-        ),
-      ).called(1),
+      verify: (_) {
+        verify(
+          () => alerts.approveAlert(
+            alertUid: 'a1',
+            decision: 'Reject',
+            draftRevision: 3,
+            evidenceRevision: 7,
+            reason: 'Not enough cases',
+          ),
+        ).called(1);
+        verify(
+          () => analytics.logAlertReviewed(decision: ApprovalDecision.reject),
+        ).called(1);
+      },
     );
 
     blocTest<AlertReviewBloc, AlertReviewState>(
@@ -290,6 +325,9 @@ void main() {
           current: _alert('a1'),
         ),
       ],
+      verify: (_) => verifyNever(
+        () => analytics.logAlertReviewed(decision: any(named: 'decision')),
+      ),
     );
 
     blocTest<AlertReviewBloc, AlertReviewState>(
@@ -318,6 +356,10 @@ void main() {
           ),
         ),
       ],
+      // The decision landed before the re-fetch fault: it still counts.
+      verify: (_) => verify(
+        () => analytics.logAlertReviewed(decision: ApprovalDecision.approve),
+      ).called(1),
     );
 
     blocTest<AlertReviewBloc, AlertReviewState>(

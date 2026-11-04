@@ -2,6 +2,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
@@ -17,6 +18,8 @@ class _MockReports extends Mock implements ReportCacheHelper {}
 class _MockRemote extends Mock implements ReportFirebase {}
 
 class _MockInternet extends Mock implements InternetService {}
+
+class _MockAnalytics extends Mock implements AnalyticsService {}
 
 const _case = 'c1';
 
@@ -41,11 +44,13 @@ void main() {
   late _MockReports reports;
   late _MockRemote remote;
   late _MockInternet internet;
+  late _MockAnalytics analytics;
 
   ReportReaderBloc build() => ReportReaderBloc(
     reports: reports,
     remote: remote,
     internet: internet,
+    analytics: analytics,
     // No real waiting between polls.
     delay: (_) async {},
   );
@@ -63,7 +68,12 @@ void main() {
     reports = _MockReports();
     remote = _MockRemote();
     internet = _MockInternet();
+    analytics = _MockAnalytics();
     when(() => internet.check()).thenAnswer((_) async => true);
+    when(() => analytics.logReportDiscussed()).thenAnswer((_) async {});
+    when(
+      () => analytics.logExplanationReviewed(approved: any(named: 'approved')),
+    ).thenAnswer((_) async {});
     when(
       () => reports.syncApprovedText(
         caseUid: any(named: 'caseUid'),
@@ -321,6 +331,7 @@ void main() {
           bloc.state.explanationPhase,
           anyOf(ExplanationDraftPhase.none, ExplanationDraftPhase.pending),
         );
+        verify(() => analytics.logReportDiscussed()).called(1);
       },
     );
 
@@ -401,12 +412,15 @@ void main() {
       build: build,
       seed: () => loaded(Role.doctor),
       act: (bloc) => bloc.add(const ReportDiscussedRequested()),
-      verify: (_) => verifyNever(
-        () => remote.markDiscussed(
-          caseUid: any(named: 'caseUid'),
-          reportUid: any(named: 'reportUid'),
-        ),
-      ),
+      verify: (_) {
+        verifyNever(
+          () => remote.markDiscussed(
+            caseUid: any(named: 'caseUid'),
+            reportUid: any(named: 'reportUid'),
+          ),
+        );
+        verifyNever(() => analytics.logReportDiscussed());
+      },
     );
 
     blocTest<ReportReaderBloc, ReportReaderState>(
@@ -479,6 +493,9 @@ void main() {
           ),
         ).called(1);
         expect(bloc.state.explanations, isEmpty);
+        verify(
+          () => analytics.logExplanationReviewed(approved: true),
+        ).called(1);
       },
     );
 
@@ -540,6 +557,9 @@ void main() {
           ),
         ).called(1);
         expect(bloc.state.approved, isEmpty);
+        verify(
+          () => analytics.logExplanationReviewed(approved: false),
+        ).called(1);
       },
     );
 
@@ -559,7 +579,14 @@ void main() {
       seed: withDraft,
       act: (bloc) =>
           bloc.add(const ExplanationDecisionRequested(language: 'en')),
-      verify: (_) => neverDecided(),
+      verify: (_) {
+        neverDecided();
+        verifyNever(
+          () => analytics.logExplanationReviewed(
+            approved: any(named: 'approved'),
+          ),
+        );
+      },
     );
   });
 

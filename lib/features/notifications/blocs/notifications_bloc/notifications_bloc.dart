@@ -4,6 +4,7 @@ import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_state.dart';
 import 'package:tabibu/features/notifications/data/cache/notification_cache_helper.dart';
@@ -11,9 +12,12 @@ import 'package:tabibu/features/notifications/data/models/notification_model.dar
 
 /// The signed-in user's inbox, newest first.
 class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
-  NotificationsBloc({NotificationCacheHelper? cache})
-    : _cache = cache ?? getIt<NotificationCacheHelper>(),
-      super(const NotificationsInitial()) {
+  NotificationsBloc({
+    NotificationCacheHelper? cache,
+    AnalyticsService? analytics,
+  }) : _cache = cache ?? getIt<NotificationCacheHelper>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
+       super(const NotificationsInitial()) {
     // Cache first, then a silent sync; a second open while loading is
     // pointless.
     on<NotificationsRequested>(_onRequested, transformer: droppable());
@@ -30,6 +34,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
   }
 
   final NotificationCacheHelper _cache;
+  final AnalyticsService _analytics;
 
   /// Bridge from the cache watch into `emit.forEach`. Closing it ends the
   /// running watch handler (stop / reset / close / restart).
@@ -183,6 +188,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         for (final row in state.items)
           if (row.uid == updated.uid) updated else row,
       ];
+      unawaited(_analytics.logNotificationsMarkedRead());
       // A read queued offline keeps the offline banner up.
       emit(await _success(event.uid, items, offline: state.offline));
     } on Object catch (e) {
@@ -213,6 +219,11 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
         failures += 1;
         lastError = e;
       }
+    }
+    // Only a clean sweep counts: a partial run ends in failure, and an
+    // empty inbox is not an action.
+    if (failures == 0 && unread.isNotEmpty) {
+      unawaited(_analytics.logNotificationsMarkedRead());
     }
     emit(await _success(event.uid, items, offline: state.offline));
     if (failures > 0) {

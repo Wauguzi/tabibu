@@ -1,9 +1,11 @@
+import 'dart:async';
 import 'dart:math';
 
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_event.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_state.dart';
 import 'package:tabibu/features/lock/data/biometric_authenticator.dart';
@@ -14,14 +16,17 @@ import 'package:tabibu/features/lock/data/lock_storage.dart';
 /// offer a reset, so nothing here is a way around authentication.
 ///
 /// A PIN is only ever an argument: it is hashed in [LockStorage], never
-/// held, emitted, logged or put in analytics. Nothing here logs at all.
+/// held, emitted or logged. Only setting outcomes reach analytics, never a
+/// PIN or an attempt count.
 class LockBloc extends Bloc<LockEvent, LockState> {
   LockBloc({
     LockStorage? storage,
     BiometricAuthenticator? biometrics,
+    AnalyticsService? analytics,
     DateTime Function()? now,
   }) : _storage = storage ?? getIt<LockStorage>(),
        _biometrics = biometrics ?? getIt<BiometricAuthenticator>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
        _now = now ?? DateTime.now,
        super(const LockInitial()) {
     on<LockStatusRequested>(_onStatusRequested, transformer: sequential());
@@ -46,6 +51,7 @@ class LockBloc extends Bloc<LockEvent, LockState> {
 
   final LockStorage _storage;
   final BiometricAuthenticator _biometrics;
+  final AnalyticsService _analytics;
   final DateTime Function() _now;
 
   /// Straight away, 1 minute, 5 minutes, 15 minutes.
@@ -116,6 +122,7 @@ class LockBloc extends Bloc<LockEvent, LockState> {
       emit(_inProgress());
       await _storage.setPin(event.pin);
       await _storage.setBiometrics(enabled: false);
+      unawaited(_analytics.logLockEnabled());
       emit(
         LockPinCreateSuccess(
           lockAfterSeconds: await _storage.lockAfterSeconds(),
@@ -162,6 +169,7 @@ class LockBloc extends Bloc<LockEvent, LockState> {
         }
       }
       await _storage.setBiometrics(enabled: event.enable);
+      unawaited(_analytics.logLockBiometricsChanged(enabled: event.enable));
       emit(await _status(locked: false));
     } on Object catch (_) {
       emit(_writeFailure(AppError.unknown));
@@ -177,6 +185,7 @@ class LockBloc extends Bloc<LockEvent, LockState> {
       if (!await _checkPin(event.pin, emit)) return;
       emit(_inProgress());
       await _storage.clearAll();
+      unawaited(_analytics.logLockDisabled());
       emit(const LockDisableSuccess());
     } on Object catch (_) {
       emit(_writeFailure(AppError.unknown));
@@ -194,6 +203,7 @@ class LockBloc extends Bloc<LockEvent, LockState> {
     }
     try {
       await _storage.setLockAfter(event.seconds);
+      unawaited(_analytics.logLockTimeoutChanged(seconds: event.seconds));
       emit(await _status(locked: false));
     } on Object catch (_) {
       emit(_writeFailure(AppError.unknown));

@@ -1,8 +1,11 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/reference_data_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/cases/data/datasources/case_firebase.dart';
 import 'package:tabibu/features/cases/data/models/risk_check_model.dart';
@@ -26,12 +29,14 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
     PractitionerCacheHelper? practitioners,
     CaseFirebase? cases,
     InternetService? internet,
+    AnalyticsService? analytics,
     Future<void> Function(Duration)? delay,
     DateTime Function()? clock,
   }) : _referenceData = referenceData ?? getIt<ReferenceDataHelper>(),
        _practitioners = practitioners ?? getIt<PractitionerCacheHelper>(),
        _cases = cases ?? getIt<CaseFirebase>(),
        _internet = internet ?? getIt<InternetService>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
        _delay = delay ?? Future<void>.delayed,
        _clock = clock ?? DateTime.now,
        super(const OrderInitial()) {
@@ -54,6 +59,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
   final PractitionerCacheHelper _practitioners;
   final CaseFirebase _cases;
   final InternetService _internet;
+  final AnalyticsService _analytics;
   final Future<void> Function(Duration) _delay;
   final DateTime Function() _clock;
   final Uuid _uuid = const Uuid();
@@ -229,6 +235,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
           clinicalNotes: draft.clinicalNotes.trim(),
           sampleNotes: draft.specimen.trim(),
         );
+        unawaited(_analytics.logOrderCreated(count: draft.testIds.length));
       } on Object catch (e) {
         emit(_failure(e));
         return;
@@ -306,6 +313,7 @@ class OrderBloc extends Bloc<OrderEvent, OrderState> {
         caseUid: state.draft.caseUid,
         pathologistUid: state.draft.pathologistUid,
       );
+      unawaited(_analytics.logPathologistRequested());
       _watch++;
       emit(_copy(OrderSendSuccess.new));
     } on Object catch (e) {

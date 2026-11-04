@@ -9,6 +9,7 @@ import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/helpers/reference_data_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/alerts/blocs/alert_review_bloc/alert_review_bloc.dart';
@@ -33,6 +34,8 @@ class _MockAlerts extends Mock implements AlertFirebase {}
 class _MockInternet extends Mock implements InternetService {}
 
 class _MockReferenceData extends Mock implements ReferenceDataHelper {}
+
+class _MockAnalytics extends Mock implements AnalyticsService {}
 
 const _texts = {
   'clinician_en': AlertTextModel(
@@ -101,10 +104,12 @@ void main() {
   late _MockAlerts alerts;
   late _MockInternet internet;
   late _MockReferenceData referenceData;
+  late _MockAnalytics analytics;
   final l10n = lookupAppLocalizations(const Locale('en'));
 
   setUpAll(() {
     registerFallbackValue(const AlertReviewReset());
+    registerFallbackValue(ApprovalDecision.approve);
   });
 
   setUp(() {
@@ -114,7 +119,11 @@ void main() {
     when(() => mockBloc.add(any())).thenReturn(null);
     alerts = _MockAlerts();
     internet = _MockInternet();
+    analytics = _MockAnalytics();
     when(() => internet.check()).thenAnswer((_) async => true);
+    when(
+      () => analytics.logAlertReviewed(decision: any(named: 'decision')),
+    ).thenAnswer((_) async {});
     referenceData = _MockReferenceData();
     when(
       () => referenceData.notifiableDiseases(),
@@ -233,7 +242,7 @@ void main() {
   // Never closed: awaiting a bloc's close inside a widget test's fake clock
   // does not return. The bloc holds no timer, so nothing is left running.
   AlertReviewBloc realBloc() =>
-      AlertReviewBloc(alerts: alerts, internet: internet);
+      AlertReviewBloc(alerts: alerts, internet: internet, analytics: analytics);
 
   String allText(WidgetTester tester) => [
     for (final t in tester.widgetList<Text>(find.byType(Text)))

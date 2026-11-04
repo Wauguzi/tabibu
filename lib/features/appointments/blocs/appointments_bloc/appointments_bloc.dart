@@ -1,7 +1,10 @@
+import 'dart:async';
+
 import 'package:bloc/bloc.dart';
 import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/helpers/get_it_helper.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/core/services/internet_service.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_event.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_state.dart';
@@ -11,10 +14,14 @@ import 'package:uuid/uuid.dart';
 
 /// The signed-in patient's or doctor's appointments, and the writes on them.
 class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
-  AppointmentsBloc({AppointmentCacheHelper? cache, InternetService? internet})
-    : _cache = cache ?? getIt<AppointmentCacheHelper>(),
-      _internet = internet ?? getIt<InternetService>(),
-      super(const AppointmentsInitial()) {
+  AppointmentsBloc({
+    AppointmentCacheHelper? cache,
+    InternetService? internet,
+    AnalyticsService? analytics,
+  }) : _cache = cache ?? getIt<AppointmentCacheHelper>(),
+       _internet = internet ?? getIt<InternetService>(),
+       _analytics = analytics ?? getIt<AnalyticsService>(),
+       super(const AppointmentsInitial()) {
     // Cache first, then a silent sync; a second open while loading is
     // pointless.
     on<AppointmentsRequested>(_onRequested, transformer: droppable());
@@ -35,6 +42,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
 
   final AppointmentCacheHelper _cache;
   final InternetService _internet;
+  final AnalyticsService _analytics;
   final Uuid _uuid = const Uuid();
 
   /// Last failed booking's uid, reused for the same doctor and start.
@@ -187,6 +195,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
       );
       _clearPendingBook();
       final appointments = await _cache.getPatientAppointments(event.uid);
+      unawaited(_analytics.logAppointmentRequested());
       emit(
         AppointmentBookSuccess(
           appointment: appointment,
@@ -219,6 +228,9 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
         for (final row in state.appointments)
           if (row.uid == appointment.uid) appointment else row,
       ];
+      unawaited(
+        _analytics.logAppointmentResponded(accepted: event.accept),
+      );
       emit(
         AppointmentDecisionSuccess(
           appointment: appointment,
@@ -250,6 +262,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
         for (final row in state.appointments)
           if (row.uid == appointment.uid) appointment else row,
       ];
+      unawaited(_analytics.logAppointmentCompleted());
       emit(
         AppointmentCompleteSuccess(
           appointment: appointment,
@@ -285,6 +298,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
       );
       // The network dropped mid-write and the cache queued it: say so.
       if (!appointment.synced) throw AppError.noInternet;
+      unawaited(_analytics.logAppointmentCancelled());
       emit(
         AppointmentCancelSuccess(
           appointment: appointment,
@@ -333,6 +347,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
         cancelNote: _cancelNote(event.reason, event.note),
       );
       if (!cancelled.synced) throw AppError.noInternet;
+      unawaited(_analytics.logAppointmentRescheduled());
       emit(
         AppointmentRescheduleSuccess(
           appointment: booked,

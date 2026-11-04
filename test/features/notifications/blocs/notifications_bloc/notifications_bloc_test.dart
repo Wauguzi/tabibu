@@ -4,6 +4,7 @@ import 'package:bloc_test/bloc_test.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_bloc.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_event.dart';
 import 'package:tabibu/features/notifications/blocs/notifications_bloc/notifications_state.dart';
@@ -11,6 +12,8 @@ import 'package:tabibu/features/notifications/data/cache/notification_cache_help
 import 'package:tabibu/features/notifications/data/models/notification_model.dart';
 
 class _MockCache extends Mock implements NotificationCacheHelper {}
+
+class _MockAnalytics extends Mock implements AnalyticsService {}
 
 NotificationModel _note(
   String uid, {
@@ -25,11 +28,15 @@ NotificationModel _note(
 
 void main() {
   late _MockCache cache;
+  late _MockAnalytics analytics;
 
-  NotificationsBloc build() => NotificationsBloc(cache: cache);
+  NotificationsBloc build() =>
+      NotificationsBloc(cache: cache, analytics: analytics);
 
   setUp(() {
     cache = _MockCache();
+    analytics = _MockAnalytics();
+    when(() => analytics.logNotificationsMarkedRead()).thenAnswer((_) async {});
   });
 
   group('NotificationsBloc', () {
@@ -175,6 +182,7 @@ void main() {
         ],
         verify: (_) {
           verify(() => cache.markRead('u1', 'n1')).called(1);
+          verify(() => analytics.logNotificationsMarkedRead()).called(1);
         },
       );
 
@@ -214,6 +222,7 @@ void main() {
         expect: () => <NotificationsState>[],
         verify: (_) {
           verifyNever(() => cache.markRead(any(), any()));
+          verifyNever(() => analytics.logNotificationsMarkedRead());
         },
       );
     });
@@ -260,6 +269,8 @@ void main() {
           verify(() => cache.markRead('u1', 'n1')).called(1);
           verify(() => cache.markRead('u1', 'n2')).called(1);
           verifyNever(() => cache.markRead('u1', 'n3'));
+          // One log for the sweep, not one per row.
+          verify(() => analytics.logNotificationsMarkedRead()).called(1);
         },
       );
 
@@ -307,6 +318,8 @@ void main() {
           verify(() => cache.markRead('u1', 'n2')).called(1);
           verify(() => cache.markRead('u1', 'n3')).called(1);
           verify(() => cache.markRead('u1', 'n4')).called(1);
+          // A partial run ends in failure: no log.
+          verifyNever(() => analytics.logNotificationsMarkedRead());
         },
       );
     });

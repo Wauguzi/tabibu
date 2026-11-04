@@ -143,6 +143,116 @@ class AnalyticsService {
     ),
   );
 
+  /// Case request outcomes carry no reason text.
+  Future<void> logCaseRequestAccepted() =>
+      _guard(() => _analytics.logEvent(name: 'case_request_accepted'));
+
+  Future<void> logCaseRequestDeclined() =>
+      _guard(() => _analytics.logEvent(name: 'case_request_declined'));
+
+  Future<void> logSampleReceived() =>
+      _guard(() => _analytics.logEvent(name: 'sample_received'));
+
+  Future<void> logDraftSaved() =>
+      _guard(() => _analytics.logEvent(name: 'draft_saved'));
+
+  Future<void> logScoreSubmitted() =>
+      _guard(() => _analytics.logEvent(name: 'score_submitted'));
+
+  /// Report events carry the draft kind only: initial, amendment, addendum.
+  Future<void> logReportSigned({required String kind}) => _guard(
+    () => _analytics.logEvent(
+      name: 'report_signed',
+      parameters: {'kind': kind},
+    ),
+  );
+
+  Future<void> logRevisionStarted({required String kind}) => _guard(
+    () => _analytics.logEvent(
+      name: 'revision_started',
+      parameters: {'kind': kind},
+    ),
+  );
+
+  Future<void> logRevisionDiscarded() =>
+      _guard(() => _analytics.logEvent(name: 'revision_discarded'));
+
+  /// Order events carry a test count only, never ids, notes or results.
+  Future<void> logOrderCreated({required int count}) => _guard(
+    () => _analytics.logEvent(
+      name: 'order_created',
+      parameters: {'count': count},
+    ),
+  );
+
+  Future<void> logPathologistRequested() =>
+      _guard(() => _analytics.logEvent(name: 'pathologist_requested'));
+
+  /// Appointment outcomes carry an accepted flag only, never reasons or notes.
+  Future<void> logAppointmentRequested() =>
+      _guard(() => _analytics.logEvent(name: 'appointment_requested'));
+
+  Future<void> logAppointmentResponded({required bool accepted}) => _guard(
+    () => _analytics.logEvent(
+      name: 'appointment_responded',
+      parameters: {'accepted': accepted ? 1 : 0},
+    ),
+  );
+
+  Future<void> logAppointmentCancelled() =>
+      _guard(() => _analytics.logEvent(name: 'appointment_cancelled'));
+
+  Future<void> logAppointmentRescheduled() =>
+      _guard(() => _analytics.logEvent(name: 'appointment_rescheduled'));
+
+  Future<void> logAppointmentCompleted() =>
+      _guard(() => _analytics.logEvent(name: 'appointment_completed'));
+
+  Future<void> logReportDiscussed() =>
+      _guard(() => _analytics.logEvent(name: 'report_discussed'));
+
+  Future<void> logExplanationReviewed({required bool approved}) => _guard(
+    () => _analytics.logEvent(
+      name: 'explanation_reviewed',
+      parameters: {'approved': approved ? 1 : 0},
+    ),
+  );
+
+  /// Alert decisions carry the decision only, never text or reasons.
+  Future<void> logAlertReviewed({required ApprovalDecision decision}) => _guard(
+    () => _analytics.logEvent(
+      name: 'alert_reviewed',
+      parameters: {'decision': decision.name},
+    ),
+  );
+
+  Future<void> logCaseNotesSaved() =>
+      _guard(() => _analytics.logEvent(name: 'case_notes_saved'));
+
+  /// Lock events carry settings only, never a PIN or biometric result.
+  Future<void> logLockEnabled() =>
+      _guard(() => _analytics.logEvent(name: 'lock_enabled'));
+
+  Future<void> logLockDisabled() =>
+      _guard(() => _analytics.logEvent(name: 'lock_disabled'));
+
+  Future<void> logLockBiometricsChanged({required bool enabled}) => _guard(
+    () => _analytics.logEvent(
+      name: 'lock_biometrics_changed',
+      parameters: {'enabled': enabled ? 1 : 0},
+    ),
+  );
+
+  Future<void> logLockTimeoutChanged({required int seconds}) => _guard(
+    () => _analytics.logEvent(
+      name: 'lock_timeout_changed',
+      parameters: {'seconds': seconds},
+    ),
+  );
+
+  Future<void> logNotificationsMarkedRead() =>
+      _guard(() => _analytics.logEvent(name: 'notifications_marked_read'));
+
   Future<void> _guard(Future<void> Function() body) async {
     try {
       await body();
