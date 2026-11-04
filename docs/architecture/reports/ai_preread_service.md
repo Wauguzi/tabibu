@@ -10,10 +10,17 @@
 | Field | Value |
 |---|---|
 | Owner | Theo — CTO, Mobile Engineer |
-| Status | Draft — design fixed before the day-2 model tests; §10 records the gates |
-| Last reviewed | 2026-11-01 |
-| Runs on | Modal (Python), triggered by Cloud Functions |
+| Status | Draft — design fixed before the day-2 model tests; §10 records the gates. **As built (4 Nov 2026): the jobs run inside Cloud Functions and call the Meta Model API with `muse-spark-1.3`; there is no Modal service, no SAM and no Muse Spark Open. See the note below and [CRQ-0051](../../crq/reports/CRQ-0051-live-ai-on-the-meta-model-api.md).** |
+| Last reviewed | 2026-11-04 |
+| Runs on | Designed: Modal (Python), triggered by Cloud Functions. Built: Cloud Functions (`functions/src`) calling the Meta Model API, one secret (`META_API_KEY`), behind Remote Config kill switches |
 | Writes to | Firestore `cases/{caseUid}/preread/{runUid}`, Storage `preread/{caseUid}/{runUid}/`. The other jobs return to the Cloud Function that called them, which writes the result (§2) |
+
+> **As built.** The sections below describe the design as fixed on 26 October. What shipped on this branch differs in four ways, each
+> recorded in CRQ-0051: the host is Cloud Functions, not Modal; one model, `muse-spark-1.3`, labels the pre-read tiles, assesses the
+> order, summarises the symptoms and writes the explanation and the alert draft, with no SAM mask and no Muse Spark Open; every number
+> is still computed in code; and the pre-read sends one tile per request with four labelled examples, with its confidence band capped at
+> Low because the model's stated probabilities were not calibrated (held-out accuracy 72% at best; CRQ-0051 §7). Voice transcription is
+> not wired (`voice_input_enabled` stays off).
 
 ## 1. Jobs
 
@@ -288,6 +295,7 @@ Decided by the 27 October tests, recorded here once run:
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-04 | Status and an "As built" note: the jobs run in Cloud Functions on the Meta Model API with one model, the pre-read sends one tile per request with examples and its band is capped at Low (`feat/ui`, CRQ-0051). | Theo |
 | 2026-11-02 | The alert's approver is an authorised clinician holding the approver permission (`feat/ui`, decision S-2). | Theo |
 | 2026-11-01 | For the `feat/infra` data layer: §1 the report translation, the doctor-approved explanation, the en and sw intake from one call, speech to text, voice-note transcripts, grounded alert drafting, one-tap approval and S-8 direct use; §2 de-identified text or the speaker's audio, synchronous calls, `Failed` without retries; §3 ranking split between the functions and the app; §4 scoring first, `signReport` as a transaction, §4.1 the report texts with numbers tokenised; §5 `labelsPath`, `inputLanguage`, `failureReason`, stale runs; §6 the speech exception, `acceptedUnchanged` and the model performance signals; §8 the two records; §9 eight switches; §10 the Swahili fallback (CRQ-0041, CRQ-0043, CRQ-0044, CRQ-0047). | Theo |
 | 2026-10-26 | Initial version: jobs, invocation path, the five-step pipeline, measurement-in-code and confidence rules, signing, the Firestore contract, endpoint policy, cost control, and the day-2 gates. | Theo |

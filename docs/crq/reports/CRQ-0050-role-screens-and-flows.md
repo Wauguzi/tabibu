@@ -6,10 +6,10 @@
 | Title | The patient, doctor and pathologist screens: every designed screen whose backend exists |
 | Requested by | Theo — CTO, Mobile Engineer |
 | Date raised | 2026-11-02 |
-| Date implemented | Pending — completed on `main` after the merge (CRQ-0038). Counts below taken at `32260a5` on `feat/ui` |
+| Date implemented | Pending — completed on `main` after the merge (CRQ-0038). Counts below taken at `2d939e7` on `feat/ui` |
 | Priority | P1 Critical — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/ui`: 625bc08 through `32260a5` (screens, live AI, demo seed and the post-implementation departures in §9); the PR link is added after the merge |
+| Commit(s) / PR | `feat/ui`: 625bc08 through `2d939e7` (screens, live AI, demo seed and the post-implementation departures in §9); the PR link is added after the merge |
 
 ## 1. Description of change
 
@@ -22,7 +22,7 @@ spine (S-1) and was widened by S-3.
    and an empty bloc in `BlocsHelper`, reset on sign-out; typed routes
    carrying ids only (F-2) — 26 at the start (89e9c12), **91**
    `@TypedGoRoute` annotations in `lib/core/routing/app_routes.dart` at
-   `32260a5` (`grep -c '^@TypedGoRoute' lib/core/routing/app_routes.dart`);
+   `2d939e7` (`grep -c '^@TypedGoRoute' lib/core/routing/app_routes.dart`);
    **82** feature screens
    (`rg -l 'class \w+Screen extends ' lib/features --glob '*.dart' | wc -l`);
    the shared widgets (headline, bars, carousel, tiles, rows, cards, empty
@@ -65,8 +65,8 @@ spine (S-1) and was widened by S-3.
      (8f75032, 6f9f8ca, e1ea7d1); the template's own questions (8ee2c63);
      the access-code chip on the inbox row (66b179f); high-priority
      notifications (d65d76b); amend and addendum (bca2075); the judges'
-     web demo lines (04eb23e). Strings: **1,655** keys in each of
-     `app_en.arb` and `app_sw.arb` at `32260a5`
+     web demo lines (04eb23e). Strings: **1,692** keys in each of
+     `app_en.arb` and `app_sw.arb` at `2d939e7`
      (`grep -c '^    "[a-z]' lib/l10n/arb/app_en.arb` and the same on
      `app_sw.arb`).
    - **Queued:** ordering a test for any patient the doctor has seen (a
@@ -74,7 +74,7 @@ spine (S-1) and was widened by S-3.
      later screen is added to §9 as it merges.
 7. **Demo data.** `make seed-cases` seeds **fourteen** backdated cases for
    the three demo accounts through the real handlers
-   (`rg -c "key: '" functions/src/seed-cases.ts` → 14 at `32260a5`; README
+   (`rg -c "key: '" functions/src/seed-cases.ts` → 14 at `2d939e7`; README
    demo table): slides from public data sets, and pre-reads stored as
    examples, never live model output.
 8. **Support.** Shared helpers every search screen uses (`closestMatch`,
@@ -119,7 +119,7 @@ for its backend, is the only exclusion, and each group-D control is hidden
 | Security (rules, App Check, RASP, secrets) | None | A raw share code is held in memory once, never logged, cached or routed (bundle 47 rule 1). The signature is never stored on the phone (H-17). No credential added |
 | Data protection (PHI, de-identification, model endpoints) | None | No new field leaves a case. The PDF is shared from a temporary file |
 | Design system / UI consistency | Existing pattern reused | One `AiDraftFrame` for every unsigned AI output (H-1) and `SignedReportView` for signed text; status tones fixed (N-3) |
-| Localisation (en, sw) | Affected | Every string in both ARB files — **1,655** keys each at `32260a5` (`grep -c '^    "[a-z]' lib/l10n/arb/app_en.arb` and the same on `app_sw.arb`). Kiswahili is ours and is labelled so |
+| Localisation (en, sw) | Affected | Every string in both ARB files — **1,692** keys each at `2d939e7` (`grep -c '^    "[a-z]' lib/l10n/arb/app_en.arb` and the same on `app_sw.arb`). Kiswahili is ours and is labelled so |
 | Existing data | None | — |
 
 **Clinical safety.** No AI output reaches a person without an approval,
@@ -177,7 +177,7 @@ so there is no rules, functions or Remote Config step.
 | Check | Result |
 |---|---|
 | `make fmt` / `make analyze` / `make bloc-lint` | Pass at the last full gates (round 5); each later bundle gated on its own files. Full run with the pull request |
-| `make test` / `flutter test` | Pass — **3,214** tests at `32260a5` (`flutter test` summary: `+3214: All tests passed!`). Earlier full run was 2,630 before bundles 42 to 44; later bundles gated on their own directories until this recount |
+| `make test` / `flutter test` | Pass — **3,340** Flutter tests and **650** server tests at `2d939e7` (`flutter test` summary: `+3340: All tests passed!`; `make functions-test`: 650 passing). Earlier full run was 2,630 before bundles 42 to 44; later bundles gated on their own directories until this recount |
 | `make spell` | Full run with the pull request; every edited file checked as it was committed |
 | Rules tests | N/A — no rules change |
 | Model evaluation | N/A — no model, prompt or threshold change |

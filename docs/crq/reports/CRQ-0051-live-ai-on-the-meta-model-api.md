@@ -61,7 +61,7 @@ heatmap is built in code from the tile labels; no segmentation model is called.
 
 The product's claim is "AI prepares, a qualified person decides." A demo that
 shows only stored AI output cannot show the preparing. The pre-read ran live on
-a slide Theo uploaded and was Ready in about nine seconds for 36 tiles; the
+a slide Theo uploaded and was Ready in about nine seconds for 36 tiles, in the first shape of the worker (it now sends one tile per request, slower but measured better, §7); the
 explanation of a signed report was Ready in about fifteen seconds, in English
 and Kiswahili, after the doctor marked it discussed. The same switches let each
 job be turned off on the day if it misbehaves, falling back to the human path
@@ -154,7 +154,7 @@ off.
 | `make functions-test` | Pass — 609 tests at the last run, on the emulators |
 | `eslint`, `tsc`, `check-scripts`, `make spell` | Pass |
 | Live: risk check | Returned "No flags" with the AI summary on a real order (3 Nov) |
-| Live: pre-read | Ready in about 9 s for 36 tiles on a slide Theo uploaded; `models.promptVersion` `preread-classify-v3` at that run; the pathologist scored and signed it |
+| Live: pre-read | Ready in about 9 s for 36 tiles on a slide Theo uploaded, at 16 tiles per request (the worker now sends one tile per request with examples, which takes longer; not yet timed live); `models.promptVersion` `preread-classify-v3` at that run; the pathologist scored and signed it |
 | Live: explanation | Ready in about 15 s in English and Kiswahili on a signed report (3 Nov); `models.promptVersion` `report-text-v1`; no name, facility or placeholder in either text |
 | Evaluation, first run (3 Nov) | Too small to use: the staging could read only the first 100 rows of each split, almost all tumour, leaving 4 tuning tiles and 2 held-out tiles. **No accuracy figure comes from it**; latency and token cost were measured (minimal effort about 3 to 4 s a tile, low about 6 s, medium about 11 s) |
 | Evaluation, second run (4 Nov), held-out, one tile per request, live configuration | 200 tiles (100 tumour, 100 normal): accuracy **63%** (95% interval 56 to 69), sensitivity 56%, specificity 70% (30 normal tiles called tumour, 44 tumour tiles missed). Of 167 tiles where the model stated at least 0.8, 35% were wrong |
