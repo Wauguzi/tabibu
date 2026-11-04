@@ -54,6 +54,22 @@ The three-minute demo walks the same path, one role at a time. Sign in with the 
 | 5. The county | Approver | A confirmed finding becomes an anonymous count; an alert draft waits for a person to release it |
 
 
+**Why beat 5 matters most.** The same scarcity shapes outbreaks. When confirming a disease depends on a
+few people who can read a slide or run a test, a county learns of a cluster late. The World Health
+Organization keeps COVID-19, Ebola virus disease and Marburg virus disease among its current
+[priority diseases for research and development](https://www.who.int/activities/prioritizing-diseases-for-research-and-development-in-emergency-contexts),
+and its [fact sheet](https://www.who.int/news-room/fact-sheets/detail/ebola-disease) puts the average
+Ebola case fatality rate at around 50%, varying from 25% to 90% in past outbreaks. In May 2026 Kenya's
+Ministry of Health issued a
+[public advisory on the Ebola outbreak in Ituri Province](https://health.go.ke/sites/default/files/2026-05/PRESS%20RELEASE_EVD_DRC_Final.pdf)
+in the Democratic Republic of the Congo. The alert engine is built for that gap. When a pathologist
+signs a confirmed notifiable finding it becomes an anonymous count, with no patient and no clinic in
+it. When a county's count calls for it, a draft alert in English and Kiswahili, grounded in Ministry
+of Health and WHO guidance, waits for an approver, and only then reaches clinicians and then the
+patients of that county. I do not claim this saves lives. I claim it removes one delay between a
+confirmed result and a warning, and keeps a person in charge of the warning. The design is in the
+[outbreak alert engine](docs/architecture/reports/outbreak_alert_engine.md).
+
 Each role, in a line:
 
 - **Patients** book doctors near them and read their results once their doctor has discussed
