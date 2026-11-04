@@ -286,6 +286,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     _signOuts++;
     emit(SignOutInProgress(session: state.session));
+    // Leave the area topic before Firebase signs out; a failure queues a
+    // retry and must not keep the person signed in.
+    try {
+      await _topics.unsubscribeBeforeSignOut();
+    } on Object catch (_) {}
     try {
       await _auth.signOut(session: state.session);
       unawaited(_analytics.logSignOut());
@@ -634,6 +639,20 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     unawaited(_rasp.bindUser(uid));
     unawaited(_analytics.setRole(_roleOf(session)));
     unawaited(_registerDevice(session));
+    // New install / new device never saw the health-notices toggle: join
+    // the area topic from the profile's own setting (bundle 78).
+    unawaited(_joinAlertTopicOnSignIn(session));
+  }
+
+  /// Best-effort: only when the profile wants notices. Never fails sign-in.
+  Future<void> _joinAlertTopicOnSignIn(AuthSession session) async {
+    final receive = switch (session) {
+      PatientSession(:final patient) => patient.receiveNotifications,
+      PractitionerSession(:final doctor) => doctor.receiveNotifications,
+      _ => null,
+    };
+    if (receive != true) return;
+    await _syncAlertTopic(session, true);
   }
 
   Future<void> _registerDevice(AuthSession session) async {

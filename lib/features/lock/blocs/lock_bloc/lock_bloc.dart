@@ -63,7 +63,8 @@ class LockBloc extends Bloc<LockEvent, LockState> {
     try {
       emit(await _status(locked: state.locked));
     } on Object catch (_) {
-      emit(_loadFailure());
+      // Keep the cover if we already had one (cold-start fail-closed).
+      emit(_loadFailure(locked: state.locked));
     }
   }
 
@@ -86,7 +87,9 @@ class LockBloc extends Bloc<LockEvent, LockState> {
     try {
       emit(await _status(locked: true));
     } on Object catch (_) {
-      emit(_loadFailure());
+      // Fail closed: a storage fault must not uncover the app. Retry and
+      // sign-out on the overlay are the way out (bundle 78).
+      emit(_loadFailure(locked: true));
     }
   }
 

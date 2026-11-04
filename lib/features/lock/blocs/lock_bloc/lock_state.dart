@@ -76,8 +76,8 @@ final class LockLoadSuccess extends LockState {
   });
 }
 
-/// The settings could not be read. The lock stays as it was: failing shut
-/// would leave a person with no way in but reinstalling.
+/// The settings could not be read. On cold start [locked] is true so the
+/// cover stays; the overlay offers retry and sign-out.
 final class LockLoadFailure extends LockState {
   const LockLoadFailure({
     required AppError super.error,

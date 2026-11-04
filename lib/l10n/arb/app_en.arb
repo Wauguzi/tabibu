@@ -8326,5 +8326,13 @@
     "workspaceDiscardSheetConfirm": "Discard",
     "@workspaceDiscardSheetConfirm": {
         "description": "Workspace: confirm discarding the revision draft"
+    },
+    "appLockLoadFailed": "Could not check app lock",
+    "@appLockLoadFailed": {
+        "description": "Unlock overlay: secure-storage read failed while locked"
+    },
+    "appLockLoadFailedBody": "Try again, or sign in again to clear the PIN on this device.",
+    "@appLockLoadFailedBody": {
+        "description": "Unlock overlay: what to do when the lock settings cannot be read"
     }
 }

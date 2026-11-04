@@ -117,6 +117,84 @@ void main() {
         },
         verify: (bloc) => expect(bloc.state.locked, isTrue),
       );
+
+      blocTest<LockBloc, LockState>(
+        'cold-start storage fault stays locked (fail closed)',
+        build: build,
+        setUp: () {
+          when(() => storage.isEnabled()).thenThrow(Exception('secure'));
+        },
+        act: (bloc) => bloc.add(const LockColdStart()),
+        expect: () => [
+          isA<LockLoadInProgress>().having((s) => s.locked, 'locked', isTrue),
+          isA<LockLoadFailure>().having((s) => s.locked, 'locked', isTrue),
+        ],
+      );
+
+      blocTest<LockBloc, LockState>(
+        'retry after cold-start fault unlocks when no PIN exists',
+        build: build,
+        setUp: () {
+          var calls = 0;
+          when(() => storage.isEnabled()).thenAnswer((_) async {
+            calls += 1;
+            if (calls == 1) throw Exception('secure');
+            return false;
+          });
+        },
+        act: (bloc) async {
+          bloc.add(const LockColdStart());
+          await bloc.stream.firstWhere((s) => s is LockLoadFailure);
+          bloc.add(const LockStatusRequested());
+        },
+        verify: (bloc) {
+          expect(bloc.state, isA<LockLoadSuccess>());
+          expect(bloc.state.locked, isFalse);
+          expect(bloc.state.enabled, isFalse);
+        },
+      );
+
+      blocTest<LockBloc, LockState>(
+        'retry after cold-start fault keeps the cover when a PIN exists',
+        build: build,
+        setUp: () {
+          var calls = 0;
+          when(() => storage.isEnabled()).thenAnswer((_) async {
+            calls += 1;
+            if (calls == 1) throw Exception('secure');
+            return true;
+          });
+        },
+        act: (bloc) async {
+          bloc.add(const LockColdStart());
+          await bloc.stream.firstWhere((s) => s is LockLoadFailure);
+          bloc.add(const LockStatusRequested());
+        },
+        verify: (bloc) {
+          expect(bloc.state, isA<LockLoadSuccess>());
+          expect(bloc.state.enabled, isTrue);
+          expect(bloc.state.locked, isTrue);
+        },
+      );
+
+      blocTest<LockBloc, LockState>(
+        'resume still fails closed when the lock was on and storage throws',
+        build: build,
+        seed: () => const LockLoadSuccess(enabled: true),
+        setUp: () {
+          when(() => storage.isEnabled()).thenThrow(Exception('secure'));
+          when(() => storage.lockAfterSeconds()).thenAnswer((_) async => 0);
+        },
+        act: (bloc) {
+          bloc
+            ..add(const LockAppBackgrounded())
+            ..add(const LockAppResumed());
+        },
+        verify: (bloc) {
+          expect(bloc.state, isA<LockLoadFailure>());
+          expect(bloc.state.locked, isTrue);
+        },
+      );
     });
 
     group('rule 3: biometrics needs the PIN', () {

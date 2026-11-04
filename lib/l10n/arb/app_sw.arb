@@ -1746,5 +1746,7 @@
     "workspaceDiscardRevision": "Tupa marekebisho haya",
     "workspaceDiscardSheetTitle": "Tupa marekebisho haya?",
     "workspaceDiscardSheetBody": "Rasimu itafutwa. Ripoti iliyosainiwa haitabadilika.",
-    "workspaceDiscardSheetConfirm": "Tupa"
+    "workspaceDiscardSheetConfirm": "Tupa",
+    "appLockLoadFailed": "Imeshindikana kuangalia kufunga programu",
+    "appLockLoadFailedBody": "Jaribu tena, au ingia tena ili kufuta PIN kwenye kifaa hiki."
 }

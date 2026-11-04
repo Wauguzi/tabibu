@@ -293,6 +293,34 @@ void main() {
     );
 
     blocTest<AlertReviewBloc, AlertReviewState>(
+      'approve that lands still succeeds when the re-fetch throws',
+      setUp: () {
+        stubApprove();
+        when(() => alerts.fetchAlert('a1')).thenThrow(AppError.unknown);
+      },
+      build: build,
+      seed: () => AlertReviewLoadSuccess(
+        queue: [_alert('a1'), _alert('a2')],
+        current: _alert('a1'),
+      ),
+      act: (bloc) => bloc.add(const AlertApproveRequested(alertUid: 'a1')),
+      expect: () => [
+        AlertDecisionInProgress(
+          queue: [_alert('a1'), _alert('a2')],
+          current: _alert('a1'),
+        ),
+        AlertDecisionSuccess(
+          decision: ApprovalDecision.approve,
+          queue: [_alert('a2')],
+          current: _alert('a1').copyWith(
+            status: AlertStatus.approved.value,
+            decision: ApprovalDecision.approve.value,
+          ),
+        ),
+      ],
+    );
+
+    blocTest<AlertReviewBloc, AlertReviewState>(
       'drops everything on reset',
       build: build,
       seed: () =>

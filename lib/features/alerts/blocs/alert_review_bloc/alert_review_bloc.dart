@@ -148,19 +148,38 @@ class AlertReviewBloc extends Bloc<AlertReviewEvent, AlertReviewState> {
         ),
         reason: reason,
       );
+    } on Object catch (e) {
+      emit(_decisionFailure(_toAppError(e)));
+      return;
+    }
+    // Approval already landed: a re-fetch fault must not look like failure.
+    final queue = [
+      for (final alert in state.queue)
+        if (alert.uid != seen.uid) alert,
+    ];
+    try {
       final decided = await _alerts.fetchAlert(seen.uid) ?? seen;
       emit(
         AlertDecisionSuccess(
           decision: decision,
-          queue: [
-            for (final alert in state.queue)
-              if (alert.uid != seen.uid) alert,
-          ],
+          queue: queue,
           current: decided,
         ),
       );
-    } on Object catch (e) {
-      emit(_decisionFailure(_toAppError(e)));
+    } on Object catch (_) {
+      emit(
+        AlertDecisionSuccess(
+          decision: decision,
+          queue: queue,
+          current: seen.copyWith(
+            status: switch (decision) {
+              .approve || .approveEdited => AlertStatus.approved.value,
+              .reject => AlertStatus.rejected.value,
+            },
+            decision: decision.value,
+          ),
+        ),
+      );
     }
   }
 

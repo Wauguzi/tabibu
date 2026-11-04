@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart' hide LockState;
 import 'package:tabibu/core/constants/app_spacing.dart';
+import 'package:tabibu/core/routing/app_router.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_bloc.dart';
 import 'package:tabibu/features/auth/blocs/auth_bloc/auth_event.dart';
@@ -89,13 +90,21 @@ class _UnlockBody extends StatelessWidget {
           AssetIcon(Assets.icons.shieldIcon, size: 40),
           const SizedBox(height: AppSpacing.md),
           Text(
-            tooMany ? l10n.appLockTooMany : l10n.appLockToOpen,
+            tooMany
+                ? l10n.appLockTooMany
+                : state is LockLoadFailure
+                ? l10n.appLockLoadFailed
+                : l10n.appLockToOpen,
             style: Theme.of(context).textTheme.headlineSmall,
             textAlign: .center,
           ),
           const SizedBox(height: AppSpacing.sm),
           Text(
-            tooMany ? l10n.appLockWait : l10n.appLockEnterPin,
+            tooMany
+                ? l10n.appLockWait
+                : state is LockLoadFailure
+                ? l10n.appLockLoadFailedBody
+                : l10n.appLockEnterPin,
             style: Theme.of(context).textTheme.bodyLarge,
             textAlign: .center,
           ),
@@ -106,7 +115,19 @@ class _UnlockBody extends StatelessWidget {
               onTap: () =>
                   context.read<AuthBloc>().add(const SignOutRequested()),
             )
-          else if (!usePin && state.biometricsEnabled) ...[
+          else if (state is LockLoadFailure) ...[
+            TabibuButton.primary(
+              label: l10n.commonRetry,
+              onTap: () =>
+                  context.read<LockBloc>().add(const LockStatusRequested()),
+            ),
+            const SizedBox(height: AppSpacing.sm),
+            TabibuButton.secondary(
+              label: l10n.appLockSignInAgain,
+              onTap: () =>
+                  context.read<AuthBloc>().add(const SignOutRequested()),
+            ),
+          ] else if (!usePin && state.biometricsEnabled) ...[
             TabibuButton.primary(
               label: l10n.appLockUnlockFinger,
               onTap: () => context.read<LockBloc>().add(
@@ -124,7 +145,7 @@ class _UnlockBody extends StatelessWidget {
                 LockPinVerifyRequested(pin: pin),
               ),
             ),
-          if (!tooMany) ...[
+          if (!tooMany && state is! LockLoadFailure) ...[
             const SizedBox(height: AppSpacing.md),
             Tappable(
               onTap: () => unawaited(_forgot(context)),
@@ -144,8 +165,11 @@ class _UnlockBody extends StatelessWidget {
 
   Future<void> _forgot(BuildContext context) async {
     final l10n = context.l10n;
+    // The overlay sits in MaterialApp.builder, above the navigator. Prefer
+    // the router's navigator context (same as notification taps in App).
+    final navContext = TabibuRouter.navigatorKey.currentContext ?? context;
     final go = await TabibuBottomSheet.show<bool>(
-      context,
+      navContext,
       title: l10n.appLockForgotTitle,
       subtitle: l10n.appLockForgotBody,
       builder: (sheet) => Padding(

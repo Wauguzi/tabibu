@@ -231,6 +231,153 @@ void main() {
     );
 
     blocTest<AuthBloc, AuthState>(
+      'patient with notices on joins the area topic once on sign-in',
+      setUp: () {
+        final session = PatientSession(
+          patient: PatientModel.empty().copyWith(
+            county: 'Nairobi',
+            language: 'sw',
+            receiveNotifications: true,
+          ),
+          roles: RoleHelper.fromClaims(const {'role': 'patient'}),
+        );
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => session);
+        when(
+          () => facilities.counties(),
+        ).thenAnswer((_) async => [const CountyModel(id: 47, name: 'Nairobi')]);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) => verify(
+        () => topics.syncSubscription(
+          topic: 'alerts_patient_47_sw',
+          receiveNotifications: true,
+        ),
+      ).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'patient with notices off does not join a topic on sign-in',
+      setUp: () {
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => _patient);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) => verifyNever(
+        () => topics.syncSubscription(
+          topic: any(named: 'topic'),
+          receiveNotifications: any(named: 'receiveNotifications'),
+        ),
+      ),
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'a thrown topic subscribe does not fail the sign-in',
+      setUp: () {
+        final session = PatientSession(
+          patient: PatientModel.empty().copyWith(
+            county: 'Nairobi',
+            language: 'sw',
+            receiveNotifications: true,
+          ),
+          roles: RoleHelper.fromClaims(const {'role': 'patient'}),
+        );
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => session);
+        when(
+          () => facilities.counties(),
+        ).thenAnswer((_) async => [const CountyModel(id: 47, name: 'Nairobi')]);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenThrow(Exception('topic'));
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      expect: () => [
+        const SignInInProgress(session: SignedOutSession()),
+        isA<SignInSuccess>(),
+      ],
+    );
+
+    blocTest<AuthBloc, AuthState>(
+      'doctor with notices on joins the area topic on sign-in',
+      setUp: () {
+        final session = PractitionerSession(
+          doctor: DoctorModel.empty().copyWith(
+            county: 'Nairobi',
+            language: 'en',
+            receiveNotifications: true,
+          ),
+          roles: RoleHelper.fromClaims(const {'role': 'doctor'}),
+        );
+        when(
+          () => auth.signInWithEmail(
+            email: any(named: 'email'),
+            password: any(named: 'password'),
+          ),
+        ).thenAnswer((_) async => session);
+        when(
+          () => facilities.counties(),
+        ).thenAnswer((_) async => [const CountyModel(id: 47, name: 'Nairobi')]);
+        when(
+          () => topics.syncSubscription(
+            topic: any(named: 'topic'),
+            receiveNotifications: any(named: 'receiveNotifications'),
+          ),
+        ).thenAnswer((_) async {});
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const SignInRequested(email: 'a@example.com', password: 's'),
+      ),
+      wait: const Duration(milliseconds: 50),
+      verify: (_) => verify(
+        () => topics.syncSubscription(
+          topic: 'alerts_patient_47_en',
+          receiveNotifications: true,
+        ),
+      ).called(1),
+    );
+
+    blocTest<AuthBloc, AuthState>(
       'no welcome back while a licence is pending',
       setUp: () => when(
         () => auth.signInWithEmail(
@@ -498,6 +645,7 @@ void main() {
     'signs out offline, handing the session over for its token',
     setUp: () {
       when(() => internet.check()).thenAnswer((_) async => false);
+      when(() => topics.unsubscribeBeforeSignOut()).thenAnswer((_) async {});
       when(
         () => auth.signOut(session: any(named: 'session')),
       ).thenAnswer((_) async {});
@@ -510,8 +658,32 @@ void main() {
       const SignOutSuccess(),
     ],
     verify: (_) {
+      verify(() => topics.unsubscribeBeforeSignOut()).called(1);
       verify(() => auth.signOut(session: _patient)).called(1);
       verify(() => analytics.setRole(null)).called(1);
+    },
+  );
+
+  blocTest<AuthBloc, AuthState>(
+    'sign-out still finishes when topic unsubscribe throws',
+    setUp: () {
+      when(
+        () => topics.unsubscribeBeforeSignOut(),
+      ).thenThrow(Exception('topic'));
+      when(
+        () => auth.signOut(session: any(named: 'session')),
+      ).thenAnswer((_) async {});
+    },
+    build: build,
+    seed: () => SignInSuccess(session: _patient),
+    act: (bloc) => bloc.add(const SignOutRequested()),
+    expect: () => [
+      SignOutInProgress(session: _patient),
+      const SignOutSuccess(),
+    ],
+    verify: (_) {
+      verify(() => topics.unsubscribeBeforeSignOut()).called(1);
+      verify(() => auth.signOut(session: _patient)).called(1);
     },
   );
 

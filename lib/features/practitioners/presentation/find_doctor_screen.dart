@@ -231,7 +231,11 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
                   AppSpacing.screenMargin,
                   AppSpacing.md,
                 ),
-                sliver: SliverList.list(children: _gridRows(state.visible)),
+                sliver: SliverList.builder(
+                  itemCount: (state.visible.length + 1) ~/ 2,
+                  itemBuilder: (context, index) =>
+                      _gridRow(state.visible, index),
+                ),
               ),
           ],
         ),
@@ -305,28 +309,25 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
     );
   }
 
-  List<Widget> _gridRows(List<PractitionerModel> visible) {
-    final rows = <Widget>[];
-    for (var i = 0; i < visible.length; i += 2) {
-      if (i > 0) {
-        rows.add(const SizedBox(height: AppSpacing.bentoGap));
-      }
-      final pair = visible.skip(i).take(2).toList();
-      rows.add(
-        Row(
-          crossAxisAlignment: .start,
-          children: [
-            Expanded(child: _card(pair[0])),
-            if (pair.length == 2) ...[
-              const SizedBox(width: AppSpacing.bentoGap),
-              Expanded(child: _card(pair[1])),
-            ] else
-              const Expanded(child: SizedBox.shrink()),
-          ],
-        ),
-      );
-    }
-    return rows;
+  /// One two-up row at [index]; built only when the list asks for it.
+  Widget _gridRow(List<PractitionerModel> visible, int index) {
+    final i = index * 2;
+    final left = visible[i];
+    final right = i + 1 < visible.length ? visible[i + 1] : null;
+    return Padding(
+      padding: EdgeInsets.only(top: index == 0 ? 0 : AppSpacing.bentoGap),
+      child: Row(
+        crossAxisAlignment: .start,
+        children: [
+          Expanded(child: _card(left)),
+          if (right != null) ...[
+            const SizedBox(width: AppSpacing.bentoGap),
+            Expanded(child: _card(right)),
+          ] else
+            const Expanded(child: SizedBox.shrink()),
+        ],
+      ),
+    );
   }
 
   Widget _card(PractitionerModel doctor) {
