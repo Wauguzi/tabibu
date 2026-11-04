@@ -202,11 +202,14 @@ class _VoiceNotePlayerState extends State<VoiceNotePlayer>
       unawaited(_analytics?.logVoicePlaybackPaused());
       return;
     }
-    // Same clip paused: keep the load and playhead.
+    // Same clip still loaded: keep the playhead. If another bubble or the
+    // composer preview took the shared player, resume fails and we reload.
     if (_active && _cachedBytes != null) {
-      await _player.resume();
-      unawaited(_analytics?.logVoicePlaybackStarted());
-      return;
+      final resumed = await _player.resume(widget.message.uid);
+      if (resumed) {
+        unawaited(_analytics?.logVoicePlaybackStarted());
+        return;
+      }
     }
     setState(() {
       _loading = true;

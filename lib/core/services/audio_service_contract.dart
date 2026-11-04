@@ -98,8 +98,9 @@ abstract class AudioPlayerService {
   Future<void> playBytes(Uint8List bytes, {required String id});
   Future<void> playUrl(Uri url, {required String id});
 
-  /// Continues the loaded clip from its current position (no second load).
-  Future<void> resume();
+  /// Continues [id] from its current position when that clip is still loaded.
+  /// Returns `false` when another clip replaced it — the caller must reload.
+  Future<bool> resume(String id);
   Future<void> pause();
   Future<void> stop();
   Future<void> dispose();

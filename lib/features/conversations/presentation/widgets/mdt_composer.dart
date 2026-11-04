@@ -235,6 +235,8 @@ class _MdtComposerState extends State<MdtComposer> {
     });
   }
 
+  static const _previewPlayerId = 'composer-preview';
+
   Future<void> _playPreview() async {
     final clip = _preview;
     if (clip == null) return;
@@ -244,10 +246,14 @@ class _MdtComposerState extends State<MdtComposer> {
       setState(() => _previewPlaying = false);
       return;
     }
+    // Only resume when the shared player still holds this preview; a bubble
+    // (or cue) that took the player in between must reload the bytes.
+    var resumed = false;
     if (_previewLoaded) {
-      await _player.resume();
-    } else {
-      await _player.playBytes(clip.bytes, id: 'composer-preview');
+      resumed = await _player.resume(_previewPlayerId);
+    }
+    if (!resumed) {
+      await _player.playBytes(clip.bytes, id: _previewPlayerId);
       _previewLoaded = true;
     }
     unawaited(_analytics?.logVoicePlaybackStarted());

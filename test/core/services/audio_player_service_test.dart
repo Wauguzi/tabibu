@@ -123,7 +123,7 @@ void main() {
     await Future<void>.delayed(Duration.zero);
     await service.pause();
     final loadsBefore = platform.played.length;
-    await service.resume();
+    expect(await service.resume('clip'), isTrue);
     await Future<void>.delayed(Duration.zero);
 
     expect(platform.played.length, loadsBefore);
@@ -134,5 +134,15 @@ void main() {
       isNotEmpty,
     );
     await sub.cancel();
+  });
+
+  test('resume of another id fails so the caller must reload', () async {
+    await service.playBytes(Uint8List(4), id: 'A');
+    await service.pause();
+    await service.playBytes(Uint8List(8), id: 'B');
+    await service.pause();
+
+    expect(await service.resume('A'), isFalse);
+    expect(await service.resume('B'), isTrue);
   });
 }

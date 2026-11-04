@@ -127,6 +127,36 @@ void main() {
   });
 
   testWidgets(
+    'after the preview takes the player, bubble play reloads its bytes',
+    (tester) async {
+      final bubbleBytes = Uint8List.fromList([1, 2, 3]);
+      await pumpPlayer(tester, loadBytes: (_) async => bubbleBytes);
+
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoicePlayLabel));
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoicePauseLabel));
+      await tester.pump();
+      expect(player.playBytesCalls, hasLength(1));
+      expect(player.resumeCount, 0);
+
+      await player.playBytes(
+        Uint8List.fromList([9, 9]),
+        id: 'composer-preview',
+      );
+      await player.pause();
+
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoicePlayLabel));
+      await tester.pump();
+
+      // Bubble → preview → bubble reload (failed resume does not count).
+      expect(player.resumeCount, 0);
+      expect(player.playBytesCalls, hasLength(3));
+      expect(player.playBytesCalls.last, same(bubbleBytes));
+      expect(player.playedIds.last, message.uid);
+    },
+  );
+
+  testWidgets(
     'after an older message leaves the list, play uses the survivor bytes',
     (tester) async {
       tester.view.physicalSize = const Size(1170, 2000);

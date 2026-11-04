@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -143,4 +145,37 @@ void main() {
       }
     }
   });
+
+  testWidgets(
+    'after a bubble takes the player, preview play reloads its own bytes',
+    (tester) async {
+      await pumpComposer(tester);
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoiceRecordLabel));
+      await tester.pump();
+      await tester.pump(const Duration(milliseconds: 20));
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoiceStopLabel));
+      await tester.pump();
+
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoicePlayLabel));
+      await tester.pump();
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoicePauseLabel));
+      await tester.pump();
+      final previewBytes = player.playBytesCalls.single;
+      expect(player.playedIds.single, 'composer-preview');
+
+      // A chat bubble (or any other clip) takes the shared player.
+      final bubbleBytes = Uint8List.fromList([9, 9, 9, 9]);
+      await player.playBytes(bubbleBytes, id: 'bubble-1');
+      await player.pause();
+
+      await tester.tap(find.bySemanticsLabel(l10n.chatVoicePlayLabel));
+      await tester.pump();
+
+      // Failed resume does not count; preview bytes are loaded again.
+      expect(player.resumeCount, 0);
+      expect(player.playBytesCalls, hasLength(3));
+      expect(player.playBytesCalls.last, same(previewBytes));
+      expect(player.playedIds.last, 'composer-preview');
+    },
+  );
 }

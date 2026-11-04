@@ -984,6 +984,41 @@ void main() {
       );
 
       blocTest<AppointmentsBloc, AppointmentsState>(
+        'an empty result fails with the request id',
+        setUp: () {
+          when(
+            () => cache.transcribeSymptoms(
+              uid: any(named: 'uid'),
+              audioUid: any(named: 'audioUid'),
+              bytes: any(named: 'bytes'),
+              contentType: any(named: 'contentType'),
+            ),
+          ).thenAnswer(
+            (_) async => const TranscriptionResultModel(
+              transcript: '   ',
+              detectedLanguage: 'en',
+            ),
+          );
+        },
+        build: build,
+        seed: () => AppointmentsLoadSuccess(appointments: [_appt('a0')]),
+        act: (bloc) => bloc.add(
+          SymptomsTranscribeRequested(uid: 'p1', audio: audio, requestId: 'r1'),
+        ),
+        expect: () => [
+          SymptomsTranscribeInProgress(
+            requestId: 'r1',
+            appointments: [_appt('a0')],
+          ),
+          SymptomsTranscribeFailure(
+            requestId: 'r1',
+            error: AppError.unknown,
+            appointments: [_appt('a0')],
+          ),
+        ],
+      );
+
+      blocTest<AppointmentsBloc, AppointmentsState>(
         'offline does not call the cache',
         setUp: () {
           when(() => internet.check()).thenAnswer((_) async => false);

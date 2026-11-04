@@ -89,7 +89,8 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   var _consentShown = false;
 
   /// The Transcribe press this form is waiting on; results for any other
-  /// form's request are ignored.
+  /// form's request are ignored. Non-null doubles as the in-flight flag:
+  /// the button is disabled and another press does nothing until it clears.
   String? _requestId;
 
   /// In-memory only: a refuse or a false client flag hides mic until relaunch.
@@ -212,7 +213,9 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     unawaited(_analytics.logVoiceRecordingStarted(surface: 'symptom'));
     // A new take keeps the existing transcript's link and notice: clearing
     // them here would submit surviving text as Typed when the take fails.
-    // The link drops when its text is cleared, or a replacement lands.
+    // The link drops when its text is cleared, or a replacement lands. The
+    // mic is disabled while a request runs, so a pending id always belongs
+    // to the current take and is never cleared here.
     setState(() {
       _recording = true;
       _seconds = 0;
@@ -268,8 +271,12 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
       }
       return;
     }
+    // A second press while a request runs does nothing: the bloc would
+    // drop it, and a fresh id would orphan the first result. This guard
+    // runs synchronously, before any rebuild disables the button.
+    if (_requestId != null) return;
     final requestId = const Uuid().v4();
-    _requestId = requestId;
+    setState(() => _requestId = requestId);
     context.read<AppointmentsBloc>().add(
       SymptomsTranscribeRequested(
         uid: widget.patientUid,
@@ -287,6 +294,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     setState(() {
       _voiceUnavailable = true;
       _pending = null;
+      _requestId = null;
       _recording = false;
       _stopping = false;
       _level = 0;
@@ -371,7 +379,11 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
                 icon: _recording
                     ? Assets.icons.cancelIcon
                     : Assets.icons.microphoneIcon,
-                onTap: _toggleRecord,
+                // Recording over a pending request would orphan it (the
+                // bloc drops the second transcribe), so the mic waits.
+                onTap: _requestId != null || transcribing
+                    ? null
+                    : _toggleRecord,
                 semanticLabel: _recording
                     ? l10n.symptomVoiceStopLabel
                     : l10n.symptomVoiceRecordLabel,
@@ -399,7 +411,10 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
                       )
                     : TabibuButton.secondary(
                         label: l10n.symptomVoiceTranscribeLabel,
-                        onTap: _pending == null || widget.offline
+                        onTap:
+                            _pending == null ||
+                                widget.offline ||
+                                _requestId != null
                             ? null
                             : _transcribe,
                         isLoading: transcribing,

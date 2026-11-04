@@ -183,12 +183,12 @@ class DeviceAudioPlayerService implements AudioPlayerService {
   }
 
   @override
-  Future<void> resume() async {
-    final id = _currentId;
-    if (id == null) return;
+  Future<bool> resume(String id) async {
+    if (_currentId != id) return false;
     _playing = true;
     _emit(id: id, playing: true, completed: false);
     await _platform.play();
+    return true;
   }
 
   @override

@@ -197,10 +197,9 @@ class FakeAudioPlayerService implements AudioPlayerService {
   }
 
   @override
-  Future<void> resume() async {
+  Future<bool> resume(String id) async {
+    if (currentId != id) return false;
     resumeCount += 1;
-    final id = currentId;
-    if (id == null) return;
     _controller.add(
       AudioPlayback(
         id: id,
@@ -210,6 +209,7 @@ class FakeAudioPlayerService implements AudioPlayerService {
         completed: false,
       ),
     );
+    return true;
   }
 
   /// Emits a completed event for the current clip (tests drive this).
