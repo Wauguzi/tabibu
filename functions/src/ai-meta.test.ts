@@ -3,6 +3,8 @@ import assert from 'node:assert/strict';
 
 import { AiError, type CaseAiRequest } from './ai';
 import {
+  ASR_MAX_BYTES,
+  ASR_MAX_TRANSCRIPT_CHARS,
   META_RESPONSES_URL,
   MUSE_SPARK_MODEL,
   createMetaAiClient,
@@ -81,6 +83,7 @@ describe('ai-meta', () => {
           apiKey: undefined,
           riskCheckEnabled: true,
           symptomIntakeEnabled: true,
+          voiceInputEnabled: true,
         }),
         undefined,
       );
@@ -89,6 +92,7 @@ describe('ai-meta', () => {
           apiKey: KEY,
           riskCheckEnabled: false,
           symptomIntakeEnabled: false,
+          voiceInputEnabled: false,
         }),
         undefined,
       );
@@ -100,6 +104,7 @@ describe('ai-meta', () => {
           apiKey: KEY,
           riskCheckEnabled: true,
           symptomIntakeEnabled: false,
+          voiceInputEnabled: false,
         }),
       );
       assert.ok(
@@ -107,6 +112,15 @@ describe('ai-meta', () => {
           apiKey: KEY,
           riskCheckEnabled: false,
           symptomIntakeEnabled: true,
+          voiceInputEnabled: false,
+        }),
+      );
+      assert.ok(
+        resolveMetaAiClient({
+          apiKey: KEY,
+          riskCheckEnabled: false,
+          symptomIntakeEnabled: false,
+          voiceInputEnabled: true,
         }),
       );
     });
@@ -412,6 +426,227 @@ describe('ai-meta', () => {
       assert.deepEqual((summaryCap.bodies[0] as { reasoning?: unknown }).reasoning, {
         effort: 'minimal',
       });
+    });
+  });
+
+  describe('transcribeAudio', () => {
+    const WAV = Buffer.from('RIFF....WAVEfake-pcm-bytes');
+    // Literals, not the module's constants: the test pins the documented contract.
+    const ASR_URL = 'https://api.meta.ai/v1/asr/transcribe';
+    const ASR_MODEL = 'muse-voice-transcribe-1.0';
+    const ASR_BOUNDARY = '----tabibu-asr-9d2f4c71a03e48b6b5c7d1e9f0a2468';
+    const WAV_TYPE = 'audio/wav';
+
+    function captureAsr(handler: (call: number) => Promise<Response>): {
+      fetch: FetchLike;
+      calls: { url: string; init: RequestInit | undefined }[];
+    } {
+      const calls: { url: string; init: RequestInit | undefined }[] = [];
+      const fetch: FetchLike = async (input, init) => {
+        calls.push({ url: String(input), init });
+        return handler(calls.length);
+      };
+      return { fetch, calls };
+    }
+
+    interface AsrCall {
+      auth: string | null;
+      accept: string | null;
+      settings: Record<string, unknown>;
+      audio: Buffer;
+      audioContentType: string;
+    }
+
+    /** Split one multipart body on the fixed boundary: exactly two parts, nothing else. */
+    function parseAsrCall(url: string, init: RequestInit | undefined): AsrCall {
+      assert.equal(url, ASR_URL);
+      const headers = new Headers(init?.headers);
+      assert.equal(headers.get('content-type'), `multipart/form-data; boundary=${ASR_BOUNDARY}`);
+      const body = Buffer.from(init?.body as unknown as Buffer);
+      const parts = body
+        .toString('latin1')
+        .split(`--${ASR_BOUNDARY}`)
+        .slice(1, -1);
+      assert.equal(parts.length, 2);
+      const contentOf = (part: string): { headers: string; content: Buffer } => {
+        const at = part.indexOf('\r\n\r\n');
+        assert.ok(at > 0);
+        return {
+          headers: part.slice(0, at),
+          content: Buffer.from(part.slice(at + 4, -2), 'latin1'),
+        };
+      };
+      const [request, audio] = parts.map(contentOf);
+      assert.match(request.headers, /name="request"/);
+      assert.match(request.headers, /Content-Type: application\/json/);
+      assert.match(audio.headers, /name="audio"; filename="audio\.wav"/);
+      const audioType = /Content-Type: ([^\r]+)/.exec(audio.headers)?.[1] ?? '';
+      return {
+        auth: headers.get('authorization'),
+        accept: headers.get('accept'),
+        settings: JSON.parse(request.content.toString('utf8')) as Record<string, unknown>,
+        audio: audio.content,
+        audioContentType: audioType,
+      };
+    }
+
+    function asrResponse(transcript: unknown, status = 200): Response {
+      return jsonResponse({ sessionId: 's1', transcript, audioDurationMs: 8240, turns: [] }, { status });
+    }
+
+    it('posts the audio as multipart with the model, auth and WAV settings', async () => {
+      const cap = captureAsr(async () => asrResponse('Homa siku tatu.'));
+      const client = createMetaAiClient({ apiKey: KEY, fetch: cap.fetch });
+      await client.transcribeAudio!({ bytes: WAV, contentType: WAV_TYPE });
+      assert.equal(cap.calls.length, 1);
+      const call = parseAsrCall(cap.calls[0].url, cap.calls[0].init);
+      assert.equal(call.auth, `Bearer ${KEY}`);
+      assert.equal(call.accept, 'application/json');
+      assert.deepEqual(call.settings, {
+        model: ASR_MODEL,
+        audioEncoding: 'WAV',
+        mode: 'PUSH_TO_TALK',
+      });
+      assert.deepEqual(call.audio, WAV);
+      assert.equal(call.audioContentType, 'audio/wav');
+    });
+
+    it('a good response maps to the transcript, an empty language and the model id', async () => {
+      const cap = captureAsr(async () => asrResponse('Nina maumivu ya kichwa.'));
+      const client = createMetaAiClient({ apiKey: KEY, fetch: cap.fetch });
+      const result = await client.transcribeAudio!({ bytes: WAV, contentType: WAV_TYPE });
+      // The buffered response reports no language: unknown, never guessed.
+      assert.deepEqual(result, {
+        transcript: 'Nina maumivu ya kichwa.',
+        language: '',
+        models: { transcribe: ASR_MODEL },
+      });
+    });
+
+    it('401 and other failures become the existing ServiceError', async () => {
+      for (const status of [400, 401, 406, 413, 500]) {
+        const cap = captureAsr(async () => new Response('no', { status }));
+        const client = createMetaAiClient({ apiKey: KEY, fetch: cap.fetch });
+        await assert.rejects(
+          client.transcribeAudio!({ bytes: WAV, contentType: WAV_TYPE }),
+          (e: unknown) => e instanceof AiError && e.reason === 'ServiceError',
+        );
+        assert.equal(cap.calls.length, 1);
+      }
+    });
+
+    it('retries once on 429 and 503, then fails', async () => {
+      for (const status of [429, 503]) {
+        const retrying = captureAsr(async (call) =>
+          call === 1 ? new Response('slow', { status }) : asrResponse('ok'),
+        );
+        const client = createMetaAiClient({ apiKey: KEY, fetch: retrying.fetch });
+        const result = await client.transcribeAudio!({ bytes: WAV, contentType: WAV_TYPE });
+        assert.equal(result.transcript, 'ok');
+        assert.equal(retrying.calls.length, 2);
+
+        const failing = captureAsr(async () => new Response('slow', { status }));
+        const failingClient = createMetaAiClient({ apiKey: KEY, fetch: failing.fetch });
+        await assert.rejects(
+          failingClient.transcribeAudio!({ bytes: WAV, contentType: WAV_TYPE }),
+          (e: unknown) => e instanceof AiError && e.reason === 'ServiceError',
+        );
+        assert.equal(failing.calls.length, 2);
+      }
+    });
+
+    it('a hanging call fails after the timeout', async () => {
+      const hanging: FetchLike = () => new Promise<Response>(() => undefined);
+      const client = createMetaAiClient({ apiKey: KEY, fetch: hanging, timeoutMs: 20 });
+      await assert.rejects(
+        client.transcribeAudio!({ bytes: WAV, contentType: WAV_TYPE }),
+        (e: unknown) => e instanceof AiError && e.reason === 'Timeout',
+      );
+    });
+
+    it('empty, blank, non-string and oversize transcripts fail', async () => {
+      for (const transcript of ['', '   ', 42, null, 'x'.repeat(ASR_MAX_TRANSCRIPT_CHARS + 1)]) {
+        const cap = captureAsr(async () => asrResponse(transcript));
+        const client = createMetaAiClient({ apiKey: KEY, fetch: cap.fetch });
+        await assert.rejects(
+          client.transcribeAudio!({ bytes: WAV, contentType: WAV_TYPE }),
+          (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+        );
+      }
+      const invalid = captureAsr(async () => new Response('not json{{{', { status: 200 }));
+      await assert.rejects(
+        createMetaAiClient({ apiKey: KEY, fetch: invalid.fetch }).transcribeAudio!({
+          bytes: WAV,
+          contentType: WAV_TYPE,
+        }),
+        (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+      );
+      const empty = captureAsr(async () => new Response('', { status: 200 }));
+      await assert.rejects(
+        createMetaAiClient({ apiKey: KEY, fetch: empty.fetch }).transcribeAudio!({
+          bytes: WAV,
+          contentType: WAV_TYPE,
+        }),
+        (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+      );
+    });
+
+    it('m4a, empty and oversize audio never reach fetch', async () => {
+      const cap = captureAsr(async () => asrResponse('unreached'));
+      const client = createMetaAiClient({ apiKey: KEY, fetch: cap.fetch });
+      for (const contentType of ['audio/mp4', 'audio/aac', 'text/plain']) {
+        await assert.rejects(
+          client.transcribeAudio!({ bytes: WAV, contentType }),
+          (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+        );
+      }
+      await assert.rejects(
+        client.transcribeAudio!({ bytes: Buffer.alloc(0), contentType: WAV_TYPE }),
+        (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+      );
+      await assert.rejects(
+        client.transcribeAudio!({ bytes: Buffer.alloc(ASR_MAX_BYTES + 1), contentType: WAV_TYPE }),
+        (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+      );
+      // A boundary inside user bytes would split the body and smuggle a second part.
+      const smuggled = Buffer.concat([
+        Buffer.from('RIFF....WAVE'),
+        Buffer.from(
+          `--${ASR_BOUNDARY}\r\nContent-Disposition: form-data; name="request"\r\n\r\n{"model":"x"}`,
+        ),
+      ]);
+      await assert.rejects(
+        client.transcribeAudio!({ bytes: smuggled, contentType: WAV_TYPE }),
+        (e: unknown) => e instanceof AiError && e.reason === 'OffSchema',
+      );
+      assert.equal(cap.calls.length, 0);
+    });
+
+    it('the key never appears in an error message', async () => {
+      const failing: FetchLike = async () => new Response('no', { status: 500 });
+      const seen: string[] = [];
+      for (const run of [
+        () =>
+          createMetaAiClient({ apiKey: KEY, fetch: failing }).transcribeAudio!({
+            bytes: WAV,
+            contentType: WAV_TYPE,
+          }),
+        () =>
+          createMetaAiClient({ apiKey: KEY, fetch: failing }).transcribeAudio!({
+            bytes: WAV,
+            contentType: 'audio/mp4',
+          }),
+      ]) {
+        try {
+          await run();
+          assert.fail('unreached');
+        } catch (e) {
+          seen.push(String((e as Error).message));
+        }
+      }
+      for (const message of seen) {
+        assert.ok(!message.includes(KEY));
+      }
     });
   });
 });

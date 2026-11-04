@@ -779,6 +779,26 @@ describe('appointments', () => {
       assert.equal(await objectExists(path()), false);
     });
 
+    it('an object over the cap never reaches the client', async () => {
+      await putObject(path(), Buffer.alloc(512 * 1024 + 1), 'audio/mp4');
+      let calls = 0;
+      const counting = runtime(w, {
+        ai: {
+          ...deps.ai!,
+          transcribeAudio: () => {
+            calls += 1;
+            return Promise.resolve({ transcript: 'unreached', language: 'en', models: {} });
+          },
+        },
+      });
+      await refusedWith(transcribeSymptomsHandler(counting, w.patient, { audioUid }), 'audioTooLarge');
+      assert.equal(calls, 0);
+      assert.equal(await objectExists(path()), false);
+    });
+
+    // No timer test: a hanging fetch rejects (ai-meta), and any rejection deletes (above).
+    // Never patch setTimeout suite-wide for one: it wedges the emulator channel.
+
     it('sends the model the audio and nothing else', async () => {
       await putObject(path(), Buffer.from('audio'), 'audio/mp4');
       let seen: unknown;
@@ -797,7 +817,26 @@ describe('appointments', () => {
 
     it('fails closed when the switch is off', async () => {
       await putObject(path(), Buffer.from('audio'), 'audio/mp4');
-      await refusedWith(transcribeSymptomsHandler(runtime(w, { config: allOff }), w.patient, { audioUid }), 'voiceDisabled');
+      let calls = 0;
+      const off = runtime(w, {
+        config: allOff,
+        ai: {
+          ...deps.ai!,
+          transcribeAudio: () => {
+            calls += 1;
+            return Promise.resolve({ transcript: 'unreached', language: 'en', models: {} });
+          },
+        },
+      });
+      await refusedWith(transcribeSymptomsHandler(off, w.patient, { audioUid }), 'voiceDisabled');
+      assert.equal(calls, 0);
+      assert.equal(await objectExists(path()), false);
+    });
+
+    it('fails closed when no client is wired, and still deletes the audio', async () => {
+      await putObject(path(), Buffer.from('audio'), 'audio/mp4');
+      const noAi = runtime(w, { ai: undefined });
+      await refusedWith(transcribeSymptomsHandler(noAi, w.patient, { audioUid }), 'transcriptionFailed');
       assert.equal(await objectExists(path()), false);
     });
 

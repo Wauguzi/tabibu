@@ -851,6 +851,20 @@ describe('conversations', () => {
         assert.equal((await message(c, big))?.withheldReason, 'voiceTooLong');
       });
 
+      it('never calls the client for audio that fails the check', async () => {
+        const c = await direct();
+        let calls = 0;
+        const counting = ai(() => {
+          calls += 1;
+          return Promise.resolve({ transcript: 'unreached', language: 'en', models: {} });
+        });
+        const wrongType = await postVoice(c, { contentType: 'audio/wav' });
+        await onMessageCreatedHandler(counting, c, wrongType);
+        const big = await postVoice(c, { bytes: Buffer.alloc(512 * 1024 + 1) });
+        await onMessageCreatedHandler(counting, c, big);
+        assert.equal(calls, 0);
+      });
+
       it('falls back on the claimed length when the file has no header, within its bound', async () => {
         const c = await direct();
         const ok = await deliverVoice(c, { bytes: Buffer.from('audio'), claimedMs: 60_000 });

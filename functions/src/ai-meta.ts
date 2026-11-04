@@ -1,11 +1,14 @@
 // cspell:ignore muse jsonschema xhigh
 /**
- * Server-side model client for the risk check and the symptom summary. The app never sees this:
- * handlers call through `AiClient` / `DomainAiClient`, and a missing key or a kill switch leaves
- * `deps.ai` unset so today's Failed path runs (R-8).
+ * Server-side model client for the risk check, the symptom summary and speech transcription.
+ * The app never sees this: handlers call through `AiClient` / `DomainAiClient`, and a missing
+ * key or a kill switch leaves `deps.ai` unset so today's Failed path runs (R-8).
  *
- * Endpoint: POST https://api.meta.ai/v1/responses with Bearer auth, model muse-spark-1.3,
+ * Text endpoint: POST https://api.meta.ai/v1/responses with Bearer auth, model muse-spark-1.3,
  * structured output via `text.format` (json_schema). Never a *-contributor model.
+ *
+ * Speech endpoint: POST https://api.meta.ai/v1/asr/transcribe, multipart, model
+ * muse-voice-transcribe-1.0, WAV only (the endpoint rejects anything else).
  */
 import {
   ADVISORIES,
@@ -23,6 +26,23 @@ import { labTestById } from './lab-tests';
 export const MUSE_SPARK_MODEL = 'muse-spark-1.3';
 
 export const META_RESPONSES_URL = 'https://api.meta.ai/v1/responses';
+
+export const META_ASR_URL = 'https://api.meta.ai/v1/asr/transcribe';
+
+/** Standard transcribe id; contributor (training-enabled) variants are forbidden. */
+export const MUSE_VOICE_TRANSCRIBE_MODEL = 'muse-voice-transcribe-1.0';
+
+/** The endpoint takes RIFF/WAVE mono PCM only; anything else is refused before fetch (S-5). */
+export const ASR_AUDIO_TYPE = 'audio/wav';
+
+/** Matches the handler caps (512 KB); the client re-checks so a bypass never calls. */
+export const ASR_MAX_BYTES = 512 * 1024;
+
+/** A transcript past this is a failed call, not a truncation. */
+export const ASR_MAX_TRANSCRIPT_CHARS = 4000;
+
+/** Fixed multipart boundary: deterministic bodies make the request-shape test exact. */
+export const ASR_MULTIPART_BOUNDARY = '----tabibu-asr-9d2f4c71a03e48b6b5c7d1e9f0a2468';
 
 /** Allowed Responses API reasoning.effort values. */
 export type ReasoningEffort = 'minimal' | 'low' | 'medium' | 'high' | 'xhigh' | 'max';
@@ -47,10 +67,11 @@ export function resolveMetaAiClient(args: {
   apiKey: string | undefined;
   riskCheckEnabled: boolean;
   symptomIntakeEnabled: boolean;
+  voiceInputEnabled: boolean;
   fetch?: FetchLike;
 }): DomainAiClient | undefined {
   if (!args.apiKey) return undefined;
-  if (!args.riskCheckEnabled && !args.symptomIntakeEnabled) return undefined;
+  if (!args.riskCheckEnabled && !args.symptomIntakeEnabled && !args.voiceInputEnabled) return undefined;
   return createMetaAiClient({ apiKey: args.apiKey, fetch: args.fetch });
 }
 
@@ -70,6 +91,7 @@ export function createMetaAiClient(options: MetaAiOptions): AlertAiClient {
     assessCase: (request) => assessCase(request, apiKey, doFetch, timeoutMs),
     summarizeSymptoms: (req) => summarizeSymptoms(req, apiKey, doFetch, timeoutMs),
     generateAlertDraft: (input) => generateAlertDraft(input, apiKey, doFetch, timeoutMs),
+    transcribeAudio: (req) => transcribeAudio(req, apiKey, doFetch, timeoutMs),
   };
 }
 
@@ -188,6 +210,23 @@ async function summarizeSymptoms(
   return parseSummary(raw);
 }
 
+async function transcribeAudio(
+  req: { bytes: Buffer; contentType: string },
+  apiKey: string,
+  doFetch: FetchLike,
+  timeoutMs?: number,
+): Promise<{ transcript: string; language: string; models: Record<string, string> }> {
+  // The endpoint takes RIFF/WAVE mono PCM only, so m4a would 400: known-bad audio is refused
+  // before patient bytes leave the process (S-5), and over-cap bytes never call either.
+  if (req.contentType !== ASR_AUDIO_TYPE) throw new AiError('OffSchema');
+  if (req.bytes.length === 0 || req.bytes.length > ASR_MAX_BYTES) throw new AiError('OffSchema');
+  // The audio is user bytes inside a fixed-boundary body: a boundary inside them would split
+  // the body and let a crafted clip smuggle a second `request` part past the fixed settings.
+  if (req.bytes.includes(Buffer.from(ASR_MULTIPART_BOUNDARY, 'utf8'))) throw new AiError('OffSchema');
+  const raw = await callAsr({ apiKey, doFetch, timeoutMs, bytes: req.bytes });
+  return parseTranscript(raw);
+}
+
 function assessSchema(): Record<string, unknown> {
   return {
     type: 'object',
@@ -295,6 +334,88 @@ async function callResponses(args: CallArgs): Promise<unknown> {
     throw new AiError('OffSchema');
   }
   return parseOutputJson(parsed);
+}
+
+interface AsrCallArgs {
+  apiKey: string;
+  doFetch: FetchLike;
+  timeoutMs?: number;
+  bytes: Buffer;
+}
+
+async function callAsr(args: AsrCallArgs): Promise<unknown> {
+  const settings = JSON.stringify({
+    model: MUSE_VOICE_TRANSCRIBE_MODEL,
+    audioEncoding: 'WAV',
+    mode: 'PUSH_TO_TALK',
+  });
+  // No languageBias: Swahili is outside the 25 supported languages, and an English-only hint
+  // would steer its recognition down. Omitted, the model detects the language on its own.
+  const head = Buffer.from(
+    `--${ASR_MULTIPART_BOUNDARY}\r\n` +
+      'Content-Disposition: form-data; name="request"\r\n' +
+      'Content-Type: application/json\r\n' +
+      '\r\n' +
+      `${settings}\r\n` +
+      `--${ASR_MULTIPART_BOUNDARY}\r\n` +
+      'Content-Disposition: form-data; name="audio"; filename="audio.wav"\r\n' +
+      'Content-Type: audio/wav\r\n' +
+      '\r\n',
+    'utf8',
+  );
+  const tail = Buffer.from(`\r\n--${ASR_MULTIPART_BOUNDARY}--\r\n`, 'utf8');
+  const body = Buffer.concat([head, args.bytes, tail]);
+
+  // Terminates: the only `continue` is attempt 1 on 429/503; every other path returns or throws.
+  for (let attempt = 1; ; attempt += 1) {
+    let response: Response;
+    try {
+      response = await withTimeout(
+        args.doFetch(META_ASR_URL, {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer ${args.apiKey}`,
+            'Content-Type': `multipart/form-data; boundary=${ASR_MULTIPART_BOUNDARY}`,
+            Accept: 'application/json',
+          },
+          body,
+        }),
+        args.timeoutMs,
+      );
+    } catch (e) {
+      if (e instanceof AiError) throw e;
+      throw new AiError('ServiceError');
+    }
+    // One retry on 429/503, then the existing failure. Error bodies are never read (rule 5).
+    if ((response.status === 429 || response.status === 503) && attempt === 1) continue;
+    if (!response.ok) throw new AiError('ServiceError');
+
+    let text: string;
+    try {
+      text = await response.text();
+    } catch {
+      throw new AiError('ServiceError');
+    }
+    if (text.trim() === '') throw new AiError('OffSchema');
+    try {
+      return JSON.parse(text) as unknown;
+    } catch {
+      throw new AiError('OffSchema');
+    }
+  }
+}
+
+function parseTranscript(raw: unknown): {
+  transcript: string;
+  language: string;
+  models: Record<string, string>;
+} {
+  if (!raw || typeof raw !== 'object') throw new AiError('OffSchema');
+  const transcript = (raw as Record<string, unknown>).transcript;
+  if (typeof transcript !== 'string' || transcript.trim() === '') throw new AiError('OffSchema');
+  if (transcript.length > ASR_MAX_TRANSCRIPT_CHARS) throw new AiError('OffSchema');
+  // The buffered response reports no language: unknown, never guessed.
+  return { transcript, language: '', models: { transcribe: MUSE_VOICE_TRANSCRIBE_MODEL } };
 }
 
 /** Pull the structured JSON string out of a Responses API body, then parse it. */

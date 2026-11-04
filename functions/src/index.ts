@@ -163,6 +163,7 @@ function liveAiClient() {
     apiKey: readMetaApiKey(),
     riskCheckEnabled: isEnabled(switches, 'risk_check_enabled'),
     symptomIntakeEnabled: isEnabled(switches, 'symptom_intake_enabled'),
+    voiceInputEnabled: isEnabled(switches, 'voice_input_enabled'),
   });
 }
 
@@ -324,8 +325,8 @@ export const requestAppointment = runtimeCall(requestAppointmentHandler);
 export const respondToAppointment = runtimeCall(respondToAppointmentHandler);
 export const cancelAppointment = runtimeCall(cancelAppointmentHandler);
 export const completeAppointment = runtimeCall(completeAppointmentHandler);
-// The speech model reads the audio, so this call gets the longer timeout.
-export const transcribeSymptoms = onCall({ timeoutSeconds: 120 }, async (request) =>
+// The speech model reads the audio, so this call gets the longer timeout and the key.
+export const transcribeSymptoms = onCall({ timeoutSeconds: 120, secrets: [metaApiKey] }, async (request) =>
   transcribeSymptomsHandler(await runtimeDeps(), callerOf(request), request.data),
 );
 
@@ -362,7 +363,12 @@ export const onAppointmentWritten = onDocumentWritten(
 );
 
 export const onMessageCreated = onDocumentCreated(
-  { document: 'conversations/{conversationUid}/messages/{messageUid}', retry: true, timeoutSeconds: 120 },
+  {
+    document: 'conversations/{conversationUid}/messages/{messageUid}',
+    retry: true,
+    timeoutSeconds: 120,
+    secrets: [metaApiKey],
+  },
   async (event) => {
     await onMessageCreatedHandler(await runtimeDeps(), event.params.conversationUid, event.params.messageUid);
   },
