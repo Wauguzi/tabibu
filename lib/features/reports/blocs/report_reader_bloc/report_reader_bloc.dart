@@ -11,6 +11,7 @@ import 'package:tabibu/features/reports/data/datasources/report_firebase.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_model.dart';
+import 'package:tabibu/features/reports/data/report_for_case.dart';
 import 'package:tabibu/features/reports/data/report_text_id.dart';
 
 /// A case's signed report for its reader (H-8, H-9). The doctor marks it
@@ -83,10 +84,13 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         offline = true;
         all = await _reports.getReports(event.uid, role: event.role);
       }
-      final report = all
-          .where((r) => r.caseUid == event.caseUid && r.isCurrent)
-          .sortedBy<num>((r) => r.version)
-          .lastOrNull;
+      // Patient: last released version while an update waits; clinician:
+      // current.
+      final report = reportForCase(
+        reports: all,
+        caseUid: event.caseUid,
+        role: event.role,
+      );
 
       final explanations = <String, ReportTextModel>{};
       final approved = <String, ReportTextApprovedModel>{};

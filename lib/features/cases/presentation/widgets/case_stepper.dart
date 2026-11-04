@@ -87,7 +87,7 @@ class _CaseStepperState extends State<CaseStepper> {
                                     child: const SizedBox(height: 2),
                                   ),
                           ),
-                          const SizedBox(width: 32),
+                          const SizedBox(width: AppSpacing.xxlg),
                           Expanded(
                             child: i == count - 1
                                 ? const SizedBox.shrink()

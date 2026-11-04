@@ -8466,5 +8466,16 @@
         "placeholders": {
             "item": { "type": "String" }
         }
+    },
+    "resultsUpdateReviewNotice": "Your doctor is reviewing an update to this result. You are reading the version released on {date}.",
+    "@resultsUpdateReviewNotice": {
+        "description": "Patient result: update waiting with the doctor; last released version still shown",
+        "placeholders": {
+            "date": { "type": "String" }
+        }
+    },
+    "resultsUpdateReviewNoticeNoDate": "Your doctor is reviewing an update to this result. You are reading the last version that was released to you.",
+    "@resultsUpdateReviewNoticeNoDate": {
+        "description": "Patient result: update waiting; release date unknown"
     }
 }

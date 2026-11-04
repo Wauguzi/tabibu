@@ -217,9 +217,10 @@ class _AppState extends State<App> with WidgetsBindingObserver {
     String uid,
     RoleHelper roles,
   ) async {
-    var deepLink = '';
+    final GoRouteData? target;
     if (isNotificationDeepLinkPayload(payload)) {
-      deepLink = payload;
+      // No row to load: keep today's deep-link routing.
+      target = notificationTapRoute(payload, roles);
     } else {
       final row = await _cachedNotification(uid, payload);
       if (row != null) {
@@ -227,12 +228,13 @@ class _AppState extends State<App> with WidgetsBindingObserver {
         context.read<NotificationsBloc>().add(
           NotificationReadRequested(uid: uid, notificationUid: payload),
         );
-        deepLink = row.metadata.deepLink;
+        // Same share-first path as the inbox (T-18).
+        target = notificationRowTarget(row, roles) ?? notificationsHome(roles);
+      } else {
+        target = notificationsHome(roles);
       }
     }
-    if (!mounted) return;
-    final target = notificationTapRoute(deepLink, roles);
-    if (target == null) return;
+    if (!mounted || target == null) return;
     final nav = _router.routerDelegate.navigatorKey.currentContext;
     if (nav == null || !nav.mounted) return;
     unawaited(target.push<void>(nav));

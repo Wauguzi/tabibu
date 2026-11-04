@@ -30,6 +30,7 @@ import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_event.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
+import 'package:tabibu/features/reports/data/report_for_case.dart';
 import 'package:tabibu/features/reports/presentation/report_download.dart';
 import 'package:tabibu/features/reports/presentation/widgets/report_file_card.dart';
 import 'package:tabibu/gen/assets.gen.dart';
@@ -132,32 +133,33 @@ class _PatientResultScreenState extends State<PatientResultScreen> {
     required List<AppointmentModel> appointments,
     required String language,
   }) {
-    final released = caseModel.resultStateValue == .released;
-    if (!released) {
+    final report = reportForCase(
+      reports: casesState.reports,
+      caseUid: caseModel.uid,
+      role: .patient,
+    );
+    final state = caseModel.resultStateValue;
+    // Keep the last released report while an update waits with the doctor.
+    final showReleased =
+        report != null &&
+        report.releasedToPatient &&
+        (state == .released || state == .updateWithDoctor);
+    if (!showReleased) {
       return _WaitingBody(
         caseModel: caseModel,
-        report: _reportFor(caseModel, casesState.reports),
+        report: report,
         appointments: appointments,
         language: language,
       );
     }
     return _SharedBody(
       caseModel: caseModel,
-      report: _reportFor(caseModel, casesState.reports),
+      report: report,
       patient: _patient,
       language: language,
       download: widget.download,
+      updatePending: state == .updateWithDoctor,
     );
-  }
-
-  PathologyReportModel? _reportFor(
-    CaseModel c,
-    List<PathologyReportModel> reports,
-  ) {
-    if (c.currentReportUid.isEmpty) {
-      return reports.firstWhereOrNull((r) => r.caseUid == c.uid);
-    }
-    return reports.firstWhereOrNull((r) => r.uid == c.currentReportUid);
   }
 }
 
@@ -383,6 +385,7 @@ class _SharedBody extends StatefulWidget {
     required this.patient,
     required this.language,
     this.download,
+    this.updatePending = false,
   });
 
   final CaseModel caseModel;
@@ -390,6 +393,10 @@ class _SharedBody extends StatefulWidget {
   final PatientModel patient;
   final String language;
   final ReportDownload? download;
+
+  /// An amendment or addendum is with the doctor; this body still shows the
+  /// last released version (CRQ-0050 §9).
+  final bool updatePending;
 
   @override
   State<_SharedBody> createState() => _SharedBodyState();
@@ -479,14 +486,20 @@ class _SharedBodyState extends State<_SharedBody> {
     final textTheme = Theme.of(context).textTheme;
     final testName =
         caseModel.tests.firstOrNull?.name ?? report?.testName ?? '';
-    final releasedAt = nairobiTimeOf(
-      caseModel.releasedAt.isNotEmpty
-          ? caseModel.releasedAt
-          : (report?.signedAt ?? ''),
-    );
+    final releasedRaw = report?.releasedAt.isNotEmpty == true
+        ? report!.releasedAt
+        : (caseModel.releasedAt.isNotEmpty
+              ? caseModel.releasedAt
+              : (report?.signedAt ?? ''));
+    final releasedAt = nairobiTimeOf(releasedRaw);
     final dateLabel = releasedAt == null
         ? ''
         : DateFormat('EEE d MMM', language).format(releasedAt);
+    final updateNotice = !widget.updatePending
+        ? null
+        : (dateLabel.isEmpty
+              ? l10n.resultsUpdateReviewNoticeNoDate
+              : l10n.resultsUpdateReviewNotice(dateLabel));
     final note = (report?.comments.isNotEmpty == true)
         ? report!.comments
         : (report?.diagnosis ?? '');
@@ -526,6 +539,14 @@ class _SharedBodyState extends State<_SharedBody> {
             onTap: _onMore,
           ),
         ),
+        if (updateNotice != null) ...[
+          const SizedBox(height: AppSpacing.md),
+          NoticeCard(
+            icon: Assets.icons.infoIcon,
+            variant: .info,
+            body: updateNotice,
+          ),
+        ],
         const SizedBox(height: AppSpacing.md),
         Align(
           alignment: .centerLeft,

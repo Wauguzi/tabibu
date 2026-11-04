@@ -13,6 +13,7 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
+import 'package:tabibu/features/reports/data/report_for_case.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -52,12 +53,14 @@ class _ReportsReadyScreenState extends State<ReportsReadyScreen> {
       c.resultStateValue == .withDoctor ||
       c.resultStateValue == .updateWithDoctor;
 
-  PathologyReportModel? _reportFor(CaseModel c, List<PathologyReportModel> rs) {
-    if (c.currentReportUid.isEmpty) {
-      return rs.firstWhereOrNull((r) => r.caseUid == c.uid);
-    }
-    return rs.firstWhereOrNull((r) => r.uid == c.currentReportUid);
-  }
+  PathologyReportModel? _reportFor(
+    CaseModel c,
+    List<PathologyReportModel> rs,
+  ) => reportMatching(
+    reports: rs,
+    caseUid: c.uid,
+    reportUid: c.currentReportUid,
+  );
 
   /// Newest signature first; a report with no readable date goes last.
   List<CaseModel> _ordered(CasesState state) {

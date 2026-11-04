@@ -106,11 +106,8 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
     context.read<NotificationsBloc>().add(
       NotificationReadRequested(uid: _uid, notificationUid: row.uid),
     );
-    // A share row opens the enter-code screen, which starts empty; the code
-    // stays in the notification (T-18).
-    final target =
-        shareCodeTarget(row, _roles) ??
-        notificationTarget(row.metadata.deepLink, _roles);
+    // Share-first (T-18), same path as push and banner taps.
+    final target = notificationRowTarget(row, _roles);
     unawaited(target?.push<void>(context));
   }
 

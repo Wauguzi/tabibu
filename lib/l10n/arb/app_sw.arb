@@ -1770,5 +1770,7 @@
     "resultsRowSharedByNoDate": "Imeshirikiwa na {doctor}",
     "resultsRowSharedByNoDoctor": "Imeshirikiwa na daktari wako · {date}",
     "resultsRowSharedByBare": "Imeshirikiwa na daktari wako",
-    "resultsRowOrderedByNoDoctor": "Iliyoagizwa na daktari wako · inasubiri {item}"
+    "resultsRowOrderedByNoDoctor": "Iliyoagizwa na daktari wako · inasubiri {item}",
+    "resultsUpdateReviewNotice": "Daktari wako anakagua sasisho la matokeo haya. Unasoma toleo lililotolewa tarehe {date}.",
+    "resultsUpdateReviewNoticeNoDate": "Daktari wako anakagua sasisho la matokeo haya. Unasoma toleo la mwisho lililotolewa kwako."
 }

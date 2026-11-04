@@ -203,7 +203,9 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
                 event.pathologistUid,
                 role: .pathologist,
               );
-        signed = reports.firstWhereOrNull((r) => r.uid == signedUid);
+        signed = reports.firstWhereOrNull(
+          (r) => r.caseUid == event.caseUid && r.uid == signedUid,
+        );
       }
       final shownAt = state.prereadShownAt.isNotEmpty
           ? state.prereadShownAt

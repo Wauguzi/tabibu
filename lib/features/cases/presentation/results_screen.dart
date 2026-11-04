@@ -21,6 +21,7 @@ import 'package:tabibu/features/cases/presentation/result_copy.dart';
 import 'package:tabibu/features/home/presentation/widgets/shell_tab_page.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
+import 'package:tabibu/features/reports/data/report_for_case.dart';
 import 'package:tabibu/features/reports/presentation/widgets/results_slide.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
@@ -94,12 +95,10 @@ class _ResultsScreenState extends State<ResultsScreen> {
     return test.contains(folded) || doctor.contains(folded);
   }
 
-  PathologyReportModel? _reportFor(CaseModel c, List<PathologyReportModel> rs) {
-    if (c.currentReportUid.isEmpty) {
-      return rs.firstWhereOrNull((r) => r.caseUid == c.uid);
-    }
-    return rs.firstWhereOrNull((r) => r.uid == c.currentReportUid);
-  }
+  PathologyReportModel? _reportFor(
+    CaseModel c,
+    List<PathologyReportModel> rs,
+  ) => reportForCase(reports: rs, caseUid: c.uid, role: .patient);
 
   String _discussionDate(
     CaseModel c,

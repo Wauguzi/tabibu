@@ -104,12 +104,17 @@ class _ShareReportScreenState extends State<ShareReportScreen> {
     final textTheme = Theme.of(context).textTheme;
     final directory = context.watch<DirectoryBloc>().state;
     final writing = context.watch<ShareBloc>().state is ShareWriteInProgress;
+    final recipients = shareRecipientsOf(
+      directory.all,
+      query: directory.query,
+      excludeUid: _uid,
+    );
     final loading =
-        directory.visible.isEmpty &&
+        directory.all.isEmpty &&
         (directory is DirectoryInitial || directory is DirectoryLoadInProgress);
     final showEmpty =
         !loading &&
-        directory.visible.isEmpty &&
+        recipients.isEmpty &&
         (directory is DirectoryLoadSuccess ||
             directory is DirectoryLoadFailure);
 
@@ -183,7 +188,7 @@ class _ShareReportScreenState extends State<ShareReportScreen> {
                             body: l10n.findDoctorNoResultsBody,
                           )
                         else
-                          for (final practitioner in directory.visible) ...[
+                          for (final practitioner in recipients) ...[
                             _RecipientCard(
                               practitioner: practitioner,
                               selected: practitioner.uid == _selectedUid,

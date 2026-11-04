@@ -80,7 +80,7 @@ void main() {
 
   group('open', () {
     blocTest<ReportReaderBloc, ReportReaderState>(
-      'an unreleased report reads no explanation at all',
+      'an unreleased report is denied to the patient',
       setUp: () => when(
         () => reports.syncReports('u1', role: Role.patient),
       ).thenAnswer((_) async => [_report()]),
@@ -89,13 +89,86 @@ void main() {
         const ReportReaderOpened(uid: 'u1', role: Role.patient, caseUid: _case),
       ),
       verify: (bloc) {
-        expect(bloc.state.report, _report());
+        expect(bloc.state.report, isNull);
         verifyNever(
           () => reports.syncApprovedText(
             caseUid: any(named: 'caseUid'),
             textUid: any(named: 'textUid'),
           ),
         );
+      },
+    );
+
+    blocTest<ReportReaderBloc, ReportReaderState>(
+      'a patient keeps the last released when the current is not',
+      setUp: () {
+        when(() => reports.syncReports('u1', role: Role.patient)).thenAnswer(
+          (_) async => [
+            PathologyReportModel.empty().copyWith(
+              uid: 'v1',
+              caseUid: _case,
+              version: 1,
+              status: ReportStatus.superseded.value,
+              releasedToPatient: true,
+              diagnosis: 'Last released',
+            ),
+            PathologyReportModel.empty().copyWith(
+              uid: 'v2',
+              caseUid: _case,
+              version: 2,
+              status: ReportStatus.signed.value,
+              releasedToPatient: false,
+              diagnosis: 'Unreleased current',
+            ),
+          ],
+        );
+        when(
+          () => reports.syncApprovedText(
+            caseUid: _case,
+            textUid: 'v1_Explanation_en',
+          ),
+        ).thenAnswer((_) async => _approved);
+      },
+      build: build,
+      act: (bloc) => bloc.add(
+        const ReportReaderOpened(uid: 'u1', role: Role.patient, caseUid: _case),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.report?.uid, 'v1');
+        expect(bloc.state.report?.diagnosis, 'Last released');
+        expect(bloc.state.approved, {'en': _approved});
+      },
+    );
+
+    blocTest<ReportReaderBloc, ReportReaderState>(
+      'a doctor still reads the current unreleased version',
+      setUp: () =>
+          when(() => reports.syncReports('d1', role: Role.doctor)).thenAnswer(
+            (_) async => [
+              PathologyReportModel.empty().copyWith(
+                uid: 'v1',
+                caseUid: _case,
+                version: 1,
+                status: ReportStatus.superseded.value,
+                releasedToPatient: true,
+              ),
+              PathologyReportModel.empty().copyWith(
+                uid: 'v2',
+                caseUid: _case,
+                version: 2,
+                status: ReportStatus.signed.value,
+                releasedToPatient: false,
+                diagnosis: 'Current for doctor',
+              ),
+            ],
+          ),
+      build: build,
+      act: (bloc) => bloc.add(
+        const ReportReaderOpened(uid: 'd1', role: Role.doctor, caseUid: _case),
+      ),
+      verify: (bloc) {
+        expect(bloc.state.report?.uid, 'v2');
+        expect(bloc.state.report?.diagnosis, 'Current for doctor');
       },
     );
 

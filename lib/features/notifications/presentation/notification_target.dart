@@ -84,8 +84,15 @@ GoRouteData? notificationsHome(RoleHelper roles) => switch (roles.role) {
   null => null,
 };
 
-/// Where a banner or push tap navigates: the shared row mapping, else the
-/// inbox. Row taps keep using [notificationTarget] alone (F-7).
+/// Where a loaded inbox row opens for every tap surface (inbox, push, banner):
+/// share-code entry first (T-18), then the deep link. Null when the row has no
+/// screen of its own; the inbox then only marks it read, and a push or banner
+/// tap falls back to the inbox itself.
+GoRouteData? notificationRowTarget(NotificationModel row, RoleHelper roles) =>
+    shareCodeTarget(row, roles) ??
+    notificationTarget(row.metadata.deepLink, roles);
+
+/// A plain deep-link payload with no row: the Tier 1 screen, else the inbox.
 GoRouteData? notificationTapRoute(String deepLink, RoleHelper roles) =>
     notificationTarget(deepLink, roles) ?? notificationsHome(roles);
 

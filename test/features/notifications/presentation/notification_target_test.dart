@@ -101,6 +101,61 @@ void main() {
     });
   });
 
+  group('notificationRowTarget', () {
+    NotificationModel row(
+      String uid, {
+      String deepLink = '/cases/c1',
+      String code = '4821',
+    }) => NotificationModel(
+      uid: uid,
+      metadata: NotificationMetadataModel(deepLink: deepLink, shareCode: code),
+    );
+
+    String? targetOf(NotificationModel n, RoleHelper roles) =>
+        notificationRowTarget(n, roles)?.location;
+
+    test('reportSigned with an unredeemed code opens code entry', () {
+      expect(
+        targetOf(row('reportSigned:c1_r1:doc-1'), doctor),
+        '/doctor/share/unlock_c1_r1',
+      );
+    });
+
+    test('reportSigned with no code opens the case deep link', () {
+      expect(
+        targetOf(row('reportSigned:c1_r1:doc-1', code: ''), doctor),
+        '/doctor/case/c1',
+      );
+    });
+
+    test('caseShared opens code entry before the case', () {
+      expect(targetOf(row('caseShared:s1:doc-1'), doctor), '/doctor/share/s1');
+      expect(
+        targetOf(row('caseShared:s1:pa-1'), pathologist),
+        '/pathologist/share/s1',
+      );
+    });
+
+    test('a Tier-1 row with no share code still opens its deep link', () {
+      expect(
+        targetOf(row('resultReleased:c1:pat-1', code: ''), patient),
+        '/patient/result/c1',
+      );
+    });
+
+    test('a deep link with no screen and no share has no target', () {
+      // The inbox then only marks the row read; a push or banner tap falls
+      // back to the inbox itself (app.dart).
+      expect(
+        targetOf(
+          row('x:y:doc-1', deepLink: '/conversations/x1', code: ''),
+          doctor,
+        ),
+        isNull,
+      );
+    });
+  });
+
   group('shareCodeTarget', () {
     NotificationModel shareRow(String uid, {String code = '4821'}) =>
         NotificationModel(

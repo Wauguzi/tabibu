@@ -304,4 +304,29 @@ void main() {
     ];
     expect(visibleOf(all, query: '').map((d) => d.uid), ['a', 'c', 'b']);
   });
+
+  test(
+    'shareRecipientsOf keeps pathologists and unavailable; drops the sender',
+    () {
+      final all = [
+        _doc('b', firstName: 'Zane', lastName: 'Wanjiru'),
+        _doc('a'),
+        _doc('p', isPathologist: true, firstName: 'Pia', lastName: 'Path'),
+        _doc('u', isAvailable: false, firstName: 'Una', lastName: 'Avail'),
+        _doc('me', firstName: 'Self', lastName: 'Sender'),
+      ];
+      expect(
+        shareRecipientsOf(all, query: '', excludeUid: 'me').map((d) => d.uid),
+        ['u', 'a', 'p', 'b'],
+      );
+      expect(
+        shareRecipientsOf(
+          all,
+          query: 'path',
+          excludeUid: 'me',
+        ).map((d) => d.uid),
+        ['p'],
+      );
+    },
+  );
 }

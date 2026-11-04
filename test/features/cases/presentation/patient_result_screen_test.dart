@@ -190,6 +190,179 @@ void main() {
       ).called(1);
     });
 
+    testWidgets(
+      'two cases with the same report uid each open their own diagnosis',
+      (tester) async {
+        _useTallSurface(tester);
+        await pumpScreen(
+          tester,
+          caseUid: 'c2',
+          cases: const CasesLoadSuccess(
+            cases: [
+              CaseModel(
+                uid: 'c1',
+                resultState: 'Released',
+                doctorName: 'Dr. A',
+                currentReportUid: 'v1',
+                tests: [OrderedTestModel(name: 'Case one')],
+              ),
+              CaseModel(
+                uid: 'c2',
+                resultState: 'Released',
+                doctorName: 'Dr. B',
+                currentReportUid: 'v1',
+                tests: [OrderedTestModel(name: 'Case two')],
+              ),
+            ],
+            reports: [
+              PathologyReportModel(
+                uid: 'v1',
+                caseUid: 'c1',
+                releasedToPatient: true,
+                diagnosis: 'Diagnosis for case one',
+                comments: 'Note one',
+              ),
+              PathologyReportModel(
+                uid: 'v1',
+                caseUid: 'c2',
+                releasedToPatient: true,
+                diagnosis: 'Diagnosis for case two',
+                comments: 'Note two',
+              ),
+            ],
+          ),
+        );
+
+        expect(find.text('Note two'), findsOneWidget);
+        expect(find.text('Note one'), findsNothing);
+        expect(find.text('Diagnosis for case one'), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'update waiting keeps the last released report and shows the notice',
+      (tester) async {
+        _useTallSurface(tester);
+        final l10n = lookupAppLocalizations(const Locale('en'));
+        await pumpScreen(
+          tester,
+          cases: const CasesLoadSuccess(
+            cases: [
+              CaseModel(
+                uid: 'c1',
+                resultState: 'UpdateWithDoctor',
+                doctorName: 'Dr. Kamau',
+                currentReportUid: 'v2',
+                tests: [OrderedTestModel(name: 'Lymph node')],
+              ),
+            ],
+            reports: [
+              PathologyReportModel(
+                uid: 'v1',
+                caseUid: 'c1',
+                version: 1,
+                status: 'Superseded',
+                releasedToPatient: true,
+                releasedAt: '2024-09-12T00:00:00Z',
+                comments: 'Last released note',
+              ),
+              PathologyReportModel(
+                uid: 'v2',
+                caseUid: 'c1',
+                version: 2,
+                comments: 'Unreleased amendment',
+              ),
+            ],
+          ),
+        );
+
+        expect(find.text('Last released note'), findsOneWidget);
+        expect(find.text('Unreleased amendment'), findsNothing);
+        expect(find.text(l10n.resultsWaitingHeadline), findsNothing);
+        expect(find.textContaining('reviewing an update'), findsOneWidget);
+      },
+    );
+
+    testWidgets('update waiting with nothing released shows the waiting view', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpScreen(
+        tester,
+        cases: const CasesLoadSuccess(
+          cases: [
+            CaseModel(
+              uid: 'c1',
+              resultState: 'UpdateWithDoctor',
+              doctorName: 'Dr. Kamau',
+              currentReportUid: 'v2',
+              tests: [OrderedTestModel(name: 'Lymph node')],
+            ),
+          ],
+          reports: [
+            PathologyReportModel(
+              uid: 'v2',
+              caseUid: 'c1',
+              version: 2,
+              comments: 'Unreleased only',
+            ),
+          ],
+        ),
+      );
+
+      expect(find.text(l10n.resultsWaitingHeadline), findsOneWidget);
+      expect(find.text('Unreleased only'), findsNothing);
+    });
+
+    for (final locale in [const Locale('en'), const Locale('sw')]) {
+      for (final scale in [1.0, 2.0]) {
+        testWidgets('update notice at ${scale}x in ${locale.languageCode}', (
+          tester,
+        ) async {
+          _useTallSurface(tester);
+          tester.platformDispatcher.textScaleFactorTestValue = scale;
+          addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+          final l10n = lookupAppLocalizations(locale);
+          await pumpScreen(
+            tester,
+            locale: locale,
+            cases: const CasesLoadSuccess(
+              cases: [
+                CaseModel(
+                  uid: 'c1',
+                  resultState: 'UpdateWithDoctor',
+                  doctorName: 'Dr. Kamau',
+                  currentReportUid: 'v2',
+                  tests: [OrderedTestModel(name: 'Lymph node')],
+                ),
+              ],
+              reports: [
+                PathologyReportModel(
+                  uid: 'v1',
+                  caseUid: 'c1',
+                  version: 1,
+                  status: 'Superseded',
+                  releasedToPatient: true,
+                  releasedAt: '2024-09-12T00:00:00Z',
+                  comments: 'Released body',
+                ),
+                PathologyReportModel(uid: 'v2', caseUid: 'c1', version: 2),
+              ],
+            ),
+          );
+          expect(
+            find.textContaining(
+              locale.languageCode == 'sw' ? 'sasisho' : 'update',
+            ),
+            findsOneWidget,
+          );
+          expect(find.text(l10n.resultsWaitingHeadline), findsNothing);
+          expect(tester.takeException(), isNull);
+        });
+      }
+    }
+
     testWidgets('shared shows doctor note and a Download action', (
       tester,
     ) async {
@@ -215,6 +388,7 @@ void main() {
               caseUid: 'c1',
               testName: 'Full blood count',
               signedAt: '2024-09-12T00:00:00Z',
+              releasedToPatient: true,
               comments: 'Your blood count is in the healthy range.',
               diagnosis: 'Normal',
             ),
@@ -253,7 +427,13 @@ void main() {
             tests: [OrderedTestModel(name: 'Full blood count')],
           ),
         ],
-        reports: [PathologyReportModel(uid: 'r1', caseUid: 'c1')],
+        reports: [
+          PathologyReportModel(
+            uid: 'r1',
+            caseUid: 'c1',
+            releasedToPatient: true,
+          ),
+        ],
       );
 
       Future<void> pumpRouted(WidgetTester tester) async {
@@ -424,7 +604,12 @@ void main() {
             ),
           ],
           reports: [
-            PathologyReportModel(uid: 'r1', caseUid: 'c1', comments: 'Note'),
+            PathologyReportModel(
+              uid: 'r1',
+              caseUid: 'c1',
+              releasedToPatient: true,
+              comments: 'Note',
+            ),
           ],
         ),
       );
@@ -442,7 +627,13 @@ void main() {
             tests: [OrderedTestModel(name: 'Lymph node')],
           ),
         ],
-        reports: [PathologyReportModel(uid: 'r1', caseUid: 'c1')],
+        reports: [
+          PathologyReportModel(
+            uid: 'r1',
+            caseUid: 'c1',
+            releasedToPatient: true,
+          ),
+        ],
       );
 
       ReportReaderState reader({

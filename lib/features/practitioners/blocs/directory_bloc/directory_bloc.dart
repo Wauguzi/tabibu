@@ -154,14 +154,33 @@ List<PractitionerModel> visibleOf(
         if (specialty == null || row.specialties.contains(specialty.value))
           if (needle.isEmpty || _matches(row, needle)) row,
   ];
-  return rows..sort((a, b) {
+  return _sortedByName(rows);
+}
+
+/// Verified doctors and pathologists for sharing a report: the full directory
+/// minus [excludeUid], narrowed by [query]. Booking availability is ignored.
+List<PractitionerModel> shareRecipientsOf(
+  List<PractitionerModel> all, {
+  required String query,
+  required String excludeUid,
+}) {
+  final needle = foldForSearch(query);
+  final rows = [
+    for (final row in all)
+      if (row.uid != excludeUid)
+        if (needle.isEmpty || _matches(row, needle)) row,
+  ];
+  return _sortedByName(rows);
+}
+
+List<PractitionerModel> _sortedByName(List<PractitionerModel> rows) => rows
+  ..sort((a, b) {
     final byLast = foldForSearch(
       a.lastName,
     ).compareTo(foldForSearch(b.lastName));
     if (byLast != 0) return byLast;
     return foldForSearch(a.firstName).compareTo(foldForSearch(b.firstName));
   });
-}
 
 bool _matches(PractitionerModel row, String needle) {
   if (foldForSearch(row.fullName).contains(needle)) return true;

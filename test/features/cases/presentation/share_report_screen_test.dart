@@ -29,12 +29,14 @@ PractitionerModel _doctor({
   String first = 'Wanjiru',
   String last = 'Kamau',
   bool pathologist = false,
+  bool available = true,
 }) => PractitionerModel.empty().copyWith(
   uid: uid,
   title: 'Dr.',
   firstName: first,
   lastName: last,
   isPathologist: pathologist,
+  isAvailable: available,
   specialties: [if (pathologist) 'Histopathology' else 'General surgery'],
   facilityName: 'Aga Khan University Hospital',
 );
@@ -139,6 +141,52 @@ void main() {
         ),
         findsOneWidget,
       );
+    });
+
+    testWidgets(
+      'lists pathologists and unavailable doctors; hides the sender',
+      (tester) async {
+        await pumpScreen(
+          tester,
+          visible: [
+            _doctor(),
+            _doctor(
+              uid: 'pa-1',
+              first: 'Achieng',
+              last: 'Odhiambo',
+              pathologist: true,
+            ),
+            _doctor(
+              uid: 'dr-busy',
+              first: 'Busy',
+              last: 'Doc',
+              available: false,
+            ),
+            _doctor(uid: 'patient-1', first: 'Self', last: 'Sender'),
+          ],
+        );
+
+        expect(find.text('Dr. Wanjiru Kamau'), findsOneWidget);
+        expect(find.text('Dr. Achieng Odhiambo'), findsOneWidget);
+        expect(find.text('Dr. Busy Doc'), findsOneWidget);
+        expect(find.text('Dr. Self Sender'), findsNothing);
+      },
+    );
+
+    testWidgets('directory query state narrows the share list', (tester) async {
+      final kamau = _doctor();
+      final other = _doctor(uid: 'dr-2', first: 'Other', last: 'Otieno');
+      await pumpScreen(
+        tester,
+        directory: DirectoryLoadSuccess(
+          all: [kamau, other],
+          visible: [kamau],
+          query: 'kam',
+        ),
+      );
+
+      expect(find.text('Dr. Wanjiru Kamau'), findsOneWidget);
+      expect(find.text('Dr. Other Otieno'), findsNothing);
     });
 
     testWidgets('typing in the search field filters through the directory', (
