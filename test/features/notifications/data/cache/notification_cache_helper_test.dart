@@ -539,11 +539,14 @@ void main() {
       ).thenAnswer((_) => deltas.stream);
 
       final ticks = <void>[];
-      final sub = helper.watchInbox('u1').listen(ticks.add);
+      final ticked = Completer<void>();
+      final sub = helper.watchInbox('u1').listen((tick) {
+        ticks.add(tick);
+        if (!ticked.isCompleted) ticked.complete();
+      });
 
       deltas.add([_note('n2', stamp: _t2, title: 'live')]);
-      await Future<void>.delayed(Duration.zero);
-      await Future<void>.delayed(Duration.zero);
+      await ticked.future.timeout(const Duration(seconds: 5));
 
       expect(ticks, hasLength(1));
       final inbox = await helper.getInbox('u1');
