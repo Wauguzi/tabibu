@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -53,6 +54,7 @@ void main() {
   Future<void> pumpControls(
     WidgetTester tester, {
     bool offline = false,
+    bool voiceInputEnabled = true,
     Locale locale = const Locale('en'),
     double textScale = 1,
   }) async {
@@ -70,6 +72,7 @@ void main() {
           recorder: recorder,
           cues: cues,
           offline: offline,
+          voiceInputEnabled: () => voiceInputEnabled,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},
@@ -86,6 +89,88 @@ void main() {
     expect(find.text(l10n.symptomVoiceUnsupported), findsOneWidget);
     expect(find.byType(CircleIconButton), findsNothing);
     expect(cues.calls, isEmpty);
+  });
+
+  testWidgets('client flag off hides mic before any recording', (tester) async {
+    await pumpControls(tester, voiceInputEnabled: false);
+    expect(find.text(l10n.symptomVoiceUnavailable), findsOneWidget);
+    expect(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel), findsNothing);
+    expect(find.text(l10n.symptomVoiceTranscribeLabel), findsNothing);
+  });
+
+  testWidgets(
+    'voiceUnavailable replaces buttons with the line and drops the clip',
+    (tester) async {
+      whenListen(
+        appointments,
+        Stream.fromIterable([
+          const SymptomsTranscribeFailure(error: AppError.voiceUnavailable),
+        ]),
+        initialState: const AppointmentsInitial(),
+      );
+      await tester.pumpApp(
+        BlocProvider<AppointmentsBloc>.value(
+          value: appointments,
+          child: SymptomVoiceControls(
+            patientUid: 'p1',
+            symptoms: symptoms,
+            recorder: recorder,
+            cues: cues,
+            voiceInputEnabled: () => true,
+            preferences: SharedPreferences.getInstance,
+            initialClip: fakeRecordedAudio(),
+            onTranscriptionUid: (_) {},
+            showAiNotice: (_) {},
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(l10n.symptomVoiceUnavailable), findsOneWidget);
+      expect(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel), findsNothing);
+      expect(find.text(l10n.symptomVoiceTranscribeLabel), findsNothing);
+      expect(find.text(l10n.symptomVoiceFailed), findsNothing);
+    },
+  );
+
+  testWidgets('offline failure keeps the record and transcribe buttons', (
+    tester,
+  ) async {
+    whenListen(
+      appointments,
+      Stream.fromIterable([
+        const SymptomsTranscribeFailure(error: AppError.noInternet),
+      ]),
+      initialState: const AppointmentsInitial(),
+    );
+    await tester.pumpApp(
+      BlocProvider<AppointmentsBloc>.value(
+        value: appointments,
+        child: SymptomVoiceControls(
+          patientUid: 'p1',
+          symptoms: symptoms,
+          recorder: recorder,
+          cues: cues,
+          voiceInputEnabled: () => true,
+          preferences: SharedPreferences.getInstance,
+          initialClip: fakeRecordedAudio(),
+          onTranscriptionUid: (_) {},
+          showAiNotice: (_) {},
+        ),
+      ),
+    );
+    await tester.pump();
+    await tester.pump();
+    expect(find.text(l10n.symptomVoiceOffline), findsOneWidget);
+    expect(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel), findsOneWidget);
+    expect(find.text(l10n.symptomVoiceTranscribeLabel), findsOneWidget);
+  });
+
+  testWidgets('unavailable still leaves typing working', (tester) async {
+    await pumpControls(tester, voiceInputEnabled: false);
+    symptoms.text = 'Typed while voice is off';
+    expect(symptoms.text, 'Typed while voice is off');
+    expect(find.text(l10n.symptomVoiceUnavailable), findsOneWidget);
   });
 
   testWidgets('started completes before the recorder opens', (tester) async {
@@ -123,6 +208,7 @@ void main() {
           symptoms: symptoms,
           recorder: recorder,
           cues: cues,
+          voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
           initialClip: fakeRecordedAudio(),
           onTranscriptionUid: (_) {},
@@ -192,6 +278,7 @@ void main() {
           symptoms: symptoms,
           recorder: recorder,
           cues: cues,
+          voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (value) => uid = value,
           showAiNotice: (value) => notice = value,
@@ -228,6 +315,7 @@ void main() {
           symptoms: symptoms,
           recorder: recorder,
           cues: cues,
+          voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},
@@ -263,6 +351,7 @@ void main() {
           symptoms: symptoms,
           recorder: recorder,
           cues: cues,
+          voiceInputEnabled: () => true,
           preferences: SharedPreferences.getInstance,
           onTranscriptionUid: (_) {},
           showAiNotice: (_) {},

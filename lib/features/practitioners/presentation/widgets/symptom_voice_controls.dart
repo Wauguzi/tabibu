@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -30,6 +31,7 @@ class SymptomVoiceControls extends StatefulWidget {
     this.recorder,
     this.cues,
     this.preferences,
+    this.voiceInputEnabled,
     this.offline = false,
     this.initialClip,
     this.maxSeconds = defaultMaxSeconds,
@@ -43,6 +45,10 @@ class SymptomVoiceControls extends StatefulWidget {
   final AudioRecorderService? recorder;
   final RecordingCueService? cues;
   final Future<SharedPreferences> Function()? preferences;
+
+  /// Client Remote Config `voice_input_enabled`; tests inject. Server template
+  /// remains the authority on refuse.
+  final bool Function()? voiceInputEnabled;
   final bool offline;
 
   /// Test hook: a finished clip ready to Transcribe without recording.
@@ -54,6 +60,7 @@ class SymptomVoiceControls extends StatefulWidget {
   static const defaultMaxSeconds = 45;
   static const symptomsMaxLength = 500;
   static const consentKey = 'symptom_voice_consent_v1';
+  static const voiceInputFlag = 'voice_input_enabled';
   static const AudioFormat recordFormat = .wav16k;
 
   @override
@@ -73,12 +80,32 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   var _status = '';
   var _consentShown = false;
 
+  /// In-memory only: a refuse or a false client flag hides mic until relaunch.
+  var _voiceUnavailable = false;
+
   @override
   void initState() {
     super.initState();
     _recorder = widget.recorder ?? getIt<AudioRecorderService>();
     _cues = widget.cues ?? getIt<RecordingCueService>();
     _pending = widget.initialClip;
+    if (!_readVoiceInputEnabled()) {
+      _voiceUnavailable = true;
+      _pending = null;
+    }
+  }
+
+  bool _readVoiceInputEnabled() {
+    final injected = widget.voiceInputEnabled;
+    if (injected != null) return injected();
+    try {
+      return FirebaseRemoteConfig.instance.getBool(
+        SymptomVoiceControls.voiceInputFlag,
+      );
+    } on Object catch (_) {
+      // Client defaults are on; the server refuse still gates a live call.
+      return true;
+    }
   }
 
   @override
@@ -116,6 +143,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
 
   Future<void> _toggleRecord() async {
     final l10n = context.l10n;
+    if (_voiceUnavailable) return;
     if (!_recorder.isSupported) {
       setState(() => _status = l10n.symptomVoiceUnsupported);
       return;
@@ -197,7 +225,7 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
 
   void _transcribe() {
     final clip = _pending;
-    if (clip == null || widget.offline) {
+    if (_voiceUnavailable || clip == null || widget.offline) {
       if (widget.offline) {
         setState(() => _status = context.l10n.symptomVoiceOffline);
       }
@@ -208,19 +236,38 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     );
   }
 
+  void _markUnavailable() {
+    if (_recording) unawaited(_recorder.cancel());
+    _tick?.cancel();
+    unawaited(_levelsSub?.cancel());
+    _levelsSub = null;
+    setState(() {
+      _voiceUnavailable = true;
+      _pending = null;
+      _recording = false;
+      _stopping = false;
+      _level = 0;
+      _status = '';
+      widget.onTranscriptionUid(null);
+      widget.showAiNotice(false);
+    });
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
     final scheme = Theme.of(context).colorScheme;
     final textTheme = Theme.of(context).textTheme;
+    final muted = textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant);
     final transcribing =
         context.watch<AppointmentsBloc>().state is SymptomsTranscribeInProgress;
 
+    if (_voiceUnavailable) {
+      return Text(l10n.symptomVoiceUnavailable, style: muted);
+    }
+
     if (!_recorder.isSupported) {
-      return Text(
-        l10n.symptomVoiceUnsupported,
-        style: textTheme.bodySmall?.copyWith(color: scheme.onSurfaceVariant),
-      );
+      return Text(l10n.symptomVoiceUnsupported, style: muted);
     }
 
     return BlocListener<AppointmentsBloc, AppointmentsState>(
@@ -251,6 +298,10 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
                   : l10n.symptomVoiceDeletedNotice;
             });
           case SymptomsTranscribeFailure(:final error):
+            if (error == AppError.voiceUnavailable) {
+              _markUnavailable();
+              return;
+            }
             setState(() {
               _status = error == AppError.noInternet
                   ? l10n.symptomVoiceOffline
@@ -306,20 +357,10 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
             ],
           ),
           const SizedBox(height: AppSpacing.xs),
-          Text(
-            l10n.symptomVoiceEnglishOnly,
-            style: textTheme.bodySmall?.copyWith(
-              color: scheme.onSurfaceVariant,
-            ),
-          ),
+          Text(l10n.symptomVoiceEnglishOnly, style: muted),
           if (_status.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),
-            Text(
-              _status,
-              style: textTheme.bodySmall?.copyWith(
-                color: scheme.onSurfaceVariant,
-              ),
-            ),
+            Text(_status, style: muted),
           ],
         ],
       ),

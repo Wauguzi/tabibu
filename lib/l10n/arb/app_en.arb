@@ -8541,6 +8541,10 @@
     "@symptomVoiceEnglishOnly": {
         "description": "Booking: speech recognition is English only; typing stays bilingual"
     },
+    "symptomVoiceUnavailable": "Voice input is not available right now. You can type your symptoms.",
+    "@symptomVoiceUnavailable": {
+        "description": "Booking: speech kill switch off (voiceDisabled); hide mic for the session"
+    },
     "chatVoiceRecordLabel": "Record a voice note",
     "@chatVoiceRecordLabel": {
         "description": "Chat: start recording a voice note (up to 120 s)"

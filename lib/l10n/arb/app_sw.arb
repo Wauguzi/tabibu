@@ -1788,6 +1788,7 @@
     "symptomVoiceFailed": "Hatukuweza kugeuza rekodi hiyo kuwa maandishi. Sehemu haijabadilika — andika dalili, au jaribu tena.",
     "symptomVoiceStartFailed": "Hatukuweza kuanza kurekodi. Andika dalili zako, au jaribu tena.",
     "symptomVoiceEnglishOnly": "Sauti inafanya kazi kwa Kiingereza. Unaweza kuandika kila wakati, kwa Kiingereza au Kiswahili.",
+    "symptomVoiceUnavailable": "Ingizo la sauti halipatikani kwa sasa. Unaweza kuandika dalili zako.",
     "chatVoiceRecordLabel": "Rekodi ujumbe wa sauti",
     "chatVoiceStopLabel": "Simamisha kurekodi",
     "chatVoiceCancelLabel": "Tupa",
