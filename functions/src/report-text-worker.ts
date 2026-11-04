@@ -453,17 +453,31 @@ async function runReportText(
   };
 }
 
-/** Everything the report's free text could name: the patient, the clinicians, the place, the ids. */
+/**
+ * Everything the report's free text could name: the patient, the clinicians, the place,
+ * the ids. Fails closed: when the case or the patient cannot be read, or no patient
+ * name is found anywhere, the job fails before any model call instead of running on
+ * near-raw text.
+ */
 async function subjectOfCase(
   deps: Deps,
   caseUid: string,
   report: DocumentData,
 ): Promise<DeidentifySubject> {
-  const c = (await deps.db.collection('cases').doc(caseUid).get()).data() ?? {};
+  const caseSnap = await deps.db.collection('cases').doc(caseUid).get();
+  if (!caseSnap.exists) throw new AiError('OffSchema');
+  const c = caseSnap.data() ?? {};
   const patientId = str(c.patientId);
-  const patient = patientId
-    ? (await deps.db.collection(PATIENTS).doc(patientId).get()).data()
-    : undefined;
+  const patientSnap = patientId ? await deps.db.collection(PATIENTS).doc(patientId).get() : undefined;
+  if (!patientSnap || !patientSnap.exists) throw new AiError('OffSchema');
+  const patient = patientSnap.data();
+  const patientNames = [
+    str(patient?.firstName),
+    str(patient?.middleName),
+    str(patient?.lastName),
+    str(c.patientName),
+  ].filter((n) => n !== '');
+  if (patientNames.length === 0) throw new AiError('OffSchema');
   // `DeidentifySubject` has no slot for a clinician's name; an id slot blanks any token the same way.
   const names = [
     str(report.signedByName),
@@ -490,6 +504,9 @@ async function subjectOfCase(
       str(c.doctorUid),
       str(c.pathologistUid),
       patientId,
+      str(c.doctorFacilityName),
+      str(report.signedByFacilityName),
+      str(patient?.nationalId),
       ...names,
       ...words,
     ],

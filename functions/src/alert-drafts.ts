@@ -1,4 +1,4 @@
-// cspell:ignore coun
+// cspell:ignore coun hatari haina madhara imeshadhibitiwa udhibiti hakuna hofu wasiwasi kuwa kujali
 /**
  * Alert drafting and decisions (07 §4-§5, plan §3.4-§3.5). The Drafting edge renders a
  * machine draft — or a template fallback when the model is off, fails, or writes
@@ -76,6 +76,28 @@ const BANNED_EN = [
   'will not spread',
   'do not worry',
   "don't worry",
+  'not dangerous',
+  'harmless',
+  'under control',
+  'no cause for alarm',
+  'nothing to worry',
+];
+
+/**
+ * Swahili partners of the reassurance phrases above. They sit here, not in
+ * `copy/alerts.sw.ts` beside `BANNED_SW`, only because that file is owned by
+ * another slice; move them there on the merge.
+ */
+const BANNED_SW_REASSURANCE = [
+  'si hatari',
+  'sio hatari',
+  'haina madhara',
+  'imeshadhibitiwa',
+  'iko chini ya udhibiti',
+  'hakuna sababu ya hofu',
+  'hakuna sababu ya wasiwasi',
+  'hakuna cha kuwa na wasiwasi',
+  'hakuna cha kujali',
 ];
 
 const PATIENT_PLACEHOLDERS = ['disease', 'county'];
@@ -135,7 +157,12 @@ export function checkDraftOutput(texts: MachineText): string {
   const sw = (['patient_sw', 'clinician_sw'] as const)
     .map((k) => lower(texts[k].headline) + '\n' + lower(texts[k].body))
     .join('\n');
-  if (BANNED_EN.some((p) => en.includes(p)) || BANNED_SW.some((p) => sw.includes(p))) return 'Banned';
+  if (
+    BANNED_EN.some((p) => en.includes(p)) ||
+    BANNED_SW.some((p) => sw.includes(p)) ||
+    BANNED_SW_REASSURANCE.some((p) => sw.includes(p))
+  )
+    return 'Banned';
   for (const [swKey, enKey] of [['patient_sw', 'patient_en'], ['clinician_sw', 'clinician_en']] as const) {
     if (texts[swKey].headline === texts[enKey].headline && texts[swKey].body === texts[enKey].body) {
       return 'OffSchema';
@@ -149,26 +176,68 @@ function normalizeClaim(text: string): string {
   return text.replace(/\s+/g, ' ').trim().toLowerCase();
 }
 
-/**
- * Framing that points the reader at the guidance block (shown beside the draft) is
- * allowed without being a bullet. Everything else without a `{placeholder}` must match
- * a guidance bullet exactly (bundle 62).
- */
-function isGuidanceFraming(sentence: string): boolean {
-  const n = normalizeClaim(sentence);
-  return (
-    n.includes('guidance') ||
-    n.includes('mwongozo') ||
-    n.includes('ministry of health') ||
-    n.includes('wizara ya afya') ||
-    n.includes('health facility') ||
-    n.includes('kituo cha afya')
-  );
+/** The template headlines, normalised: the only full-line headlines a draft may carry. */
+const FRAMING_HEADLINES = new Set([
+  'health alert: {disease} in {county} county',
+  'tahadhari ya afya: {disease} katika kaunti ya {county}',
+]);
+
+/** Words a headline may use besides `{placeholders}`: the template framing vocabulary. */
+const HEADLINE_FRAMING_WORDS = new Set([
+  'health',
+  'alert',
+  'in',
+  'county',
+  'tahadhari',
+  'ya',
+  'afya',
+  'katika',
+  'kaunti',
+]);
+
+/** Lower-cased words with placeholders and punctuation stripped. */
+function contentWords(text: string): string[] {
+  return text
+    .replace(/\{[a-zA-Z]+\}/g, ' ')
+    .toLowerCase()
+    .replace(/[^a-z\s]/g, ' ')
+    .split(/\s+/)
+    .filter((w) => w.length > 0);
 }
 
 /**
- * Non-placeholder body sentences must be framing or an exact guidance bullet for that
- * audience and language. Invented or rewritten claims fall back to the template.
+ * A headline is grounded when it is one of the framing lines or holds nothing
+ * but placeholders and framing words; an invented claim falls back.
+ */
+function isGroundedHeadline(headline: string): boolean {
+  if (FRAMING_HEADLINES.has(normalizeClaim(headline))) return true;
+  const words = contentWords(headline);
+  return words.length === 0 || words.every((w) => HEADLINE_FRAMING_WORDS.has(w));
+}
+
+/**
+ * The sentences a draft may carry besides an exact guidance bullet: the template's own, with their
+ * placeholders. A sentence that merely mentions the guidance is not framing: it could carry a
+ * claim of its own in the same breath, so only the template's sentences pass (bundle 77).
+ */
+function templateSentences(): Set<string> {
+  const out = new Set<string>();
+  const template = templateDraft(false);
+  for (const key of DRAFT_KEYS) {
+    for (const sentence of template[key].body.split(/(?<=[.!?])\s+/)) {
+      out.add(normalizeClaim(sentence));
+    }
+  }
+  return out;
+}
+
+/**
+ * Grounds every segment's headline and body against the guidance bundle. A headline
+ * passes only as a framing line or placeholders plus framing words. A body sentence
+ * passes only as an exact bullet for its audience and language or as one of the
+ * template's own sentences (placeholders intact); a sentence that merely mentions the
+ * guidance, or that adds a claim around a placeholder, is invented or rewritten and
+ * falls back to the template.
  */
 export function checkGuidanceGrounding(
   texts: MachineText,
@@ -182,18 +251,22 @@ export function checkGuidanceGrounding(
     }
     return set;
   };
+  const framing = templateSentences();
   for (const key of DRAFT_KEYS) {
     const audience = key.startsWith('patient_') ? 'Patient' : 'Clinician';
     const lang = key.endsWith('_sw') ? 'sw' : 'en';
     const allowed = bulletsFor(audience, lang);
+    if (!isGroundedHeadline(texts[key].headline)) return 'OffSchema';
     const sentences = texts[key].body
       .split(/(?<=[.!?])\s+/)
       .map((s) => s.trim())
       .filter((s) => s.length > 0);
     for (const sentence of sentences) {
-      if (/\{[a-zA-Z]+\}/.test(sentence)) continue;
-      if (isGuidanceFraming(sentence)) continue;
-      if (!allowed.has(normalizeClaim(sentence))) return 'OffSchema';
+      const remainder = sentence.replace(/\{[a-zA-Z]+\}/g, ' ');
+      if (contentWords(remainder).length === 0) continue;
+      const claim = normalizeClaim(sentence);
+      if (allowed.has(claim) || framing.has(claim)) continue;
+      return 'OffSchema';
     }
   }
   return '';

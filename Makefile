@@ -383,15 +383,19 @@ seed-cases-emulator:
 		  ./node_modules/.bin/ts-node src/seed-cases.ts
 
 # Read-only: every seeded demo case matches its expected stage, slides, accession and pre-read.
-# e.g. make check-demo SEED_CASES_TAG=…
+# Against the live project CONFIRM must name it; against an emulator it is not needed.
+# e.g. make check-demo CONFIRM=tabibu-86ea2 SEED_CASES_TAG=…
 check-demo:
+		@test -n "$(FIRESTORE_EMULATOR_HOST)" || test "$(CONFIRM)" = "$(PROJECT)" || { echo "usage: make check-demo CONFIRM=$(PROJECT) [SEED_CASES_TAG=…]"; exit 1; }
 		cd functions && ./node_modules/.bin/ts-node scripts/check-demo.ts
 
 # Until the app has an approval screen: verifies one practitioner as verifyPractitioner does
-# (status, then role claim). Dry run unless CONFIRM names the project.
+# (status, then role claim). Dry run unless CONFIRM names the project; a CONFIRM that
+# names anything else fails instead of silently dry-running.
 # e.g. make verify-practitioner PRACTITIONER=<uid>, then again with CONFIRM=tabibu-86ea2
 verify-practitioner:
 		@test -n "$(PRACTITIONER)" || { echo "usage: make verify-practitioner PRACTITIONER=<uid> [CONFIRM=$(PROJECT)]"; exit 1; }
+		@test -z "$(CONFIRM)" || test "$(CONFIRM)" = "$(PROJECT)" || { echo "CONFIRM names no project I know: use CONFIRM=$(PROJECT) or leave it unset for a dry run."; exit 1; }
 		cd functions && npm install --silent
 		node scripts/verify-practitioner.cjs $(PROJECT) $(PRACTITIONER) $(if $(CONFIRM),--confirm $(CONFIRM))
 

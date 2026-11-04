@@ -1,8 +1,9 @@
-// cspell:ignore muse
+// cspell:ignore muse Camillus Brendan
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 
 import { AiError } from './ai';
+import type { FetchLike } from './ai-meta';
 import { BUCKET, resetEmulators } from './emulator.test-support';
 import { seedWorld, type World } from './case.test-support';
 import { sha256 } from './case-support';
@@ -160,18 +161,38 @@ describe('processQueuedReportText', () => {
     w = await seedWorld();
   });
 
-  async function seedQueued(opts?: {
-    enabled?: boolean;
+  async function seedPatient(extra: Record<string, unknown> = {}): Promise<string> {
+    const patientId = randomUUID();
+    await w.deps.db.collection('patients').doc(patientId).set({
+      patientId,
+      firstName: 'Amina',
+      middleName: '',
+      lastName: 'Wambui',
+      ...extra,
+    });
+    return patientId;
+  }
+
+  interface SeedDocsOpts {
     kind?: 'Explanation' | 'Translation';
     language?: 'en' | 'sw';
     mutateReport?: (r: Record<string, unknown>) => void;
     caseExtra?: Record<string, unknown>;
-    onSource?: (source: ReportSourceFields) => void;
-  }): Promise<{ caseUid: string; textUid: string; reportUid: string }> {
+    patientExtra?: Record<string, unknown>;
+    /** Leave the case document unwritten: the report and text dangle beneath it. */
+    skipCase?: boolean;
+    /** Point the case at a patient id with no document behind it. */
+    skipPatient?: boolean;
+  }
+
+  async function seedDocs(
+    opts: SeedDocsOpts = {},
+  ): Promise<{ caseUid: string; textUid: string; reportUid: string }> {
     const caseUid = randomUUID();
+    const patientId = opts.skipPatient ? randomUUID() : await seedPatient(opts.patientExtra);
     const reportUid = 'v1';
-    const kind = opts?.kind ?? 'Explanation';
-    const language = opts?.language ?? 'en';
+    const kind = opts.kind ?? 'Explanation';
+    const language = opts.language ?? 'en';
     const textUid = `${reportUid}_${kind}_${language}`;
     const report: Record<string, unknown> = {
       caseUid,
@@ -201,16 +222,20 @@ describe('processQueuedReportText', () => {
       signedByFacilityName: '',
       signatureSha256: 'sig',
     };
-    opts?.mutateReport?.(report);
+    opts.mutateReport?.(report);
     const contentSha256 = sha256(stableReportContent(report));
-    await w.deps.db.collection('cases').doc(caseUid).set({
-      uid: caseUid,
-      currentReportUid: reportUid,
-      doctorUid: w.doctor.uid,
-      pathologistUid: w.pathologist.uid,
-      participantUids: [w.doctor.uid, w.pathologist.uid],
-      ...opts?.caseExtra,
-    });
+    if (!opts.skipCase) {
+      await w.deps.db.collection('cases').doc(caseUid).set({
+        uid: caseUid,
+        currentReportUid: reportUid,
+        patientId,
+        patientName: 'Amina Wambui',
+        doctorUid: w.doctor.uid,
+        pathologistUid: w.pathologist.uid,
+        participantUids: [w.doctor.uid, w.pathologist.uid],
+        ...opts.caseExtra,
+      });
+    }
     await w.deps.db.collection('cases').doc(caseUid).collection('reports').doc(reportUid).set({
       ...report,
       contentSha256,
@@ -237,6 +262,16 @@ describe('processQueuedReportText', () => {
       approvedAt: '',
       lastUpdatedAt: '2026-11-03T00:00:00.000Z',
     });
+    return { caseUid, textUid, reportUid };
+  }
+
+  async function seedQueued(
+    opts?: SeedDocsOpts & {
+      enabled?: boolean;
+      onSource?: (source: ReportSourceFields) => void;
+    },
+  ): Promise<{ caseUid: string; textUid: string; reportUid: string }> {
+    const { caseUid, textUid, reportUid } = await seedDocs(opts ?? {});
     await processQueuedReportText(
       { ...w.deps, bucket: BUCKET },
       caseUid,
@@ -308,7 +343,8 @@ describe('processQueuedReportText', () => {
       signatureSha256: '',
     };
     const contentSha256 = sha256(stableReportContent(report));
-    await w.deps.db.collection('cases').doc(caseUid).set({ uid: caseUid });
+    const patientId = await seedPatient();
+    await w.deps.db.collection('cases').doc(caseUid).set({ uid: caseUid, patientId, patientName: 'Amina Wambui' });
     await w.deps.db.collection('cases').doc(caseUid).collection('reports').doc(reportUid).set({
       ...report,
       contentSha256,
@@ -440,6 +476,105 @@ describe('processQueuedReportText', () => {
     assert.match(sent.responses[0].answer, /\[(?:NAME|ID)\]/);
   });
 
+  function fetchSpy(replyText: string): {
+    fetch: FetchLike;
+    calls: () => number;
+    sentInput: () => string;
+  } {
+    let calls = 0;
+    let sentInput = '';
+    const fetch = (async (_url: unknown, init?: { body?: unknown }) => {
+      calls += 1;
+      const body = JSON.parse(String(init?.body ?? '{}')) as { input?: unknown };
+      sentInput = typeof body.input === 'string' ? body.input : '';
+      return {
+        ok: true,
+        status: 200,
+        text: async () => JSON.stringify({ output_text: JSON.stringify({ text: replyText }) }),
+      } as Response;
+    }) as unknown as FetchLike;
+    return { fetch, calls: () => calls, sentInput: () => sentInput };
+  }
+
+  async function failedDoc(caseUid: string, textUid: string): Promise<{ status?: unknown; failureReason?: unknown }> {
+    const doc = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('reportTexts').doc(textUid).get()
+    ).data();
+    return { status: doc?.status, failureReason: doc?.failureReason };
+  }
+
+  it('a missing case fails before any model call', async () => {
+    const { caseUid, textUid } = await seedDocs({ skipCase: true });
+    const spy = fetchSpy('unused');
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      { enabled: true, apiKey: 'test-key', fetch: spy.fetch },
+    );
+    assert.deepEqual(await failedDoc(caseUid, textUid), { status: 'Failed', failureReason: 'OffSchema' });
+    assert.equal(spy.calls(), 0);
+  });
+
+  it('a missing patient fails before any model call', async () => {
+    const { caseUid, textUid } = await seedDocs({ skipPatient: true });
+    const spy = fetchSpy('unused');
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      { enabled: true, apiKey: 'test-key', fetch: spy.fetch },
+    );
+    assert.deepEqual(await failedDoc(caseUid, textUid), { status: 'Failed', failureReason: 'OffSchema' });
+    assert.equal(spy.calls(), 0);
+  });
+
+  it('a patient with no name anywhere fails before any model call', async () => {
+    const { caseUid, textUid } = await seedDocs({
+      patientExtra: { firstName: '', lastName: '' },
+      caseExtra: { patientName: '' },
+    });
+    const spy = fetchSpy('unused');
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      { enabled: true, apiKey: 'test-key', fetch: spy.fetch },
+    );
+    assert.deepEqual(await failedDoc(caseUid, textUid), { status: 'Failed', failureReason: 'OffSchema' });
+    assert.equal(spy.calls(), 0);
+  });
+
+  it('both facility names and the national id leave the serialised input', async () => {
+    // Fictional facilities, absent from the bundled list, so only the subject
+    // ids can strip them; the id sits bare, with no ID prefix to catch it.
+    const { caseUid, textUid } = await seedDocs({
+      caseExtra: { doctorFacilityName: 'St. Camillus Mission Hospital' },
+      patientExtra: { nationalId: '87654321' },
+      mutateReport: (r) => {
+        r.signedByFacilityName = 'St. Brendan Outreach Clinic';
+        r.comments = 'Seen at St. Camillus Mission Hospital, then St. Brendan Outreach Clinic; file 87654321.';
+      },
+    });
+    const spy = fetchSpy(
+      'The signed report finds metastatic carcinoma in 2 of 5 nodes. The largest deposit measures 1.2 mm.',
+    );
+    await processQueuedReportText(
+      { ...w.deps, bucket: BUCKET },
+      caseUid,
+      textUid,
+      { enabled: true, apiKey: 'test-key', fetch: spy.fetch },
+    );
+    const doc = (
+      await w.deps.db.collection('cases').doc(caseUid).collection('reportTexts').doc(textUid).get()
+    ).data();
+    assert.equal(doc?.status, 'Ready');
+    assert.equal(spy.calls(), 1);
+    for (const leak of ['Camillus', 'Brendan', '87654321']) {
+      assert.ok(!spy.sentInput().includes(leak), `"${leak}" reached the model`);
+    }
+  });
+
   it('a changed answer after signing fails the content-hash check', async () => {
     const { caseUid, textUid, reportUid } = await seedQueued({
       mutateReport: (r) => {
@@ -520,7 +655,8 @@ describe('processQueuedReportText', () => {
       signatureSha256: '',
     };
     const contentSha256 = sha256(stableReportContent(report));
-    await w.deps.db.collection('cases').doc(caseUid).set({ uid: caseUid });
+    const patientId = await seedPatient();
+    await w.deps.db.collection('cases').doc(caseUid).set({ uid: caseUid, patientId, patientName: 'Amina Wambui' });
     await w.deps.db.collection('cases').doc(caseUid).collection('reports').doc(reportUid).set({
       ...report,
       contentSha256,
@@ -655,7 +791,8 @@ describe('processQueuedReportText', () => {
       diagnosisType: '',
     };
     const contentSha256 = sha256(stableReportContent(report));
-    await w.deps.db.collection('cases').doc(caseUid).set({ uid: caseUid });
+    const patientId = await seedPatient();
+    await w.deps.db.collection('cases').doc(caseUid).set({ uid: caseUid, patientId, patientName: 'Amina Wambui' });
     await w.deps.db.collection('cases').doc(caseUid).collection('reports').doc(reportUid).set({
       ...report,
       contentSha256,

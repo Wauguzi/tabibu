@@ -172,9 +172,9 @@ model output.
 After seeding, run the read-only check (no writes):
 
 ```sh
-cd functions && npx ts-node scripts/check-demo.ts
+make check-demo CONFIRM=tabibu-86ea2
 # or, with the same tag you seeded:
-SEED_CASES_TAG=… npx ts-node scripts/check-demo.ts
+make check-demo CONFIRM=tabibu-86ea2 SEED_CASES_TAG=…
 ```
 
 ## Checking it

@@ -596,13 +596,24 @@ export async function recordSampleReceivedHandler(
   return db.runTransaction(async (tx) => {
     const { ref, s } = await loadCase(tx, db, caseUid);
     if (s.pathologistUid !== c.uid) throw refuse('permission-denied', 'notOnCase');
+    if (s.currentStage === 'PathologistAccepted') {
+      // A reassign lands the new pathologist here with the old accession still on
+      // the case: the same number or a new one both receive the sample, and the
+      // stage moves so a report can start.
+      const next = transition(s, 'SampleReceived', {
+        actorUid: c.uid,
+        actorRole: 'Pathologist',
+      }).with({ sampleReceivedAt: timestamp(now), labAccessionNo: accession });
+      commitCase(tx, ref, next, now);
+      return OK;
+    }
     if (s.labAccessionNo === accession) return OK;
     if (s.labAccessionNo !== '') throw refuse('failed-precondition', 'alreadyReceived');
-    const next = (
-      s.currentStage === 'PathologistAccepted'
-        ? transition(s, 'SampleReceived', { actorUid: c.uid, actorRole: 'Pathologist' })
-        : transition(s, s.currentStage, { actorUid: c.uid, actorRole: 'Pathologist', action: 'Receive' })
-    ).with({ sampleReceivedAt: timestamp(now), labAccessionNo: accession });
+    const next = transition(s, s.currentStage, {
+      actorUid: c.uid,
+      actorRole: 'Pathologist',
+      action: 'Receive',
+    }).with({ sampleReceivedAt: timestamp(now), labAccessionNo: accession });
     commitCase(tx, ref, next, now);
     return OK;
   });

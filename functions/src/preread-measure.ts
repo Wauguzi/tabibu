@@ -90,9 +90,11 @@ export function histologyMeasurements(
   micronsPerPixel: number,
 ): Record<string, number> {
   const tumour = tiles.filter((t) => t.label === 'Tumour').length;
+  const unknown = tiles.filter((t) => t.label === 'Unknown').length;
   return {
     tumourTiles: tumour,
-    normalTiles: tiles.length - tumour,
+    normalTiles: tiles.length - tumour - unknown,
+    unknownTiles: unknown,
     tumourAreaPercent: round2((100 * tumour) / Math.max(1, tiles.length)),
     largestFocusMm: round2(
       (largestFocusTiles(tiles, slide.rows, slide.cols) * slide.tilePx * micronsPerPixel) / 1000,
@@ -175,6 +177,10 @@ export function histologyDraft(tiles: Tile[], m: Record<string, number>): Prerea
   const evidence = tiles.filter((t) => t.label === 'Tumour').map((t) => t.id);
   const { confidence, confidenceBand } = confidenceOf(tiles);
   const any = m.tumourTiles > 0;
+  const unknown = tiles.filter((t) => t.label === 'Unknown').length;
+  // Unknown is not Normal: when nothing usable was labelled, or more than a tenth of
+  // the section went unlabelled, the draft says so instead of clearing the section.
+  const unlabelled = !any && (tiles.length - unknown === 0 || unknown / tiles.length > 0.1);
   return {
     findings: any
       ? [
@@ -187,10 +193,12 @@ export function histologyDraft(tiles: Tile[], m: Record<string, number>): Prerea
       : [{ text: 'No tile is marked as tumour.', evidenceIds: [] }],
     impression: any
       ? `Tumour suspected in the section, in the size range of ${focusClass(m.largestFocusMm)}.`
-      : 'No tumour suspected in the section.',
+      : unlabelled
+        ? 'The pre-read could not label enough of the section.'
+        : 'No tumour suspected in the section.',
     confidence,
     confidenceBand,
-    urgency: m.largestFocusMm > 0.2 ? 'Urgent' : any ? 'Priority' : 'Routine',
+    urgency: unlabelled ? 'Priority' : m.largestFocusMm > 0.2 ? 'Urgent' : any ? 'Priority' : 'Routine',
     nextSteps: ['Review the marked tiles at full size.', 'Correlate with the clinical notes before reporting.'],
   };
 }
