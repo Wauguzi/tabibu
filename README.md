@@ -77,8 +77,9 @@ Each role, in a line:
 - **Doctors** see their day, order tests, and join multidisciplinary (MDT) consults.
 - **Pathologists** work a desk of cases the AI read first, and sign every report themselves.
 
-The app is Flutter on iOS, Android and the web, backed only by Firebase. No model is called from
-the app: the AI service sits behind Cloud Functions.
+The app is built with Flutter for iOS, Android and the web, and talks only to Firebase. It never
+calls a model and holds no model key: the AI calls run inside Cloud Functions, which keep the one
+Meta Model API key in Secret Manager.
 
 ## Hackathon and partners
 
