@@ -114,6 +114,7 @@ class _OrderPatientStepState extends State<OrderPatientStep> {
               .toList();
     return ListView(
       padding: const EdgeInsets.all(AppSpacing.screenMargin),
+      keyboardDismissBehavior: .onDrag,
       children: [
         SectionHeader(title: l10n.orderPatientTitle),
         const SizedBox(height: AppSpacing.xs),

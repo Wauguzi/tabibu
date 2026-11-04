@@ -96,6 +96,26 @@ void main() {
       expect(tester.testTextInput.isVisible, isFalse);
     });
 
+    testWidgets('94: a tap outside the search field dismisses the keyboard', (
+      tester,
+    ) async {
+      useTallSurface(tester);
+      stub();
+      await pumpScreen(tester);
+
+      final search = find.byType(TextField);
+      await tester.tap(search);
+      await tester.pump();
+      final node = tester.widget<TextField>(search).focusNode!;
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tap(find.byType(DeskEntryRow).first);
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
     testWidgets('asks for the desk and the cases when it has none', (
       tester,
     ) async {

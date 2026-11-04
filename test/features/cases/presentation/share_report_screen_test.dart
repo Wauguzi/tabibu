@@ -110,6 +110,24 @@ void main() {
   }
 
   group('ShareReportScreen', () {
+    testWidgets('94: a tap outside the search field dismisses the keyboard', (
+      tester,
+    ) async {
+      await pumpScreen(tester, visible: [_doctor()]);
+      final search = find.byType(TextField);
+      await tester.tap(search);
+      await tester.pump();
+      final node = tester.widget<TextField>(search).focusNode!;
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tap(find.text(l10n.shareWhoShouldSee));
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+      await releaseRouter(tester);
+    });
+
     testWidgets('searches the directory and lists each practitioner', (
       tester,
     ) async {

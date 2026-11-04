@@ -30,6 +30,24 @@ void main() {
       child: const ResetPasswordScreen(),
     );
 
+    testWidgets('94: a tap outside the email field dismisses the keyboard', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+      final email = find.byType(TextField);
+      await tester.tap(email);
+      await tester.pump();
+      final node = tester.widget<TextField>(email).focusNode!;
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tap(find.text('Reset your password'));
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
     testWidgets('renders in light and dark', (tester) async {
       await tester.pumpApp(screen(), themeMode: ThemeMode.light);
       await tester.pumpAndSettle();

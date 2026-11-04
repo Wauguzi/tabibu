@@ -150,6 +150,26 @@ void main() {
       expect(field.focusNode.hasFocus, isFalse);
     });
 
+    testWidgets('94: a tap outside the search field dismisses the keyboard', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      await tester.pumpApp(screen());
+      await tester.pumpAndSettle();
+
+      final search = find.byType(TextField);
+      await tester.tap(search);
+      await tester.pump();
+      final node = tester.widget<TextField>(search).focusNode!;
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tap(find.text('KMPDC verified doctors near Embakasi'));
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
     testWidgets('shows title, chips and the grid', (tester) async {
       _useTallSurface(tester);
       await tester.pumpApp(screen());

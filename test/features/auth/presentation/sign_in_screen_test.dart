@@ -305,5 +305,22 @@ void main() {
       await tester.pumpAndSettle();
       expect(find.text('Welcome back'), findsOneWidget);
     });
+
+    testWidgets('94: a tap outside the email field dismisses the keyboard', (
+      tester,
+    ) async {
+      await tester.pumpApp(screen());
+      final email = find.byType(TextField).first;
+      await tester.tap(email);
+      await tester.pump();
+      final node = tester.widget<TextField>(email).focusNode!;
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tapAt(const Offset(400, 590));
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
   });
 }

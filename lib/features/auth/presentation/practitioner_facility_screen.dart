@@ -245,6 +245,7 @@ class _PractitionerFacilityScreenState
                   const SizedBox(height: AppSpacing.sm),
                   SingleChildScrollView(
                     scrollDirection: .horizontal,
+                    keyboardDismissBehavior: .onDrag,
                     child: Row(
                       children: [
                         TabibuFilterChip(

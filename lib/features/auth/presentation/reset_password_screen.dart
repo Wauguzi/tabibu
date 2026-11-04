@@ -83,6 +83,7 @@ class _ResetPasswordScreenState extends State<ResetPasswordScreen> {
                   const SizedBox(height: AppSpacing.md),
                   Expanded(
                     child: SingleChildScrollView(
+                      keyboardDismissBehavior: .onDrag,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [

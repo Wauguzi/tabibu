@@ -122,6 +122,7 @@ void main() {
         now: _fixedNow,
         // Unsupported: booking tests stay on typing; voice has its own suite.
         recorder: FakeAudioRecorderService(supported: false),
+        cues: FakeRecordingCueService(),
       ),
     );
 

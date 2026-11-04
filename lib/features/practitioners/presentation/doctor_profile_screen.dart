@@ -13,6 +13,7 @@ import 'package:tabibu/core/constants/app_styles.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
 import 'package:tabibu/core/services/audio_service_contract.dart';
+import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -38,17 +39,20 @@ import 'package:tabibu/l10n/l10n.dart';
 /// planner days.
 class DoctorProfileScreen extends StatefulWidget {
   /// [now] pins the planner's clock; tests pass a fixed morning.
-  /// [recorder] is injected in tests so getIt need not be configured.
+  /// [recorder] and [cues] are injected in tests so getIt need not be
+  /// configured.
   const DoctorProfileScreen({
     required this.doctorUid,
     this.now,
     this.recorder,
+    this.cues,
     super.key,
   });
 
   final String doctorUid;
   final DateTime? now;
   final AudioRecorderService? recorder;
+  final RecordingCueService? cues;
 
   @override
   State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
@@ -203,6 +207,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       );
     }
     return CustomScrollView(
+      keyboardDismissBehavior: .onDrag,
       slivers: [
         _topBarSliver(),
         SliverPadding(
@@ -416,6 +421,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                 symptoms: _symptoms,
                 offline: offline,
                 recorder: widget.recorder,
+                cues: widget.cues,
                 onTranscriptionUid: (uid) => setState(() {
                   _transcriptionUid = uid;
                 }),

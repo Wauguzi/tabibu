@@ -69,7 +69,7 @@ class SymptomVoiceControls extends StatefulWidget {
 
 class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   late final AudioRecorderService _recorder;
-  late final RecordingCueService _cues;
+  RecordingCueService? _cuesOrNull;
   StreamSubscription<double>? _levelsSub;
   Timer? _tick;
   RecordedAudio? _pending;
@@ -83,11 +83,16 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   /// In-memory only: a refuse or a false client flag hides mic until relaunch.
   var _voiceUnavailable = false;
 
+  /// Resolved on first record so booking tests that only inject a recorder
+  /// never need getIt for cues.
+  RecordingCueService get _cues =>
+      _cuesOrNull ??= widget.cues ?? getIt<RecordingCueService>();
+
   @override
   void initState() {
     super.initState();
     _recorder = widget.recorder ?? getIt<AudioRecorderService>();
-    _cues = widget.cues ?? getIt<RecordingCueService>();
+    _cuesOrNull = widget.cues;
     _pending = widget.initialClip;
     if (!_readVoiceInputEnabled()) {
       _voiceUnavailable = true;

@@ -201,6 +201,7 @@ class _CasesScreenState extends State<CasesScreen> {
     ];
     return SingleChildScrollView(
       scrollDirection: .horizontal,
+      keyboardDismissBehavior: .onDrag,
       clipBehavior: .none,
       child: Row(
         children: [

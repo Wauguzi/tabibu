@@ -95,6 +95,8 @@ class _ShareCodeFieldState extends State<ShareCodeField> {
                   controller: widget.controller,
                   focusNode: _focus,
                   onChanged: widget.onChanged,
+                  onTapOutside: (_) =>
+                      FocusManager.instance.primaryFocus?.unfocus(),
                   keyboardType: .number,
                   autocorrect: false,
                   enableSuggestions: false,

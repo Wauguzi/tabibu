@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
@@ -355,6 +356,166 @@ void main() {
         await tester.enterText(find.byType(TextField), 'AB\u200B12');
         await tester.pump();
         expect(controller.text, 'AB\u200B12');
+      });
+    });
+
+    group('tap outside dismisses', () {
+      Future<void> pumpField(
+        WidgetTester tester, {
+        bool dismiss = true,
+        bool readOnly = false,
+        Locale? locale,
+      }) => tester.pumpApp(
+        Column(
+          children: [
+            TabibuTextField(
+              label: 'Name',
+              dismissKeyboardOnTapOutside: dismiss,
+              readOnly: readOnly,
+            ),
+            const Expanded(child: ColoredBox(color: Color(0x00000000))),
+          ],
+        ),
+        locale: locale,
+      );
+
+      FocusNode fieldNode(WidgetTester tester, [int index = 0]) =>
+          tester.widget<TextField>(find.byType(TextField).at(index)).focusNode!;
+
+      testWidgets('a tap outside drops focus and hides the keyboard', (
+        tester,
+      ) async {
+        await pumpField(tester);
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+
+        await tester.tapAt(const Offset(400, 590));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+        expect(tester.testTextInput.isVisible, isFalse);
+      });
+
+      testWidgets('a tap outside drops focus in Swahili too', (tester) async {
+        await pumpField(tester, locale: const Locale('sw'));
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+
+        await tester.tapAt(const Offset(400, 590));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+        expect(tester.testTextInput.isVisible, isFalse);
+      });
+
+      testWidgets('a tap on a button fires it and drops focus', (tester) async {
+        var fired = false;
+        await tester.pumpApp(
+          Column(
+            children: [
+              const TabibuTextField(label: 'Name'),
+              TextButton(
+                onPressed: () => fired = true,
+                child: const Text('Save'),
+              ),
+            ],
+          ),
+        );
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+
+        await tester.tap(find.text('Save'));
+        await tester.pump();
+        expect(fired, isTrue);
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+        expect(tester.testTextInput.isVisible, isFalse);
+      });
+
+      testWidgets('a tap on another field moves focus, input stays open', (
+        tester,
+      ) async {
+        await tester.pumpApp(
+          const Column(
+            children: [
+              TabibuTextField(label: 'First'),
+              TabibuTextField(label: 'Second'),
+            ],
+          ),
+        );
+        final fields = find.byType(TextField);
+        await tester.tap(fields.first);
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+
+        await tester.tap(fields.last);
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+        expect(fieldNode(tester, 1).hasPrimaryFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+      });
+
+      testWidgets('the opt-out keeps focus on a tap outside', (tester) async {
+        await pumpField(tester, dismiss: false);
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+
+        await tester.tapAt(const Offset(400, 590));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+      });
+
+      testWidgets('a read-only field drops focus cleanly', (tester) async {
+        await pumpField(tester, readOnly: true);
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        // Focused for selection, but no keyboard for a read-only field.
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isFalse);
+
+        await tester.tapAt(const Offset(400, 590));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+      });
+
+      Future<void> toolbarKeepsFocus(WidgetTester tester) async {
+        final controller = TextEditingController(text: 'Amina');
+        addTearDown(controller.dispose);
+        await tester.pumpApp(
+          Column(
+            children: [
+              TabibuTextField(label: 'Name', controller: controller),
+              const Expanded(child: ColoredBox(color: Color(0x00000000))),
+            ],
+          ),
+        );
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        controller.selection = const TextSelection(
+          baseOffset: 0,
+          extentOffset: 5,
+        );
+        tester
+            .state<EditableTextState>(find.byType(EditableText))
+            .showToolbar();
+        await tester.pumpAndSettle();
+        expect(find.text('Copy'), findsOneWidget);
+
+        await tester.tap(find.text('Copy'));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+      }
+
+      testWidgets('a tap on the selection toolbar keeps focus', (tester) async {
+        debugDefaultTargetPlatformOverride = TargetPlatform.android;
+        try {
+          await toolbarKeepsFocus(tester);
+        } finally {
+          debugDefaultTargetPlatformOverride = null;
+        }
       });
     });
   });

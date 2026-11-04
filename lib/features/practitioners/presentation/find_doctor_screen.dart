@@ -108,6 +108,7 @@ class _FindDoctorScreenState extends State<FindDoctorScreen> {
         onRefresh: _refresh,
         child: CustomScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
+          keyboardDismissBehavior: .onDrag,
           slivers: [
             SliverPadding(
               padding: const EdgeInsets.fromLTRB(

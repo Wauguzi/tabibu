@@ -111,6 +111,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   const SizedBox(height: AppSpacing.md),
                   Expanded(
                     child: SingleChildScrollView(
+                      keyboardDismissBehavior: .onDrag,
                       child: AutofillGroup(
                         child: Column(
                           crossAxisAlignment: .start,
