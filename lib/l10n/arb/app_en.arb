@@ -4854,6 +4854,10 @@
     "@orderInsurerLabel": {
         "description": "Details: insurer"
     },
+    "orderInsurerHint": "Choose a provider",
+    "@orderInsurerHint": {
+        "description": "Details: insurer row subtitle before a provider is chosen"
+    },
     "orderInsurerMissing": "Choose the insurer.",
     "@orderInsurerMissing": {
         "description": "Validation"

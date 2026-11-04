@@ -110,12 +110,22 @@ void main() {
       // The pill ends at the image's corner, not part-way along the row.
       expect(image.right - pill.right, AppSpacing.xs);
 
-      final icons = tester
-          .widgetList<CircleIconButton>(find.byType(CircleIconButton))
-          .map((b) => b.icon)
+      expect(find.byType(CircleIconButton), findsNothing);
+      final zoomIcons = tester
+          .widgetList<AssetIcon>(
+            find.descendant(
+              of: find.byType(SlideViewer),
+              matching: find.byType(AssetIcon),
+            ),
+          )
+          .where(
+            (i) =>
+                i.asset == Assets.icons.zoomInIcon ||
+                i.asset == Assets.icons.zoomOutIcon,
+          )
           .toList();
-      expect(icons, contains(Assets.icons.zoomInIcon));
-      expect(icons, contains(Assets.icons.zoomOutIcon));
+      expect(zoomIcons, hasLength(2));
+      expect(zoomIcons.every((i) => i.size == 20 && !i.scaleUp), isTrue);
     });
 
     testWidgets('a hairline between the two stops short of the pill edges', (
@@ -125,11 +135,7 @@ void main() {
       await tester.pump();
 
       final divider = tester.getRect(find.byType(Divider));
-      final zoomIn = tester.getRect(
-        find.byWidgetPredicate(
-          (w) => w is CircleIconButton && w.icon == Assets.icons.zoomInIcon,
-        ),
-      );
+      final zoomIn = tester.getRect(find.bySemanticsLabel('Zoom in'));
       // Inside the button column on both sides: it touches neither edge.
       expect(divider.left, greaterThan(zoomIn.left));
       expect(divider.right, lessThan(zoomIn.right));

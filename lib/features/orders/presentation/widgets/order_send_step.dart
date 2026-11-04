@@ -178,6 +178,9 @@ class _OrderSendStepState extends State<OrderSendStep> {
                 CheckRow(
                   label: l10n.orderProtocolConfirm,
                   value: draft.protocolConfirmed,
+                  // Outline tick / empty circle from assets, tinted to the
+                  // theme (not the Material filled checkbox).
+                  circle: true,
                   onChanged: busy
                       ? null
                       : (value) =>

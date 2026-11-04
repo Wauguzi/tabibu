@@ -19,6 +19,9 @@ class _HeroCarouselState extends State<HeroCarousel> {
   late final PageController _controller = PageController(viewportFraction: 0.9);
   int _index = 0;
 
+  /// Keeps neighbouring hero cards from meeting at the page midrib.
+  static const double _slideGap = AppSpacing.bentoGap;
+
   @override
   void dispose() {
     _controller.dispose();
@@ -37,7 +40,13 @@ class _HeroCarouselState extends State<HeroCarousel> {
             controller: _controller,
             padEnds: false,
             onPageChanged: (page) => setState(() => _index = page),
-            children: slides,
+            children: [
+              for (final slide in slides)
+                Padding(
+                  padding: const EdgeInsets.only(right: _slideGap),
+                  child: slide,
+                ),
+            ],
           ),
         ),
         if (slides.length > 1) ...[

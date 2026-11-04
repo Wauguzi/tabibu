@@ -132,6 +132,7 @@ void main() {
       await tester.pumpAndSettle();
       expect(chevronFinder(), findsNothing);
 
+      // With trailing text the chevron stays at the bottom right.
       await tester.pumpApp(card(onTap: () {}));
       await tester.pumpAndSettle();
       expect(chevronFinder(), findsOneWidget);
@@ -144,6 +145,86 @@ void main() {
       final chevronCorner = tester.getBottomRight(chevronFinder());
       expect(cardCorner.dx - chevronCorner.dx, AppStyles.cardPadding.right);
       expect(cardCorner.dy - chevronCorner.dy, AppStyles.cardPadding.bottom);
+    });
+
+    testWidgets('a chevron-only row centres the chevron on the row', (
+      tester,
+    ) async {
+      Future<void> pumpChevronOnly({
+        required String subtitle,
+        double textScale = 1,
+      }) async {
+        tester.view.physicalSize = const Size(390 * 3, 844 * 3);
+        tester.view.devicePixelRatio = 3;
+        addTearDown(tester.view.reset);
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        await tester.pumpApp(
+          ListRowCard(
+            title: 'Sample collected',
+            subtitle: subtitle,
+            leading: IconTile(
+              icon: Assets.icons.calendarIcon,
+              tone: IconTone.sky,
+            ),
+            onTap: () {},
+          ),
+        );
+        await tester.pumpAndSettle();
+      }
+
+      for (final subtitle in [
+        '4 Nov 2026, 2:00 PM',
+        'Line one\nLine two\nLine three of a long collected subtitle',
+      ]) {
+        for (final scale in [1.0, 2.0]) {
+          await pumpChevronOnly(subtitle: subtitle, textScale: scale);
+          expect(tester.takeException(), isNull);
+          final rowCenter = tester.getCenter(find.byType(ListRowCard)).dy;
+          final chevronCenter = tester.getCenter(chevronFinder()).dy;
+          expect(
+            (chevronCenter - rowCenter).abs(),
+            lessThan(1.5),
+            reason: 'chevron must sit on the row centre at ${scale}x',
+          );
+          final cardCorner = tester.getBottomRight(find.byType(ListRowCard));
+          final chevronCorner = tester.getBottomRight(chevronFinder());
+          expect(cardCorner.dx - chevronCorner.dx, AppStyles.cardPadding.right);
+        }
+      }
+    });
+
+    testWidgets('with trailingText the chevron stays at the bottom', (
+      tester,
+    ) async {
+      await tester.pumpApp(card(onTap: () {}));
+      await tester.pumpAndSettle();
+      final cardCorner = tester.getBottomRight(find.byType(ListRowCard));
+      final chevronCorner = tester.getBottomRight(chevronFinder());
+      expect(cardCorner.dy - chevronCorner.dy, AppStyles.cardPadding.bottom);
+      expect(
+        tester.getTopLeft(find.text('2h 05m')).dy,
+        lessThan(tester.getTopLeft(chevronFinder()).dy),
+      );
+    });
+
+    testWidgets('with unread the chevron stays at the bottom', (tester) async {
+      await tester.pumpApp(
+        ListRowCard(
+          title: 'Inbox row',
+          subtitle: 'Body',
+          unread: true,
+          onTap: () {},
+        ),
+      );
+      await tester.pumpAndSettle();
+      final cardCorner = tester.getBottomRight(find.byType(ListRowCard));
+      final chevronCorner = tester.getBottomRight(chevronFinder());
+      expect(cardCorner.dy - chevronCorner.dy, AppStyles.cardPadding.bottom);
+      expect(
+        tester.getTopLeft(dotFinder(schemeOf(tester))).dy,
+        lessThan(tester.getTopLeft(chevronFinder()).dy),
+      );
     });
 
     testWidgets('renders a minimal row', (tester) async {

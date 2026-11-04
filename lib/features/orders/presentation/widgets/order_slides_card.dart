@@ -298,6 +298,9 @@ class _SlideRowState extends State<_SlideRow> {
             keyboardType: const TextInputType.numberWithOptions(decimal: true),
             errorText: _invalid ? l10n.orderSlidesPixelSizeInvalid : null,
             readOnly: slide.isSettled,
+            // Uploaded rows keep a hairline so the locked size still reads
+            // as a filled field on the card.
+            bordered: slide.status == .uploaded,
             onChanged: _sized,
           ),
           if (failed) ...[

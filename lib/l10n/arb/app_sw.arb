@@ -971,6 +971,7 @@
     "orderPaymentCash": "Pesa taslimu",
     "orderPaymentInsurance": "Bima",
     "orderInsurerLabel": "Kampuni ya bima",
+    "orderInsurerHint": "Chagua mtoa huduma",
     "orderInsurerMissing": "Chagua kampuni ya bima.",
     "orderInsurerNameLabel": "Jina la kampuni ya bima",
     "orderInsurerNameInvalid": "Andika jina la kampuni ya bima.",

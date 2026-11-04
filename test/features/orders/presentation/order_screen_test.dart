@@ -31,6 +31,7 @@ import 'package:tabibu/features/orders/data/models/lab_test_type_model.dart';
 import 'package:tabibu/features/orders/presentation/order_screen.dart';
 import 'package:tabibu/features/orders/presentation/widgets/order_send_step.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
+import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 import '../../../helpers/helpers.dart';
@@ -980,6 +981,19 @@ void main() {
         expect(find.text(_en.orderProtocolTitle), findsOneWidget);
         final check = tester.widget<CheckRow>(find.byType(CheckRow));
         expect(check.value, isFalse, reason: 'unticked by default');
+        expect(check.circle, isTrue);
+        expect(find.byType(Checkbox), findsNothing);
+        final icon = tester.widget<AssetIcon>(
+          find.descendant(
+            of: find.byType(CheckRow),
+            matching: find.byType(AssetIcon),
+          ),
+        );
+        expect(icon.asset, Assets.icons.checkUnselectedIcon);
+        expect(
+          icon.color,
+          Theme.of(tester.element(find.byType(CheckRow))).colorScheme.onSurface,
+        );
         final send = tester.widget<TabibuButton>(
           find.widgetWithText(TabibuButton, _en.orderSend),
         );
