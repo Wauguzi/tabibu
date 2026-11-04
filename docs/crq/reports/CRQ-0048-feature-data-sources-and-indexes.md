@@ -58,8 +58,9 @@ rules the threat model names.
 **In scope:** everything in §1.
 
 **Explicitly out of scope:** the callables the sources invoke (built
-in this branch, CRQ-0041 to CRQ-0047 and CRQ-0049); the `ttl` fallback
-target (U-5, Theo runs it if needed).
+in this branch, CRQ-0041 to CRQ-0047 and CRQ-0049); a separate `ttl`
+Makefile target (none exists; TTL rides on `make deploy-indexes` —
+see [CRQ-0046](./CRQ-0046-notification-model-v2-and-push.md) §9 U-5).
 
 ## 4. Impact assessment
 
@@ -118,10 +119,15 @@ harmless. Deploy order stays indexes (`READY`) → smoke → functions
 
 - **U-17**: FCM topic limits for 47 × 2 topics still need the dev
   send test; topics already carry ids only, never names.
-- **U-5** (TTL deploy) stays open as in CRQ-0046 §9.
-- **Smoke run**: the dev-project run predates the queries the domain
-  functions added (d05d289). Run `make smoke-indexes` again, with the
-  indexes `READY`, before the functions deploy.
+- **U-5** (TTL): see [CRQ-0046](./CRQ-0046-notification-model-v2-and-push.md) §9 —
+  seven policies are declared in `firestore.indexes.json` and deploy
+  with `make deploy-indexes`; the live console TTL tab is still open
+  for Theo.
+- **First live smoke** (`36b8588`, 2026-11-02): the Admin SDK modular
+  fix unblocked `make smoke-indexes`. That commit records the first
+  live run: **17 app and 50 functions queries ok** on
+  `tabibu-86ea2`. Quote from the commit message only; no other figure
+  is claimed here.
 - **What Greptile found** ([PR #8](https://github.com/Wauguzi/tabibu/pull/8)):
   - Round 1: every data-source call was checked against its rule block
     (the client and rules matrix); the alert deltas filter out synthetic
