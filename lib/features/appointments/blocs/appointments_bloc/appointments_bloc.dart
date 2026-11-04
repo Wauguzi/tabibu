@@ -228,9 +228,7 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
         for (final row in state.appointments)
           if (row.uid == appointment.uid) appointment else row,
       ];
-      unawaited(
-        _analytics.logAppointmentResponded(accepted: event.accept),
-      );
+      unawaited(_analytics.logAppointmentResponded(accepted: event.accept));
       emit(
         AppointmentDecisionSuccess(
           appointment: appointment,

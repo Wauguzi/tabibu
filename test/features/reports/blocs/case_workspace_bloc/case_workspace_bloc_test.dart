@@ -258,8 +258,7 @@ void main() {
           AppError.permissionDenied,
         ),
       ],
-      verify: (_) =>
-          verifyNever(() => analytics.logCaseRequestAccepted()),
+      verify: (_) => verifyNever(() => analytics.logCaseRequestAccepted()),
     );
 
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
@@ -282,8 +281,7 @@ void main() {
         isA<CaseWorkspaceWriteInProgress>(),
         isA<CaseRequestDeclineSuccess>(),
       ],
-      verify: (_) =>
-          verify(() => analytics.logCaseRequestDeclined()).called(1),
+      verify: (_) => verify(() => analytics.logCaseRequestDeclined()).called(1),
     );
 
     blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
@@ -976,9 +974,7 @@ void main() {
       ),
       verify: (_) {
         neverSigned();
-        verifyNever(
-          () => analytics.logReportSigned(kind: any(named: 'kind')),
-        );
+        verifyNever(() => analytics.logReportSigned(kind: any(named: 'kind')));
       },
     );
 
@@ -1077,9 +1073,7 @@ void main() {
             draftLastUpdatedAt: '2026-11-02T09:30:00.000Z',
           ),
         ).called(1);
-        verify(
-          () => analytics.logReportSigned(kind: 'initial'),
-        ).called(1);
+        verify(() => analytics.logReportSigned(kind: 'initial')).called(1);
       },
     );
   });
@@ -1160,9 +1154,7 @@ void main() {
             fields: {'amendmentReason': 'Typo in site'},
           ),
         ).called(1);
-        verify(
-          () => analytics.logRevisionStarted(kind: 'amendment'),
-        ).called(1);
+        verify(() => analytics.logRevisionStarted(kind: 'amendment')).called(1);
       },
     );
 
@@ -1200,9 +1192,7 @@ void main() {
         verify(
           () => remote.startReport(caseUid: _case, kind: 'Addendum'),
         ).called(1);
-        verify(
-          () => analytics.logRevisionStarted(kind: 'addendum'),
-        ).called(1);
+        verify(() => analytics.logRevisionStarted(kind: 'addendum')).called(1);
       },
     );
 

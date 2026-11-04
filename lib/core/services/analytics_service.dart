@@ -161,10 +161,8 @@ class AnalyticsService {
 
   /// Report events carry the draft kind only: initial, amendment, addendum.
   Future<void> logReportSigned({required String kind}) => _guard(
-    () => _analytics.logEvent(
-      name: 'report_signed',
-      parameters: {'kind': kind},
-    ),
+    () =>
+        _analytics.logEvent(name: 'report_signed', parameters: {'kind': kind}),
   );
 
   Future<void> logRevisionStarted({required String kind}) => _guard(

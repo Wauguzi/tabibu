@@ -80,9 +80,7 @@ void main() {
     when(
       () => analytics.logOrderCreated(count: any(named: 'count')),
     ).thenAnswer((_) async {});
-    when(
-      () => analytics.logPathologistRequested(),
-    ).thenAnswer((_) async {});
+    when(() => analytics.logPathologistRequested()).thenAnswer((_) async {});
     when(
       () => referenceData.activeLabTests(),
     ).thenAnswer((_) async => [for (var i = 0; i < 12; i++) _test('t$i')]);
@@ -463,9 +461,7 @@ void main() {
 
       expect(failed.draft.caseUid, uid);
       expect(failed.draft.created, isFalse);
-      verifyNever(
-        () => analytics.logOrderCreated(count: any(named: 'count')),
-      );
+      verifyNever(() => analytics.logOrderCreated(count: any(named: 'count')));
       await bloc.close();
     });
 

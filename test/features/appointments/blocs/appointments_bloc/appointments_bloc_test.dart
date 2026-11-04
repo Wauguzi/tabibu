@@ -44,21 +44,13 @@ void main() {
     internet = _MockInternet();
     analytics = _MockAnalytics();
     when(() => internet.check()).thenAnswer((_) async => true);
-    when(
-      () => analytics.logAppointmentRequested(),
-    ).thenAnswer((_) async {});
+    when(() => analytics.logAppointmentRequested()).thenAnswer((_) async {});
     when(
       () => analytics.logAppointmentResponded(accepted: any(named: 'accepted')),
     ).thenAnswer((_) async {});
-    when(
-      () => analytics.logAppointmentCompleted(),
-    ).thenAnswer((_) async {});
-    when(
-      () => analytics.logAppointmentCancelled(),
-    ).thenAnswer((_) async {});
-    when(
-      () => analytics.logAppointmentRescheduled(),
-    ).thenAnswer((_) async {});
+    when(() => analytics.logAppointmentCompleted()).thenAnswer((_) async {});
+    when(() => analytics.logAppointmentCancelled()).thenAnswer((_) async {});
+    when(() => analytics.logAppointmentRescheduled()).thenAnswer((_) async {});
   });
 
   group('AppointmentsBloc', () {
