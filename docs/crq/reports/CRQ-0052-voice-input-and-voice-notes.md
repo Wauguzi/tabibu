@@ -9,7 +9,7 @@
 | Date implemented | Pending — completed on `main` after the merge (CRQ-0038) |
 | Priority | P2 High — see [`mobile_workflow.md` §7](../../workflow/reports/mobile_workflow.md#7-escalation--severity) |
 | Change type | Normal |
-| Commit(s) / PR | `feat/voice`: d8deae0, 14231b5, fef5aef, 0238cf2, 74594df, 853b594, 6045a85, 33188ed, and the keyboard sweep; the PR link is added after the merge |
+| Commit(s) / PR | `feat/voice`: d8deae0, 14231b5, fef5aef, 0238cf2, 74594df, 853b594, 6045a85, 33188ed, e8de1c6, f76ff18 and c4b7ad0 (the keyboard sweep); the PR link is added after the merge |
 
 ## 1. Description of change
 
@@ -138,10 +138,10 @@ not kept: nothing uses it.
 
 | Check | Result |
 |---|---|
-| `make rules-test` | To be filled from the final gate run (248 passing at 853b594) |
-| `make functions-test` | To be filled from the final gate run (668 passing at 853b594) |
-| `flutter test` | To be filled from the final gate run |
-| `make analyze`, `make bloc-lint`, `make spell`, `make licenses`, `make release-check` | To be filled from the final gate run |
+| `make rules-test` | 248 passing |
+| `make functions-test` | 668 passing |
+| `flutter test` | 3,433 passing on a fresh checkout of `c4b7ad0`; the appointments and notifications suites also pass under `TZ=UTC` (355 tests; this machine runs on EAT) |
+| `make analyze`, `make bloc-lint`, `make spell`, `make licenses`, `make release-check`, the format check | All clean on the same fresh checkout |
 | Licences of the two new packages | `record` BSD-3-Clause, `just_audio` MIT; `make licenses` passed on 287 licences from 280 packages |
 | Size of a recording | AAC about 240 KB a minute; WAV 45 s about 1.44 MB (32,000 bytes a second plus a 44-byte header) |
 | Server header validation | Refused before any call and deleted: 44.1 kHz, stereo, 8-bit, a lying length, a truncated file, 47 s, 0.5 s, non-audio, `audio/mp4`; accepted and rebuilt: a padding chunk, a trailing chunk, a streaming header |
