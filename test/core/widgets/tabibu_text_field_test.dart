@@ -3,6 +3,7 @@ import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/widgets/asset_icon.dart';
 import 'package:tabibu/core/widgets/tabibu_text_field.dart';
 import 'package:tabibu/gen/assets.gen.dart';
+import 'package:tabibu/l10n/l10n.dart';
 
 import '../../helpers/helpers.dart';
 
@@ -242,6 +243,118 @@ void main() {
           ),
           findsOneWidget,
         );
+      });
+    });
+
+    group('paste sanitisation', () {
+      Future<void> pumpPasteField(
+        WidgetTester tester, {
+        required int maxLength,
+        required List<int> cuts,
+        double textScale = 1,
+        Locale? locale,
+      }) async {
+        tester.platformDispatcher.textScaleFactorTestValue = textScale;
+        addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
+        final controller = TextEditingController();
+        addTearDown(controller.dispose);
+        await tester.pumpApp(
+          TabibuTextField(
+            label: 'Diagnosis',
+            controller: controller,
+            maxLines: 4,
+            maxLength: maxLength,
+            sanitizePaste: true,
+            onPasteCut: cuts.add,
+          ),
+          locale: locale,
+        );
+      }
+
+      testWidgets('pasting 3,000 into a 2,000 field keeps 2,000 and notices '
+          '(1.0x en)', (tester) async {
+        final cuts = <int>[];
+        await pumpPasteField(tester, maxLength: 2000, cuts: cuts);
+        await tester.enterText(find.byType(TextField), 'x' * 3000);
+        await tester.pump();
+        await tester.pump();
+        final field = tester.widget<TextField>(find.byType(TextField));
+        expect(field.controller!.text.length, lessThanOrEqualTo(2000));
+        expect(cuts, [2000]);
+      });
+
+      testWidgets('pasting 3,000 notices at 2.0x and in Swahili', (
+        tester,
+      ) async {
+        final cuts = <int>[];
+        await pumpPasteField(
+          tester,
+          maxLength: 2000,
+          cuts: cuts,
+          textScale: 2,
+          locale: const Locale('sw'),
+        );
+        await tester.enterText(find.byType(TextField), 'y' * 3000);
+        await tester.pump();
+        await tester.pump();
+        expect(cuts, [2000]);
+        final l10n = lookupAppLocalizations(const Locale('sw'));
+        // Callers show this string; the field itself only reports the cut.
+        expect(l10n.pasteCutAtLimit(2000), contains('2000'));
+      });
+
+      testWidgets('pasting 1,500 into a 2,000 field shows no cut', (
+        tester,
+      ) async {
+        final cuts = <int>[];
+        await pumpPasteField(tester, maxLength: 2000, cuts: cuts);
+        await tester.enterText(find.byType(TextField), 'z' * 1500);
+        await tester.pump();
+        await tester.pump();
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          'z' * 1500,
+        );
+        expect(cuts, isEmpty);
+      });
+
+      testWidgets('pasting a zero-width character leaves none in the field', (
+        tester,
+      ) async {
+        final cuts = <int>[];
+        await pumpPasteField(tester, maxLength: 2000, cuts: cuts);
+        await tester.enterText(find.byType(TextField), 'hello \u200B world');
+        await tester.pump();
+        expect(
+          tester.widget<TextField>(find.byType(TextField)).controller!.text,
+          'hello  world',
+        );
+      });
+
+      testWidgets('order notes paste cuts at 2,000 the same way', (
+        tester,
+      ) async {
+        final cuts = <int>[];
+        await pumpPasteField(tester, maxLength: 2000, cuts: cuts);
+        await tester.enterText(find.byType(TextField), 'n' * 2500);
+        await tester.pump();
+        await tester.pump();
+        expect(cuts, [2000]);
+      });
+
+      testWidgets('PIN and accession fields are not sanitised', (tester) async {
+        final controller = TextEditingController();
+        addTearDown(controller.dispose);
+        await tester.pumpApp(
+          TabibuTextField(
+            label: 'Accession',
+            controller: controller,
+            maxLength: 30,
+          ),
+        );
+        await tester.enterText(find.byType(TextField), 'AB\u200B12');
+        await tester.pump();
+        expect(controller.text, 'AB\u200B12');
       });
     });
   });

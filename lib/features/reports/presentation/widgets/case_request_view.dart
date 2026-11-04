@@ -168,6 +168,17 @@ class _DeclineFormState extends State<_DeclineForm> {
           maxLines: 4,
           maxLength: _maxReason,
           keyboardType: .multiline,
+          sanitizePaste: true,
+          onPasteCut: (limit) {
+            unawaited(
+              showTabibuNotification(
+                context,
+                message: l10n.pasteCutAtLimit(limit),
+                isError: false,
+                dismissLabel: l10n.commonDismiss,
+              ),
+            );
+          },
           errorText: _empty ? l10n.workspaceRequestReasonRequired : null,
           onChanged: (_) {
             if (_empty) setState(() => _empty = false);

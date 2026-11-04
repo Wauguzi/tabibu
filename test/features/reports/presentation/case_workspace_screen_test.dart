@@ -1626,6 +1626,35 @@ void main() {
         ]);
       });
 
+      testWidgets('a pasted long diagnosis produces one draft write', (
+        tester,
+      ) async {
+        await pumpScreen(tester, _signable());
+        clearInteractions(blocs.caseWorkspace);
+
+        final pasted = 'D' * 500;
+        await tester.enterText(
+          find.descendant(
+            of: find.byWidgetPredicate(
+              (w) =>
+                  w is TabibuTextField &&
+                  w.label == l10n.reportSectionDiagnosis,
+            ),
+            matching: find.byType(EditableText),
+          ),
+          pasted,
+        );
+        await tester.pump();
+        await tester.tap(find.text(l10n.workspaceSaveDraft));
+        await tester.pump();
+
+        final edits = verify(
+          () => blocs.caseWorkspace.add(captureAny()),
+        ).captured.whereType<CaseDraftEdited>();
+        expect(edits.length, 1);
+        expect(edits.single.fields['diagnosis'], pasted);
+      });
+
       testWidgets('a write failure shows the error notification', (
         tester,
       ) async {

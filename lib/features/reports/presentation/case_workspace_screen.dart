@@ -1070,6 +1070,8 @@ class _ReportSection extends StatelessWidget {
             maxLength: CaseWorkspaceBloc.maxAddendumText,
             required: true,
             readOnly: locked,
+            sanitizePaste: true,
+            onPasteCut: (limit) => _notifyPasteCut(context, limit),
           ),
           const SizedBox(height: AppSpacing.md),
         ],
@@ -1099,6 +1101,8 @@ class _ReportSection extends StatelessWidget {
             maxLines: 4,
             maxLength: CaseWorkspaceScreen.fieldMax,
             readOnly: fieldsLocked,
+            sanitizePaste: true,
+            onPasteCut: (limit) => _notifyPasteCut(context, limit),
           ),
         ),
         const SizedBox(height: AppSpacing.md),
@@ -1111,6 +1115,8 @@ class _ReportSection extends StatelessWidget {
             maxLines: 6,
             maxLength: CaseWorkspaceScreen.fieldMax,
             readOnly: fieldsLocked,
+            sanitizePaste: true,
+            onPasteCut: (limit) => _notifyPasteCut(context, limit),
           ),
         ),
         for (final (section, questions) in sections) ...[
@@ -1128,6 +1134,8 @@ class _ReportSection extends StatelessWidget {
               maxLines: 3,
               maxLength: 4000,
               readOnly: fieldsLocked,
+              sanitizePaste: true,
+              onPasteCut: (limit) => _notifyPasteCut(context, limit),
             ),
           ],
         ],
@@ -1170,4 +1178,16 @@ class _ReportSection extends StatelessWidget {
       ],
     );
   }
+}
+
+void _notifyPasteCut(BuildContext context, int limit) {
+  final l10n = context.l10n;
+  unawaited(
+    showTabibuNotification(
+      context,
+      message: l10n.pasteCutAtLimit(limit),
+      isError: false,
+      dismissLabel: l10n.commonDismiss,
+    ),
+  );
 }

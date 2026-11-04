@@ -1748,5 +1748,6 @@
     "workspaceDiscardSheetBody": "Rasimu itafutwa. Ripoti iliyosainiwa haitabadilika.",
     "workspaceDiscardSheetConfirm": "Tupa",
     "appLockLoadFailed": "Imeshindikana kuangalia kufunga programu",
-    "appLockLoadFailedBody": "Jaribu tena, au ingia tena ili kufuta PIN kwenye kifaa hiki."
+    "appLockLoadFailedBody": "Jaribu tena, au ingia tena ili kufuta PIN kwenye kifaa hiki.",
+    "pasteCutAtLimit": "Maandishi yaliyobandikwa yamekatwa kwa herufi {limit}. Angalia mwisho kabla ya kusaini."
 }

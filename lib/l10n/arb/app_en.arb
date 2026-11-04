@@ -8334,5 +8334,14 @@
     "appLockLoadFailedBody": "Try again, or sign in again to clear the PIN on this device.",
     "@appLockLoadFailedBody": {
         "description": "Unlock overlay: what to do when the lock settings cannot be read"
+    },
+    "pasteCutAtLimit": "Pasted text was cut at {limit} characters. Check the end before you sign.",
+    "@pasteCutAtLimit": {
+        "description": "Shown when a paste into a report or order field was longer than the field limit",
+        "placeholders": {
+            "limit": {
+                "type": "int"
+            }
+        }
     }
 }

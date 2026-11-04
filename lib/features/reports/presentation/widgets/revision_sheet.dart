@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
@@ -76,6 +78,17 @@ class _RevisionFormState extends State<_RevisionForm> {
           maxLines: amend ? 4 : 8,
           maxLength: max,
           required: true,
+          sanitizePaste: true,
+          onPasteCut: (limit) {
+            unawaited(
+              showTabibuNotification(
+                context,
+                message: l10n.pasteCutAtLimit(limit),
+                isError: false,
+                dismissLabel: l10n.commonDismiss,
+              ),
+            );
+          },
           onChanged: (_) {
             if (_showRequired) setState(() => _showRequired = false);
           },

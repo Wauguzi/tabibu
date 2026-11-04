@@ -262,7 +262,19 @@ class _OrderDetailsStepState extends State<OrderDetailsStep> {
                 hint: l10n.orderSpecimenHint,
                 controller: _specimen,
                 maxLines: 3,
+                maxLength: OrderDraft.maxSpecimen,
                 readOnly: busy,
+                sanitizePaste: true,
+                onPasteCut: (limit) {
+                  unawaited(
+                    showTabibuNotification(
+                      context,
+                      message: l10n.pasteCutAtLimit(limit),
+                      isError: false,
+                      dismissLabel: l10n.commonDismiss,
+                    ),
+                  );
+                },
                 errorText: issues.contains(OrderDraftIssue.specimenTooLong)
                     ? l10n.orderTooLong(OrderDraft.maxSpecimen)
                     : null,
@@ -275,7 +287,19 @@ class _OrderDetailsStepState extends State<OrderDetailsStep> {
                 hint: l10n.orderNotesHint,
                 controller: _notes,
                 maxLines: 6,
+                maxLength: OrderDraft.maxNotes,
                 readOnly: busy,
+                sanitizePaste: true,
+                onPasteCut: (limit) {
+                  unawaited(
+                    showTabibuNotification(
+                      context,
+                      message: l10n.pasteCutAtLimit(limit),
+                      isError: false,
+                      dismissLabel: l10n.commonDismiss,
+                    ),
+                  );
+                },
                 errorText: issues.contains(OrderDraftIssue.notesTooLong)
                     ? l10n.orderTooLong(OrderDraft.maxNotes)
                     : null,
