@@ -86,6 +86,7 @@ class _AiDraftFrameState extends State<AiDraftFrame> {
               else
                 Tappable(
                   onTap: () => setState(() => _expanded = !_expanded),
+                  semanticLabel: widget.label,
                   child: ExcludeSemantics(child: label),
                 ),
               if (detail != null && _expanded) ...[

@@ -8343,5 +8343,128 @@
                 "type": "int"
             }
         }
+    },
+    "workspaceAiPrereadNotResult": "AI pre-read, not a result",
+    "@workspaceAiPrereadNotResult": {
+        "description": "Beside the heatmap legend: unsigned AI, not a signed finding"
+    },
+    "explanationFailedBody": "The AI could not write this explanation. Nothing was sent to the patient.",
+    "@explanationFailedBody": {
+        "description": "Explanation review: the AI draft failed, so there is none to review"
+    },
+    "explanationRejectedBody": "You set this explanation aside. Nothing was sent to the patient.",
+    "@explanationRejectedBody": {
+        "description": "Explanation review: the doctor rejected the draft and none is left to review"
+    },
+    "resultsWaitingBodyNoDate": "{doctor} has your reviewed results. You can read them here after your appointment.",
+    "@resultsWaitingBodyNoDate": {
+        "description": "Result waiting: gradient card body when the appointment date is not known",
+        "placeholders": {
+            "doctor": { "type": "String" }
+        }
+    },
+    "resultsWaitingBodyNoDoctor": "Your doctor has your reviewed results. You can read them here after your appointment on {date}.",
+    "@resultsWaitingBodyNoDoctor": {
+        "description": "Result waiting: gradient card body when the doctor's name is not known",
+        "placeholders": {
+            "date": { "type": "String" }
+        }
+    },
+    "resultsWaitingBodyBare": "Your doctor has your reviewed results. You can read them here after your appointment.",
+    "@resultsWaitingBodyBare": {
+        "description": "Result waiting: gradient card body when neither doctor nor date is known"
+    },
+    "resultsSlideBodyNoDate": "{doctor} will go through them with you. Then you can read them here.",
+    "@resultsSlideBodyNoDate": {
+        "description": "Results tab: with-doctor slide body when the date is not known",
+        "placeholders": {
+            "doctor": { "type": "String" }
+        }
+    },
+    "resultsSlideBodyNoDoctor": "Your doctor will go through them with you on {date}. Then you can read them here.",
+    "@resultsSlideBodyNoDoctor": {
+        "description": "Results tab: with-doctor slide body when the doctor's name is not known",
+        "placeholders": {
+            "date": { "type": "String" }
+        }
+    },
+    "resultsSlideBodyBare": "Your doctor will go through them with you. Then you can read them here.",
+    "@resultsSlideBodyBare": {
+        "description": "Results tab: with-doctor slide body when neither doctor nor date is known"
+    },
+    "resultsWaitingSubtitleNoDoctor": "Ordered by your doctor",
+    "@resultsWaitingSubtitleNoDoctor": {
+        "description": "Result waiting: top bar subtitle when the doctor's name is not known"
+    },
+    "resultsStepSampleDetailNoDate": "At {facility}",
+    "@resultsStepSampleDetailNoDate": {
+        "description": "Result waiting: first timeline step detail when the date is not known",
+        "placeholders": {
+            "facility": { "type": "String" }
+        }
+    },
+    "resultsStepReviewedDetailNoDate": "{doctor}, {lab}",
+    "@resultsStepReviewedDetailNoDate": {
+        "description": "Result waiting: second timeline step detail when the date is not known",
+        "placeholders": {
+            "doctor": { "type": "String" },
+            "lab": { "type": "String" }
+        }
+    },
+    "resultsStepReviewedDetailNoDoctor": "{date} · {lab}",
+    "@resultsStepReviewedDetailNoDoctor": {
+        "description": "Result waiting: second timeline step detail when the reviewer is not known",
+        "placeholders": {
+            "date": { "type": "String" },
+            "lab": { "type": "String" }
+        }
+    },
+    "resultsStepReviewedDetailNoLab": "{date} · {doctor}",
+    "@resultsStepReviewedDetailNoLab": {
+        "description": "Result waiting: second timeline step detail when the lab is not known",
+        "placeholders": {
+            "date": { "type": "String" },
+            "doctor": { "type": "String" }
+        }
+    },
+    "resultsStepTalkNoDoctor": "Talk with your doctor",
+    "@resultsStepTalkNoDoctor": {
+        "description": "Result waiting: third timeline step when the doctor's name is not known"
+    },
+    "resultsStepTalkDetailNoDate": "Your appointment",
+    "@resultsStepTalkDetailNoDate": {
+        "description": "Result waiting: third timeline step detail when the appointment is not scheduled"
+    },
+    "resultsStepTalkDetailNoTime": "{date} · your appointment",
+    "@resultsStepTalkDetailNoTime": {
+        "description": "Result waiting: third timeline step detail when only the date is known",
+        "placeholders": {
+            "date": { "type": "String" }
+        }
+    },
+    "resultsRowSharedByNoDate": "Shared by {doctor}",
+    "@resultsRowSharedByNoDate": {
+        "description": "Results tab: shared row subtitle when the date is not known",
+        "placeholders": {
+            "doctor": { "type": "String" }
+        }
+    },
+    "resultsRowSharedByNoDoctor": "Shared by your doctor · {date}",
+    "@resultsRowSharedByNoDoctor": {
+        "description": "Results tab: shared row subtitle when the doctor's name is not known",
+        "placeholders": {
+            "date": { "type": "String" }
+        }
+    },
+    "resultsRowSharedByBare": "Shared by your doctor",
+    "@resultsRowSharedByBare": {
+        "description": "Results tab: shared row subtitle when neither doctor nor date is known"
+    },
+    "resultsRowOrderedByNoDoctor": "Ordered by your doctor · waiting for {item}",
+    "@resultsRowOrderedByNoDoctor": {
+        "description": "Results tab: waiting row subtitle when the doctor's name is not known",
+        "placeholders": {
+            "item": { "type": "String" }
+        }
     }
 }

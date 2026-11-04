@@ -70,6 +70,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         report: same ? state.report : null,
         explanations: same ? state.explanations : const {},
         approved: same ? state.approved : const {},
+        explanationPhase: same ? state.explanationPhase : .none,
       ),
     );
     try {
@@ -89,6 +90,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
 
       final explanations = <String, ReportTextModel>{};
       final approved = <String, ReportTextApprovedModel>{};
+      final statuses = <ReportTextStatus>[];
       if (report != null && report.releasedToPatient) {
         for (final language in _languages) {
           final id = reportTextId(report.uid, .explanation, language);
@@ -102,6 +104,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
             } on Object catch (_) {
               // The signed report still opens: no draft to read.
             }
+            if (draft != null) statuses.add(draft.statusValue);
             // A text still queued or running has nothing to read yet.
             if (draft != null && draft.statusValue == .ready) {
               explanations[language] = draft;
@@ -126,6 +129,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
           explanations: explanations,
           approved: approved,
           offline: offline,
+          explanationPhase: _phaseOf(statuses),
         ),
       );
     } on Object catch (e) {
@@ -181,6 +185,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         return;
       }
       final ready = <String, ReportTextModel>{};
+      final statuses = <ReportTextStatus>[];
       var pending = false;
       for (final language in _languages) {
         final id = reportTextId(reportUid, .explanation, language);
@@ -191,6 +196,8 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
           text = null;
         }
         final status = text?.statusValue;
+        // A text not written yet is queued as far as the doctor can tell.
+        statuses.add(status ?? .queued);
         if (text == null || status == .queued || status == .running) {
           pending = true;
         } else if (status == .ready) {
@@ -198,12 +205,21 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
         }
       }
       if (emit.isDone || state.caseUid != caseUid) return;
-      if (ready.isNotEmpty &&
+      final changed =
+          ready.isNotEmpty &&
           !const MapEquality<String, ReportTextModel>().equals(
             ready,
             state.explanations,
-          )) {
-        emit(_copy(ReportReaderLoadSuccess.new, explanations: ready));
+          );
+      final phase = _phaseOf(statuses);
+      if (changed || phase != state.explanationPhase) {
+        emit(
+          _copy(
+            ReportReaderLoadSuccess.new,
+            explanations: changed ? ready : null,
+            explanationPhase: phase,
+          ),
+        );
       }
       if (!pending) return;
     }
@@ -255,11 +271,23 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
           ExplanationDecisionSuccess.new,
           explanations: explanations,
           approved: approved,
+          explanationPhase: event.reject && explanations.isEmpty
+              ? .rejected
+              : null,
         ),
       );
     } on Object catch (e) {
       emit(_failure(e));
     }
+  }
+
+  /// Why there may be no draft to review: still being written, failed, or
+  /// set aside by the doctor. A Ready or Approved text says nothing.
+  ExplanationDraftPhase _phaseOf(Iterable<ReportTextStatus> statuses) {
+    if (statuses.any((s) => s == .queued || s == .running)) return .pending;
+    if (statuses.any((s) => s == .failed)) return .failed;
+    if (statuses.any((s) => s == .rejected)) return .rejected;
+    return .none;
   }
 
   ReportReaderState _copy(
@@ -271,11 +299,13 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
       Map<String, ReportTextModel> explanations,
       Map<String, ReportTextApprovedModel> approved,
       bool offline,
+      ExplanationDraftPhase explanationPhase,
     })
     build, {
     PathologyReportModel? report,
     Map<String, ReportTextModel>? explanations,
     Map<String, ReportTextApprovedModel>? approved,
+    ExplanationDraftPhase? explanationPhase,
   }) => build(
     uid: state.uid,
     role: state.role,
@@ -284,6 +314,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
     explanations: explanations ?? state.explanations,
     approved: approved ?? state.approved,
     offline: state.offline,
+    explanationPhase: explanationPhase ?? state.explanationPhase,
   );
 
   ReportReaderState _failure(Object e, {bool load = false}) {
@@ -298,6 +329,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
             explanations: state.explanations,
             approved: state.approved,
             offline: state.offline,
+            explanationPhase: state.explanationPhase,
           )
         : ReportReaderWriteFailure(
             error: error,
@@ -308,6 +340,7 @@ class ReportReaderBloc extends Bloc<ReportReaderEvent, ReportReaderState> {
             explanations: state.explanations,
             approved: state.approved,
             offline: state.offline,
+            explanationPhase: state.explanationPhase,
           );
   }
 }

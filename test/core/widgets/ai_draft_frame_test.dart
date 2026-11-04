@@ -1,8 +1,10 @@
+import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_status_colors.dart';
 import 'package:tabibu/core/widgets/ai_draft_frame.dart';
 import 'package:tabibu/core/widgets/dashed_border.dart';
+import 'package:tabibu/core/widgets/tappable.dart';
 
 import '../../helpers/helpers.dart';
 
@@ -64,6 +66,30 @@ void main() {
       await tester.tap(find.text('AI draft — not signed'));
       await tester.pumpAndSettle();
       expect(find.text('Model: pre-read v1'), findsNothing);
+    });
+
+    testWidgets('header toggle expands with Enter and stays at least 48 dp', (
+      tester,
+    ) async {
+      await tester.pumpApp(
+        const AiDraftFrame(
+          label: 'AI draft — not signed',
+          detail: 'Model: pre-read v1',
+          child: Text('Body'),
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final tap = find.byType(Tappable);
+      final size = tester.getSize(tap);
+      expect(size.width, greaterThanOrEqualTo(48));
+      expect(size.height, greaterThanOrEqualTo(48));
+
+      await tester.sendKeyEvent(LogicalKeyboardKey.tab);
+      await tester.pump();
+      await tester.sendKeyEvent(LogicalKeyboardKey.enter);
+      await tester.pumpAndSettle();
+      expect(find.text('Model: pre-read v1'), findsOneWidget);
     });
   });
 }

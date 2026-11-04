@@ -262,6 +262,53 @@ void main() {
           verifyNever(() => cache.markRead('u1', 'n3'));
         },
       );
+
+      blocTest<NotificationsBloc, NotificationsState>(
+        'continues past a failed row and shows one error',
+        setUp: () {
+          when(
+            () => cache.markRead('u1', 'n1'),
+          ).thenAnswer((_) async => _note('n1', status: 'Read'));
+          when(() => cache.markRead('u1', 'n2')).thenThrow(AppError.unknown);
+          when(
+            () => cache.markRead('u1', 'n3'),
+          ).thenAnswer((_) async => _note('n3', status: 'Read'));
+          when(
+            () => cache.markRead('u1', 'n4'),
+          ).thenAnswer((_) async => _note('n4', status: 'Read'));
+          when(() => cache.unreadCount('u1')).thenAnswer((_) async => 1);
+        },
+        build: build,
+        seed: () => NotificationsLoadSuccess(
+          items: [_note('n1'), _note('n2'), _note('n3'), _note('n4')],
+          unread: 4,
+        ),
+        act: (bloc) => bloc.add(const NotificationsAllReadRequested(uid: 'u1')),
+        expect: () => [
+          isA<NotificationsLoadSuccess>()
+              .having(
+                (s) => s.items.where((n) => n.isRead).map((n) => n.uid),
+                'read',
+                ['n1', 'n3', 'n4'],
+              )
+              .having(
+                (s) => s.items.firstWhere((n) => n.uid == 'n2').isRead,
+                'n2 still unread',
+                isFalse,
+              ),
+          isA<NotificationsLoadFailure>().having(
+            (s) => s.error,
+            'error',
+            AppError.unknown,
+          ),
+        ],
+        verify: (_) {
+          verify(() => cache.markRead('u1', 'n1')).called(1);
+          verify(() => cache.markRead('u1', 'n2')).called(1);
+          verify(() => cache.markRead('u1', 'n3')).called(1);
+          verify(() => cache.markRead('u1', 'n4')).called(1);
+        },
+      );
     });
 
     group('failures', () {

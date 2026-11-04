@@ -423,11 +423,11 @@ class _DoctorAppointmentScreenState extends State<DoctorAppointmentScreen> {
         ),
         const SizedBox(height: AppSpacing.md),
         // An empty card is a target too; the pencil carries the semantics.
-        GestureDetector(
-          behavior: .opaque,
+        Tappable(
           onTap: linkedCase.clinicalNotes.trim().isEmpty
               ? () => unawaited(_editNotes(linkedCase))
               : null,
+          semanticLabel: l10n.doctorAppointmentEditNotes,
           child: NotesCard(
             title: l10n.doctorAppointmentNotes,
             text: linkedCase.clinicalNotes,

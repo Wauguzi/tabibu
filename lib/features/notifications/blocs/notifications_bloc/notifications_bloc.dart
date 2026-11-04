@@ -198,19 +198,25 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
       for (final row in state.items)
         if (!row.isRead) row,
     ];
-    try {
-      for (final row in unread) {
-        await _cache.markRead(event.uid, row.uid);
+    // Keep going past a failed row so one fault does not leave the rest unread.
+    var failures = 0;
+    Object? lastError;
+    var items = List<NotificationModel>.of(state.items);
+    for (final row in unread) {
+      try {
+        final updated = await _cache.markRead(event.uid, row.uid);
+        items = [
+          for (final item in items)
+            if (item.uid == updated.uid) updated else item,
+        ];
+      } on Object catch (e) {
+        failures += 1;
+        lastError = e;
       }
-      emit(
-        await _success(
-          event.uid,
-          await _cache.getInbox(event.uid),
-          offline: state.offline,
-        ),
-      );
-    } on Object catch (e) {
-      emit(_failure(e));
+    }
+    emit(await _success(event.uid, items, offline: state.offline));
+    if (failures > 0) {
+      emit(_failure(lastError ?? AppError.unknown));
     }
   }
 

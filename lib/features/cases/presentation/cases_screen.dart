@@ -295,6 +295,7 @@ class _CasesScreenState extends State<CasesScreen> {
           const Spacer(),
           Tappable(
             onTap: action,
+            semanticLabel: label,
             child: Padding(
               padding: const EdgeInsets.symmetric(
                 horizontal: AppSpacing.xs,

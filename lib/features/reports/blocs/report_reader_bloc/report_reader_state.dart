@@ -4,9 +4,14 @@ import 'package:tabibu/features/reports/data/models/pathology_report_model.dart'
 import 'package:tabibu/features/reports/data/models/report_text_approved_model.dart';
 import 'package:tabibu/features/reports/data/models/report_text_model.dart';
 
+/// Why a released report has no explanation draft to review. Only read when
+/// there is nothing to review or approved; [none] reads as still waiting.
+enum ExplanationDraftPhase { none, pending, failed, rejected }
+
 /// A case's signed report for its reader. [explanations] are the AI drafts
 /// awaiting the doctor's approval, by language (doctor only); [approved] the
-/// explanations the doctor approved (what a patient may read). Every state
+/// explanations the doctor approved (what a patient may read);
+/// [explanationPhase] why there is no draft when there is none. Every state
 /// carries the last good data.
 sealed class ReportReaderState extends Equatable {
   const ReportReaderState({
@@ -17,6 +22,7 @@ sealed class ReportReaderState extends Equatable {
     this.explanations = const <String, ReportTextModel>{},
     this.approved = const <String, ReportTextApprovedModel>{},
     this.offline = false,
+    this.explanationPhase = .none,
   });
 
   final String uid;
@@ -26,6 +32,7 @@ sealed class ReportReaderState extends Equatable {
   final Map<String, ReportTextModel> explanations;
   final Map<String, ReportTextApprovedModel> approved;
   final bool offline;
+  final ExplanationDraftPhase explanationPhase;
 
   @override
   List<Object?> get props => [
@@ -36,6 +43,7 @@ sealed class ReportReaderState extends Equatable {
     explanations,
     approved,
     offline,
+    explanationPhase,
   ];
 }
 
@@ -52,6 +60,7 @@ final class ReportReaderLoadInProgress extends ReportReaderState {
     super.explanations,
     super.approved,
     super.offline,
+    super.explanationPhase,
   });
 }
 
@@ -64,6 +73,7 @@ final class ReportReaderLoadSuccess extends ReportReaderState {
     super.explanations,
     super.approved,
     super.offline,
+    super.explanationPhase,
   });
 }
 
@@ -76,6 +86,7 @@ final class ReportReaderWriteInProgress extends ReportReaderState {
     super.explanations,
     super.approved,
     super.offline,
+    super.explanationPhase,
   });
 }
 
@@ -88,6 +99,7 @@ final class ReportDiscussedSuccess extends ReportReaderState {
     super.explanations,
     super.approved,
     super.offline,
+    super.explanationPhase,
   });
 }
 
@@ -100,6 +112,7 @@ final class ExplanationDecisionSuccess extends ReportReaderState {
     super.explanations,
     super.approved,
     super.offline,
+    super.explanationPhase,
   });
 }
 
@@ -113,6 +126,7 @@ final class ReportReaderLoadFailure extends ReportReaderState {
     super.explanations,
     super.approved,
     super.offline,
+    super.explanationPhase,
   });
 
   final AppError error;
@@ -131,6 +145,7 @@ final class ReportReaderWriteFailure extends ReportReaderState {
     super.explanations,
     super.approved,
     super.offline,
+    super.explanationPhase,
   });
 
   final AppError error;

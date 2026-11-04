@@ -26,6 +26,9 @@ void _useTallSurface(WidgetTester tester) {
 void main() {
   setUpAll(() {
     registerFallbackValue(const ExplanationDecisionRequested(language: ''));
+    registerFallbackValue(
+      const ReportReaderOpened(uid: '', role: Role.doctor, caseUid: ''),
+    );
   });
 
   group('ExplanationReviewSection', () {
@@ -100,6 +103,72 @@ void main() {
           const ExplanationDecisionRequested(language: 'en', reject: true),
         ),
       ).called(1);
+    });
+
+    Future<void> pumpEmptyPhase(
+      WidgetTester tester,
+      ExplanationDraftPhase phase,
+    ) async {
+      when(() => blocs.reportReader.state).thenReturn(
+        ReportReaderLoadSuccess(
+          uid: 'doc-1',
+          role: Role.doctor,
+          caseUid: 'case-1',
+          report: const PathologyReportModel(
+            uid: 'rep-1',
+            caseUid: 'case-1',
+            releasedToPatient: true,
+          ),
+          explanationPhase: phase,
+        ),
+      );
+      await tester.pumpApp(
+        MultiBlocProvider(
+          providers: blocs.providers,
+          child: const SingleChildScrollView(
+            child: ExplanationReviewSection(
+              caseUid: 'case-1',
+              patientName: 'Amina Wambui',
+            ),
+          ),
+        ),
+      );
+      await tester.pump();
+    }
+
+    testWidgets('pending shows the waiting copy and Retry', (tester) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpEmptyPhase(tester, .pending);
+
+      expect(find.text(l10n.explanationWaitingForDraft), findsOneWidget);
+      expect(find.text(l10n.commonRetry), findsOneWidget);
+      expect(find.text(l10n.explanationFailedBody), findsNothing);
+      expect(find.text(l10n.explanationRejectedBody), findsNothing);
+    });
+
+    testWidgets('failed shows the failure line and no action to fake', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpEmptyPhase(tester, .failed);
+
+      expect(find.text(l10n.explanationFailedBody), findsOneWidget);
+      expect(find.text(l10n.commonRetry), findsNothing);
+      expect(find.text(l10n.explanationWaitingForDraft), findsNothing);
+    });
+
+    testWidgets('rejected says it was set aside and offers nothing to fake', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      final l10n = lookupAppLocalizations(const Locale('en'));
+      await pumpEmptyPhase(tester, .rejected);
+
+      expect(find.text(l10n.explanationRejectedBody), findsOneWidget);
+      expect(find.text(l10n.commonRetry), findsNothing);
+      expect(find.text(l10n.explanationWaitingForDraft), findsNothing);
     });
   });
 }

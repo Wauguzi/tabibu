@@ -17,6 +17,7 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/cases/presentation/result_copy.dart';
 import 'package:tabibu/features/home/presentation/widgets/shell_tab_page.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/reports/data/models/pathology_report_model.dart';
@@ -221,7 +222,7 @@ class _ResultsScreenState extends State<ResultsScreen> {
               title: l10n.resultsSlideTitle(
                 slideCase.tests.firstOrNull?.name ?? '',
               ),
-              body: l10n.resultsSlideBody(
+              body: l10n.resultsSlideBodyFor(
                 slideCase.doctorName,
                 _discussionDate(slideCase, appointments, language),
               ),
@@ -272,7 +273,7 @@ class _ResultRow extends StatelessWidget {
       .released => (
         l10n.resultsShared,
         StatusTone.signed,
-        l10n.resultsRowSharedBy(
+        l10n.resultsRowSharedByFor(
           caseModel.doctorName,
           _date(
             caseModel.releasedAt.isNotEmpty
@@ -285,13 +286,13 @@ class _ResultRow extends StatelessWidget {
       .withDoctor || .updateWithDoctor => (
         l10n.resultsWithDoctor,
         StatusTone.info,
-        l10n.resultsRowOrderedBy(caseModel.doctorName, l10n.resultsWaiting),
+        l10n.resultsRowOrderedByFor(caseModel.doctorName, l10n.resultsWaiting),
         Assets.icons.documentIcon,
       ),
       .pending => (
         l10n.resultsWaiting,
         StatusTone.neutral,
-        l10n.resultsRowOrderedBy(caseModel.doctorName, l10n.resultsWaiting),
+        l10n.resultsRowOrderedByFor(caseModel.doctorName, l10n.resultsWaiting),
         Assets.icons.calendarIcon,
       ),
     };

@@ -178,16 +178,16 @@ class _DeskListScreenState extends State<DeskListScreen> {
                           ],
                         ),
                         const SizedBox(height: AppSpacing.md),
-                        for (final entry in rows) ...[
+                        for (var i = 0; i < rows.length; i++) ...[
                           DeskEntryRow(
-                            entry: entry,
-                            rank: entries.indexOf(entry) + 1,
+                            entry: rows[i],
+                            rank: i + 1,
                             now: now,
-                            patient: patientOf(caseOf(cases, entry)),
-                            onTap: entry.caseUid.isEmpty
+                            patient: patientOf(caseOf(cases, rows[i])),
+                            onTap: rows[i].caseUid.isEmpty
                                 ? null
                                 : () => CaseWorkspaceRoute(
-                                    caseUid: entry.caseUid,
+                                    caseUid: rows[i].caseUid,
                                   ).push<void>(context),
                           ),
                           const SizedBox(height: AppSpacing.sm),

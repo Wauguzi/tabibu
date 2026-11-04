@@ -174,7 +174,7 @@ void main() {
     });
 
     group('the rows', () {
-      testWidgets('are ranked on the whole desk, kept under a filter', (
+      testWidgets('rank by the filtered list, not the whole desk', (
         tester,
       ) async {
         useTallSurface(tester);
@@ -183,10 +183,11 @@ void main() {
         await pumpScreen(tester, filter: .waitingOver4h);
 
         expect(rows(), findsNWidgets(3));
+        // Builder index: first visible row is 1, not its place on the desk.
+        expect(rank(1), findsOneWidget);
         expect(rank(2), findsOneWidget);
         expect(rank(3), findsOneWidget);
-        expect(rank(6), findsOneWidget);
-        expect(rank(1), findsNothing);
+        expect(rank(6), findsNothing);
       });
 
       testWidgets('low confidence keeps only what the AI actually read', (

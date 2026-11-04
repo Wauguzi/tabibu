@@ -578,6 +578,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
           const SizedBox(height: AppSpacing.xs),
           Tappable(
             onTap: () => setState(() => _bioExpanded = true),
+            semanticLabel: l10n.doctorProfileReadMore,
             child: Row(
               mainAxisSize: .min,
               children: [

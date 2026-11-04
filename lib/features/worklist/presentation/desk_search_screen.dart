@@ -113,13 +113,13 @@ class _DeskSearchScreenState extends State<DeskSearchScreen> {
     required List<CaseModel> cases,
     required DateTime now,
   }) => [
-    for (final entry in shown) ...[
+    for (var i = 0; i < shown.length; i++) ...[
       DeskEntryRow(
-        entry: entry,
-        rank: entries.indexOf(entry) + 1,
+        entry: shown[i],
+        rank: i + 1,
         now: now,
-        patient: patientOf(caseOf(cases, entry)),
-        onTap: () => _open(entry),
+        patient: patientOf(caseOf(cases, shown[i])),
+        onTap: () => _open(shown[i]),
       ),
       const SizedBox(height: AppSpacing.sm),
     ],

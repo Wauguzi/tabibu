@@ -275,6 +275,7 @@ class _PatientAppointmentScreenState extends State<PatientAppointmentScreen> {
         Center(
           child: Tappable(
             onTap: () => _cancel(appointment),
+            semanticLabel: l10n.cancelAppointmentConfirm,
             child: Text(
               l10n.cancelAppointmentConfirm,
               style: Theme.of(context).textTheme.bodyLarge?.copyWith(

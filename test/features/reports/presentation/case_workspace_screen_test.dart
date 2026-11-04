@@ -1605,6 +1605,30 @@ void main() {
         expect(find.byType(AiDraftFrame), findsOneWidget);
       });
 
+      testWidgets('labels the heatmap legend as AI pre-read, not a result', (
+        tester,
+      ) async {
+        when(
+          () => storage.downloadUrl('slides/smear.png'),
+        ).thenAnswer((_) async => 'https://example.test/slide.png');
+        when(
+          () => storage.downloadUrl('heat/seg.png'),
+        ).thenAnswer((_) async => 'https://example.test/heat.png');
+        await pumpScreen(
+          tester,
+          _loaded(
+            draft: _draft(),
+            preread: _preread().copyWith(segmentationPath: 'heat/seg.png'),
+            score: _score,
+          ),
+        );
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 50));
+
+        expect(find.text(l10n.workspaceAiPreread), findsWidgets);
+        expect(find.text(l10n.workspaceAiPrereadNotResult), findsOneWidget);
+      });
+
       testWidgets('Save draft sends only what changed', (tester) async {
         await pumpScreen(tester, _signable());
 

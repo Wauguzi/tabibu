@@ -98,6 +98,7 @@ class SignedReportRow extends StatelessWidget {
                   onTap: onCompare,
                   child: Tappable(
                     onTap: onCompare,
+                    semanticLabel: l10n.signedTabCompare,
                     child: Padding(
                       padding: const EdgeInsets.symmetric(
                         horizontal: AppSpacing.xs,

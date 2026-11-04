@@ -179,7 +179,13 @@ class _Thumb extends StatelessWidget {
       mainAxisSize: .min,
       crossAxisAlignment: .start,
       children: [
-        Tappable(onTap: onTap, child: image),
+        Tappable(
+          onTap: onTap,
+          semanticLabel: caption.isEmpty
+              ? context.l10n.patientHomeSlideLabel(1, 1)
+              : caption,
+          child: image,
+        ),
         if (caption.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.xxs),
           Text(caption, style: textTheme.labelSmall),

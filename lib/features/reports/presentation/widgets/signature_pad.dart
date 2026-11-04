@@ -209,12 +209,16 @@ class _SignaturePadState extends State<SignaturePad> {
                           ),
                         ),
                         Positioned.fill(
-                          child: GestureDetector(
-                            behavior: .opaque,
-                            onPanStart: (d) => _start(d.localPosition, size),
-                            onPanUpdate: (d) => _update(d.localPosition, size),
-                            onPanEnd: (_) => _end(),
-                            onPanCancel: _end,
+                          child: Semantics(
+                            label: widget.semanticLabel,
+                            child: GestureDetector(
+                              behavior: .opaque,
+                              onPanStart: (d) => _start(d.localPosition, size),
+                              onPanUpdate: (d) =>
+                                  _update(d.localPosition, size),
+                              onPanEnd: (_) => _end(),
+                              onPanCancel: _end,
+                            ),
                           ),
                         ),
                       ],

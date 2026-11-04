@@ -194,9 +194,9 @@ class _CalendarScreenState extends State<CalendarScreen> {
       final count = byDay[date]?.length ?? 0;
       final selected = date == _selected;
       cells.add(
-        GestureDetector(
+        Tappable(
           onTap: () => setState(() => _selected = date),
-          behavior: HitTestBehavior.opaque,
+          semanticLabel: DateFormat.yMMMEd(language).format(date),
           child: Center(
             child: Container(
               width: 40,

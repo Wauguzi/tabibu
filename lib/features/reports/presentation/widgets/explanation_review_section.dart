@@ -107,6 +107,71 @@ class ExplanationReviewSection extends StatelessWidget {
     );
   }
 
+  void _reload(BuildContext context, ReportReaderState state) {
+    context.read<ReportReaderBloc>().add(
+      ReportReaderOpened(uid: state.uid, role: .doctor, caseUid: caseUid),
+    );
+  }
+
+  Widget _emptyPhaseCard({
+    required AppLocalizations l10n,
+    required ReportReaderState state,
+    required bool busy,
+    required BuildContext context,
+  }) {
+    final (body, icon, actions) = switch (state.explanationPhase) {
+      .pending => (
+        l10n.explanationWaitingForDraft,
+        Assets.icons.hourglassIcon,
+        <Widget>[
+          TabibuButton.ghost(
+            label: l10n.commonRetry,
+            isLoading: state is ReportReaderLoadInProgress,
+            onTap: busy ? null : () => _reload(context, state),
+          ),
+        ],
+      ),
+      .failed => (
+        l10n.explanationFailedBody,
+        Assets.icons.cancelCircleIcon,
+        const <Widget>[],
+      ),
+      .rejected => (
+        l10n.explanationRejectedBody,
+        Assets.icons.cancelCircleIcon,
+        const <Widget>[],
+      ),
+      .none => (
+        l10n.explanationWaitingForDraft,
+        Assets.icons.hourglassIcon,
+        <Widget>[
+          TabibuButton.ghost(
+            label: l10n.commonRetry,
+            isLoading: state is ReportReaderLoadInProgress,
+            onTap: busy ? null : () => _reload(context, state),
+          ),
+        ],
+      ),
+    };
+
+    return NoticeCard(
+      icon: icon,
+      variant: state.explanationPhase == .failed ? .attention : .neutral,
+      body: body,
+      action: actions.isEmpty
+          ? null
+          : Column(
+              crossAxisAlignment: .stretch,
+              children: [
+                for (var i = 0; i < actions.length; i++) ...[
+                  if (i > 0) const SizedBox(height: AppSpacing.xs),
+                  actions[i],
+                ],
+              ],
+            ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = context.l10n;
@@ -176,23 +241,11 @@ class ExplanationReviewSection extends StatelessWidget {
               segments: text.approvedText.values.toList(),
             ),
           if (drafts.isEmpty && approved.isEmpty)
-            NoticeCard(
-              icon: Assets.icons.hourglassIcon,
-              variant: .neutral,
-              body: l10n.explanationWaitingForDraft,
-              action: TabibuButton.ghost(
-                label: l10n.commonRetry,
-                isLoading: state is ReportReaderLoadInProgress,
-                onTap: busy
-                    ? null
-                    : () => context.read<ReportReaderBloc>().add(
-                        ReportReaderOpened(
-                          uid: state.uid,
-                          role: .doctor,
-                          caseUid: caseUid,
-                        ),
-                      ),
-              ),
+            _emptyPhaseCard(
+              l10n: l10n,
+              state: state,
+              busy: busy,
+              context: context,
             ),
         ];
 

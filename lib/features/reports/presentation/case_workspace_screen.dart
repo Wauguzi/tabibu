@@ -704,7 +704,7 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                 ready: showAi,
                               ),
                               const SizedBox(height: AppSpacing.md),
-                              if (_slideUrl != null && showAi)
+                              if (_slideUrl != null && showAi) ...[
                                 SlideViewer(
                                   image: NetworkImage(_slideUrl!),
                                   heatmap: _heatmapUrl == null
@@ -725,6 +725,27 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                   zoomInLabel: l10n.workspaceZoomIn,
                                   zoomOutLabel: l10n.workspaceZoomOut,
                                 ),
+                                // Heatmap legend is unsigned AI outside the
+                                // draft frame: label it the same way as the
+                                // pre-read card (bundle 80).
+                                if (_heatmapUrl != null) ...[
+                                  const SizedBox(height: AppSpacing.sm),
+                                  Row(
+                                    children: [
+                                      AiMark(label: l10n.workspaceAiPreread),
+                                      const SizedBox(width: AppSpacing.sm),
+                                      Expanded(
+                                        child: Text(
+                                          l10n.workspaceAiPrereadNotResult,
+                                          style: Theme.of(
+                                            context,
+                                          ).textTheme.bodySmall,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ],
                               if (showAi && preread != null) ...[
                                 const SizedBox(height: AppSpacing.md),
                                 _PrereadCard(preread: preread),

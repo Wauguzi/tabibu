@@ -161,8 +161,8 @@ void main() {
 
         expect(rows(), findsOneWidget);
         expect(find.text('ODR-JK-AW-02112026-003'), findsOneWidget);
-        // It keeps its place on the whole desk.
-        expect(find.text('3'), findsOneWidget);
+        // Rank follows the filtered list (one hit → 1), not the desk index.
+        expect(find.text('1'), findsOneWidget);
         expect(find.text('1 result for NJERI'), findsOneWidget);
       });
 

@@ -242,8 +242,12 @@ void main() {
       seed: () => loaded(Role.doctor),
       act: (bloc) => bloc.add(const ReportDiscussedRequested()),
       verify: (bloc) {
-        expect(bloc.state, isA<ReportDiscussedSuccess>());
+        // Polling may replace DiscussedSuccess with a pending phase state.
         expect(bloc.state.report?.releasedToPatient, isTrue);
+        expect(
+          bloc.state.explanationPhase,
+          anyOf(ExplanationDraftPhase.none, ExplanationDraftPhase.pending),
+        );
       },
     );
 
@@ -306,8 +310,8 @@ void main() {
       seed: () => loaded(Role.doctor),
       act: (bloc) => bloc.add(const ReportDiscussedRequested()),
       verify: (bloc) {
-        expect(bloc.state, isA<ReportDiscussedSuccess>());
         expect(bloc.state.explanations, isEmpty);
+        expect(bloc.state.explanationPhase, ExplanationDraftPhase.failed);
         // Two languages, read once each: a failure ends the wait.
         verify(
           () => remote.fetchReportText(

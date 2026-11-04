@@ -168,6 +168,7 @@ class _ProfilePhotoEditorState extends State<ProfilePhotoEditor> {
         const SizedBox(height: AppSpacing.sm),
         Tappable(
           onTap: _reading ? null : _sheet,
+          semanticLabel: widget.changeLabel,
           child: Container(
             padding: const EdgeInsets.symmetric(
               horizontal: AppSpacing.lg,

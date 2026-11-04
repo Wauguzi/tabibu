@@ -24,6 +24,7 @@ import 'package:tabibu/features/cases/blocs/cases_bloc/cases_bloc.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_event.dart';
 import 'package:tabibu/features/cases/blocs/cases_bloc/cases_state.dart';
 import 'package:tabibu/features/cases/data/models/case_model.dart';
+import 'package:tabibu/features/cases/presentation/result_copy.dart';
 import 'package:tabibu/features/cases/presentation/widgets/case_history_row.dart';
 import 'package:tabibu/features/patients/data/models/patient_model.dart';
 import 'package:tabibu/features/reports/blocs/report_reader_bloc/report_reader_bloc.dart';
@@ -207,7 +208,7 @@ class _WaitingBody extends StatelessWidget {
           backLabel: l10n.commonBack,
           onBack: context.pop,
           title: l10n.resultsWaitingTitle(testName),
-          subtitle: l10n.resultsWaitingSubtitle(caseModel.doctorName),
+          subtitle: l10n.resultsWaitingSubtitleFor(caseModel.doctorName),
         ),
         const SizedBox(height: AppSpacing.md),
         DecoratedBox(
@@ -244,7 +245,7 @@ class _WaitingBody extends StatelessWidget {
                 ),
                 const SizedBox(height: AppSpacing.xs),
                 Text(
-                  l10n.resultsWaitingBody(caseModel.doctorName, dateLabel),
+                  l10n.resultsWaitingBodyFor(caseModel.doctorName, dateLabel),
                   style: textTheme.bodyLarge?.copyWith(
                     color: scheme.onSurfaceVariant,
                   ),
@@ -319,7 +320,10 @@ class _WaitingBody extends StatelessWidget {
     return [
       VerificationStep(
         title: l10n.resultsStepSample,
-        supporting: l10n.resultsStepSampleDetail(fmtDate(sampleAt), facility),
+        supporting: l10n.resultsStepSampleDetailFor(
+          fmtDate(sampleAt),
+          facility,
+        ),
         state: sampleDone ? .done : .upNext,
         chipLabel: sampleDone ? l10n.resultsStepDone : l10n.resultsStepLater,
         stateLabel: sampleDone ? l10n.resultsStepDone : l10n.resultsStepLater,
@@ -327,7 +331,7 @@ class _WaitingBody extends StatelessWidget {
       ),
       VerificationStep(
         title: l10n.resultsStepReviewed,
-        supporting: l10n.resultsStepReviewedDetail(
+        supporting: l10n.resultsStepReviewedDetailFor(
           fmtDate(signedAt),
           pathologist,
           lab,
@@ -342,8 +346,8 @@ class _WaitingBody extends StatelessWidget {
         icon: Assets.icons.verificationBadge,
       ),
       VerificationStep(
-        title: l10n.resultsStepTalk(caseModel.doctorName),
-        supporting: l10n.resultsStepTalkDetail(
+        title: l10n.resultsStepTalkFor(caseModel.doctorName),
+        supporting: l10n.resultsStepTalkDetailFor(
           fmtDate(discussAt),
           fmtTime(discussAt),
         ),

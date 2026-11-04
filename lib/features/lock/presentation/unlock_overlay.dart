@@ -149,6 +149,7 @@ class _UnlockBody extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             Tappable(
               onTap: () => unawaited(_forgot(context)),
+              semanticLabel: l10n.appLockForgot,
               child: Text(
                 l10n.appLockForgot,
                 style: Theme.of(context).textTheme.bodyLarge?.copyWith(
