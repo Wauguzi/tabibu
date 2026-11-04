@@ -1742,5 +1742,9 @@
     "orderPatientEmptyBody": "Kipimo kinaagizwa kutoka kwenye miadi iliyokubaliwa au iliyokamilika.",
     "orderPatientChangeTitle": "Kuagizia {name} badala yake?",
     "orderPatientChangeBody": "Hii itafuta vipimo, maelezo na mtaalamu walioteuliwa tayari.",
-    "orderPatientChangeConfirm": "Futa na uendelee"
+    "orderPatientChangeConfirm": "Futa na uendelee",
+    "workspaceDiscardRevision": "Tupa marekebisho haya",
+    "workspaceDiscardSheetTitle": "Tupa marekebisho haya?",
+    "workspaceDiscardSheetBody": "Rasimu itafutwa. Ripoti iliyosainiwa haitabadilika.",
+    "workspaceDiscardSheetConfirm": "Tupa"
 }

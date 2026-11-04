@@ -38,6 +38,7 @@ void main() {
     required String expires,
     required Locale locale,
     required VoidCallback onAccept,
+    ThemeMode mode = ThemeMode.light,
   }) async {
     tester.view.physicalSize = const Size(1170, 6000);
     tester.view.devicePixelRatio = 3;
@@ -50,6 +51,7 @@ void main() {
         onDecline: (_) {},
       ),
       locale: locale,
+      themeMode: mode,
     );
     await tester.pump();
   }
@@ -106,6 +108,30 @@ void main() {
           await tester.pump();
 
           expect(accepted, 1);
+        }
+      }
+    });
+
+    testWidgets('the lapsed view fits a phone, both modes included', (
+      tester,
+    ) async {
+      for (final scale in [1.0, 2.0]) {
+        for (final locale in [const Locale('en'), const Locale('sw')]) {
+          for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+            _useTextScale(tester, scale);
+            final l10n = lookupAppLocalizations(locale);
+            await pump(
+              tester,
+              expires: lapsed,
+              locale: locale,
+              onAccept: () {},
+              mode: mode,
+            );
+
+            expect(find.text(l10n.workspaceRequestLapsed), findsOneWidget);
+            expect(find.text(l10n.workspaceRequestAccept), findsOneWidget);
+            expect(tester.takeException(), isNull);
+          }
         }
       }
     });

@@ -19,10 +19,16 @@ void main() {
     WidgetTester tester, {
     String suggested = 'LAB-WK-03112026-005',
     bool busy = false,
+    Locale locale = const Locale('en'),
+    ThemeMode mode = ThemeMode.light,
+    double scale = 1,
+    double height = 4000,
   }) async {
-    tester.view.physicalSize = const Size(1170, 4000);
+    tester.view.physicalSize = Size(1170, height);
     tester.view.devicePixelRatio = 3;
     addTearDown(tester.view.reset);
+    tester.platformDispatcher.textScaleFactorTestValue = scale;
+    addTearDown(tester.platformDispatcher.clearTextScaleFactorTestValue);
     final recorded = <String>[];
     await tester.pumpApp(
       SampleReceivedView(
@@ -31,6 +37,8 @@ void main() {
         suggested: suggested,
         onRecord: recorded.add,
       ),
+      locale: locale,
+      themeMode: mode,
     );
     await tester.pump();
     return recorded;
@@ -132,5 +140,28 @@ void main() {
     await tester.pump();
 
     expect(recorded, isEmpty);
+  });
+
+  testWidgets('fits a phone at 1.0x and 2.0x, both languages, both modes', (
+    tester,
+  ) async {
+    for (final scale in [1.0, 2.0]) {
+      for (final locale in [const Locale('en'), const Locale('sw')]) {
+        for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+          final l10n = lookupAppLocalizations(locale);
+          await pump(
+            tester,
+            locale: locale,
+            mode: mode,
+            scale: scale,
+            height: 12000,
+          );
+
+          expect(find.text(l10n.doctorCaseSampleReceived), findsOneWidget);
+          expect(find.text('LAB-WK-03112026-005'), findsOneWidget);
+          expect(tester.takeException(), isNull);
+        }
+      }
+    }
   });
 }

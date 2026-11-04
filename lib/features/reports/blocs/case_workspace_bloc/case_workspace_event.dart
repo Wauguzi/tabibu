@@ -134,6 +134,12 @@ final class CaseRevisionStarted extends CaseWorkspaceEvent {
   List<Object?> get props => [kind, text];
 }
 
+/// Leave an open Amendment or Addendum draft unsigned. The signed version
+/// is untouched; Amend and Addendum can start again after.
+final class CaseRevisionDiscarded extends CaseWorkspaceEvent {
+  const CaseRevisionDiscarded();
+}
+
 /// Back to the initial state on sign-out.
 final class CaseWorkspaceReset extends CaseWorkspaceEvent {
   const CaseWorkspaceReset();

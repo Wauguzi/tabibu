@@ -54,6 +54,8 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
     on<CaseSampleReceived>(_onSampleReceived, transformer: droppable());
     // One revision at a time; a double tap must not open two drafts.
     on<CaseRevisionStarted>(_onRevision, transformer: droppable());
+    // One discard; a double tap on the confirm must not repeat it.
+    on<CaseRevisionDiscarded>(_onDiscardRevision, transformer: droppable());
     on<CaseWorkspaceReset>((_, emit) => emit(const CaseWorkspaceInitial()));
   }
 
@@ -496,6 +498,41 @@ class CaseWorkspaceBloc extends Bloc<CaseWorkspaceEvent, CaseWorkspaceState> {
       );
     } on Object catch (e) {
       // The signed version stays on screen; nothing was overwritten.
+      emit(_failure(e));
+      return;
+    }
+    add(CaseWorkspaceOpened(caseUid: caseUid, pathologistUid: pathologistUid));
+  }
+
+  Future<void> _onDiscardRevision(
+    CaseRevisionDiscarded event,
+    Emitter<CaseWorkspaceState> emit,
+  ) async {
+    final draft = state.draft;
+    final kind = draft?.kindValue;
+    // Only an open Amendment or Addendum leaves this way; an Initial draft
+    // is the case's report, and the server refuses it too.
+    if (draft == null ||
+        (kind != .amendment && kind != .addendum) ||
+        draft.statusValue != .editing ||
+        state.caseUid.isEmpty) {
+      emit(_failure(AppError.invalidDecision));
+      return;
+    }
+    if (!await _internet.check()) {
+      emit(_failure(AppError.noInternet));
+      return;
+    }
+    final caseUid = state.caseUid;
+    final pathologistUid = state.pathologistUid;
+    emit(_with(CaseWorkspaceWriteInProgress.new));
+    try {
+      await _remote.discardDraft(
+        caseUid: caseUid,
+        draftLastUpdatedAt: draft.lastUpdatedAt,
+      );
+    } on Object catch (e) {
+      // The draft stays open; the signed version was never touched.
       emit(_failure(e));
       return;
     }

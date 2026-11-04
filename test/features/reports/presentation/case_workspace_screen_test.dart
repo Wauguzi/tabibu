@@ -1660,5 +1660,163 @@ void main() {
         expect(find.text(_ownDiagnosis), findsOneWidget);
       });
     });
+
+    group('large text', () {
+      // The revision editor with its reason notice fits at 1.0x and 2.0x
+      // text, in English and Swahili, light and dark.
+      testWidgets('the amendment editor fits', (tester) async {
+        final state = CaseWorkspaceLoadSuccess(
+          caseUid: _caseUid,
+          caseModel: _case().copyWith(
+            currentStage: 'ReportSigned',
+            currentReportUid: 'report-1',
+          ),
+          draft: const ReportDraftModel(
+            uid: 'draft-1',
+            caseUid: _caseUid,
+            kind: 'Amendment',
+            diagnosis: _ownDiagnosis,
+            comments: _ownComments,
+            amendmentReason: 'Typo in site',
+          ),
+          signed: _signedReport,
+        );
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+              final l10n = lookupAppLocalizations(locale);
+              await pumpScreen(
+                tester,
+                state,
+                locale: locale,
+                themeMode: mode,
+                textScale: scale,
+              );
+
+              expect(find.text(l10n.workspaceAmendmentReason), findsOneWidget);
+              expect(find.text('Typo in site'), findsOneWidget);
+              expect(find.text(l10n.workspaceDiscardRevision), findsOneWidget);
+              expect(tester.takeException(), isNull);
+            }
+          }
+        }
+      });
+    });
+
+    group('discard revision', () {
+      CaseModel signedCase() => _case().copyWith(
+        currentStage: 'ReportSigned',
+        currentReportUid: 'report-1',
+      );
+
+      ReportDraftModel amendment({String status = 'Editing'}) =>
+          const ReportDraftModel(
+            uid: 'draft-1',
+            caseUid: _caseUid,
+            kind: 'Amendment',
+            diagnosis: _ownDiagnosis,
+            comments: _ownComments,
+            amendmentReason: 'Typo in site',
+          ).copyWith(status: status);
+
+      CaseWorkspaceLoadSuccess openAmendment() => CaseWorkspaceLoadSuccess(
+        caseUid: _caseUid,
+        caseModel: signedCase(),
+        draft: amendment(),
+        signed: _signedReport,
+      );
+
+      CaseWorkspaceLoadSuccess afterDiscard() => CaseWorkspaceLoadSuccess(
+        caseUid: _caseUid,
+        caseModel: signedCase(),
+        draft: amendment(status: 'Closed'),
+        signed: _signedReport.copyWith(pathologistUid: 'path-1'),
+      );
+
+      void asSigner() {
+        final session = RoleSessions.pathologist;
+        when(() => authBloc.state).thenReturn(
+          SignInSuccess(
+            session: PractitionerSession(
+              doctor: session.doctor.copyWith(uid: 'path-1'),
+              roles: session.roles,
+            ),
+          ),
+        );
+      }
+
+      testWidgets('absent on an Initial draft', (tester) async {
+        await pumpScreen(tester, _signable());
+
+        expect(find.text(l10n.workspaceDiscardRevision), findsNothing);
+      });
+
+      testWidgets('absent when the revision draft is closed', (tester) async {
+        asSigner();
+        await pumpScreen(tester, afterDiscard());
+
+        expect(find.byType(SignedCaseView), findsOneWidget);
+        expect(find.text(l10n.workspaceDiscardRevision), findsNothing);
+      });
+
+      testWidgets('an open amendment offers discard, and confirm sends it', (
+        tester,
+      ) async {
+        await pumpScreen(tester, openAmendment());
+
+        await tester.tap(find.text(l10n.workspaceDiscardRevision));
+        await settleSheet(tester);
+
+        expect(find.text(l10n.workspaceDiscardSheetTitle), findsOneWidget);
+        expect(find.text(l10n.workspaceDiscardSheetBody), findsOneWidget);
+        expect(find.text(l10n.workspaceDiscardSheetConfirm), findsOneWidget);
+        expect(find.text(l10n.commonCancel), findsOneWidget);
+
+        await tester.tap(find.text(l10n.workspaceDiscardSheetConfirm));
+        await settleSheet(tester);
+
+        verify(
+          () => blocs.caseWorkspace.add(const CaseRevisionDiscarded()),
+        ).called(1);
+      });
+
+      testWidgets('cancel leaves the draft untouched', (tester) async {
+        await pumpScreen(tester, openAmendment());
+
+        await tester.tap(find.text(l10n.workspaceDiscardRevision));
+        await settleSheet(tester);
+        await tester.tap(find.text(l10n.commonCancel));
+        await settleSheet(tester);
+
+        verifyNever(() => blocs.caseWorkspace.add(any()));
+        expect(find.text('Typo in site'), findsOneWidget);
+      });
+
+      testWidgets('after discard the signed view returns with Amend and '
+          'Addendum', (tester) async {
+        asSigner();
+        await pumpScreen(tester, openAmendment());
+
+        await emit(tester, afterDiscard());
+
+        expect(find.byType(SignedCaseView), findsOneWidget);
+        expect(find.text(l10n.signedCaseAmend), findsOneWidget);
+        expect(find.text(l10n.signedCaseAddendum), findsOneWidget);
+        expect(find.text(l10n.workspaceDiscardRevision), findsNothing);
+      });
+
+      testWidgets('a failed discard keeps the draft', (tester) async {
+        final start = openAmendment();
+        await pumpScreen(tester, start);
+
+        await emit(tester, _failed(start));
+        await tester.pump(const Duration(milliseconds: 400));
+
+        expect(find.text('Typo in site'), findsOneWidget);
+        expect(find.text(l10n.workspaceDiscardRevision), findsOneWidget);
+        expect(find.text(AppError.unknown.description(l10n)), findsOneWidget);
+        await tester.pump(const Duration(seconds: 5));
+      });
+    });
   });
 }

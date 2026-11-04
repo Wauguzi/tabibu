@@ -196,6 +196,7 @@ void main() {
       String appointmentUid = 'appt-1',
       String caseUid = '',
       Locale? locale,
+      ThemeMode mode = ThemeMode.light,
     }) async {
       tester.view.physicalSize = const Size(1170, 6000);
       tester.view.devicePixelRatio = 3;
@@ -205,6 +206,7 @@ void main() {
           OrderScreen(appointmentUid: appointmentUid, caseUid: caseUid),
         ),
         locale: locale,
+        themeMode: mode,
       );
       await tester.pump();
       await tester.pump(const Duration(milliseconds: 300));
@@ -614,6 +616,65 @@ void main() {
           findsOneWidget,
         );
         semantics.dispose();
+      });
+
+      testWidgets('the patient step fits at 1.0x and 2.0x, both languages, '
+          'both modes', (tester) async {
+        order(const OrderInitial());
+        visits(mixed());
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+              _useTextScale(tester, scale);
+              final l10n = lookupAppLocalizations(locale);
+              await pumpScreen(
+                tester,
+                appointmentUid: '',
+                locale: locale,
+                mode: mode,
+              );
+
+              expect(find.text(l10n.orderPatientTitle), findsOneWidget);
+              expect(find.text('Amina Wambui'), findsOneWidget);
+              expect(find.text('Brian Otieno'), findsOneWidget);
+              expect(tester.takeException(), isNull);
+            }
+          }
+        }
+      });
+
+      testWidgets('the change-patient sheet fits too', (tester) async {
+        order(_editing(_draft(testIds: ['t1'], appointmentUid: 'a-accepted')));
+        visits(mixed());
+
+        for (final scale in [1.0, 2.0]) {
+          for (final locale in [const Locale('en'), const Locale('sw')]) {
+            for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+              _useTextScale(tester, scale);
+              final l10n = lookupAppLocalizations(locale);
+              // Unmount first: taps move the wizard's step.
+              await tester.pumpWidget(const SizedBox());
+              await pumpScreen(
+                tester,
+                appointmentUid: '',
+                locale: locale,
+                mode: mode,
+              );
+
+              await tester.tap(find.text('Brian Otieno'));
+              await tester.pump();
+              await tester.pump(const Duration(milliseconds: 600));
+
+              expect(
+                find.text(l10n.orderPatientChangeTitle('Brian Otieno')),
+                findsOneWidget,
+              );
+              expect(find.text(l10n.orderPatientChangeConfirm), findsOneWidget);
+              expect(tester.takeException(), isNull);
+            }
+          }
+        }
       });
     });
 

@@ -1290,6 +1290,149 @@ void main() {
     );
   });
 
+  group('discard revision', () {
+    final signedCase = CaseModel.empty().copyWith(
+      uid: _case,
+      pathologistUid: _me,
+      currentStage: 'ReportSigned',
+      currentReportUid: 'r1',
+    );
+    final signedReport = _signed.copyWith(pathologistUid: _me, version: 1);
+    final amendmentDraft = _draft.copyWith(
+      kind: 'Amendment',
+      status: 'Editing',
+      prereadRunUid: '',
+      diagnosis: 'Metastatic carcinoma',
+      amendmentReason: 'Typo in site',
+      baseReportUid: 'r1',
+      targetReportUid: 'r1',
+    );
+    final closedDraft = amendmentDraft.copyWith(status: 'Closed');
+
+    CaseWorkspaceLoadSuccess openRevision({ReportDraftModel? draft}) =>
+        CaseWorkspaceLoadSuccess(
+          caseUid: _case,
+          pathologistUid: _me,
+          caseModel: signedCase,
+          draft: draft ?? amendmentDraft,
+          signed: signedReport,
+          prereadShownAt: _shown.toIso8601String(),
+        );
+
+    void stubOpenAfterDiscard() {
+      when(() => cases.getCases(_me)).thenAnswer((_) async => [signedCase]);
+      when(
+        () => reports.syncDraft(caseUid: _case, pathologistUid: _me),
+      ).thenAnswer((_) async => closedDraft);
+      when(
+        () => reports.syncReports(_me, role: Role.pathologist),
+      ).thenAnswer((_) async => [signedReport]);
+    }
+
+    void neverDiscarded() => verifyNever(
+      () => remote.discardDraft(
+        caseUid: any(named: 'caseUid'),
+        draftLastUpdatedAt: any(named: 'draftLastUpdatedAt'),
+      ),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'discards the open amendment and reopens on the signed report',
+      setUp: () {
+        when(
+          () => remote.discardDraft(
+            caseUid: _case,
+            draftLastUpdatedAt: amendmentDraft.lastUpdatedAt,
+          ),
+        ).thenAnswer((_) async => {'status': 'ok'});
+        stubOpenAfterDiscard();
+      },
+      build: build,
+      seed: openRevision,
+      act: (bloc) => bloc.add(const CaseRevisionDiscarded()),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceLoadSuccess>());
+        expect(bloc.state.draft?.status, 'Closed');
+        expect(bloc.state.signed, signedReport);
+        verify(
+          () => remote.discardDraft(
+            caseUid: _case,
+            draftLastUpdatedAt: amendmentDraft.lastUpdatedAt,
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'an Initial draft is refused and never reaches the server',
+      build: build,
+      seed: () => openRevision(draft: _draft),
+      act: (bloc) => bloc.add(const CaseRevisionDiscarded()),
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) => neverDiscarded(),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a draft that is no longer Editing is refused',
+      build: build,
+      seed: () => openRevision(draft: closedDraft),
+      act: (bloc) => bloc.add(const CaseRevisionDiscarded()),
+      expect: () => [isA<CaseWorkspaceWriteFailure>()],
+      verify: (_) => neverDiscarded(),
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a double tap discards once, not twice',
+      setUp: () {
+        when(
+          () => remote.discardDraft(
+            caseUid: _case,
+            draftLastUpdatedAt: amendmentDraft.lastUpdatedAt,
+          ),
+        ).thenAnswer((_) async {
+          await Future<void>.delayed(const Duration(milliseconds: 50));
+          return {'status': 'ok'};
+        });
+        stubOpenAfterDiscard();
+      },
+      build: build,
+      seed: openRevision,
+      act: (bloc) async {
+        bloc
+          ..add(const CaseRevisionDiscarded())
+          ..add(const CaseRevisionDiscarded());
+      },
+      verify: (_) {
+        verify(
+          () => remote.discardDraft(
+            caseUid: _case,
+            draftLastUpdatedAt: amendmentDraft.lastUpdatedAt,
+          ),
+        ).called(1);
+      },
+    );
+
+    blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
+      'a failed discard keeps the open draft',
+      setUp: () {
+        when(
+          () => remote.discardDraft(
+            caseUid: _case,
+            draftLastUpdatedAt: amendmentDraft.lastUpdatedAt,
+          ),
+        ).thenThrow(AppError.serviceUnavailable);
+      },
+      build: build,
+      seed: openRevision,
+      act: (bloc) => bloc.add(const CaseRevisionDiscarded()),
+      verify: (bloc) {
+        expect(bloc.state, isA<CaseWorkspaceWriteFailure>());
+        expect(bloc.state.draft, amendmentDraft);
+        expect(bloc.state.signed, signedReport);
+      },
+    );
+  });
+
   blocTest<CaseWorkspaceBloc, CaseWorkspaceState>(
     'drops everything on reset',
     build: build,

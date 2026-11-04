@@ -29,6 +29,7 @@ import 'package:tabibu/features/reports/data/models/report_template_question_mod
 import 'package:tabibu/features/reports/data/models/report_template_section_model.dart';
 import 'package:tabibu/features/reports/data/services/report_labels.dart';
 import 'package:tabibu/features/reports/presentation/widgets/case_request_view.dart';
+import 'package:tabibu/features/reports/presentation/widgets/discard_revision_sheet.dart';
 import 'package:tabibu/features/reports/presentation/widgets/sample_received_view.dart';
 import 'package:tabibu/features/reports/presentation/widgets/signed_case_view.dart';
 import 'package:tabibu/features/reports/presentation/widgets/workspace_facts.dart';
@@ -299,6 +300,11 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
 
   void _add(CaseWorkspaceEvent event) =>
       context.read<CaseWorkspaceBloc>().add(event);
+
+  Future<void> _discardRevision() async {
+    final confirmed = await DiscardRevisionSheet.show(context);
+    if (confirmed && mounted) _add(const CaseRevisionDiscarded());
+  }
 
   void _saveDraft(ReportDraftModel draft) {
     final fields = <String, dynamic>{};
@@ -621,6 +627,10 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
         final locked = state.needsScore;
         final isRevision =
             draft?.kindValue == .amendment || draft?.kindValue == .addendum;
+        // An open Amendment / Addendum can be left unsigned; an Initial
+        // draft is the case's report, and a closed one is already gone.
+        final canDiscard =
+            draft != null && isRevision && draft.statusValue == .editing;
         // No AI pre-read or "use AI draft" on Amendment / Addendum (H-4).
         final showAi = ready && !isRevision;
         final loading = state is CaseWorkspaceLoadInProgress && draft == null;
@@ -777,6 +787,15 @@ class _CaseWorkspaceScreenState extends State<CaseWorkspaceScreen> {
                                 caseUid: widget.caseUid,
                                 role: .pathologist,
                               ),
+                              if (canDiscard) ...[
+                                const SizedBox(height: AppSpacing.md),
+                                TabibuButton.ghost(
+                                  label: l10n.workspaceDiscardRevision,
+                                  onTap: state is CaseWorkspaceWriteInProgress
+                                      ? null
+                                      : _discardRevision,
+                                ),
+                              ],
                             ],
                           ),
                   ),

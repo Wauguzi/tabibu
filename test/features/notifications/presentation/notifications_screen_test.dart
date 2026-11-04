@@ -390,6 +390,63 @@ void main() {
       expect(find.textContaining('Code '), findsOneWidget);
     });
 
+    testWidgets('the code row fits at 1.0x and 2.0x, both languages, both '
+        'modes', (tester) async {
+      final doctor = RoleSessions.doctor();
+      when(() => authBloc.state).thenReturn(
+        SignInSuccess(
+          session: PractitionerSession(
+            doctor: doctor.doctor.copyWith(uid: 'doc-1'),
+            roles: doctor.roles,
+          ),
+        ),
+      );
+      final now = DateTime.now().toUtc().toIso8601String();
+      when(() => blocs.notifications.state).thenReturn(
+        NotificationsLoadSuccess(
+          items: [
+            NotificationModel(
+              uid: 'reportSigned:c1_v1:doc-1',
+              creationDate: now,
+              category: 'Report',
+              title: 'Signed report ready',
+              metadata: const NotificationMetadataModel(
+                deepLink: '/cases/c1/reports/v1',
+                shareCode: '4821',
+              ),
+            ),
+          ],
+        ),
+      );
+
+      for (final scale in [1.0, 2.0]) {
+        for (final locale in [const Locale('en'), const Locale('sw')]) {
+          for (final mode in [ThemeMode.light, ThemeMode.dark]) {
+            tester.platformDispatcher.textScaleFactorTestValue = scale;
+            addTearDown(
+              tester.platformDispatcher.clearTextScaleFactorTestValue,
+            );
+            tester.view.physicalSize = const Size(1170, 4000);
+            tester.view.devicePixelRatio = 3;
+            addTearDown(tester.view.reset);
+            final l10n = lookupAppLocalizations(locale);
+            await tester.pumpApp(
+              screen(.doctor),
+              locale: locale,
+              themeMode: mode,
+            );
+            await tester.pumpAndSettle();
+
+            expect(
+              find.text(l10n.notificationAccessCode('4821')),
+              findsOneWidget,
+            );
+            expect(tester.takeException(), isNull);
+          }
+        }
+      }
+    });
+
     testWidgets('a Tier 2 link only marks the row read', (tester) async {
       when(
         () => blocs.notifications.state,

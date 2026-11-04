@@ -8310,5 +8310,21 @@
     "orderPatientChangeConfirm": "Clear and continue",
     "@orderPatientChangeConfirm": {
         "description": "Order wizard: confirm switching patients"
+    },
+    "workspaceDiscardRevision": "Discard this revision",
+    "@workspaceDiscardRevision": {
+        "description": "Workspace: leave an Amendment or Addendum draft without signing"
+    },
+    "workspaceDiscardSheetTitle": "Discard this revision?",
+    "@workspaceDiscardSheetTitle": {
+        "description": "Workspace: confirm discarding an Amendment or Addendum draft"
+    },
+    "workspaceDiscardSheetBody": "The draft will be deleted. The signed report will not change.",
+    "@workspaceDiscardSheetBody": {
+        "description": "Workspace: what discarding a revision draft does"
+    },
+    "workspaceDiscardSheetConfirm": "Discard",
+    "@workspaceDiscardSheetConfirm": {
+        "description": "Workspace: confirm discarding the revision draft"
     }
 }
