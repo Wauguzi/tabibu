@@ -13,6 +13,8 @@
 	<string>Tabibu uses the camera to take your profile photo or photograph your practising licence.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Tabibu opens the photo you choose for your profile or your practising licence.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Tabibu uses the microphone so you can speak your symptoms or send a voice note. A symptom recording is deleted once it has been turned into text.</string>
 	<key>CFBundleDisplayName</key>
 	<string>$(FLAVOR_APP_NAME)</string>
 	<key>CFBundleExecutable</key>

@@ -30,6 +30,9 @@ import 'package:tabibu/core/helpers/reference_data_helper.dart' as _i762;
 import 'package:tabibu/core/helpers/theme_helper.dart' as _i655;
 import 'package:tabibu/core/services/analytics_service.dart' as _i399;
 import 'package:tabibu/core/services/app_update_service.dart' as _i75;
+import 'package:tabibu/core/services/audio_player_service.dart' as _i1072;
+import 'package:tabibu/core/services/audio_recorder_service.dart' as _i93;
+import 'package:tabibu/core/services/audio_service_contract.dart' as _i147;
 import 'package:tabibu/core/services/file_picker_service.dart' as _i282;
 import 'package:tabibu/core/services/internet_service.dart' as _i76;
 import 'package:tabibu/core/services/notification_service.dart' as _i1051;
@@ -121,6 +124,9 @@ extension GetItInjectableX on _i174.GetIt {
         preferences: gh<_i460.SharedPreferences>(),
       ),
     );
+    gh.lazySingleton<_i147.AudioPlayerService>(
+      () => _i1072.DeviceAudioPlayerService(),
+    );
     gh.lazySingleton<_i399.AnalyticsService>(
       () => _i399.AnalyticsService(analytics: gh<_i398.FirebaseAnalytics>()),
     );
@@ -158,6 +164,9 @@ extension GetItInjectableX on _i174.GetIt {
         firestore: gh<_i974.FirebaseFirestore>(),
         functions: gh<_i809.FirebaseFunctions>(),
       ),
+    );
+    gh.lazySingleton<_i147.AudioRecorderService>(
+      () => _i93.DeviceAudioRecorderService(),
     );
     gh.lazySingleton<_i894.BiometricAuthenticator>(
       () => _i894.LocalBiometricAuthenticator(),
