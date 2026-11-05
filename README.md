@@ -203,7 +203,8 @@ password:
 
 The web release is live at
 [tabibu-86ea2.web.app](https://tabibu-86ea2.web.app); the demo accounts above
-sign in there too.
+sign in there too. The Android APK is in
+[this Drive folder](https://drive.google.com/drive/folders/1vupFwEUAz7L0DJBePR35bNW94c-0E4XV?usp=sharing).
 
 The accounts come from `make seed-live`, which also adds two clinic patients and an admin account for
 the Firebase console.
