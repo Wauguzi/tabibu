@@ -130,6 +130,7 @@ class _PractitionerDetailsScreenState extends State<PractitionerProfileScreen> {
         : RoleBackground.doctor;
     final body = SafeArea(
       child: CustomScrollView(
+        keyboardDismissBehavior: .onDrag,
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(

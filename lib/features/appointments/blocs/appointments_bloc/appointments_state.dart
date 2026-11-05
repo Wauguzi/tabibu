@@ -126,3 +126,56 @@ final class AppointmentWriteFailure extends AppointmentsState {
   @override
   List<Object?> get props => [...super.props, error];
 }
+
+final class SymptomsTranscribeInProgress extends AppointmentsState {
+  const SymptomsTranscribeInProgress({
+    required this.requestId,
+    super.appointments,
+    super.offline,
+  });
+
+  final String requestId;
+
+  @override
+  List<Object?> get props => [...super.props, requestId];
+}
+
+final class SymptomsTranscribeSuccess extends AppointmentsState {
+  const SymptomsTranscribeSuccess({
+    required this.requestId,
+    required this.transcript,
+    required this.transcriptionUid,
+    required this.detectedLanguage,
+    super.appointments,
+    super.offline,
+  });
+
+  final String requestId;
+  final String transcript;
+  final String transcriptionUid;
+  final String detectedLanguage;
+
+  @override
+  List<Object?> get props => [
+    ...super.props,
+    requestId,
+    transcript,
+    transcriptionUid,
+    detectedLanguage,
+  ];
+}
+
+final class SymptomsTranscribeFailure extends AppointmentsState {
+  const SymptomsTranscribeFailure({
+    required this.requestId,
+    required this.error,
+    super.appointments,
+    super.offline,
+  });
+
+  final String requestId;
+  final AppError error;
+
+  @override
+  List<Object?> get props => [...super.props, requestId, error];
+}

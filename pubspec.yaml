@@ -1,6 +1,6 @@
 name: tabibu
 description: AI pre-read for pathologists in Kenya, starting with cancer, plus outbreak alerts from every confirmed result for a notifiable disease.
-version: 1.0.09+1009
+version: 1.0.14+1014
 publish_to: none
 
 environment:
@@ -51,6 +51,7 @@ dependencies:
   internet_connection_checker_plus: ^3.1.2
   intl: ^0.20.3
   json_annotation: ^4.12.0
+  just_audio: ^0.10.5
   local_auth: ^3.0.2
   logger: ^2.8.0
   material_ui: ^1.9.0
@@ -60,6 +61,7 @@ dependencies:
   permission_handler: ^13.0.2
   printing: ^5.15.1
   qr_code_generator: ^1.0.3
+  record: ^6.1.2
   share_plus: ^13.3.1
   shared_preferences: ^2.5.6
   test_api: any
@@ -131,6 +133,7 @@ flutter:
     - assets/images/
     - assets/images/portraits/
     - assets/icons/
+    - assets/sounds/
     - fonts/NotoNaskhArabic-Regular.ttf
     - fonts/NotoNaskhArabic-Medium.ttf
     - fonts/NotoNaskhArabic-SemiBold.ttf

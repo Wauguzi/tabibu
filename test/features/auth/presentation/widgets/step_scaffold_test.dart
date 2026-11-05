@@ -8,6 +8,44 @@ import '../../../../helpers/helpers.dart';
 
 void main() {
   group('StepScaffold', () {
+    testWidgets('99: a drag on the body drops the keyboard', (tester) async {
+      tester.view.physicalSize = const Size(1170, 2532);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      await tester.pumpApp(
+        StepScaffold(
+          step: 1,
+          total: 4,
+          backLabel: 'Back',
+          onBack: () {},
+          title: 'Title',
+          footer: const Text('Footer'),
+          child: Column(
+            children: [
+              TextField(focusNode: node),
+              for (var i = 0; i < 40; i++) Text('Field row $i'),
+            ],
+          ),
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.drag(
+        find.byType(SingleChildScrollView),
+        const Offset(0, -120),
+      );
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
     testWidgets('slivers mode shows the header and every sliver', (
       tester,
     ) async {

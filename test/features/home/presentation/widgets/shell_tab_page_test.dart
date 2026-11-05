@@ -7,6 +7,38 @@ import '../../../../helpers/helpers.dart';
 
 void main() {
   group('ShellTabPage', () {
+    testWidgets('99: a drag on the list drops the keyboard', (tester) async {
+      // Short viewport so the list must scroll (onDrag only fires on a real
+      // drag scroll, not when maxScrollExtent is 0).
+      tester.view.physicalSize = const Size(390 * 3, 500 * 3);
+      tester.view.devicePixelRatio = 3;
+      addTearDown(tester.view.reset);
+
+      final node = FocusNode();
+      addTearDown(node.dispose);
+      await tester.pumpApp(
+        ShellTabPage(
+          role: .patient,
+          children: [
+            TextField(focusNode: node),
+            for (var i = 0; i < 40; i++)
+              SizedBox(height: 48, child: Text('Row $i')),
+          ],
+        ),
+      );
+      await tester.pump();
+      await tester.tap(find.byType(TextField));
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      // Drag a body row, not the field, so the scroll view owns the gesture.
+      await tester.drag(find.text('Row 5'), const Offset(0, -200));
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
     testWidgets('lays out children for every role', (tester) async {
       for (final role in Role.values) {
         await tester.pumpApp(

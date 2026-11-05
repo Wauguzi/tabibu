@@ -89,8 +89,12 @@ class _OrderTestsStepState extends State<OrderTestsStep> {
                       onChanged: (value) => setState(() => _query = value),
                     ),
                     const SizedBox(height: AppSpacing.sm),
+                    // Same chip strip as cases_screen: one horizontal row,
+                    // onDrag dismiss, clip none so selected chips are not cut.
                     SingleChildScrollView(
                       scrollDirection: .horizontal,
+                      keyboardDismissBehavior: .onDrag,
+                      clipBehavior: .none,
                       child: Row(
                         children: [
                           TabibuFilterChip(

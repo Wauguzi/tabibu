@@ -116,5 +116,102 @@ void main() {
       expect(value, '');
       expect(controller.text, '');
     });
+
+    group('tap outside dismisses', () {
+      FocusNode fieldNode(WidgetTester tester, [int index = 0]) =>
+          tester.widget<TextField>(find.byType(TextField).at(index)).focusNode!;
+
+      testWidgets('a tap outside drops focus and hides the keyboard', (
+        tester,
+      ) async {
+        await tester.pumpApp(
+          const Column(
+            children: [
+              SearchField(hint: 'Search', clearLabel: 'Clear'),
+              Expanded(child: ColoredBox(color: Color(0x00000000))),
+            ],
+          ),
+        );
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+
+        await tester.tapAt(const Offset(400, 590));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+        expect(tester.testTextInput.isVisible, isFalse);
+      });
+
+      testWidgets('a tap on a button fires it and drops focus', (tester) async {
+        var fired = false;
+        await tester.pumpApp(
+          Column(
+            children: [
+              const SearchField(hint: 'Search', clearLabel: 'Clear'),
+              TextButton(
+                onPressed: () => fired = true,
+                child: const Text('Go'),
+              ),
+            ],
+          ),
+        );
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+
+        await tester.tap(find.text('Go'));
+        await tester.pump();
+        expect(fired, isTrue);
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+        expect(tester.testTextInput.isVisible, isFalse);
+      });
+
+      testWidgets('a tap on another field moves focus, input stays open', (
+        tester,
+      ) async {
+        await tester.pumpApp(
+          const Column(
+            children: [
+              SearchField(hint: 'First', clearLabel: 'Clear'),
+              SearchField(hint: 'Second', clearLabel: 'Clear'),
+            ],
+          ),
+        );
+        final fields = find.byType(TextField);
+        await tester.tap(fields.first);
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+
+        await tester.tap(fields.last);
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isFalse);
+        expect(fieldNode(tester, 1).hasPrimaryFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+      });
+
+      testWidgets('the opt-out keeps focus on a tap outside', (tester) async {
+        await tester.pumpApp(
+          const Column(
+            children: [
+              SearchField(
+                hint: 'Search',
+                clearLabel: 'Clear',
+                dismissKeyboardOnTapOutside: false,
+              ),
+              Expanded(child: ColoredBox(color: Color(0x00000000))),
+            ],
+          ),
+        );
+        await tester.tap(find.byType(TextField));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+
+        await tester.tapAt(const Offset(400, 590));
+        await tester.pump();
+        expect(fieldNode(tester).hasPrimaryFocus, isTrue);
+        expect(tester.testTextInput.isVisible, isTrue);
+      });
+    });
   });
 }

@@ -170,7 +170,10 @@ void main() {
         bytes: Uint8List.fromList([1, 2, 3]),
       );
       expect(out.transcriptionUid, 'tr-1');
-      verify(() => storage.ref('speechAudio/u1/aud-1.m4a')).called(1);
+      expect(AppointmentFirebase.maxSpeechBytes, 1572864);
+      verify(() => storage.ref('speechAudio/u1/aud-1.wav')).called(1);
+      final captured = verify(() => ref.putData(any(), captureAny())).captured;
+      expect((captured.single as SettableMetadata).contentType, 'audio/wav');
       verify(() => functions.httpsCallable('transcribeSymptoms')).called(1);
     });
 

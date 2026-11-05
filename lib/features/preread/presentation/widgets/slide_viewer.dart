@@ -397,12 +397,10 @@ class _ZoomPill extends StatelessWidget {
         child: Column(
           mainAxisSize: .min,
           children: [
-            CircleIconButton(
+            _ZoomControl(
               icon: Assets.icons.zoomInIcon,
+              label: zoomInLabel,
               onTap: onZoomIn,
-              semanticLabel: zoomInLabel,
-              onCard: true,
-              iconSize: 20,
             ),
             // A hairline set in from the sides so it never meets the edges.
             Padding(
@@ -413,14 +411,46 @@ class _ZoomPill extends StatelessWidget {
                 color: scheme.outlineVariant,
               ),
             ),
-            CircleIconButton(
+            _ZoomControl(
               icon: Assets.icons.zoomOutIcon,
+              label: zoomOutLabel,
               onTap: onZoomOut,
-              semanticLabel: zoomOutLabel,
-              onCard: true,
-              iconSize: 20,
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+/// Zoom in/out without a circular plate; the pill behind them is enough.
+class _ZoomControl extends StatelessWidget {
+  const _ZoomControl({
+    required this.icon,
+    required this.label,
+    required this.onTap,
+  });
+
+  static const double iconSize = 20;
+  static const double hitSize = 48;
+
+  final SvgGenImage icon;
+  final String label;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: label,
+      button: true,
+      onTap: onTap,
+      excludeSemantics: true,
+      child: SizedBox(
+        width: hitSize,
+        height: hitSize,
+        child: Tappable(
+          onTap: onTap,
+          child: Center(child: AssetIcon(icon, size: iconSize, scaleUp: false)),
         ),
       ),
     );

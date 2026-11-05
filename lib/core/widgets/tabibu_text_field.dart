@@ -32,6 +32,7 @@ class TabibuTextField extends StatefulWidget {
     this.bordered = false,
     this.sanitizePaste = false,
     this.onPasteCut,
+    this.dismissKeyboardOnTapOutside = true,
     super.key,
   });
 
@@ -75,6 +76,10 @@ class TabibuTextField extends StatefulWidget {
   /// Fired after a paste was cut to [maxLength]. Show a notice; the counter
   /// still shows the length.
   final ValueChanged<int>? onPasteCut;
+
+  /// A tap outside the field drops the keyboard without consuming the tap,
+  /// so buttons still fire. Off only for a field that must keep focus.
+  final bool dismissKeyboardOnTapOutside;
 
   @override
   State<TabibuTextField> createState() => _TabibuTextFieldState();
@@ -123,6 +128,9 @@ class _TabibuTextFieldState extends State<TabibuTextField> {
       readOnly: widget.readOnly,
       onChanged: widget.onChanged,
       onSubmitted: widget.onSubmitted,
+      onTapOutside: widget.dismissKeyboardOnTapOutside
+          ? (_) => FocusManager.instance.primaryFocus?.unfocus()
+          : null,
       style: widget.readOnly
           ? textTheme.bodyLarge?.copyWith(color: scheme.onSurfaceVariant)
           : textTheme.bodyLarge,

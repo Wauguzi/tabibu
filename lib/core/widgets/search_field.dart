@@ -14,6 +14,7 @@ class SearchField extends StatefulWidget {
     this.controller,
     this.onChanged,
     this.onSubmitted,
+    this.dismissKeyboardOnTapOutside = true,
     super.key,
   });
 
@@ -22,6 +23,10 @@ class SearchField extends StatefulWidget {
   final TextEditingController? controller;
   final ValueChanged<String>? onChanged;
   final ValueChanged<String>? onSubmitted;
+
+  /// A tap outside the field drops the keyboard without consuming the tap,
+  /// so buttons still fire. Off only for a field that must keep focus.
+  final bool dismissKeyboardOnTapOutside;
 
   @override
   State<SearchField> createState() => _SearchFieldState();
@@ -62,6 +67,9 @@ class _SearchFieldState extends State<SearchField> {
         widget.onChanged?.call(value);
       },
       onSubmitted: widget.onSubmitted,
+      onTapOutside: widget.dismissKeyboardOnTapOutside
+          ? (_) => FocusManager.instance.primaryFocus?.unfocus()
+          : null,
       style: textTheme.bodyLarge,
       decoration: InputDecoration(
         hintText: widget.hint,

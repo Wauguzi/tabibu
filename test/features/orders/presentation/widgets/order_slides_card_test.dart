@@ -351,6 +351,72 @@ void main() {
       expect(upload.onTap, isNull);
     });
 
+    testWidgets('an uploaded row outlines its locked pixel-size field', (
+      tester,
+    ) async {
+      await pumpCard(
+        tester,
+        upload: SlideUploadEditing(
+          caseUid: 'case-1',
+          slides: [
+            _slide(localId: 'picked', micronsPerPixel: 0.25),
+            _slide(
+              localId: 'done',
+              fileName: 'done.jpg',
+              status: .uploaded,
+              micronsPerPixel: 0.25,
+            ),
+          ],
+        ),
+      );
+
+      final fields = tester
+          .widgetList<TabibuTextField>(find.byType(TabibuTextField))
+          .toList();
+      expect(fields, hasLength(2));
+      expect(fields.first.bordered, isFalse);
+      expect(fields.last.bordered, isTrue);
+      expect(fields.last.readOnly, isTrue);
+    });
+
+    for (final themeMode in [ThemeMode.light, ThemeMode.dark]) {
+      testWidgets('uploaded pixel-size border stays visible on the slide card '
+          '(${themeMode.name})', (tester) async {
+        await pumpCard(
+          tester,
+          themeMode: themeMode,
+          upload: SlideUploadEditing(
+            caseUid: 'case-1',
+            slides: [
+              _slide(
+                localId: 'done',
+                fileName: 'done.jpg',
+                status: .uploaded,
+                micronsPerPixel: 0.25,
+              ),
+            ],
+          ),
+        );
+
+        final scheme = Theme.of(
+          tester.element(find.byType(OrderSlidesCard)),
+        ).colorScheme;
+        final cardColor = themeMode == ThemeMode.dark
+            ? scheme.surfaceContainerHigh
+            : scheme.surfaceContainerLowest;
+
+        final textField = tester.widget<TextField>(find.byType(TextField));
+        final decoration = textField.decoration!;
+        final enabled = decoration.enabledBorder! as OutlineInputBorder;
+
+        expect(decoration.fillColor, scheme.surfaceContainerLow);
+        expect(enabled.borderSide.width, greaterThan(0));
+        expect(enabled.borderSide.color, scheme.outline);
+        expect(enabled.borderSide.color, isNot(decoration.fillColor));
+        expect(enabled.borderSide.color, isNot(cardColor));
+      });
+    }
+
     testWidgets('a partial success keeps Retry on the failed rows', (
       tester,
     ) async {

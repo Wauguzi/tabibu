@@ -102,6 +102,7 @@ class _EditProfileScreenState extends State<EditProfileScreen> {
     final l10n = context.l10n;
     final body = SafeArea(
       child: CustomScrollView(
+        keyboardDismissBehavior: .onDrag,
         slivers: [
           SliverPadding(
             padding: const EdgeInsets.fromLTRB(

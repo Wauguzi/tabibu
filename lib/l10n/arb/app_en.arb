@@ -4854,6 +4854,10 @@
     "@orderInsurerLabel": {
         "description": "Details: insurer"
     },
+    "orderInsurerHint": "Choose a provider",
+    "@orderInsurerHint": {
+        "description": "Details: insurer row subtitle before a provider is chosen"
+    },
     "orderInsurerMissing": "Choose the insurer.",
     "@orderInsurerMissing": {
         "description": "Validation"
@@ -8477,5 +8481,170 @@
     "resultsUpdateReviewNoticeNoDate": "Your doctor is reviewing an update to this result. You are reading the last version that was released to you.",
     "@resultsUpdateReviewNoticeNoDate": {
         "description": "Patient result: update waiting; release date unknown"
+    },
+    "symptomVoiceRecordLabel": "Speak your symptoms",
+    "@symptomVoiceRecordLabel": {
+        "description": "Booking: start recording symptoms (up to 45 s, WAV)"
+    },
+    "symptomVoiceStopLabel": "Stop recording",
+    "@symptomVoiceStopLabel": {
+        "description": "Booking: stop the symptom recording"
+    },
+    "symptomVoiceTranscribeLabel": "Turn into text",
+    "@symptomVoiceTranscribeLabel": {
+        "description": "Booking: send the recording for transcription"
+    },
+    "symptomVoiceRecording": "Recording… {seconds}s",
+    "@symptomVoiceRecording": {
+        "description": "Booking: live timer while recording symptoms",
+        "placeholders": {
+            "seconds": { "type": "int" }
+        }
+    },
+    "symptomVoiceAiNotice": "Prepared with AI from your voice. Check it before you send.",
+    "@symptomVoiceAiNotice": {
+        "description": "Booking: notice above a transcript filled into the symptoms field"
+    },
+    "symptomVoiceDeletedNotice": "Your recording is deleted after it is turned into text.",
+    "@symptomVoiceDeletedNotice": {
+        "description": "Booking: reassure the patient the audio is not kept"
+    },
+    "symptomVoiceConsentTitle": "Speak your symptoms",
+    "@symptomVoiceConsentTitle": {
+        "description": "Booking: first-time consent title for symptom voice"
+    },
+    "symptomVoiceConsentBody": "Your voice is sent once to a transcription service, then deleted. The doctor sees only the text you check and send. You can always type instead.",
+    "@symptomVoiceConsentBody": {
+        "description": "Booking: first-time consent body for symptom voice"
+    },
+    "symptomVoiceConsentContinue": "Continue",
+    "@symptomVoiceConsentContinue": {
+        "description": "Booking: accept symptom voice consent"
+    },
+    "symptomVoiceUnsupported": "Speaking symptoms is not available in this browser. Please type them instead.",
+    "@symptomVoiceUnsupported": {
+        "description": "Booking: web demo has no microphone"
+    },
+    "symptomVoicePermissionDenied": "Microphone access is off. You can type your symptoms, or turn the microphone on in Settings.",
+    "@symptomVoicePermissionDenied": {
+        "description": "Booking: mic permission denied"
+    },
+    "symptomVoiceEnableMicrophone": "Enable microphone",
+    "@symptomVoiceEnableMicrophone": {
+        "description": "Booking: ask the OS for the mic again"
+    },
+    "symptomVoiceOpenSettings": "Open Settings",
+    "@symptomVoiceOpenSettings": {
+        "description": "Booking: deep link to system settings for the mic"
+    },
+    "symptomVoiceOffline": "You are offline. Type your symptoms, or try speaking again when you are back online.",
+    "@symptomVoiceOffline": {
+        "description": "Booking: offline while trying to transcribe"
+    },
+    "symptomVoiceFailed": "We could not turn that recording into text. The field is unchanged — type your symptoms, or try again.",
+    "@symptomVoiceFailed": {
+        "description": "Booking: transcription failed or empty"
+    },
+    "symptomVoiceStartFailed": "We could not start recording. Type your symptoms, or try again.",
+    "@symptomVoiceStartFailed": {
+        "description": "Booking: mic start failed for a reason other than permission"
+    },
+    "symptomVoiceEnglishOnly": "Voice works in English. You can always type, in English or Kiswahili.",
+    "@symptomVoiceEnglishOnly": {
+        "description": "Booking: speech recognition is English only; typing stays bilingual"
+    },
+    "symptomVoiceUnavailable": "Voice input is not available right now. You can type your symptoms.",
+    "@symptomVoiceUnavailable": {
+        "description": "Booking: speech kill switch off (voiceDisabled); hide mic for the session"
+    },
+    "chatVoiceRecordLabel": "Record a voice note",
+    "@chatVoiceRecordLabel": {
+        "description": "Chat: start recording a voice note (up to 120 s)"
+    },
+    "chatVoiceStopLabel": "Stop recording",
+    "@chatVoiceStopLabel": {
+        "description": "Chat: stop the voice note recording"
+    },
+    "chatVoiceCancelLabel": "Discard",
+    "@chatVoiceCancelLabel": {
+        "description": "Chat: cancel an in-progress voice recording"
+    },
+    "chatVoiceDiscardLabel": "Discard",
+    "@chatVoiceDiscardLabel": {
+        "description": "Chat: discard a finished voice preview"
+    },
+    "chatVoiceSendLabel": "Send",
+    "@chatVoiceSendLabel": {
+        "description": "Chat: send the voice note preview"
+    },
+    "chatVoicePlayLabel": "Play voice note",
+    "@chatVoicePlayLabel": {
+        "description": "Chat: play a voice note"
+    },
+    "chatVoicePauseLabel": "Pause voice note",
+    "@chatVoicePauseLabel": {
+        "description": "Chat: pause a voice note"
+    },
+    "chatVoiceRecording": "Recording… {seconds}s",
+    "@chatVoiceRecording": {
+        "description": "Chat: live timer while recording a voice note",
+        "placeholders": {
+            "seconds": { "type": "int" }
+        }
+    },
+    "chatVoicePreview": "Voice note · {seconds}s",
+    "@chatVoicePreview": {
+        "description": "Chat: preview line for a finished voice note",
+        "placeholders": {
+            "seconds": { "type": "int" }
+        }
+    },
+    "chatVoiceProgress": "{played} of {total}",
+    "@chatVoiceProgress": {
+        "description": "Chat: semantics for voice note progress",
+        "placeholders": {
+            "played": { "type": "String" },
+            "total": { "type": "String" }
+        }
+    },
+    "chatVoiceUnsupported": "Voice notes are not available in this browser. You can still type.",
+    "@chatVoiceUnsupported": {
+        "description": "Chat: web demo has no microphone"
+    },
+    "chatVoicePermissionDenied": "Microphone access is off. You can type, or turn the microphone on in Settings.",
+    "@chatVoicePermissionDenied": {
+        "description": "Chat: mic permission denied"
+    },
+    "chatVoicePermissionPermanent": "Microphone access is blocked. Open Settings to turn it on, or type instead.",
+    "@chatVoicePermissionPermanent": {
+        "description": "Chat: mic permanently denied"
+    },
+    "chatVoiceOpenSettings": "Open Settings",
+    "@chatVoiceOpenSettings": {
+        "description": "Chat: deep link to system settings for the mic"
+    },
+    "chatVoiceEnableMicrophone": "Enable microphone",
+    "@chatVoiceEnableMicrophone": {
+        "description": "Chat: ask the OS for the mic again"
+    },
+    "chatVoiceStartFailed": "We could not start recording. Type a message, or try again.",
+    "@chatVoiceStartFailed": {
+        "description": "Chat: mic start failed"
+    },
+    "chatVoiceRecordFailed": "That recording was too short or could not be saved. Try again, or type.",
+    "@chatVoiceRecordFailed": {
+        "description": "Chat: stop returned no clip"
+    },
+    "chatVoiceSendFailed": "We could not send that voice note. The preview is still here — try again, or discard it.",
+    "@chatVoiceSendFailed": {
+        "description": "Chat: voice upload failed; preview kept"
+    },
+    "chatVoicePlayFailed": "We could not play that voice note.",
+    "@chatVoicePlayFailed": {
+        "description": "Chat: playback fetch or decode failed"
+    },
+    "chatVoiceTranscriptUnavailable": "Transcript not available for voice notes.",
+    "@chatVoiceTranscriptUnavailable": {
+        "description": "Chat: plain line under a voice note; no ASR for m4a"
     }
 }

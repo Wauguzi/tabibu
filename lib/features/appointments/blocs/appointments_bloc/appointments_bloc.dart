@@ -29,6 +29,11 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     on<AppointmentsRefreshed>(_onRefreshed, transformer: droppable());
     // One booking at a time; a retry reuses the pending uid.
     on<AppointmentBookRequested>(_onBook, transformer: droppable());
+    // Double tap on Transcribe must not fire twice.
+    // Sequential, not droppable: every request is answered with its own
+    // id, one model call at a time. A dropped request would leave its form
+    // waiting for an answer that never comes.
+    on<SymptomsTranscribeRequested>(_onTranscribe, transformer: sequential());
     // Writes must not race each other.
     on<AppointmentDecisionRequested>(_onDecision, transformer: sequential());
     on<AppointmentCompleteRequested>(_onComplete, transformer: sequential());
@@ -192,6 +197,8 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
         start: event.start,
         type: event.type,
         symptomText: event.symptomText,
+        inputMode: event.inputMode,
+        transcriptionUid: event.transcriptionUid,
       );
       _clearPendingBook();
       final appointments = await _cache.getPatientAppointments(event.uid);
@@ -205,6 +212,89 @@ class AppointmentsBloc extends Bloc<AppointmentsEvent, AppointmentsState> {
     } on Object catch (e) {
       emit(_writeFailure(e));
     }
+  }
+
+  Future<void> _onTranscribe(
+    SymptomsTranscribeRequested event,
+    Emitter<AppointmentsState> emit,
+  ) async {
+    if (!await _internet.check()) {
+      emit(
+        SymptomsTranscribeFailure(
+          requestId: event.requestId,
+          error: AppError.noInternet,
+          appointments: state.appointments,
+          offline: true,
+        ),
+      );
+      return;
+    }
+    emit(
+      SymptomsTranscribeInProgress(
+        requestId: event.requestId,
+        appointments: state.appointments,
+        offline: state.offline,
+      ),
+    );
+    try {
+      final audioUid = _uuid.v4();
+      final result = await _cache.transcribeSymptoms(
+        uid: event.uid,
+        audioUid: audioUid,
+        bytes: event.audio.bytes,
+        contentType: event.audio.contentType,
+      );
+      final transcript = result.transcript.trim();
+      if (transcript.isEmpty || result.transcriptionUid.isEmpty) {
+        emit(
+          SymptomsTranscribeFailure(
+            requestId: event.requestId,
+            error: AppError.unknown,
+            appointments: state.appointments,
+            offline: state.offline,
+          ),
+        );
+        return;
+      }
+      final language = result.detectedLanguage.toLowerCase();
+      final enOrSw =
+          language.startsWith('en') ||
+          language.startsWith('sw') ||
+          language.contains('swahili');
+      unawaited(
+        _analytics.logSymptomVoiceTranscribed(
+          durationBucket: _durationBucket(event.audio.durationMs),
+          englishOrSwahili: enOrSw,
+        ),
+      );
+      emit(
+        SymptomsTranscribeSuccess(
+          requestId: event.requestId,
+          transcript: transcript,
+          transcriptionUid: result.transcriptionUid,
+          detectedLanguage: result.detectedLanguage,
+          appointments: state.appointments,
+          offline: state.offline,
+        ),
+      );
+    } on Object catch (e) {
+      emit(
+        SymptomsTranscribeFailure(
+          requestId: event.requestId,
+          error: _toAppError(e),
+          appointments: state.appointments,
+          offline: state.offline,
+        ),
+      );
+    }
+  }
+
+  /// Coarse buckets only — never the raw duration.
+  String _durationBucket(int durationMs) {
+    if (durationMs < 15000) return '0_15';
+    if (durationMs < 30000) return '15_30';
+    if (durationMs < 60000) return '30_60';
+    return '60_plus';
   }
 
   Future<void> _onDecision(

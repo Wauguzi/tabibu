@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/widgets/hero_carousel.dart';
 import 'package:tabibu/core/widgets/page_dots.dart';
 
@@ -14,6 +15,24 @@ void main() {
       expect(find.text('One'), findsOneWidget);
       expect(find.byType(PageDots), findsNothing);
       expect(tester.getSize(find.byType(PageView)), const Size(800, 240));
+    });
+
+    testWidgets('keeps a gap between neighbouring slides', (tester) async {
+      const first = Key('first-slide');
+      const second = Key('second-slide');
+      await tester.pumpApp(
+        const HeroCarousel(
+          slides: [
+            ColoredBox(key: first, color: Color(0xFFFF0000)),
+            ColoredBox(key: second, color: Color(0xFF0000FF)),
+          ],
+        ),
+      );
+      await tester.pumpAndSettle();
+
+      final left = tester.getRect(find.byKey(first));
+      final right = tester.getRect(find.byKey(second));
+      expect(right.left - left.right, AppSpacing.bentoGap);
     });
 
     testWidgets('shows dots for two slides and swiping moves the current dot', (

@@ -19,8 +19,9 @@
 > recorded in CRQ-0051: the host is Cloud Functions, not Modal; one model, `muse-spark-1.3`, labels the pre-read tiles, assesses the
 > order, summarises the symptoms and writes the explanation and the alert draft, with no SAM mask and no Muse Spark Open; every number
 > is still computed in code; and the pre-read sends one tile per request with four labelled examples, with its confidence band capped at
-> Low because the model's stated probabilities were not calibrated (held-out accuracy 72% at best; CRQ-0051 §7). Voice transcription is
-> not wired (`voice_input_enabled` stays off).
+> Low because the model's stated probabilities were not calibrated (held-out accuracy 72% at best; CRQ-0051 §7). Speech to text for symptoms is
+> built (`muse-voice-transcribe-1.0`, English only, WAV, behind `voice_input_enabled`, off until a first live call; chat voice notes are not transcribed),
+> see [CRQ-0052](../../crq/reports/CRQ-0052-voice-input-and-voice-notes.md).
 
 ## 1. Jobs
 
@@ -291,10 +292,30 @@ Decided by the 27 October tests, recorded here once run:
 | Swahili output from Muse Spark and Muse Spark Open is usable | English shown alongside; a fluency pass later (not a gate) | Pending |
 | Muse Voice Transcribe accepts Swahili speech | Text intake for Swahili; voice for English. Typing is always the fallback when a transcription fails | Pending |
 
-## 11. Change log
+## 11. Speech to text (as built, 4 Nov 2026)
+
+The Meta speech model `muse-voice-transcribe-1.0` is called from `transcribeSymptoms` and nowhere else.
+It takes WAV only (mono, 16-bit PCM, 16 or 24 kHz) and does not list Kiswahili among its 25 languages
+([speech to text](https://dev.meta.ai/docs/speech-to-text)), so the symptom recording is WAV, voice works in
+English only, and the app says so. The server reads the recording's header, refuses anything outside the
+accepted shape and 1 to 46 seconds, and sends Meta a plain rebuilt file; the audio object is deleted afterwards
+on every path. Chat voice notes are AAC and are never sent to a model: their transcript is marked `Failed` with
+the reason `UnsupportedFormat`. To check the API by hand before the switch goes on (this bypasses Tabibu; the
+key comes from your own environment, not the repository):
+
+```sh
+ffmpeg -i note.m4a -ac 1 -ar 24000 -c:a pcm_s16le -map_metadata -1 note.wav && \
+  curl --fail-with-body 'https://api.meta.ai/v1/asr/transcribe?sessionId=check-1' \
+    -H "Authorization: Bearer $MODEL_API_KEY" \
+    -F 'request={"model":"muse-voice-transcribe-1.0","audioEncoding":"WAV","mode":"PUSH_TO_TALK"};type=application/json' \
+    -F 'audio=@note.wav;type=audio/wav'
+```
+
+## 12. Change log
 
 | Date | Change | Author |
 |---|---|---|
+| 2026-11-04 | §11: speech to text as built (WAV, English only, chat notes not transcribed). | Theo |
 | 2026-11-04 | Status and an "As built" note: the jobs run in Cloud Functions on the Meta Model API with one model, the pre-read sends one tile per request with examples and its band is capped at Low (`feat/ui`, CRQ-0051). | Theo |
 | 2026-11-02 | The alert's approver is an authorised clinician holding the approver permission (`feat/ui`, decision S-2). | Theo |
 | 2026-11-01 | For the `feat/infra` data layer: §1 the report translation, the doctor-approved explanation, the en and sw intake from one call, speech to text, voice-note transcripts, grounded alert drafting, one-tap approval and S-8 direct use; §2 de-identified text or the speaker's audio, synchronous calls, `Failed` without retries; §3 ranking split between the functions and the app; §4 scoring first, `signReport` as a transaction, §4.1 the report texts with numbers tokenised; §5 `labelsPath`, `inputLanguage`, `failureReason`, stale runs; §6 the speech exception, `acceptedUnchanged` and the model performance signals; §8 the two records; §9 eight switches; §10 the Swahili fallback (CRQ-0041, CRQ-0043, CRQ-0044, CRQ-0047). | Theo |

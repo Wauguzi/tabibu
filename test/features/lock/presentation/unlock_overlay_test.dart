@@ -13,6 +13,7 @@ import 'package:tabibu/features/auth/blocs/auth_bloc/auth_state.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_bloc.dart';
 import 'package:tabibu/features/lock/blocs/lock_bloc/lock_state.dart';
 import 'package:tabibu/features/lock/presentation/unlock_overlay.dart';
+import 'package:tabibu/features/lock/presentation/widgets/pin_pad.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
 import '../../../helpers/feature_blocs.dart';
@@ -63,6 +64,23 @@ void main() {
     );
     await tester.pumpAndSettle();
   }
+
+  testWidgets('94: the PIN overlay uses the pad, not a soft-keyboard field', (
+    tester,
+  ) async {
+    await tester.binding.setSurfaceSize(const Size(390, 844));
+    addTearDown(() => tester.binding.setSurfaceSize(null));
+    await pumpOverlay(tester);
+
+    expect(find.byType(PinPad), findsOneWidget);
+    expect(find.byType(TextField), findsNothing);
+    expect(tester.testTextInput.isVisible, isFalse);
+
+    await tester.tap(find.text('1'));
+    await tester.pump();
+    expect(find.byType(TextField), findsNothing);
+    expect(tester.testTextInput.isVisible, isFalse);
+  });
 
   testWidgets('Forgot PIN opens the sheet from the router navigator', (
     tester,

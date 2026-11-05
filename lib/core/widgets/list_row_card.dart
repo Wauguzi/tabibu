@@ -42,6 +42,9 @@ class ListRowCard extends StatelessWidget {
     final chip = this.chip;
     final trailingText = this.trailingText;
     final onTap = this.onTap;
+    // Trailing text / unread stay top with the chevron at the bottom; a
+    // chevron-only column is centred on the row (sample-collected, etc.).
+    final hasTop = trailingText != null || unread;
     final card = Container(
       padding: AppStyles.cardPadding,
       decoration: BoxDecoration(
@@ -86,37 +89,38 @@ class ListRowCard extends StatelessWidget {
             if (trailingText != null || unread || chevron) ...[
               const SizedBox(width: AppSpacing.sm),
               Column(
-                mainAxisAlignment: .spaceBetween,
+                mainAxisAlignment: hasTop ? .spaceBetween : .center,
                 crossAxisAlignment: .end,
                 children: [
-                  Column(
-                    mainAxisSize: .min,
-                    crossAxisAlignment: .end,
-                    children: [
-                      if (trailingText != null)
-                        ConstrainedBox(
-                          constraints: const BoxConstraints(maxWidth: 120),
-                          child: Text(
-                            trailingText,
-                            style: textTheme.labelSmall,
-                            maxLines: 1,
-                            overflow: .ellipsis,
-                            textAlign: .right,
+                  if (hasTop)
+                    Column(
+                      mainAxisSize: .min,
+                      crossAxisAlignment: .end,
+                      children: [
+                        if (trailingText != null)
+                          ConstrainedBox(
+                            constraints: const BoxConstraints(maxWidth: 120),
+                            child: Text(
+                              trailingText,
+                              style: textTheme.labelSmall,
+                              maxLines: 1,
+                              overflow: .ellipsis,
+                              textAlign: .right,
+                            ),
                           ),
-                        ),
-                      if (trailingText != null && unread)
-                        const SizedBox(height: AppSpacing.xxs),
-                      if (unread)
-                        Container(
-                          width: 8,
-                          height: 8,
-                          decoration: BoxDecoration(
-                            shape: .circle,
-                            color: scheme.primary,
+                        if (trailingText != null && unread)
+                          const SizedBox(height: AppSpacing.xxs),
+                        if (unread)
+                          Container(
+                            width: 8,
+                            height: 8,
+                            decoration: BoxDecoration(
+                              shape: .circle,
+                              color: scheme.primary,
+                            ),
                           ),
-                        ),
-                    ],
-                  ),
+                      ],
+                    ),
                   if (chevron)
                     ExcludeSemantics(
                       child: AssetIcon(

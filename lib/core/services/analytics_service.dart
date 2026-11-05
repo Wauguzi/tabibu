@@ -131,6 +131,43 @@ class AnalyticsService {
   Future<void> logChatMessageSent() =>
       _guard(() => _analytics.logEvent(name: 'chat_message_sent'));
 
+  /// Voice note sent: duration bucket only — never audio, path or ids.
+  Future<void> logChatVoiceNoteSent({required String durationBucket}) => _guard(
+    () => _analytics.logEvent(
+      name: 'chat_voice_note_sent',
+      parameters: {'duration_bucket': durationBucket},
+    ),
+  );
+
+  Future<void> logMdtVoiceNoteSent({required String durationBucket}) => _guard(
+    () => _analytics.logEvent(
+      name: 'mdt_voice_note_sent',
+      parameters: {'duration_bucket': durationBucket},
+    ),
+  );
+
+  /// Voice recording lifecycle carries the surface only ('chat', 'mdt' or
+  /// 'symptom') — never audio, transcript, ids or paths.
+  Future<void> logVoiceRecordingStarted({required String surface}) => _guard(
+    () => _analytics.logEvent(
+      name: 'voice_recording_started',
+      parameters: {'surface': surface},
+    ),
+  );
+
+  Future<void> logVoiceRecordingDiscarded({required String surface}) => _guard(
+    () => _analytics.logEvent(
+      name: 'voice_recording_discarded',
+      parameters: {'surface': surface},
+    ),
+  );
+
+  Future<void> logVoicePlaybackStarted() =>
+      _guard(() => _analytics.logEvent(name: 'voice_playback_started'));
+
+  Future<void> logVoicePlaybackPaused() =>
+      _guard(() => _analytics.logEvent(name: 'voice_playback_paused'));
+
   Future<void> logChatClosed() =>
       _guard(() => _analytics.logEvent(name: 'chat_closed'));
 
@@ -189,6 +226,21 @@ class AnalyticsService {
   /// Appointment outcomes carry an accepted flag only, never reasons or notes.
   Future<void> logAppointmentRequested() =>
       _guard(() => _analytics.logEvent(name: 'appointment_requested'));
+
+  /// Symptom voice transcription succeeded. Duration bucket and language
+  /// flag only — never audio, transcript or paths.
+  Future<void> logSymptomVoiceTranscribed({
+    required String durationBucket,
+    required bool englishOrSwahili,
+  }) => _guard(
+    () => _analytics.logEvent(
+      name: 'symptom_voice_transcribed',
+      parameters: {
+        'duration_bucket': durationBucket,
+        'en_or_sw': englishOrSwahili ? 1 : 0,
+      },
+    ),
+  );
 
   Future<void> logAppointmentResponded({required bool accepted}) => _guard(
     () => _analytics.logEvent(

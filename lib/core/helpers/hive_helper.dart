@@ -37,6 +37,7 @@ import 'package:tabibu/features/conversations/data/models/conversation_member_hi
 import 'package:tabibu/features/conversations/data/models/message_hive.dart';
 import 'package:tabibu/features/conversations/data/models/message_preview_hive.dart';
 import 'package:tabibu/features/conversations/data/models/message_transcript_hive.dart';
+import 'package:tabibu/features/conversations/data/voice_pending_store.dart';
 import 'package:tabibu/features/notifications/data/models/notification_hive.dart';
 import 'package:tabibu/features/notifications/data/models/notification_metadata_hive.dart';
 import 'package:tabibu/features/patients/data/models/patient_hive.dart';
@@ -504,6 +505,7 @@ class HiveHelperImpl implements HiveHelper {
     await _db.deleteAll(_encryptedBoxes);
     _messagesBox = null;
     await _clearMediaCache();
+    await _clearVoicePending();
     await _openEncryptedBoxes(await _cipher(rotate: true));
     await _secureStorage.delete(key: _ownerName).timeout(_secureStorageTimeout);
   }
@@ -519,6 +521,15 @@ class HiveHelperImpl implements HiveHelper {
       }
     } catch (e) {
       if (kDebugMode) _logger.w('Media cache delete failed: $e');
+    }
+  }
+
+  /// Queued chat voice files under app support; wiped with the session.
+  Future<void> _clearVoicePending() async {
+    try {
+      await VoicePendingStore().clear();
+    } catch (e) {
+      if (kDebugMode) _logger.w('Voice pending delete failed: $e');
     }
   }
 

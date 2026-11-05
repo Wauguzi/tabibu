@@ -329,7 +329,7 @@ class _OrderDetailsStepState extends State<OrderDetailsStep> {
                 const SizedBox(height: AppSpacing.sm),
                 ListRowCard(
                   title: l10n.orderInsurerLabel,
-                  subtitle: insurer?.name,
+                  subtitle: insurer?.name ?? l10n.orderInsurerHint,
                   leading: IconTile(icon: Assets.icons.shieldIcon, tone: .mint),
                   onTap: busy ? null : _pickInsurer,
                 ),

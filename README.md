@@ -47,7 +47,7 @@ The three-minute demo walks the same path, one role at a time. Sign in with the 
 
 | Beat | Who | What to watch for |
 |---|---|---|
-| 1. A question | Patient | Books a doctor near them and types what is wrong; the doctor receives it in two languages |
+| 1. A question | Patient | Books a doctor near them and types or says what is wrong; the doctor receives it in two languages |
 | 2. An order | Doctor | Accepts, orders a test, and asks a pathologist; the AI risk check advises and never clears |
 | 3. The read | Pathologist | A desk of cases, a pre-read labelled as AI, scored by the pathologist before they write a word, then signed |
 | 4. The news | Doctor, then patient | The doctor discusses the result and approves the explanation; only then does the patient see it, in Kiswahili if they choose |
@@ -92,7 +92,7 @@ Indie developer track, "Build for Your World" theme. The hackathon's inference p
 
 | | Role | What Tabibu uses |
 |---|---|---|
-| Meta | Host | One Muse model, `muse-spark-1.3`, through the Meta Model API: the order risk check, the symptom summary, tile labelling for the pathology pre-read, the plain-language explanation of a signed report, and the outbreak alert draft. The hackathon's API credits, and Muse Code, the coding agent Tabibu is built with. **Not used:** SAM 3.1, Muse Spark Open and Muse Voice Transcribe |
+| Meta | Host | Two Muse models through the Meta Model API: `muse-voice-transcribe-1.0` for speech to text on a symptom recording (English only, off until its first live call), and `muse-spark-1.3` for the order risk check, the symptom summary, tile labelling for the pathology pre-read, the plain-language explanation of a signed report, and the outbreak alert draft. The hackathon's API credits, and Muse Code, the coding agent Tabibu is built with. **Not used:** SAM 3.1 and Muse Spark Open |
 | Cerebral Valley | Host | The hackathon itself: the event, its schedule and its submission |
 | Baseten | Inference partner | Not used by Tabibu. The Meta Model API serves the one model, so there is nothing to serve elsewhere |
 | Modal | Inference partner | Not used by Tabibu, for the same reason |
@@ -102,7 +102,7 @@ Indie developer track, "Build for Your World" theme. The hackathon's inference p
 > The models run in Cloud Functions, never in the app, each behind its own Remote Config switch.
 > Live: the risk check, the symptom summary, the pathology pre-read, the explanation drafts and the
 > alert draft (which falls back to a fixed template whenever a check fails). Built but off: the
-> report translation, and speech to text for symptoms and voice notes. Every AI output is a draft:
+> report translation, and speech to text for a spoken symptom (English only; it is switched on only after its first live call). Voice notes in the chats record and play but are not transcribed. Every AI output is a draft:
 > a pathologist signs the report, the doctor approves the patient's explanation, and an approver
 > releases an alert. What was measured, and what was not, is in
 > [CRQ-0051](./docs/crq/reports/CRQ-0051-live-ai-on-the-meta-model-api.md).
@@ -114,14 +114,14 @@ person. The order **is** the case, so one record carries a patient from booking 
 
 | Step | What happens | AI |
 |---|---|---|
-| 1. Book | A patient books a doctor and types their symptoms (speech to text is built and off). | A symptom summary in English and Kiswahili for the doctor |
+| 1. Book | A patient books a doctor and types their symptoms, or says them in English (speech to text, once switched on). | A symptom summary in English and Kiswahili for the doctor; speech to text for a spoken take, which the patient checks and edits before sending |
 | 2. Accept | The doctor accepts, and the slot shows as busy on their public profile. | None |
 | 3. Order | The doctor orders tests. The order gets an `ODR-…` number, and the payment method (cash, or an insurer and policy number) is recorded. Tabibu takes no money. | A risk check suggests tests and, from a fixed template, a protocol advisory. The doctor's notes are translated for the pathologist |
 | 4. Assign | The doctor requests a pathologist, who has 24 hours to accept. | None |
 | 5. Pre-read | For an image-bearing test, slides go up; the pathologist's desk ranks every case. | The pre-read: a label per tile, a heatmap and measurements built in code, and a draft report, readable **only by the case's pathologist** (S-1) |
 | 6. Score and sign | The pathologist scores the pre-read, then edits and signs the report. The doctor opens it with a code from their inbox, behind the device's biometrics. | The pathologist approves the report's translation in one tap |
 | 7. Release | The patient books a discussion. Only when the doctor marks it discussed does the patient see the result (S-3). | A plain-language explanation, which the doctor approves in one tap before the patient sees it |
-| 8. Talk | Direct threads and MDT discussions carry text, images and voice notes. | None live (voice-note transcription is built and off) |
+| 8. Talk | Direct threads and MDT discussions carry text, images and voice notes. | None: voice notes are recorded and played, not transcribed |
 | 9. Alert | A pathologist's confirmed notifiable finding becomes an anonymous count. When a county's count calls for it, an alert is drafted. | An English and Kiswahili draft, grounded in bundled Ministry of Health and WHO guidance. It reaches clinicians, then patients in that county, **only after an authorised clinician approves it** |
 
 ```mermaid
@@ -132,8 +132,8 @@ sequenceDiagram
     participant F as Firebase (rules and functions)
     participant AI as AI service
 
-    P->>F: Book, with symptoms typed
-    F->>AI: Summarise (English, Kiswahili)
+    P->>F: Book, with symptoms typed or spoken (English)
+    F->>AI: Transcribe a spoken take, then summarise (English, Kiswahili)
     AI-->>F: Summary for the doctor
     D->>F: Accept, then order tests
     F->>AI: Risk check on the new order
@@ -202,6 +202,13 @@ password:
 
 The accounts come from `make seed-live`, which also adds two clinic patients and an admin account for
 the Firebase console.
+
+**Voice.** The booking form has a microphone beside the symptoms field, and the chats have one in the
+composer. The first recording asks for the microphone permission. Speaking a symptom works in English only
+(the speech model does not list Kiswahili), and the text is yours to check and edit before it is sent; a
+voice note in a chat is recorded and played back and is not transcribed. The judges' web demo has no
+recording and says so on screen. Details and limits are in
+[CRQ-0052](./docs/crq/reports/CRQ-0052-voice-input-and-voice-notes.md).
 
 So that a patient's search and a doctor's pathologist picker have people to show, `make
 seed-directory` adds 16 doctors and 6 pathologists from

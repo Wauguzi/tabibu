@@ -304,6 +304,8 @@ enum AppError implements Exception {
   // Thrown directly by the auth flow, not from a Firebase code.
   practitionerPendingVerification,
   noRoleAssigned,
+  // Speech kill switch off (`voiceDisabled` from transcribeSymptoms).
+  voiceUnavailable,
   unknown;
 
   /// Maps a callable's `message` reason key to its [AppError], falling back
@@ -365,6 +367,7 @@ enum AppError implements Exception {
       'slideNotUploaded' => AppError.slideNotUploaded,
       'slideNotReserved' => AppError.slideNotReserved,
       'invalidSlides' || 'invalidCount' => AppError.invalidSlides,
+      'voiceDisabled' => AppError.voiceUnavailable,
       _ => null,
     };
     return reason ?? fromFirebaseCode(e.code);
@@ -474,6 +477,7 @@ enum AppError implements Exception {
     .practitionerPendingVerification =>
       l10n.errorPractitionerPendingVerification,
     .noRoleAssigned => l10n.errorNoRoleAssigned,
+    .voiceUnavailable => l10n.symptomVoiceUnavailable,
     .unknown => l10n.errorUnknown,
   };
 }

@@ -53,8 +53,8 @@ AI service through Modal and Baseten on partner credits, with Muse Spark Open
 for the pathology draft, the alert drafts and the patient explanations. None of
 that was built. One model on one provider, with one key in Secret Manager and
 one client, was the smaller thing to get right and to review before the
-deadline, and it serves all five jobs. **SAM 3.1, Muse Spark Open and Muse
-Voice Transcribe are not used**; the README's partner table says so. The
+deadline, and it serves all five jobs. **SAM 3.1 and Muse Spark Open are not used**, and Muse
+Voice Transcribe is built separately ([CRQ-0052](./CRQ-0052-voice-input-and-voice-notes.md)); the README's partner table says so. The
 heatmap is built in code from the tile labels; no segmentation model is called.
 
 ## 2. Business justification
@@ -73,8 +73,8 @@ or, for alerts, the fixed template.
 
 **Explicitly out of scope:**
 
-- SAM 3.1 overlay, Muse Voice Transcribe (`voice_input_enabled` stays off), and
-  Muse Spark Open: not built.
+- SAM 3.1 overlay and Muse Spark Open: not built. Speech to text is
+  [CRQ-0052](./CRQ-0052-voice-input-and-voice-notes.md).
 - A claim of accuracy beyond what §7 measured. The model's own stated
   probabilities are not calibrated (§7), so the confidence band is capped at
   Low for every model-labelled draft.

@@ -238,6 +238,30 @@ void main() {
       ).called(1);
     });
 
+    testWidgets('94: a tap outside the decline note dismisses the keyboard', (
+      tester,
+    ) async {
+      _useTallSurface(tester);
+      await pumpScreen(tester);
+
+      await tester.tap(declineOf('Peter Mwangi'));
+      await settleSheet(tester);
+
+      final field = inSheet(find.byType(TextField));
+      await tester.tap(field);
+      await tester.pump();
+      final node = tester.widget<TextField>(field).focusNode!;
+      expect(node.hasPrimaryFocus, isTrue);
+      expect(tester.testTextInput.isVisible, isTrue);
+
+      await tester.tap(
+        inSheet(find.text(en.bookingRequestsDeclineTitle('Peter Mwangi'))),
+      );
+      await tester.pump();
+      expect(node.hasPrimaryFocus, isFalse);
+      expect(tester.testTextInput.isVisible, isFalse);
+    });
+
     testWidgets('Decline needs a reason before it can send', (tester) async {
       _useTallSurface(tester);
       await pumpScreen(tester);

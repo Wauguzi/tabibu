@@ -1,4 +1,5 @@
 import 'dart:async';
+import 'dart:typed_data';
 
 import 'package:collection/collection.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -7,7 +8,10 @@ import 'package:intl/intl.dart';
 import 'package:material_ui/material_ui.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/enums.dart';
+import 'package:tabibu/core/helpers/get_it_helper.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
+import 'package:tabibu/core/services/audio_service_contract.dart';
+import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -17,26 +21,37 @@ import 'package:tabibu/features/auth/data/models/auth_session.dart';
 import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_bloc.dart';
 import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_event.dart';
 import 'package:tabibu/features/conversations/blocs/chat_bloc/chat_state.dart';
+import 'package:tabibu/features/conversations/data/cache/conversation_cache_helper.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_member_model.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
+import 'package:tabibu/features/conversations/data/voice_pending_store.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 import 'package:tabibu/features/conversations/presentation/mdt_labels.dart';
 import 'package:tabibu/features/conversations/presentation/widgets/mdt_composer.dart';
 import 'package:tabibu/features/conversations/presentation/widgets/mdt_message_bubble.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
-/// P-CHAT / D-CHAT. The direct thread of one appointment. Text only (Muse 46:
-/// no PDF, no "Last seen"). A closed thread is read-only.
+/// P-CHAT / D-CHAT. The direct thread of one appointment. Text and voice
+/// notes (no PDF, no "Last seen"). A closed thread is read-only.
 class AppointmentChatScreen extends StatefulWidget {
+  /// [recorder], [player] and [cues] are injected in tests so getIt need not
+  /// be configured for the composer.
   const AppointmentChatScreen({
     required this.role,
     required this.appointmentUid,
+    this.recorder,
+    this.player,
+    this.cues,
     super.key,
   });
 
   final Role role;
   final String appointmentUid;
+  final AudioRecorderService? recorder;
+  final AudioPlayerService? player;
+  final RecordingCueService? cues;
 
   @override
   State<AppointmentChatScreen> createState() => _AppointmentChatScreenState();
@@ -44,6 +59,7 @@ class AppointmentChatScreen extends StatefulWidget {
 
 class _AppointmentChatScreenState extends State<AppointmentChatScreen> {
   late final String _uid;
+  final _voiceStore = VoicePendingStore();
 
   @override
   void initState() {
@@ -85,6 +101,34 @@ class _AppointmentChatScreenState extends State<AppointmentChatScreen> {
       ),
     );
   }
+
+  Future<bool> _sendVoice(RecordedAudio audio) async {
+    final conversation = context.read<ChatBloc>().state.conversation;
+    if (conversation.uid.isEmpty) return false;
+    final bloc = context.read<ChatBloc>();
+    final path = await _voiceStore.write(audio.bytes);
+    if (!mounted) {
+      await _voiceStore.delete(path);
+      return false;
+    }
+    final event = ChatVoiceNoteSendRequested(
+      uid: _uid,
+      conversationUid: conversation.uid,
+      localPath: path,
+      durationMs: audio.durationMs,
+      voicePeaks: audio.peaks,
+      contentType: audio.contentType,
+    );
+    bloc.add(event);
+    return await settleVoiceSend(
+      result: event.result,
+      path: path,
+      delete: _voiceStore.delete,
+    );
+  }
+
+  Future<Uint8List> _loadVoice(MessageModel message) =>
+      getIt<ConversationCacheHelper>().voiceNoteBytes(message);
 
   void _notify(String message, {required bool isError}) {
     unawaited(
@@ -143,16 +187,20 @@ class _AppointmentChatScreenState extends State<AppointmentChatScreen> {
   ) {
     final shown = [
       for (final m in messages)
-        if (m.kindValue == .text && m.text.isNotEmpty) m,
+        if ((m.kindValue == .text && m.text.isNotEmpty) ||
+            m.kindValue == .voice)
+          m,
     ];
     return [
       for (final m in shown.reversed)
         MdtMessageBubble(
+          key: ValueKey<String>(m.uid),
           message: m,
           mine: m.senderUid == _uid,
           sender:
               conversation.members[m.senderUid] ??
               const ConversationMemberModel(),
+          loadVoiceBytes: _loadVoice,
         ),
     ];
   }
@@ -337,6 +385,11 @@ class _AppointmentChatScreenState extends State<AppointmentChatScreen> {
             hint: l10n.chatComposer,
             sendLabel: l10n.chatComposer,
             onSend: _send,
+            onVoiceSend: _sendVoice,
+            recorder: widget.recorder,
+            player: widget.player,
+            cues: widget.cues,
+            voiceSurface: 'chat',
           ),
       ],
     );

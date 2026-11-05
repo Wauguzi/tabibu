@@ -248,6 +248,7 @@ class _DeskSearchScreenState extends State<DeskSearchScreen> {
               Expanded(
                 child: ListView(
                   padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                  keyboardDismissBehavior: .onDrag,
                   children: [
                     // No autofocus: the person looks first, then types.
                     SearchField(

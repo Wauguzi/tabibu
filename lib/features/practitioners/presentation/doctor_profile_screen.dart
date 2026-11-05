@@ -12,6 +12,9 @@ import 'package:tabibu/core/constants/app_spacing.dart';
 import 'package:tabibu/core/constants/app_styles.dart';
 import 'package:tabibu/core/constants/enums.dart';
 import 'package:tabibu/core/routing/app_routes.dart';
+import 'package:tabibu/core/services/analytics_service.dart';
+import 'package:tabibu/core/services/audio_service_contract.dart';
+import 'package:tabibu/core/services/recording_cue_service.dart';
 import 'package:tabibu/core/utils/nairobi_time.dart';
 import 'package:tabibu/core/widgets/widgets.dart';
 import 'package:tabibu/features/appointments/blocs/appointments_bloc/appointments_bloc.dart';
@@ -28,6 +31,7 @@ import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_blo
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_event.dart';
 import 'package:tabibu/features/practitioners/blocs/directory_bloc/directory_state.dart';
 import 'package:tabibu/features/practitioners/data/models/practitioner_model.dart';
+import 'package:tabibu/features/practitioners/presentation/widgets/symptom_voice_controls.dart';
 import 'package:tabibu/gen/assets.gen.dart';
 import 'package:tabibu/l10n/l10n.dart';
 
@@ -36,10 +40,22 @@ import 'package:tabibu/l10n/l10n.dart';
 /// planner days.
 class DoctorProfileScreen extends StatefulWidget {
   /// [now] pins the planner's clock; tests pass a fixed morning.
-  const DoctorProfileScreen({required this.doctorUid, this.now, super.key});
+  /// [recorder], [cues] and [analytics] are injected in tests so getIt need
+  /// not be configured.
+  const DoctorProfileScreen({
+    required this.doctorUid,
+    this.now,
+    this.recorder,
+    this.cues,
+    this.analytics,
+    super.key,
+  });
 
   final String doctorUid;
   final DateTime? now;
+  final AudioRecorderService? recorder;
+  final RecordingCueService? cues;
+  final AnalyticsService? analytics;
 
   @override
   State<DoctorProfileScreen> createState() => _DoctorProfileScreenState();
@@ -51,6 +67,8 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
   int _dayIndex = 0;
   int? _slotIndex;
   bool _bioExpanded = false;
+  String? _transcriptionUid;
+  var _showAiNotice = false;
 
   @override
   void initState() {
@@ -59,6 +77,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       PatientSession(:final patient) => patient.uid,
       _ => '',
     };
+    _symptoms.addListener(_onSymptomsEdited);
     final directory = context.read<DirectoryBloc>().state;
     if (directory.all.firstWhereOrNull((d) => d.uid == widget.doctorUid) ==
         null) {
@@ -68,9 +87,30 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
 
   @override
   void dispose() {
-    _symptoms.dispose();
+    _symptoms
+      ..removeListener(_onSymptomsEdited)
+      ..dispose();
     super.dispose();
   }
+
+  /// Clearing the field drops the voice id so a typed rewrite is `Typed`.
+  void _onSymptomsEdited() {
+    if (_symptoms.text.isEmpty && _transcriptionUid != null) {
+      setState(() {
+        _transcriptionUid = null;
+        _showAiNotice = false;
+      });
+    }
+  }
+
+  Widget _symptomsField(AppLocalizations l10n) => TabibuTextField(
+    label: l10n.doctorProfileSymptomsLabel,
+    hint: l10n.doctorProfileSymptomsHint,
+    controller: _symptoms,
+    maxLines: 5,
+    maxLength: 500,
+    keyboardType: .multiline,
+  );
 
   /// The month sheet picks onto the same planner days; a picked day moves
   /// the strip and clears the slot.
@@ -179,6 +219,7 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       );
     }
     return CustomScrollView(
+      keyboardDismissBehavior: .onDrag,
       slivers: [
         _topBarSliver(),
         SliverPadding(
@@ -368,13 +409,34 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
       SliverPadding(
         padding: sides,
         sliver: SliverToBoxAdapter(
-          child: TabibuTextField(
-            label: l10n.doctorProfileSymptomsLabel,
-            hint: l10n.doctorProfileSymptomsHint,
-            controller: _symptoms,
-            maxLines: 5,
-            maxLength: 500,
-            keyboardType: .multiline,
+          child: Column(
+            crossAxisAlignment: .stretch,
+            children: [
+              // AI-prepared text sits in the frame with its label; typed
+              // text stays bare.
+              if (_showAiNotice)
+                AiDraftFrame(
+                  label: l10n.symptomVoiceAiNotice,
+                  child: _symptomsField(l10n),
+                )
+              else
+                _symptomsField(l10n),
+              const SizedBox(height: AppSpacing.sm),
+              SymptomVoiceControls(
+                patientUid: _patientUid,
+                symptoms: _symptoms,
+                offline: offline,
+                recorder: widget.recorder,
+                analytics: widget.analytics,
+                cues: widget.cues,
+                onTranscriptionUid: (uid) => setState(() {
+                  _transcriptionUid = uid;
+                }),
+                showAiNotice: (show) => setState(() {
+                  _showAiNotice = show;
+                }),
+              ),
+            ],
           ),
         ),
       ),
@@ -413,15 +475,22 @@ class _DoctorProfileScreenState extends State<DoctorProfileScreen> {
                   ),
             onTap: chosen == null || offline || booking
                 ? null
-                : () => context.read<AppointmentsBloc>().add(
-                    AppointmentBookRequested(
-                      uid: _patientUid,
-                      doctorUid: doctor.uid,
-                      type: AppointmentType.consultation.value,
-                      start: chosen.start,
-                      symptomText: _symptoms.text,
-                    ),
-                  ),
+                : () {
+                    final text = _symptoms.text;
+                    final voice =
+                        _transcriptionUid != null && text.trim().isNotEmpty;
+                    context.read<AppointmentsBloc>().add(
+                      AppointmentBookRequested(
+                        uid: _patientUid,
+                        doctorUid: doctor.uid,
+                        type: AppointmentType.consultation.value,
+                        start: chosen.start,
+                        symptomText: text,
+                        inputMode: voice ? 'Voice' : 'Typed',
+                        transcriptionUid: voice ? _transcriptionUid! : '',
+                      ),
+                    );
+                  },
             isLoading: booking,
           ),
         ),

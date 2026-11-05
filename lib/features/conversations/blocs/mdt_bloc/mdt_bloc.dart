@@ -14,6 +14,7 @@ import 'package:tabibu/features/conversations/data/models/case_summary_model.dar
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_preview_model.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 import 'package:uuid/uuid.dart';
 
 typedef _Listing = ({
@@ -53,6 +54,7 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
     on<MdtLeaveRequested>(_onLeave, transformer: sequential());
     on<MdtRemoveRequested>(_onRemove, transformer: sequential());
     on<MdtMessageSendRequested>(_onSend, transformer: sequential());
+    on<MdtVoiceNoteSendRequested>(_onVoiceSend, transformer: sequential());
     on<MdtReset>(_onReset);
   }
 
@@ -150,6 +152,9 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
     emit(_loading());
     try {
       final listing = await _listing(uid);
+      if (!listing.offline) {
+        await _replayPending(uid);
+      }
       emit(
         MdtLoadSuccess(
           conversations: listing.conversations,
@@ -212,6 +217,9 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
         return;
       }
 
+      if (!offline) {
+        await _replayPending(event.uid);
+      }
       List<MessageModel> messages;
       try {
         messages = await _cache.syncMessages(event.uid, event.conversationUid);
@@ -239,6 +247,14 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
           offline: _offline.contains(err),
         ),
       );
+    }
+  }
+
+  Future<void> _replayPending(String uid) async {
+    try {
+      await _cache.replayPendingMessages(uid);
+    } on Object catch (_) {
+      // Next refresh retries.
     }
   }
 
@@ -412,6 +428,67 @@ class MdtBloc extends Bloc<MdtEvent, MdtState> {
     } on Object catch (e) {
       emit(_writeFailure(e));
     }
+  }
+
+  Future<void> _onVoiceSend(
+    MdtVoiceNoteSendRequested event,
+    Emitter<MdtState> emit,
+  ) async {
+    try {
+      final consult = await _cache.getConversation(
+        event.uid,
+        event.conversationUid,
+      );
+      if (consult.uid.isEmpty) throw AppError.dataNotFound;
+      if (!_isAccepted(consult, event.uid) ||
+          consult.statusValue == ConversationStatus.closed) {
+        throw AppError.permissionDenied;
+      }
+      final sent = await _cache.queueVoiceMessage(
+        conversationUid: event.conversationUid,
+        senderUid: event.uid,
+        localPath: event.localPath,
+        durationMs: event.durationMs,
+        voicePeaks: event.voicePeaks,
+        contentType: event.contentType,
+      );
+      unawaited(
+        _analytics.logMdtVoiceNoteSent(
+          durationBucket: _durationBucket(event.durationMs),
+        ),
+      );
+      emit(
+        MdtWriteSuccess(
+          conversations: state.conversations,
+          invites: state.invites,
+          active: state.active,
+          messages: state.active.uid == event.conversationUid
+              ? [sent, ...state.messages]
+              : state.messages,
+          inviteOnly: state.inviteOnly,
+          offline: state.offline || sent.statusValue == MessageStatus.pending,
+        ),
+      );
+      if (!event.result.isCompleted) {
+        event.result.complete(
+          sent.statusValue == MessageStatus.pending
+              ? VoiceSendOutcome.queued
+              : VoiceSendOutcome.sent,
+        );
+      }
+    } on Object catch (e) {
+      emit(_writeFailure(e));
+      if (!event.result.isCompleted) {
+        event.result.complete(VoiceSendOutcome.refused);
+      }
+    }
+  }
+
+  String _durationBucket(int durationMs) {
+    if (durationMs < 15000) return '0_15';
+    if (durationMs < 30000) return '15_30';
+    if (durationMs < 60000) return '30_60';
+    return '60_plus';
   }
 
   void _onReset(MdtReset event, Emitter<MdtState> emit) {

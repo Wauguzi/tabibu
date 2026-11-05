@@ -30,10 +30,14 @@ import 'package:tabibu/core/helpers/reference_data_helper.dart' as _i762;
 import 'package:tabibu/core/helpers/theme_helper.dart' as _i655;
 import 'package:tabibu/core/services/analytics_service.dart' as _i399;
 import 'package:tabibu/core/services/app_update_service.dart' as _i75;
+import 'package:tabibu/core/services/audio_player_service.dart' as _i1072;
+import 'package:tabibu/core/services/audio_recorder_service.dart' as _i93;
+import 'package:tabibu/core/services/audio_service_contract.dart' as _i147;
 import 'package:tabibu/core/services/file_picker_service.dart' as _i282;
 import 'package:tabibu/core/services/internet_service.dart' as _i76;
 import 'package:tabibu/core/services/notification_service.dart' as _i1051;
 import 'package:tabibu/core/services/rasp_service.dart' as _i390;
+import 'package:tabibu/core/services/recording_cue_service.dart' as _i223;
 import 'package:tabibu/features/alerts/data/cache/alert_cache_helper.dart'
     as _i738;
 import 'package:tabibu/features/alerts/data/datasources/alert_firebase.dart'
@@ -121,6 +125,9 @@ extension GetItInjectableX on _i174.GetIt {
         preferences: gh<_i460.SharedPreferences>(),
       ),
     );
+    gh.lazySingleton<_i147.AudioPlayerService>(
+      () => _i1072.DeviceAudioPlayerService(),
+    );
     gh.lazySingleton<_i399.AnalyticsService>(
       () => _i399.AnalyticsService(analytics: gh<_i398.FirebaseAnalytics>()),
     );
@@ -159,8 +166,14 @@ extension GetItInjectableX on _i174.GetIt {
         functions: gh<_i809.FirebaseFunctions>(),
       ),
     );
+    gh.lazySingleton<_i147.AudioRecorderService>(
+      () => _i93.DeviceAudioRecorderService(),
+    );
     gh.lazySingleton<_i894.BiometricAuthenticator>(
       () => _i894.LocalBiometricAuthenticator(),
+    );
+    gh.lazySingleton<_i223.RecordingCueService>(
+      () => _i223.DeviceRecordingCueService(gh<_i147.AudioPlayerService>()),
     );
     gh.lazySingleton<_i726.ReportCacheHelper>(
       () => _i726.ReportCacheHelper(

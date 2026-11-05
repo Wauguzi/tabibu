@@ -2,6 +2,7 @@
 import assert from 'node:assert/strict';
 
 import { seedWorld, signedCase, caseDoc, docData, type World } from './case.test-support';
+import { createMetaAiClient } from './ai-meta';
 import {
   cancelAppointmentHandler,
   completeAppointmentHandler,
@@ -56,6 +57,42 @@ describe('appointments', () => {
     return appointmentUid;
   }
 
+  /** Canonical PCM WAV with options to corrupt one field at a time. */
+  function wavBytes(
+    opts: {
+      seconds?: number;
+      rate?: number;
+      channels?: number;
+      bits?: number;
+      riffSize?: number;
+      dataSize?: number;
+      byteRate?: number;
+      truncateTo?: number;
+    } = {},
+  ): Buffer {
+    const rate = opts.rate ?? 16000;
+    const channels = opts.channels ?? 1;
+    const bits = opts.bits ?? 16;
+    const byteRate = rate * ((channels * bits) / 8);
+    const payload = Math.floor((opts.seconds ?? 2) * byteRate);
+    const header = Buffer.alloc(44);
+    header.write('RIFF', 0);
+    header.writeUInt32LE(opts.riffSize ?? 36 + payload, 4);
+    header.write('WAVE', 8);
+    header.write('fmt ', 12);
+    header.writeUInt32LE(16, 16);
+    header.writeUInt16LE(1, 20);
+    header.writeUInt16LE(channels, 22);
+    header.writeUInt32LE(rate, 24);
+    header.writeUInt32LE(opts.byteRate ?? byteRate, 28);
+    header.writeUInt16LE((channels * bits) / 8, 32);
+    header.writeUInt16LE(bits, 34);
+    header.write('data', 36);
+    header.writeUInt32LE(opts.dataSize ?? payload, 40);
+    const file = Buffer.concat([header, Buffer.alloc(payload)]);
+    return opts.truncateTo === undefined ? file : file.subarray(0, opts.truncateTo);
+  }
+
   describe('requestAppointment', () => {
     it('creates the request, the doctor’s approval row and the queued intake', async () => {
       const uid = await request();
@@ -90,7 +127,7 @@ describe('appointments', () => {
     });
 
     it('keeps the transcript fields on the None intake when a voice request is made with the switch off', async () => {
-      await putObject(`speechAudio/${w.patient.uid}/dictation-off.m4a`, Buffer.from('audio'), 'audio/mp4');
+      await putObject(`speechAudio/${w.patient.uid}/dictation-off.wav`, wavBytes(), 'audio/wav');
       const { transcriptionUid } = await transcribeSymptomsHandler(deps, w.patient, { audioUid: 'dictation-off' });
       const intakeOff = runtime(w, { config: { enabled: (key: string) => key !== 'symptom_intake_enabled' } });
       const uid = newId();
@@ -112,7 +149,7 @@ describe('appointments', () => {
     });
 
     it('stores an edited transcript’s distance and never the machine text', async () => {
-      await putObject(`speechAudio/${w.patient.uid}/dictation-edit.m4a`, Buffer.from('audio'), 'audio/mp4');
+      await putObject(`speechAudio/${w.patient.uid}/dictation-edit.wav`, wavBytes(), 'audio/wav');
       const { transcriptionUid } = await transcribeSymptomsHandler(deps, w.patient, { audioUid: 'dictation-edit' });
       const uid = newId();
       await requestAppointmentHandler(deps, w.patient, {
@@ -524,7 +561,7 @@ describe('appointments', () => {
     });
 
     it('keeps the transcript’s language on the appointment, and ignores a language it does not know', async () => {
-      await putObject(`speechAudio/${w.patient.uid}/dictation-lang.m4a`, Buffer.from('audio'), 'audio/mp4');
+      await putObject(`speechAudio/${w.patient.uid}/dictation-lang.wav`, wavBytes(), 'audio/wav');
       const { transcriptionUid } = await transcribeSymptomsHandler(deps, w.patient, { audioUid: 'dictation-lang' });
       const uid = newId();
       await requestAppointmentHandler(deps, w.patient, {
@@ -750,10 +787,31 @@ describe('appointments', () => {
 
   describe('transcribeSymptoms', () => {
     const audioUid = 'dictation-1';
-    const path = () => `speechAudio/${w.patient.uid}/${audioUid}.m4a`;
+    const path = () => `speechAudio/${w.patient.uid}/${audioUid}.wav`;
+
+    function chunkOf(fourcc: string, size: number): Buffer {
+      const chunk = Buffer.alloc(8 + size + (size % 2));
+      chunk.write(fourcc, 0);
+      chunk.writeUInt32LE(size, 4);
+      return chunk;
+    }
+
+    /** Splices a chunk between `fmt ` and `data`, fixing the RIFF size. */
+    function withLeading(base: Buffer, fourcc: string, size: number): Buffer {
+      const out = Buffer.concat([base.subarray(0, 36), chunkOf(fourcc, size), base.subarray(36)]);
+      out.writeUInt32LE(out.length - 8, 4);
+      return out;
+    }
+
+    /** Appends a chunk after `data`, fixing the RIFF size. */
+    function withTrailing(base: Buffer, fourcc: string, size: number): Buffer {
+      const out = Buffer.concat([base, chunkOf(fourcc, size)]);
+      out.writeUInt32LE(out.length - 8, 4);
+      return out;
+    }
 
     it('returns the transcript, records it and deletes the audio', async () => {
-      await putObject(path(), Buffer.from('audio'), 'audio/mp4');
+      await putObject(path(), wavBytes(), 'audio/wav');
       const result = await transcribeSymptomsHandler(deps, w.patient, { audioUid });
       assert.equal(result.transcript, 'Nina maumivu ya kichwa.');
       assert.equal(result.detectedLanguage, 'sw');
@@ -766,7 +824,7 @@ describe('appointments', () => {
     });
 
     it('deletes the audio when the model fails', async () => {
-      await putObject(path(), Buffer.from('audio'), 'audio/mp4');
+      await putObject(path(), wavBytes(), 'audio/wav');
       const failing = runtime(w, { ai: { ...deps.ai!, transcribeAudio: () => Promise.reject(new Error('down')) } });
       await refusedWith(transcribeSymptomsHandler(failing, w.patient, { audioUid }), 'transcriptionFailed');
       assert.equal(await objectExists(path()), false);
@@ -779,8 +837,123 @@ describe('appointments', () => {
       assert.equal(await objectExists(path()), false);
     });
 
-    it('sends the model the audio and nothing else', async () => {
+    it('refuses an m4a object without calling the client', async () => {
       await putObject(path(), Buffer.from('audio'), 'audio/mp4');
+      let calls = 0;
+      const counting = runtime(w, {
+        ai: {
+          ...deps.ai!,
+          transcribeAudio: () => {
+            calls += 1;
+            return Promise.resolve({ transcript: 'unreached', language: 'en', models: {} });
+          },
+        },
+      });
+      await refusedWith(transcribeSymptomsHandler(counting, w.patient, { audioUid }), 'invalidAudio');
+      assert.equal(calls, 0);
+      assert.equal(await objectExists(path()), false);
+    });
+
+    it('refuses a WAV the speech API would not take, before any fetch', async () => {
+      const bad = [
+        ['44.1 kHz', wavBytes({ rate: 44100 })],
+        ['stereo', wavBytes({ channels: 2 })],
+        ['8-bit', wavBytes({ bits: 8 })],
+        ['a lying byte rate', wavBytes({ byteRate: 64000 })],
+        ['a data length past the file', wavBytes({ dataSize: 64100 })],
+        ['a lying RIFF length', wavBytes({ riffSize: 100 })],
+        ['a truncated file', wavBytes({ truncateTo: 1000 })],
+        ['47 s', wavBytes({ seconds: 47 })],
+        ['0.5 s', wavBytes({ seconds: 0.5 })],
+        ['not audio at all', Buffer.from('audio')],
+      ] as const;
+      for (const [name, bytes] of bad) {
+        await putObject(path(), bytes, 'audio/wav');
+        let calls = 0;
+        const counting = runtime(w, {
+          ai: {
+            ...deps.ai!,
+            transcribeAudio: () => {
+              calls += 1;
+              return Promise.resolve({ transcript: 'unreached', language: 'en', models: {} });
+            },
+          },
+        });
+        try {
+          await refusedWith(transcribeSymptomsHandler(counting, w.patient, { audioUid }), 'invalidAudio');
+        } catch (e) {
+          throw new Error(`${name}: ${(e as Error).message}`);
+        }
+        assert.equal(calls, 0);
+        assert.equal(await objectExists(path()), false);
+      }
+    });
+
+    it('accepts recorder-style files and sends Meta a canonical header', async () => {
+      const base = wavBytes();
+      const variants = [
+        ['FLLR before data', withLeading(base, 'FLLR', 18)],
+        ['odd-sized chunk before data', withLeading(base, 'FLLR', 7)],
+        ['LIST after data', withTrailing(base, 'LIST', 26)],
+        ['streaming sizes 0', wavBytes({ riffSize: 0, dataSize: 0 })],
+        ['streaming sizes max', wavBytes({ riffSize: 0xffffffff, dataSize: 0xffffffff })],
+      ] as const;
+      for (const [name, bytes] of variants) {
+        await putObject(path(), bytes, 'audio/wav');
+        let seen: Buffer | undefined;
+        const spying = runtime(w, {
+          ai: {
+            ...deps.ai!,
+            transcribeAudio: (req) => {
+              seen = req.bytes;
+              return Promise.resolve({ transcript: 'Homa.', language: 'sw', models: {} });
+            },
+          },
+        });
+        const result = await transcribeSymptomsHandler(spying, w.patient, { audioUid });
+        assert.equal(result.transcript, 'Homa.');
+        assert.deepEqual(seen, base, name);
+        assert.equal(await objectExists(path()), false);
+      }
+    });
+
+    it('deletes the audio when the call times out', async () => {
+      await putObject(path(), wavBytes(), 'audio/wav');
+      const hanging = () => new Promise<Response>(() => undefined);
+      const timingOut = runtime(w, {
+        ai: {
+          ...deps.ai!,
+          transcribeAudio: createMetaAiClient({ apiKey: 'test-key-not-real', fetch: hanging, timeoutMs: 20 })
+            .transcribeAudio!,
+        },
+      });
+      await refusedWith(transcribeSymptomsHandler(timingOut, w.patient, { audioUid }), 'transcriptionFailed');
+      assert.equal(await objectExists(path()), false);
+      assert.equal((await w.deps.db.collection('transcriptions').get()).size, 0);
+    });
+
+    it('an object over the cap never reaches the client', async () => {
+      await putObject(path(), Buffer.alloc(1536 * 1024 + 1), 'audio/wav');
+      let calls = 0;
+      const counting = runtime(w, {
+        ai: {
+          ...deps.ai!,
+          transcribeAudio: () => {
+            calls += 1;
+            return Promise.resolve({ transcript: 'unreached', language: 'en', models: {} });
+          },
+        },
+      });
+      await refusedWith(transcribeSymptomsHandler(counting, w.patient, { audioUid }), 'audioTooLarge');
+      assert.equal(calls, 0);
+      assert.equal(await objectExists(path()), false);
+    });
+
+    // No timer test: a hanging fetch rejects (ai-meta), and any rejection deletes (above).
+    // Never patch setTimeout suite-wide for one: it wedges the emulator channel.
+
+    it('sends the model the audio and nothing else', async () => {
+      await putObject(path(), wavBytes(), 'audio/wav');
       let seen: unknown;
       const spying = runtime(w, {
         ai: {
@@ -797,7 +970,26 @@ describe('appointments', () => {
 
     it('fails closed when the switch is off', async () => {
       await putObject(path(), Buffer.from('audio'), 'audio/mp4');
-      await refusedWith(transcribeSymptomsHandler(runtime(w, { config: allOff }), w.patient, { audioUid }), 'voiceDisabled');
+      let calls = 0;
+      const off = runtime(w, {
+        config: allOff,
+        ai: {
+          ...deps.ai!,
+          transcribeAudio: () => {
+            calls += 1;
+            return Promise.resolve({ transcript: 'unreached', language: 'en', models: {} });
+          },
+        },
+      });
+      await refusedWith(transcribeSymptomsHandler(off, w.patient, { audioUid }), 'voiceDisabled');
+      assert.equal(calls, 0);
+      assert.equal(await objectExists(path()), false);
+    });
+
+    it('fails closed when no client is wired, and still deletes the audio', async () => {
+      await putObject(path(), wavBytes(), 'audio/wav');
+      const noAi = runtime(w, { ai: undefined });
+      await refusedWith(transcribeSymptomsHandler(noAi, w.patient, { audioUid }), 'transcriptionFailed');
       assert.equal(await objectExists(path()), false);
     });
 
@@ -818,7 +1010,7 @@ describe('appointments', () => {
     });
 
     it('lets a patient use a transcript in a voice request, once', async () => {
-      await putObject(path(), Buffer.from('audio'), 'audio/mp4');
+      await putObject(path(), wavBytes(), 'audio/wav');
       const { transcriptionUid } = await transcribeSymptomsHandler(deps, w.patient, { audioUid });
       const uid = newId();
       await requestAppointmentHandler(deps, w.patient, {

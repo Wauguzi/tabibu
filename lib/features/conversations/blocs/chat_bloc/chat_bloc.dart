@@ -12,6 +12,7 @@ import 'package:tabibu/features/conversations/data/cache/conversation_cache_help
 import 'package:tabibu/features/conversations/data/datasources/conversation_firebase.dart';
 import 'package:tabibu/features/conversations/data/models/conversation_model.dart';
 import 'package:tabibu/features/conversations/data/models/message_model.dart';
+import 'package:tabibu/features/conversations/data/voice_send_outcome.dart';
 
 typedef _Thread = ({List<MessageModel> messages, bool offline});
 
@@ -34,6 +35,7 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
     on<ChatOpened>(_onOpened, transformer: sequential());
     on<ChatRefreshed>(_onRefreshed, transformer: droppable());
     on<ChatMessageSendRequested>(_onSend, transformer: sequential());
+    on<ChatVoiceNoteSendRequested>(_onVoiceSend, transformer: sequential());
     on<ChatCloseRequested>(_onClose, transformer: sequential());
     on<ChatReset>(_onReset);
   }
@@ -108,6 +110,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         throw offline ? AppError.noInternet : AppError.dataNotFound;
       }
 
+      if (!offline) {
+        await _replayPending(event.uid);
+      }
       final thread = await _thread(event.uid, conversation.uid);
       emit(
         ChatLoadSuccess(
@@ -147,6 +152,9 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
       );
       if (row.uid.isEmpty) throw AppError.dataNotFound;
 
+      if (!offline) {
+        await _replayPending(event.uid);
+      }
       final thread = await _thread(event.uid, event.conversationUid);
       emit(
         ChatLoadSuccess(
@@ -208,6 +216,82 @@ class ChatBloc extends Bloc<ChatEvent, ChatState> {
         ),
       );
     }
+  }
+
+  Future<void> _onVoiceSend(
+    ChatVoiceNoteSendRequested event,
+    Emitter<ChatState> emit,
+  ) async {
+    try {
+      final conversation = await _cache.getConversation(
+        event.uid,
+        event.conversationUid,
+      );
+      if (conversation.uid.isEmpty) throw AppError.dataNotFound;
+      final heldClosed =
+          state.conversation.uid == event.conversationUid && state.readOnly;
+      if (heldClosed || conversation.statusValue == ConversationStatus.closed) {
+        throw AppError.permissionDenied;
+      }
+      final sent = await _cache.queueVoiceMessage(
+        conversationUid: event.conversationUid,
+        senderUid: event.uid,
+        localPath: event.localPath,
+        durationMs: event.durationMs,
+        voicePeaks: event.voicePeaks,
+        contentType: event.contentType,
+      );
+      unawaited(
+        _analytics.logChatVoiceNoteSent(
+          durationBucket: _durationBucket(event.durationMs),
+        ),
+      );
+      emit(
+        ChatWriteSuccess(
+          conversation: state.conversation,
+          messages: state.conversation.uid == event.conversationUid
+              ? [sent, ...state.messages]
+              : state.messages,
+          offline: state.offline || sent.statusValue == MessageStatus.pending,
+        ),
+      );
+      if (!event.result.isCompleted) {
+        event.result.complete(
+          sent.statusValue == MessageStatus.pending
+              ? VoiceSendOutcome.queued
+              : VoiceSendOutcome.sent,
+        );
+      }
+    } on Object catch (e) {
+      emit(
+        ChatWriteFailure(
+          error: _toAppError(e),
+          conversation: state.conversation,
+          messages: state.messages,
+          offline: state.offline,
+        ),
+      );
+      if (!event.result.isCompleted) {
+        event.result.complete(VoiceSendOutcome.refused);
+      }
+    }
+  }
+
+  /// Flushes text and voice queues after open / reconnect. Best effort.
+  Future<void> _replayPending(String uid) async {
+    try {
+      await _cache.replayPendingMessages(uid);
+    } on Object catch (_) {
+      // Next refresh retries; the open still shows the thread.
+    }
+  }
+
+  /// Coarse buckets only — never the raw duration.
+  String _durationBucket(int durationMs) {
+    if (durationMs < 15000) return '0_15';
+    if (durationMs < 30000) return '15_30';
+    if (durationMs < 60000) return '30_60';
+    return '60_plus';
   }
 
   Future<void> _onClose(

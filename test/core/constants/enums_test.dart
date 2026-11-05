@@ -180,6 +180,7 @@ void main() {
         'slideNotReserved': AppError.slideNotReserved,
         'invalidSlides': AppError.invalidSlides,
         'invalidCount': AppError.invalidSlides,
+        'voiceDisabled': AppError.voiceUnavailable,
       };
       for (final entry in keys.entries) {
         final exception = _TestFunctionsException(
