@@ -197,8 +197,13 @@ password:
 | Pathologist | `tabibu.demo+pathologist@gmail.com` | Dr. Wanjiru Kamau, Kenyatta National Hospital |
 
 > [!WARNING]
-> The password is shared with the judges alongside the submission, never in this repository. No
-> credential belongs in code, assets, fixtures or docs.
+> One password unlocks the demo accounts on both the mobile app and the web release. It is
+> shared with the judges alongside the submission, never in this repository. No credential
+> belongs in code, assets, fixtures or docs.
+
+The web release is live at
+[tabibu-86ea2.web.app](https://tabibu-86ea2.web.app); the demo accounts above
+sign in there too.
 
 The accounts come from `make seed-live`, which also adds two clinic patients and an admin account for
 the Firebase console.
