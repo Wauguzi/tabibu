@@ -17,6 +17,7 @@ class FakeAudioRecorderService implements AudioRecorderService {
 
   bool supported;
   MicPermission permission;
+  MicPermission requestOrOpenSettingsResult = MicPermission.granted;
   RecordedAudio? recorded;
   List<double> levelValues;
 
@@ -46,6 +47,10 @@ class FakeAudioRecorderService implements AudioRecorderService {
 
   @override
   Future<MicPermission> ensurePermission() async => permission;
+
+  @override
+  Future<MicPermission> requestOrOpenSettings() async =>
+      requestOrOpenSettingsResult;
 
   @override
   Stream<double> get levels => _levels?.stream ?? const Stream<double>.empty();

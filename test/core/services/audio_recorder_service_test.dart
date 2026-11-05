@@ -9,6 +9,7 @@ import 'package:tabibu/core/services/audio_service_contract.dart';
 class _FakePlatform implements AudioRecorderPlatform {
   bool supported = true;
   MicPermission permission = MicPermission.granted;
+  MicPermission requestOrOpenSettingsResult = MicPermission.granted;
   List<int> bytes = const [1, 2, 3, 4];
   int? byteCapOverride;
 
@@ -30,6 +31,10 @@ class _FakePlatform implements AudioRecorderPlatform {
 
   @override
   Future<MicPermission> ensurePermission() async => permission;
+
+  @override
+  Future<MicPermission> requestOrOpenSettings() async =>
+      requestOrOpenSettingsResult;
 
   @override
   Future<String> createTempPath({required AudioFormat format}) async {
@@ -129,6 +134,13 @@ void main() {
       for (final value in MicPermission.values) {
         platform.permission = value;
         expect(await build().ensurePermission(), value);
+      }
+    });
+
+    test('passes the enable outcome through', () async {
+      for (final value in MicPermission.values) {
+        platform.requestOrOpenSettingsResult = value;
+        expect(await build().requestOrOpenSettings(), value);
       }
     });
   });

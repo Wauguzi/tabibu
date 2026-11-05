@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:firebase_remote_config/firebase_remote_config.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:material_ui/material_ui.dart';
+import 'package:permission_handler/permission_handler.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:tabibu/core/constants/app_radii.dart';
 import 'package:tabibu/core/constants/app_spacing.dart';
@@ -86,6 +87,11 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
   var _seconds = 0;
   var _level = 0.0;
   var _status = '';
+
+  /// The outcome behind the denied line, always set together with it: no
+  /// other path writes that line, so a stale value can never pair with
+  /// another status.
+  MicPermission? _deniedPermission;
   var _consentShown = false;
 
   /// The Transcribe press this form is waiting on; results for any other
@@ -165,6 +171,22 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     return true;
   }
 
+  /// The Enable microphone button: asks the OS, and records straight away
+  /// when the grant lands. Settings opens instead when permanently denied;
+  /// the status line then offers it again on return.
+  Future<void> _enableMicrophone() async {
+    final outcome = await _recorder.requestOrOpenSettings();
+    if (!mounted) return;
+    if (outcome == .granted) {
+      await _toggleRecord();
+    } else {
+      setState(() {
+        _status = context.l10n.symptomVoicePermissionDenied;
+        _deniedPermission = outcome;
+      });
+    }
+  }
+
   Future<void> _toggleRecord() async {
     final l10n = context.l10n;
     if (_voiceUnavailable) return;
@@ -181,7 +203,10 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
     final permission = await _recorder.ensurePermission();
     if (!mounted) return;
     if (permission != .granted) {
-      setState(() => _status = l10n.symptomVoicePermissionDenied);
+      setState(() {
+        _status = l10n.symptomVoicePermissionDenied;
+        _deniedPermission = permission;
+      });
       return;
     }
 
@@ -423,6 +448,22 @@ class _SymptomVoiceControlsState extends State<SymptomVoiceControls> {
           if (_status.isNotEmpty) ...[
             const SizedBox(height: AppSpacing.xs),
             Text(_status, style: muted),
+            if (_status == l10n.symptomVoicePermissionDenied &&
+                _deniedPermission != null) ...[
+              const SizedBox(height: AppSpacing.xs),
+              Align(
+                alignment: .centerLeft,
+                child: _deniedPermission == .permanentlyDenied
+                    ? TabibuButton.secondary(
+                        label: l10n.symptomVoiceOpenSettings,
+                        onTap: openAppSettings,
+                      )
+                    : TabibuButton.secondary(
+                        label: l10n.symptomVoiceEnableMicrophone,
+                        onTap: _enableMicrophone,
+                      ),
+              ),
+            ],
           ],
         ],
       ),

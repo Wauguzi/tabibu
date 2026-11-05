@@ -8529,6 +8529,14 @@
     "@symptomVoicePermissionDenied": {
         "description": "Booking: mic permission denied"
     },
+    "symptomVoiceEnableMicrophone": "Enable microphone",
+    "@symptomVoiceEnableMicrophone": {
+        "description": "Booking: ask the OS for the mic again"
+    },
+    "symptomVoiceOpenSettings": "Open Settings",
+    "@symptomVoiceOpenSettings": {
+        "description": "Booking: deep link to system settings for the mic"
+    },
     "symptomVoiceOffline": "You are offline. Type your symptoms, or try speaking again when you are back online.",
     "@symptomVoiceOffline": {
         "description": "Booking: offline while trying to transcribe"
@@ -8614,6 +8622,10 @@
     "chatVoiceOpenSettings": "Open Settings",
     "@chatVoiceOpenSettings": {
         "description": "Chat: deep link to system settings for the mic"
+    },
+    "chatVoiceEnableMicrophone": "Enable microphone",
+    "@chatVoiceEnableMicrophone": {
+        "description": "Chat: ask the OS for the mic again"
     },
     "chatVoiceStartFailed": "We could not start recording. Type a message, or try again.",
     "@chatVoiceStartFailed": {

@@ -124,6 +124,23 @@ class _MdtComposerState extends State<MdtComposer> {
     widget.onSend(text);
   }
 
+  /// The Enable microphone button: asks the OS, and records straight away
+  /// when the grant lands. Settings opens instead when permanently denied;
+  /// the status line then offers it again on return.
+  Future<void> _enableMicrophone() async {
+    final outcome = await _recorder.requestOrOpenSettings();
+    if (!mounted) return;
+    if (outcome == .granted) {
+      await _toggleRecord();
+    } else if (outcome == .permanentlyDenied) {
+      setState(() => _status = .permissionPermanent);
+    } else if (outcome == .denied) {
+      setState(() => _status = .permissionDenied);
+    } else {
+      setState(() => _status = .unsupported);
+    }
+  }
+
   Future<void> _toggleRecord() async {
     final onVoice = widget.onVoiceSend;
     if (onVoice == null || !widget.voiceEnabled) return;
@@ -301,6 +318,7 @@ class _MdtComposerState extends State<MdtComposer> {
         widget.onVoiceSend != null &&
         _recorder.isSupported;
     final permanent = _status == .permissionPermanent;
+    final canAsk = _status == .permissionDenied;
     final statusText = _statusText(l10n);
 
     return SafeArea(
@@ -451,6 +469,16 @@ class _MdtComposerState extends State<MdtComposer> {
                   child: TabibuButton.secondary(
                     label: l10n.chatVoiceOpenSettings,
                     onTap: openAppSettings,
+                  ),
+                ),
+              ],
+              if (canAsk) ...[
+                const SizedBox(height: AppSpacing.xs),
+                Align(
+                  alignment: .centerLeft,
+                  child: TabibuButton.secondary(
+                    label: l10n.chatVoiceEnableMicrophone,
+                    onTap: _enableMicrophone,
                   ),
                 ),
               ],

@@ -474,6 +474,38 @@ void main() {
     expect(find.text(l10n.symptomVoiceStartFailed), findsOneWidget);
   });
 
+  testWidgets('denied shows enable, and a grant starts recording', (
+    tester,
+  ) async {
+    recorder.permission = MicPermission.denied;
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text(l10n.symptomVoicePermissionDenied), findsOneWidget);
+    expect(find.text(l10n.symptomVoiceEnableMicrophone), findsOneWidget);
+    // The OS grant lands: both the handler outcome and the new status.
+    recorder
+      ..requestOrOpenSettingsResult = MicPermission.granted
+      ..permission = MicPermission.granted;
+    await tester.tap(find.text(l10n.symptomVoiceEnableMicrophone));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(recorder.startCount, 1);
+    expect(find.text(l10n.symptomVoicePermissionDenied), findsNothing);
+  });
+
+  testWidgets('permanent denial shows the settings shortcut', (tester) async {
+    recorder.permission = MicPermission.permanentlyDenied;
+    await pumpControls(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.symptomVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text(l10n.symptomVoicePermissionDenied), findsOneWidget);
+    expect(find.text(l10n.symptomVoiceOpenSettings), findsOneWidget);
+    expect(find.text(l10n.symptomVoiceEnableMicrophone), findsNothing);
+  });
+
   testWidgets('1.0x and 2.0x in en and sw without overflow', (tester) async {
     for (final locale in const [Locale('en'), Locale('sw')]) {
       for (final scale in [1.0, 2.0]) {

@@ -14,6 +14,10 @@ abstract class AudioRecorderPlatform {
 
   Future<MicPermission> ensurePermission();
 
+  /// Asks for the mic when the OS can still show its dialog; opens app
+  /// settings when permanently denied. Returns the outcome.
+  Future<MicPermission> requestOrOpenSettings();
+
   Future<String> createTempPath({required AudioFormat format});
 
   Future<void> start(String path, {required AudioFormat format});
@@ -70,6 +74,21 @@ class DeviceAudioRecorderPlatform implements AudioRecorderPlatform {
     if (status.isDenied) return .denied;
     // Restricted / limited / provisional: treat as denied for the mic path.
     return .denied;
+  }
+
+  @override
+  Future<MicPermission> requestOrOpenSettings() async {
+    if (kIsWeb) return .unsupported;
+    final status = await Permission.microphone.status;
+    if (status.isGranted) return .granted;
+    if (status.isDenied) {
+      final result = await Permission.microphone.request();
+      // iOS denies permanently on the first refusal.
+      if (result.isGranted) return .granted;
+      if (!result.isPermanentlyDenied) return .denied;
+    }
+    await openAppSettings();
+    return .permanentlyDenied;
   }
 
   @override

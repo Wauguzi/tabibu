@@ -56,6 +56,12 @@ abstract class AudioRecorderService {
   bool get isRecording;
   Future<MicPermission> ensurePermission();
 
+  /// The enable-microphone handler behind the permission buttons: asks for
+  /// the mic when it can still be asked, opens app settings when
+  /// permanently denied. Returns the outcome (unlike notifications' bool)
+  /// so the caller proceeds on granted without prompting a second time.
+  Future<MicPermission> requestOrOpenSettings();
+
   /// Throws [StateError] if already recording. Stops itself at the format's
   /// [AudioFormat.maxDuration].
   Future<void> start({AudioFormat format = .aacM4a});

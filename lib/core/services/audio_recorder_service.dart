@@ -54,6 +54,10 @@ class DeviceAudioRecorderService implements AudioRecorderService {
   Future<MicPermission> ensurePermission() => _platform.ensurePermission();
 
   @override
+  Future<MicPermission> requestOrOpenSettings() =>
+      _platform.requestOrOpenSettings();
+
+  @override
   Future<void> start({AudioFormat format = .aacM4a}) async {
     if (_recording) throw StateError('already recording');
     if (!isSupported) throw StateError('recorder unsupported');

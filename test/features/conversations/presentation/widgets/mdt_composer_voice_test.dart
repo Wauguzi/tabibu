@@ -120,6 +120,61 @@ void main() {
     },
   );
 
+  testWidgets('denied shows enable, and a grant starts recording', (
+    tester,
+  ) async {
+    recorder.permission = MicPermission.denied;
+    await pumpComposer(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.chatVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text(l10n.chatVoicePermissionDenied), findsOneWidget);
+    expect(find.text(l10n.chatVoiceEnableMicrophone), findsOneWidget);
+    // The OS grant lands: both the handler outcome and the new status.
+    recorder
+      ..requestOrOpenSettingsResult = MicPermission.granted
+      ..permission = MicPermission.granted;
+    await tester.tap(find.text(l10n.chatVoiceEnableMicrophone));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(recorder.startCount, 1);
+    expect(find.text(l10n.chatVoicePermissionDenied), findsNothing);
+  });
+
+  testWidgets('enabling with a refusal keeps the denied line', (tester) async {
+    recorder
+      ..permission = MicPermission.denied
+      ..requestOrOpenSettingsResult = MicPermission.denied;
+    await pumpComposer(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.chatVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text(l10n.chatVoiceEnableMicrophone));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(recorder.startCount, 0);
+    expect(find.text(l10n.chatVoicePermissionDenied), findsOneWidget);
+    expect(find.text(l10n.chatVoiceEnableMicrophone), findsOneWidget);
+  });
+
+  testWidgets('enabling that lands permanent swaps to settings', (
+    tester,
+  ) async {
+    recorder
+      ..permission = MicPermission.denied
+      ..requestOrOpenSettingsResult = MicPermission.permanentlyDenied;
+    await pumpComposer(tester);
+    await tester.tap(find.bySemanticsLabel(l10n.chatVoiceRecordLabel));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    await tester.tap(find.text(l10n.chatVoiceEnableMicrophone));
+    await tester.pump();
+    await tester.pump(const Duration(milliseconds: 50));
+    expect(find.text(l10n.chatVoicePermissionPermanent), findsOneWidget);
+    expect(find.text(l10n.chatVoiceOpenSettings), findsOneWidget);
+    expect(find.text(l10n.chatVoiceEnableMicrophone), findsNothing);
+  });
+
   testWidgets('1.0x and 2.0x in en and sw without overflow', (tester) async {
     for (final locale in const [Locale('en'), Locale('sw')]) {
       for (final scale in [1.0, 2.0]) {
