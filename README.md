@@ -197,7 +197,7 @@ password:
 | Pathologist | `tabibu.demo+pathologist@gmail.com` | Dr. Wanjiru Kamau, Kenyatta National Hospital |
 
 > [!WARNING]
-> One password unlocks the demo accounts on both the mobile app and the web release. It is
+> The [demo accounts](https://drive.google.com/drive/folders/1vupFwEUAz7L0DJBePR35bNW94c-0E4XV?usp=sharing) work on both the mobile app and the web release. It is
 > shared with the judges alongside the submission, never in this repository. No credential
 > belongs in code, assets, fixtures or docs.
 
